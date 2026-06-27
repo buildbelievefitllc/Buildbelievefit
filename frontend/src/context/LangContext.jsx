@@ -592,6 +592,28 @@ const DICT = {
   'wb-sc-compliance': { en: 'Lock In Your Logs', es: 'Registra Tus Datos', pt: 'Registre Seus Dados' },
   'wb-sc-plateau': { en: 'Strategic Deload', es: 'Descarga Estratégica', pt: 'Descarga Estratégica' },
   'wb-sc-neutral': { en: 'Stay Consistent', es: 'Mantén La Constancia', pt: 'Mantenha A Constância' },
+  // ── The Sovereign Sequence ("Breaking the Loop") — adult Hub guided hand-off.
+  // Anchor copy + the four-step homework shield + every step CTA across the flow
+  // (Hub → Check-In → Prep → Program → Cardio). Trilingual so the chosen language
+  // carries through the whole sequence, not just the chrome.
+  'svs-kicker': { en: 'The Sovereign Sequence', es: 'La Secuencia Soberana', pt: 'A Sequência Soberana' },
+  'svs-head': { en: 'Breaking the Loop', es: 'Rompiendo el Ciclo', pt: 'Quebrando o Ciclo' },
+  'svs-listen': { en: 'Listen: Breaking the Loop', es: 'Escuchar: Rompiendo el Ciclo', pt: 'Ouvir: Quebrando o Ciclo' },
+  'svs-card-title': { en: 'THE SOVEREIGN SEQUENCE: YOUR DAILY HOMEWORK', es: 'LA SECUENCIA SOBERANA: TU TAREA DIARIA', pt: 'A SEQUÊNCIA SOBERANA: SUA TAREFA DIÁRIA' },
+  'svs-s1-h': { en: 'Data Capture (Check-In)', es: 'Captura de Datos (Check-In)', pt: 'Captura de Dados (Check-In)' },
+  'svs-s1-d': { en: 'Nervous system scanning dictates training volume.', es: 'El escaneo del sistema nervioso dicta el volumen de entrenamiento.', pt: 'O escaneamento do sistema nervoso dita o volume de treino.' },
+  'svs-s2-h': { en: 'Tissue Priming (Recovery)', es: 'Preparación de Tejidos (Recuperación)', pt: 'Preparação dos Tecidos (Recuperação)' },
+  'svs-s2-d': { en: 'Equipment-free mobilization to prevent injury.', es: 'Movilización sin equipo para prevenir lesiones.', pt: 'Mobilização sem equipamento para prevenir lesões.' },
+  'svs-s3-h': { en: 'Execution (Program)', es: 'Ejecución (Programa)', pt: 'Execução (Programa)' },
+  'svs-s3-d': { en: 'Adaptive load protocols mapped to daily readiness.', es: 'Protocolos de carga adaptativa mapeados a tu preparación diaria.', pt: 'Protocolos de carga adaptativa mapeados à sua prontidão diária.' },
+  'svs-s4-h': { en: 'System Flush (Cardio)', es: 'Drenaje del Sistema (Cardio)', pt: 'Dreno do Sistema (Cardio)' },
+  'svs-s4-d': { en: 'Targeted work to accelerate recovery.', es: 'Trabajo dirigido para acelerar la recuperación.', pt: 'Trabalho direcionado para acelerar a recuperação.' },
+  'svs-cta-1': { en: 'Step 1: Execute Check-In ➔', es: 'Paso 1: Ejecuta el Check-In ➔', pt: 'Passo 1: Execute o Check-In ➔' },
+  'svs-cta-2': { en: 'Step 2: Prime the Engine (Prep) ➔', es: 'Paso 2: Prepara el Motor (Prep) ➔', pt: 'Passo 2: Prepare o Motor (Prep) ➔' },
+  'svs-cta-3': { en: 'Step 3: Enter the Floor (Program) ➔', es: 'Paso 3: Entra a la Sala (Programa) ➔', pt: 'Passo 3: Entre na Sala (Programa) ➔' },
+  'svs-cta-4': { en: 'Step 4: Dial in Cardio ➔', es: 'Paso 4: Ajusta el Cardio ➔', pt: 'Passo 4: Ajuste o Cardio ➔' },
+  'svs-cta-prehab-fork': { en: 'Report Joint Friction / Pain ➔', es: 'Reporta Fricción / Dolor Articular ➔', pt: 'Relate Atrito / Dor Articular ➔' },
+  'svs-cta-prehab-cardio': { en: 'Next: Flush the System (Cardio) ➔', es: 'Siguiente: Drena el Sistema (Cardio) ➔', pt: 'Próximo: Drene o Sistema (Cardio) ➔' },
   // Daily Affirmation Coach (Champion Mindset) — voice-coached trilingual affirmation.
   'aff-header': { en: "Today's Affirmation", es: 'Afirmación de Hoy', pt: 'Afirmação de Hoje' },
   'aff-new': { en: 'New', es: 'Nuevo', pt: 'Novo' },

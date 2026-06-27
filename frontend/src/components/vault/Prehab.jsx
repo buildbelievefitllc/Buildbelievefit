@@ -900,6 +900,7 @@ function PrehabReadinessBanner({ readiness }) {
 }
 
 export default function Prehab({ onSequence }) {
+  const { t } = useLang();
   // The shared CNS telemetry channel — the EXACT store ProgramGrid / Smart Cardio
   // read, so a manual baseline (or a wearable sync) lights up this tab the moment
   // it lands, live, via PROTOCOL_UPDATED_EVENT (no reload).
@@ -916,7 +917,7 @@ export default function Prehab({ onSequence }) {
           "Report Joint Friction / Pain" button); from here, flush the system with
           cardio. Adult-only (gated on onSequence; never in the Command Center mount). */}
       {onSequence ? (
-        <SequenceNext label="Next: Flush the System (Cardio) ➔" onClick={() => onSequence('cardio')} testid="sovereign-prehab-cardio" />
+        <SequenceNext label={t('svs-cta-prehab-cardio')} onClick={() => onSequence('cardio')} testid="sovereign-prehab-cardio" />
       ) : null}
     </div>
   );

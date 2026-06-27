@@ -42,14 +42,16 @@ function fmtStat(v) {
 }
 
 export default function VaultHub({ profile, isLoading, error, onSequence }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   // Biokinetic Forecast — collapsible drawer on the LANDING Client Hub (the tab the
   // athlete sees on login). Default COLLAPSED so the Hub stays clean until opened.
   const [fcOpen, setFcOpen] = useState(false);
   // Weekly Brief — the coach's Monday voice memo, fetched independently of the
   // profile read so it can paint top-of-fold the moment it resolves (identity is
-  // bound server-side via the vault token; profile.uid is an optional hint).
-  const { data: brief, loading: briefLoading, error: briefError } = useWeeklyBrief(profile?.uid);
+  // bound server-side via the vault token; profile.uid is an optional hint). The
+  // active language is passed through so the brief is rendered AND voiced in-locale,
+  // and re-fetched when the athlete switches languages.
+  const { data: brief, loading: briefLoading, error: briefError } = useWeeklyBrief(profile?.uid, lang);
   return (
     <div className="pg">
       {/* 30-Day Biometric Calibration HUD — the Day-X/30 progress rail (or the

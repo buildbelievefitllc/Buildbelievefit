@@ -41,6 +41,7 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
   const tr = STR[lang] || STR.en;
   const audioRef = useRef(null);
   const stockRef = useRef(null); // active stock-voice controller (failure fallback)
+  const loadedLangRef = useRef(null); // locale the cached clip was synthesized for
   const [url, setUrl] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(false);
@@ -60,8 +61,10 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
   async function onClick() {
     if (busy) return;
     const el = audioRef.current;
-    // Toggle an already-loaded ElevenLabs clip.
-    if (url && el) { if (playing) el.pause(); else el.play().catch(() => setErr(true)); return; }
+    // Toggle an already-loaded ElevenLabs clip — but ONLY if it was synthesized for
+    // the CURRENT language. If the athlete switched locales since loading, fall
+    // through and re-fetch so the voice always matches the chosen language.
+    if (url && el && loadedLangRef.current === lang) { if (playing) el.pause(); else el.play().catch(() => setErr(true)); return; }
     // Toggle an active stock-voice fallback.
     if (stockRef.current) { try { stockRef.current.stop(); } catch { /* noop */ } stockRef.current = null; setPlaying(false); return; }
 
@@ -77,6 +80,7 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
       const u = audioRequest
         ? await audioRequest()
         : await fetchCoachAudio({ exerciseName, targetReps, formCues, equipment, locale: lang });
+      loadedLangRef.current = lang; // tag the clip with the locale it was fetched for
       setUrl(u);
       requestAnimationFrame(() => { audioRef.current?.play().catch(() => setErr(true)); });
     } catch {

@@ -78,7 +78,7 @@ export default function Recovery({ plans = null, onSequence }) {
       {/* Sovereign Sequence · Step 3 — bottom of Recovery → the Program floor.
           Adult-only (gated on onSequence; the Command Center / prep overlay pass none). */}
       {onSequence ? (
-        <SequenceNext label="Step 3: Enter the Floor (Program) ➔" onClick={() => onSequence('program')} testid="sovereign-step-3" />
+        <SequenceNext label={t('svs-cta-3')} onClick={() => onSequence('program')} testid="sovereign-step-3" />
       ) : null}
     </section>
   );

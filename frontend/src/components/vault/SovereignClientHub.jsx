@@ -573,7 +573,7 @@ export default function SovereignClientHub({ refreshKey = 0, onSequence }) {
           (a fresh save OR today's stored ledger). Routes to RECOVERY (equipment-free
           prep), NOT the diagnostic Prehab. Adult-only (gated on onSequence). ── */}
       {view && onSequence ? (
-        <SequenceNext label="Step 2: Prime the Engine (Prep) ➔" onClick={() => onSequence('recovery')} testid="sovereign-step-2" />
+        <SequenceNext label={t('svs-cta-2')} onClick={() => onSequence('recovery')} testid="sovereign-step-2" />
       ) : null}
 
       {/* ── HEALTH CONNECT STATUS — the zero-guess handshake diagnostic ── */}

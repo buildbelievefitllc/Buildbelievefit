@@ -70,7 +70,7 @@ function formatStamp(iso) {
 
 export default function Program({ plans, profile, onSequence }) {
   const { user, isAdmin } = useAuth();
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const tr = STR[lang] || STR.en;
   const uid = user?.username || user?.id || '';
   const textPlan = plans?.workoutPlan || '';
@@ -141,8 +141,8 @@ export default function Program({ plans, profile, onSequence }) {
           diagnostic for anyone reporting joint friction / pain. */}
       {onSequence ? (
         <div className="svs-next">
-          <SequenceCTA label="Step 4: Dial in Cardio ➔" onClick={() => onSequence('cardio')} testid="sovereign-step-4" />
-          <SequenceCTA label="Report Joint Friction / Pain ➔" onClick={() => onSequence('prehab')} testid="sovereign-fork-prehab" variant="secondary" />
+          <SequenceCTA label={t('svs-cta-4')} onClick={() => onSequence('cardio')} testid="sovereign-step-4" />
+          <SequenceCTA label={t('svs-cta-prehab-fork')} onClick={() => onSequence('prehab')} testid="sovereign-fork-prehab" variant="secondary" />
         </div>
       ) : null}
     </div>

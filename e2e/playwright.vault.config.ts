@@ -18,7 +18,7 @@ export default defineConfig({
   testDir: './tests',
   // React Vault suites. Acceptance specs (prehab, smart-cardio) are HELD —
   // every test self-skips unless its BBF_*_READY flag is set (see each spec).
-  testMatch: ['**/vault-logging.spec.ts', '**/vault-checkin-manual.spec.ts', '**/prehab.spec.ts', '**/smart-cardio.spec.ts', '**/smart-cardio-generator.spec.ts', '**/sports-hub.spec.ts', '**/champion-mindset-visual.spec.ts'],
+  testMatch: ['**/vault-logging.spec.ts', '**/vault-checkin-manual.spec.ts', '**/vault-i18n-voice.spec.ts', '**/prehab.spec.ts', '**/smart-cardio.spec.ts', '**/smart-cardio-generator.spec.ts', '**/sports-hub.spec.ts', '**/champion-mindset-visual.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -32,6 +32,12 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    // Sandboxed/CI runners may ship a pre-installed Chromium whose build differs
+    // from this Playwright pin. Set BBF_CHROMIUM_PATH to that binary to run against
+    // it instead of downloading. Inert (undefined) by default — no effect locally/CI.
+    ...(process.env.BBF_CHROMIUM_PATH
+      ? { launchOptions: { executablePath: process.env.BBF_CHROMIUM_PATH } }
+      : {}),
   },
   projects: [
     { name: 'vault-chromium', use: { ...devices['Desktop Chrome'] } },
