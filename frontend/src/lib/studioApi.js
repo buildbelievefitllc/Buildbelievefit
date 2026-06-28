@@ -8,6 +8,18 @@
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
+import audioVaultManifest from '../data/audioVaultManifest.json';
+
+// Zero-latency cache: { exercise_name → permanent Supabase Storage URL }, seeded
+// offline by scripts/seed-audio-vault.js. An exact topic match short-circuits the
+// Edge Function entirely (no network, $0 spend). Canonical source is the repo-root
+// audio-vault-manifest.json — keep this copy in sync when the vault is re-seeded.
+function lookupVaultUrl(topic) {
+  const key = (topic || '').trim();
+  if (!key || !Object.prototype.hasOwnProperty.call(audioVaultManifest, key)) return null;
+  const url = audioVaultManifest[key];
+  return typeof url === 'string' && url ? url : null;
+}
 
 // Generate a voiceover. Returns { url, blob, billedChars, vibe }. The caller owns
 // the object URL and must revoke it. Throws a display-ready Error on any failure.
@@ -48,6 +60,14 @@ export async function generateStudioVoice({ script, vibe }) {
 // ({ ok, cached, slug, url, vibe, duration, model?, usage? }); throws a
 // display-ready Error on failure.
 export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang }) {
+  // Zero-latency manifest cache: exact topic match returns the pre-seeded vault
+  // URL instantly, skipping the Edge Function. `cached: true` makes the UI surface
+  // "Loaded from vault — cache hit, $0 spend." (same path as a server-side hit).
+  const cachedUrl = lookupVaultUrl(topic);
+  if (cachedUrl) {
+    return { ok: true, cached: true, fromManifest: true, url: cachedUrl, vibe };
+  }
+
   const token = getStoredVaultToken();
   const res = await fetch(`${FUNCTIONS_BASE}/bbf-studio-voiceover`, {
     method: 'POST',
