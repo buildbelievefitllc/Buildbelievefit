@@ -10,6 +10,16 @@ import ExerciseCombobox from './ExerciseCombobox';
 // seed — NO script text, so the client bundle stays small). Drives the grouped
 // topic picker. The actual zero-cost URL lookup lives in studioApi.js.
 import audioVaultCategories from '../../data/audioVaultCategories.json';
+// FRONT 6 — pre-rendered scenario audio vault ($0, zero-latency). Populated by
+// scripts/compile-voice-vault.js; selecting an item loads its URL straight into
+// the reel audio, bypassing the live generation edge function.
+import sovereignVaultManifest from '../../data/sovereignVaultManifest.json';
+
+// Group the pre-rendered vault by category for the dropdown's <optgroup>s.
+const VAULT_BY_CATEGORY = sovereignVaultManifest.reduce((acc, item) => {
+  (acc[item.category || 'General'] = acc[item.category || 'General'] || []).push(item);
+  return acc;
+}, {});
 
 // Group the cached exercises by category for the topic picker. Friendly labels +
 // a deliberate order; any unknown category falls in after, alphabetically.
@@ -150,6 +160,18 @@ export default function VibeSelector({ reelData, handleReelChange }) {
   // ReelPreviewEngine. studioApi is imported DYNAMICALLY so this component still
   // mounts in the supabase-less verification harness (the import only evaluates
   // supabaseClient on click, never at mount).
+  // FRONT 6 — select a pre-rendered vault scenario → load its URL straight into the
+  // reel audio (bypass the live generation edge function entirely; $0, instant).
+  function handleVaultSelect(e) {
+    const id = e.target.value;
+    if (!id) return;
+    const item = sovereignVaultManifest.find((x) => x.id === id);
+    if (!item) return;
+    handleReelChange('voUrl', item.url);
+    handleReelChange('voTopic', item.subjectLine);
+    setVoNote({ ok: true, text: `Loaded pre-rendered “${item.subjectLine}” from the vault — $0, zero-latency.` });
+  }
+
   async function handleGenerateVoiceover() {
     const topic = (reelData.voTopic || '').trim();
     if (voBusy) return;
@@ -292,6 +314,25 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           </div>
         )}
       </div>
+
+      {sovereignVaultManifest.length > 0 && (
+        <div className="ctl-group-v4">
+          <label className="ctl-label-v4">📼 Pre-Rendered Vault ($0 · instant)</label>
+          <select className="select-v4" defaultValue="" onChange={handleVaultSelect}>
+            <option value="">— pick a pre-rendered scenario —</option>
+            {Object.entries(VAULT_BY_CATEGORY).map(([cat, items]) => (
+              <optgroup key={cat} label={cat}>
+                {items.map((it) => (
+                  <option key={it.id} value={it.id}>
+                    {it.subjectLine}{it.scenario ? ` — ${it.scenario}` : ''}{it.duration ? ` (${it.duration})` : ''}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <div className="hint-v4">Loads a pre-rendered MP3 straight into the reel audio — no generation, no spend.</div>
+        </div>
+      )}
 
       <div className="divider-v4"></div>
 
