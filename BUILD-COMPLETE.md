@@ -1,5 +1,11 @@
 # BUILD COMPLETE — `bbf-sovereign-studio-v3.html`
 
+> **⚠️ SUPERSEDED (2026-06):** the legacy `bbf-sovereign-studio-v3.html` monolith has
+> been removed. The studio is now the native React **Studio V4** architecture at
+> `frontend/src/components/SovereignStudioV4/`, surfaced as the Command Center
+> `studio-v4` panel (`/studio` 301-redirects there). This document is retained as a
+> historical record of the v3 build only.
+
 A copy of the studio (`bbf-studio.html`, branded *"Sovereign Studio V2"*) with two upgrades.
 Existing modes (CTA / Phone / Spotlight / Reel) are unchanged in behavior — both upgrades are
 additive or fix shared code.

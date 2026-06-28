@@ -70,19 +70,17 @@ export default function MasterLayout({ children }) {
               </button>
             );
           })}
-          {/* Content Studio — a standalone, full-screen HTML content tool (NOT a
-              React route), so it opens in a NEW TAB via a real browser navigation.
-              Router navigate() would hit the SPA '*' fallback and bounce to '/';
-              the physical file at /bbf-sovereign-studio-v3.html (served from
-              frontend/public → dist) is what actually loads. Admin-only — AdminGuard-gated. */}
-          <a
-            href="/bbf-sovereign-studio-v3.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ ...styles.navItem, ...styles.navLaunch }}
+          {/* Content Studio — now the native React "Studio V4" panel (the legacy
+              standalone v3 HTML was removed). In-app navigation to its Command
+              Center tab, same as the other nav items. */}
+          <button
+            type="button"
+            onClick={() => navigate('/command/studio-v4')}
+            aria-current={activeSurface === 'studio-v4' ? 'page' : undefined}
+            style={{ ...styles.navItem, ...(activeSurface === 'studio-v4' ? styles.navItemActive : null) }}
           >
-            {t('cmd-studio')} ↗
-          </a>
+            {t('cmd-studio')}
+          </button>
         </nav>
 
         <div className="bbf-sidebar-foot">

@@ -1,8 +1,9 @@
 // bbf-studio-queue — secure "Queue this post" write-path for Sovereign Studio.
 // ─────────────────────────────────────────────────────────────────────────────
-// Sovereign Studio (bbf-sovereign-studio-v3.html) is served PUBLICLY, so it must
-// NEVER hold a service-role or admin secret. This function is the trusted bridge
-// between the public manual-design tool and the Supabase auto-post queue:
+// Sovereign Studio (the React "Studio V4" panel, frontend/src/components/
+// SovereignStudioV4/) runs in the browser and must NEVER hold a service-role or
+// admin secret. This function is the trusted bridge between that client-side
+// design tool and the Supabase auto-post queue:
 //
 //   • The browser bakes a post (PNG card/reel-cover/phone/spotlight, or an MP4
 //     reel) entirely client-side, then asks THIS function for a one-shot signed
