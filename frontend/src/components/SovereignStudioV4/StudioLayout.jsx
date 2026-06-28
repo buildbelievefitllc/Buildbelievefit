@@ -1,7 +1,6 @@
 // src/components/SovereignStudioV4/StudioLayout.jsx
 // Main UI grid: controls sidebar (left) + preview (right)
 
-import { useState } from 'react';
 import VibeSelector from './VibeSelector';
 import ReelPreviewEngine from './ReelPreviewEngine';
 

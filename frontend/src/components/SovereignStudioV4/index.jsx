@@ -2,7 +2,7 @@
 // Master container for Sovereign Studio V4 — fresh native React rebuild
 // Uses v3 strictly as a visual & functional reference, not code translation
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import StudioLayout from './StudioLayout';
 import './sovereignStudioV4.css';
 
