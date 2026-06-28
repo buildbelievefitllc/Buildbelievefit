@@ -1,6 +1,6 @@
 [
   {
-    "execution_timestamp": "2026-06-28T23:43:26.015Z",
+    "execution_timestamp": "2026-06-28T23:53:58.412Z",
     "client_id": "BBF-1001",
     "language": "EN",
     "onboarding_parameter": {
@@ -36,12 +36,14 @@
       "measurement_matrix_entry": {
         "brief_script_reference": "vault://briefs/onboarding/D3_FOUNDATION/EN_80_100_40_100_strength",
         "brief_track": "30_day_onboarding",
+        "brief_available": true,
+        "brief_status": "RESOLVED",
         "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T23:43:26.015Z",
+    "execution_timestamp": "2026-06-28T23:53:58.412Z",
     "client_id": "BBF-1002",
     "language": "ES",
     "onboarding_parameter": {
@@ -79,12 +81,14 @@
       "measurement_matrix_entry": {
         "brief_script_reference": "vault://briefs/onboarding/D18_MOMENTUM/ES_60_70_70_150_mobility",
         "brief_track": "30_day_onboarding",
+        "brief_available": true,
+        "brief_status": "RESOLVED",
         "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T23:43:26.015Z",
+    "execution_timestamp": "2026-06-28T23:53:58.412Z",
     "client_id": "BBF-1003",
     "language": "PT",
     "onboarding_parameter": {
@@ -124,12 +128,14 @@
       "measurement_matrix_entry": {
         "brief_script_reference": "vault://briefs/onboarding/D30_GRADUATION/PT_60_70_70_50_recovery",
         "brief_track": "30_day_onboarding",
+        "brief_available": true,
+        "brief_status": "RESOLVED",
         "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T23:43:26.015Z",
+    "execution_timestamp": "2026-06-28T23:53:58.412Z",
     "client_id": "BBF-1004",
     "language": "EN",
     "onboarding_parameter": {
@@ -167,12 +173,14 @@
       "measurement_matrix_entry": {
         "brief_script_reference": "vault://briefs/EN_100_100_40_150_stability",
         "brief_track": "standard",
+        "brief_available": true,
+        "brief_status": "RESOLVED",
         "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T23:43:26.015Z",
+    "execution_timestamp": "2026-06-28T23:53:58.412Z",
     "client_id": "BBF-1005",
     "language": "ES",
     "onboarding_parameter": {
@@ -211,12 +219,14 @@
       "measurement_matrix_entry": {
         "brief_script_reference": "vault://briefs/onboarding/D7_FOUNDATION/ES_60_70_70_100_recovery",
         "brief_track": "30_day_onboarding",
+        "brief_available": true,
+        "brief_status": "RESOLVED",
         "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T23:43:26.015Z",
+    "execution_timestamp": "2026-06-28T23:53:58.412Z",
     "client_id": "BBF-1006",
     "language": "EN",
     "onboarding_parameter": {
@@ -253,12 +263,14 @@
       "measurement_matrix_entry": {
         "brief_script_reference": "vault://briefs/EN_100_100_40_151_plus_strength",
         "brief_track": "standard",
+        "brief_available": true,
+        "brief_status": "RESOLVED",
         "customization_required": false
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T23:43:26.015Z",
+    "execution_timestamp": "2026-06-28T23:53:58.412Z",
     "client_id": "BBF-1007",
     "language": "FR",
     "onboarding_parameter": {

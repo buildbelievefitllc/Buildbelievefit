@@ -30,6 +30,18 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const VALID_LANGS = ['EN', 'ES', 'PT'];
+
+// Brief script library (scenario_id → pre-written brief). Lets the matrix report
+// which scenarios already have a vault brief (RESOLVED) vs need authoring.
+function loadBriefLibrary() {
+  try {
+    const f = path.resolve(__dirname, 'bbf-brief-scripts.json');
+    if (!fs.existsSync(f)) return new Map();
+    const arr = JSON.parse(fs.readFileSync(f, 'utf8'));
+    return new Map((Array.isArray(arr) ? arr : []).map((x) => [x.scenario_id, x]));
+  } catch { return new Map(); }
+}
+const BRIEF_LIBRARY = loadBriefLibrary();
 const SPIKE_THRESHOLD = 1.4; // >40% over the trailing average
 const ASSUMED_DEFAULT = 50;
 const CNS_BASELINE_FALLBACK = 50; // when CNS is missing AND no usable history
@@ -209,11 +221,16 @@ function table(client, v1, ob) {
     : `vault://briefs/${scenarioId}`;
   // Customize when the bio wasn't a clean PASS, OR the client is still onboarding.
   const customizationRequired = v1.status !== 'PASS' || newClient;
+  // Resolve against the brief vault — RESOLVED if a script exists for this
+  // scenario_id, else NEEDS_AUTHORING (squad authors/renders it next).
+  const briefAvailable = BRIEF_LIBRARY.has(scenarioId);
   return {
     scenario_id: scenarioId,
     measurement_matrix_entry: {
       brief_script_reference: briefRef,
       brief_track: briefTrack,
+      brief_available: briefAvailable,
+      brief_status: briefAvailable ? 'RESOLVED' : 'NEEDS_AUTHORING',
       customization_required: customizationRequired,
     },
   };
