@@ -1,8 +1,11 @@
 // src/components/SovereignStudioV4/StudioLayout.jsx
 // Main UI grid: controls sidebar (left) + preview (right)
 
+import { useRef, useState } from 'react';
 import VibeSelector from './VibeSelector';
 import ReelPreviewEngine from './ReelPreviewEngine';
+import StageScaler from './StageScaler';
+import { renderMarkup } from './markup.jsx';
 
 export default function StudioLayout({
   mode,
@@ -14,6 +17,48 @@ export default function StudioLayout({
   reelData,
   handleReelChange,
 }) {
+  // Ref to the active export stage (the un-scaled 1080-wide node). The preview
+  // shows it visually shrunk via StageScaler's transform; for export we briefly
+  // neutralize that transform so html2canvas captures at full export resolution.
+  const stageRef = useRef(null);
+  const [exporting, setExporting] = useState(false);
+
+  const exportPNG = async (slug) => {
+    const node = stageRef.current;
+    if (!node || exporting) return;
+    setExporting(true);
+    const scaler = node.closest('.stage-scaler-inner');
+    const prevTransform = scaler ? scaler.style.transform : null;
+    if (scaler) scaler.style.transform = 'none';
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      const canvas = await html2canvas(node, {
+        backgroundColor: '#0a0a0a',
+        scale: 1,
+        useCORS: true,
+        imageTimeout: 4000, // never hang indefinitely on a slow/blocked asset
+        width: node.offsetWidth,
+        height: node.offsetHeight,
+      });
+      // Blob + object URL is far more reliable for download than a giant data: URL.
+      const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bbf-${slug}-${canvas.width}x${canvas.height}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (e) {
+      /* export failures are non-fatal — surface nothing rather than crash the UI */
+      console.error('[StudioV4] PNG export failed:', e);
+    } finally {
+      if (scaler) scaler.style.transform = prevTransform || '';
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="layout-v4">
       <div className="controls-v4">
@@ -27,8 +72,11 @@ export default function StudioLayout({
                 className="select-v4"
               >
                 <option value="all">ALL LANES (full shuffle)</option>
-                <option value="capable">I AM CAPABLE</option>
                 <option value="fence">FEAR & THE FENCE</option>
+                <option value="identity">IDENTITY & LEGACY</option>
+                <option value="parent">THE WORKING PARENT</option>
+                <option value="responder">FIRST RESPONDER</option>
+                <option value="vision">VISION & MANIFESTATION</option>
                 <option value="comeback">THE COMEBACK</option>
               </select>
             </div>
@@ -37,7 +85,7 @@ export default function StudioLayout({
               <button className="spin-btn-v4" onClick={spinCard}>
                 🎰 SPIN A CARD
               </button>
-              <div className="hint-v4">Pulls from the catalog + a random palette. Everything stays editable.</div>
+              <div className="hint-v4">Pulls a headline, body &amp; CTA from the selected lane (or shuffles all). Everything stays editable.</div>
             </div>
 
             <div className="divider-v4"></div>
@@ -129,8 +177,12 @@ export default function StudioLayout({
             </div>
 
             <div className="ctl-group-v4">
-              <button className="export-btn-v4">⬇ EXPORT PNG</button>
-              <button className="queue-btn-v4">📡 QUEUE THIS POST → IG/FB</button>
+              <button className="export-btn-v4" onClick={() => exportPNG('cta')} disabled={exporting}>
+                {exporting ? '… RENDERING' : '⬇ EXPORT PNG'}
+              </button>
+              <button className="queue-btn-v4" disabled title="Auto-post pipeline ships in V4.1">
+                📡 QUEUE → IG/FB · SOON
+              </button>
             </div>
           </div>
         )}
@@ -197,7 +249,9 @@ export default function StudioLayout({
             </div>
 
             <div className="ctl-group-v4">
-              <button className="export-btn-v4">⬇ EXPORT 1080×1350</button>
+              <button className="export-btn-v4" onClick={() => exportPNG('phone')} disabled={exporting}>
+                {exporting ? '… RENDERING' : '⬇ EXPORT 1080×1350'}
+              </button>
             </div>
           </div>
         )}
@@ -215,42 +269,62 @@ export default function StudioLayout({
       <div className="preview-wrap-v4">
         {mode === 'cta' && (
           <div className="stage-host-v4 active">
-            <div
-              className={`stage-cta-v4 ${ctaData.format === 'story' ? 'story' : ''}`}
-              style={{
-                '--primary-color': ctaData.primaryColor,
-                '--secondary-color': ctaData.secondaryColor,
-              }}
-            >
-              <div className="cta-eye-v4">{ctaData.eyebrow}</div>
-              <div className="cta-hl-v4">{ctaData.headline}</div>
-              <div className="cta-body-v4">{ctaData.body}</div>
-              <div className="cta-btn-v4">{ctaData.buttonText}</div>
-            </div>
+            <StageScaler designWidth={1080} designHeight={ctaData.format === 'story' ? 1920 : 1350}>
+              <div
+                ref={stageRef}
+                className={`stage-cta-v4 ${ctaData.format === 'story' ? 'story' : ''}`}
+                style={{
+                  '--primary-color': ctaData.primaryColor,
+                  '--secondary-color': ctaData.secondaryColor,
+                }}
+              >
+                {/* on-brand accent bar + ambient glow (v3 parity) */}
+                <div className="cta-tbar-v4" />
+                <div className="cta-glow-v4" />
+                <div className="cta-z-v4">
+                  <div className="cta-eye-v4">{ctaData.eyebrow}</div>
+                  <div className="cta-hl-v4">{renderMarkup(ctaData.headline, ctaData.primaryColor)}</div>
+                </div>
+                <div className="cta-z-v4">
+                  <div className="cta-rule-v4" />
+                  <div className="cta-body-v4">{renderMarkup(ctaData.body, ctaData.primaryColor)}</div>
+                  <div className="cta-foot-v4">
+                    <span className="cta-brand-v4">BUILD<span>BELIEVE</span>FIT</span>
+                    <span className="cta-btn-v4">{ctaData.buttonText}</span>
+                  </div>
+                </div>
+              </div>
+            </StageScaler>
           </div>
         )}
 
         {mode === 'phone' && (
           <div className="stage-host-v4 active">
-            <div className="stage-phone-v4">
-              <div className={`phone-frame-v4 frame-${phoneData.frame}`}>
-                <div className="phone-screen-v4">
-                  <div className="phone-content-v4">
-                    <div className="phone-eye-v4">{phoneData.eyebrow}</div>
-                    <div className="phone-hl-v4">{phoneData.headline}</div>
-                    <div className="phone-benefit-v4">{phoneData.benefit}</div>
+            <StageScaler designWidth={1080} designHeight={1350}>
+              <div className="stage-phone-v4" ref={stageRef}>
+                <div className="phone-strip-v4" />
+                <div className="phone-text-v4">
+                  <div className="phone-eye-v4">{phoneData.eyebrow}</div>
+                  <div className="phone-hl-v4">{phoneData.headline}</div>
+                  <div className="phone-benefit-v4">{phoneData.benefit}</div>
+                </div>
+                <div className={`phone-frame-v4 frame-${phoneData.frame} layout-${phoneData.layout}`}>
+                  <div className="phone-notch-v4" />
+                  <div className="phone-screen-v4">
+                    <div className="phone-screen-ph-v4">SCREENSHOT</div>
                   </div>
                 </div>
               </div>
-            </div>
+            </StageScaler>
           </div>
         )}
 
         {mode === 'reel' && (
-          <ReelPreviewEngine
-            reelData={reelData}
-            handleReelChange={handleReelChange}
-          />
+          <div className="stage-host-v4 active">
+            <StageScaler designWidth={1080} designHeight={1920}>
+              <ReelPreviewEngine reelData={reelData} handleReelChange={handleReelChange} />
+            </StageScaler>
+          </div>
         )}
       </div>
     </div>

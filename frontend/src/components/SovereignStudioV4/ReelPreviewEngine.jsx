@@ -1,7 +1,18 @@
 // src/components/SovereignStudioV4/ReelPreviewEngine.jsx
-// Video player + text overlay state for the reel preview
+// Video player + text-overlay state for the reel cover. Renders at the TRUE
+// 1080×1920 design resolution (the parent StageScaler shrinks it to fit), so the
+// px overlay typography matches the exported frame 1:1. Video wins over the
+// placeholder; the overlay skin is driven by reelData.overlayStyle.
 
 import { useState, useRef, useEffect } from 'react';
+
+const OVERLAY_CLASS = {
+  scrim: 'ovl-scrim',
+  cinematic: 'ovl-cinematic',
+  minimal: 'ovl-minimal',
+  lowerthird: 'ovl-lowerthird',
+  frame: 'ovl-frame',
+};
 
 export default function ReelPreviewEngine({ reelData }) {
   const videoRef = useRef(null);
@@ -11,109 +22,99 @@ export default function ReelPreviewEngine({ reelData }) {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) return undefined;
 
-    const updateTime = () => setCurrentTime(video.currentTime);
-    const updateDuration = () => setDuration(video.duration);
-    const handleEnded = () => setIsPlaying(false);
+    // Fresh clip → reset the scrubber so the bar never carries a stale width.
+    setCurrentTime(0);
+    setDuration(0);
+    setIsPlaying(false);
 
-    video.addEventListener('timeupdate', updateTime);
-    video.addEventListener('loadedmetadata', updateDuration);
-    video.addEventListener('ended', handleEnded);
+    const onTime = () => setCurrentTime(video.currentTime);
+    const onMeta = () => setDuration(video.duration || 0);
+    const onEnded = () => setIsPlaying(false);
+    // Drive isPlaying from the element's ACTUAL state, so external pauses (media
+    // keys, autoplay rejection) can't desync the play/pause glyph.
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
 
+    video.addEventListener('timeupdate', onTime);
+    video.addEventListener('loadedmetadata', onMeta);
+    video.addEventListener('ended', onEnded);
+    video.addEventListener('play', onPlay);
+    video.addEventListener('pause', onPause);
     return () => {
-      video.removeEventListener('timeupdate', updateTime);
-      video.removeEventListener('loadedmetadata', updateDuration);
-      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('timeupdate', onTime);
+      video.removeEventListener('loadedmetadata', onMeta);
+      video.removeEventListener('ended', onEnded);
+      video.removeEventListener('play', onPlay);
+      video.removeEventListener('pause', onPause);
     };
-  }, []);
+  }, [reelData.videoFile?.url]);
 
+  // Only command the element; isPlaying follows the real play/pause events above.
   const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) video.play().catch(() => {});
+    else video.pause();
   };
 
-  const getOverlayClass = () => {
-    const overlayMap = {
-      scrim: 'ovl-scrim',
-      cinematic: 'ovl-cinematic',
-      minimal: 'ovl-minimal',
-      lowerthird: 'ovl-lowerthird',
-      frame: 'ovl-frame',
-    };
-    return overlayMap[reelData.overlayStyle] || 'ovl-scrim';
-  };
+  const overlayClass = OVERLAY_CLASS[reelData.overlayStyle] || 'ovl-scrim';
+  const pct = duration ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="reel-preview-v4">
-      <div className={`stage-reel-v4 ${getOverlayClass()}`}>
-        {reelData.videoFile?.url ? (
-          <>
-            <video
-              ref={videoRef}
-              src={reelData.videoFile.url}
-              className="reel-video-v4"
-            />
-            <div className="reel-play-overlay-v4">
-              <button className="play-btn-v4" onClick={togglePlay}>
-                {isPlaying ? '⏸' : '▶'}
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="reel-placeholder-v4">
-            <div className="placeholder-text-v4">Upload a video to preview</div>
-          </div>
-        )}
-
-        <div className="reel-ov-v4"></div>
-
-        <div className="reel-strip-v4"></div>
-
-        <div className="reel-top-v4">
-          <div className="reel-brand-v4">Build<span>Believe</span>Fit</div>
-          {reelData.series && (
-            <div className="reel-eye-v4">{reelData.series}</div>
-          )}
+    <div className={`stage-reel-v4 ${overlayClass}`}>
+      {reelData.videoFile?.url ? (
+        <video ref={videoRef} src={reelData.videoFile.url} className="reel-video-v4" playsInline />
+      ) : (
+        <div className="reel-placeholder-v4">
+          <div className="placeholder-text-v4">UPLOAD A VIDEO<br />TO PREVIEW</div>
         </div>
+      )}
 
-        <div className="reel-bottom-v4">
-          {reelData.hook && (
-            <div className="reel-hl-v4">{reelData.hook}</div>
-          )}
-          {reelData.hookSub && (
-            <div className="reel-sub-v4">{reelData.hookSub}</div>
-          )}
-          {(reelData.hook || reelData.hookSub) && (
-            <div className="reel-watch-v4">WATCH</div>
-          )}
-        </div>
+      <div className="reel-ov-v4" />
+      <div className="reel-strip-v4" />
 
-        {reelData.logoImage?.url && (
-          <div className="reel-logo-v4">
-            <img src={reelData.logoImage.url} alt="BBF Logo" />
-          </div>
-        )}
+      <div className="reel-top-v4">
+        <div className="reel-brand-v4">BUILD<span>BELIEVE</span>FIT</div>
+        {reelData.series && <div className="reel-eye-v4">{seriesLabel(reelData.series)}</div>}
       </div>
 
-      {reelData.videoFile?.url && (
-        <div className="reel-controls-v4">
-          <div className="progress-v4">
-            <div className="progress-bar-v4" style={{
-              width: duration ? `${(currentTime / duration) * 100}%` : '0%'
-            }}></div>
-          </div>
-          <div className="time-display-v4">
-            {Math.floor(currentTime)}s / {Math.floor(duration)}s
-          </div>
+      <div className="reel-bottom-v4">
+        {reelData.hook && <div className="reel-hl-v4">{reelData.hook}</div>}
+        {reelData.hookSub && <div className="reel-sub-v4">{reelData.hookSub}</div>}
+        {(reelData.hook || reelData.hookSub) && <div className="reel-watch-v4">▶ WATCH</div>}
+      </div>
+
+      {reelData.logoImage?.url && (
+        <div className="reel-logo-v4">
+          <img src={reelData.logoImage.url} alt="Logo" />
         </div>
+      )}
+
+      {reelData.videoFile?.url && (
+        <>
+          <button type="button" className="reel-play-v4" onClick={togglePlay} aria-label={isPlaying ? 'Pause' : 'Play'}>
+            {isPlaying ? '❚❚' : '▶'}
+          </button>
+          <div className="reel-progress-v4">
+            <div className="reel-progress-bar-v4" style={{ width: `${pct}%` }} />
+          </div>
+        </>
       )}
     </div>
   );
+}
+
+function seriesLabel(id) {
+  const map = {
+    'form-fix': 'FORM FIX',
+    mindset: 'MINDSET PROTOCOL',
+    metabolic: 'METABOLIC WINDOW',
+    '12hour': '12-HOUR SURVIVAL',
+    sovereign: 'SOVEREIGN SUNDAY',
+    fuel: 'FUEL FILES',
+    lab: 'THE LAB',
+  };
+  return map[id] || id;
 }

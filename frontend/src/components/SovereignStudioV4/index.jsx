@@ -2,20 +2,39 @@
 // Master container for Sovereign Studio V4 — fresh native React rebuild
 // Uses v3 strictly as a visual & functional reference, not code translation
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import StudioLayout from './StudioLayout';
 import './sovereignStudioV4.css';
 
+// Card catalog — copy ported verbatim from the v3 reference banks (each entry is
+// [eyebrow, headline, body, buttonText]; *single* = accent highlight, **double**
+// = bold white). Lanes mirror the v3 lane dropdown.
 const CATALOG = {
-  capable: [
-    ['BBF • CAPABLE', 'YOU\'RE MORE\nDIFFICULT TO\nSCALE THAN\n*ANY WEIGHT.*', 'Your ceiling is the only limit you\'ve hit.\n**Push it.**', 'PUSH IT'],
-    ['BBF • CAPABLE', 'STRONG PEOPLE\nDON\'T HAVE THE\nDESIRE TO QUIT.\nTHEY HAVE THE\n*CHOICE.*', 'And they choose again.\n**Make the choice.**', 'CHOOSE AGAIN'],
-  ],
   fence: [
-    ['BBF • FENCE', 'FEAR IS JUST\n*DATA*\nWAITING FOR\nCOUNTER-DATA.', 'The only way off the fence is through.\n**Move through it.**', 'MOVE THROUGH'],
+    ['BBF • FOR THE HESITANT', 'STOP WAITING\nFOR A SIGN.\n*THIS IS IT.*', 'No pressure. No judgment. Just a conversation.\n**DM "PATHFINDER" and let\'s talk.**', 'DM PATHFINDER'],
+    ['BBF • FOR THE HESITANT', 'THE PERFECT\nMONDAY ISN\'T\n*COMING.*', 'There is no perfect week to begin. There never was.\n**The best day is the one you stop waiting on.**', 'STOP WAITING'],
+    ['BBF • FOR THE HESITANT', 'FEAR IS LOUD.\nREGRET IS\n*LOUDER.*', 'The discomfort of starting fades in a week.\n**The weight of never starting doesn\'t.**', 'CHOOSE'],
+    ['BBF • FOR THE HESITANT', 'THE HARDEST REP\nIS THE DECISION\nTO *BEGIN.*', 'After that first yes, everything gets easier.\n**Take the rep.**', 'TAKE THE REP'],
+  ],
+  identity: [
+    ['BBF • IDENTITY', 'BECOME THE\nPERSON WHO\n*TRAINS.*', 'You\'re not chasing a look.\n**You\'re building an identity.**', 'BECOME IT'],
+    ['BBF • IDENTITY', 'EVERY SESSION IS\nA VOTE FOR WHO\nYOU\'RE\n*BECOMING.*', 'Cast enough votes in one direction\n**and the identity becomes undeniable.**', 'CAST ONE'],
+    ['BBF • LEGACY', 'YOUR KIDS INHERIT\nYOUR *HABITS.*\nNOT YOUR WORDS.', 'They become what they watch you do.\n**Break the loop and you free a generation.**', 'REWRITE IT'],
+  ],
+  parent: [
+    ['BBF • WORKING PARENT', 'THE KIDS DON\'T\nNEED PERFECT.\nTHEY NEED\n*PRESENT.*', 'Energy is presence. Training builds energy.\n**Train for them too.**', 'BE PRESENT'],
+    ['BBF • WORKING PARENT', 'SELF-CARE ISN\'T\nSELFISH. IT\'S\n*STAFFING.*', 'You\'re the whole infrastructure of that household.\n**Maintain the infrastructure.**', 'MAINTAIN IT'],
+  ],
+  responder: [
+    ['BBF • FIRST RESPONDER', 'YOU ANSWER\nEVERY CALL BUT\nYOUR *OWN.*', 'The body that saves others needs saving too.\n**Respond to yourself.**', 'RESPOND'],
+    ['BBF • FIRST RESPONDER', '12-HOUR SHIFTS.\n35-MINUTE\n*SESSIONS.*', 'The protocol fits between the chaos.\n**No excuses left.**', 'RUN IT'],
+  ],
+  vision: [
+    ['BBF • VISION', 'SEE IT BEFORE\nYOU *LIFT* IT.', 'Every PR happens twice — first in the mind.\n**Rehearse the win.**', 'VISUALIZE'],
   ],
   comeback: [
     ['BBF • COMEBACK', 'YOUR LAST ATTEMPT\nWAS THE DRESS\nREHEARSAL. THIS\nONE\'S THE\n*SHOW.*', 'Everything you learned goes forward.\n**Take the stage.**', 'TAKE THE STAGE'],
+    ['BBF • COMEBACK', 'YOU ARE NOT\nTOO FAR GONE.\nONE DECISION\n*AWAY.*', 'Wherever you\'re starting from is exactly the right place.\n**Make the decision.**', 'DECIDE'],
   ],
 };
 
@@ -24,7 +43,6 @@ export default function SovereignStudioV4() {
   const [ctaData, setCtaData] = useState({
     lane: 'all',
     format: 'feed',
-    palette: 'default',
     eyebrow: 'BUILD BELIEVE FIT • THE WHY',
     headline: 'STOP WAITING\nFOR A SIGN.\n*THIS IS IT.*',
     body: 'No pressure. No judgment. Just a conversation.\n**DM me "PATHFINDER" and let\'s talk.**',
@@ -53,6 +71,21 @@ export default function SovereignStudioV4() {
     videoFile: null,
   });
 
+  // Keep a live ref to the reel blob URLs so the unmount cleanup revokes whatever
+  // is current. Synced in an effect (never during render) per the hooks rules.
+  const blobUrlsRef = useRef({ video: null, logo: null });
+  useEffect(() => {
+    blobUrlsRef.current = {
+      video: reelData.videoFile?.url || null,
+      logo: reelData.logoImage?.url || null,
+    };
+  }, [reelData.videoFile?.url, reelData.logoImage?.url]);
+  useEffect(() => () => {
+    const { video, logo } = blobUrlsRef.current;
+    if (video) URL.revokeObjectURL(video);
+    if (logo) URL.revokeObjectURL(logo);
+  }, []);
+
   const handleModeChange = (newMode) => {
     setMode(newMode);
   };
@@ -70,16 +103,16 @@ export default function SovereignStudioV4() {
   };
 
   const spinCard = () => {
-    const lanes = Object.keys(CATALOG);
-    const randomLane = lanes[Math.floor(Math.random() * lanes.length)];
-    const cards = CATALOG[randomLane];
-    const randomCard = cards[Math.floor(Math.random() * cards.length)];
-    const [eyebrow, headline, body, buttonText] = randomCard;
-
-    handleCtaChange('eyebrow', eyebrow);
-    handleCtaChange('headline', headline);
-    handleCtaChange('body', body);
-    handleCtaChange('buttonText', buttonText);
+    // Honor the selected lane; "all" (or an empty lane) shuffles the whole catalog.
+    const selected = ctaData.lane;
+    const pool = selected && selected !== 'all' && CATALOG[selected]
+      ? CATALOG[selected]
+      : Object.values(CATALOG).flat();
+    if (!pool.length) return;
+    const [eyebrow, headline, body, buttonText] = pool[Math.floor(Math.random() * pool.length)];
+    // One atomic update — replaces all four fields together (no reliance on
+    // functional-updater accumulation across separate calls).
+    setCtaData(prev => ({ ...prev, eyebrow, headline, body, buttonText }));
   };
 
   return (
@@ -94,25 +127,23 @@ export default function SovereignStudioV4() {
             <a className="exit-btn-v4" href="/command" title="Back to Command Center">⌂ Command Center</a>
           </div>
         </div>
-        <div className="mode-tabs-v4">
-          <button
-            className={`mode-tab-v4 ${mode === 'cta' ? 'active' : ''}`}
-            onClick={() => handleModeChange('cta')}
-          >
-            🃏 CTA CARDS
-          </button>
-          <button
-            className={`mode-tab-v4 ${mode === 'phone' ? 'active' : ''}`}
-            onClick={() => handleModeChange('phone')}
-          >
-            📱 PHONE
-          </button>
-          <button
-            className={`mode-tab-v4 ${mode === 'reel' ? 'active' : ''}`}
-            onClick={() => handleModeChange('reel')}
-          >
-            🎬 VIDEO ENGINE
-          </button>
+        <div className="mode-tabs-v4" role="tablist" aria-label="Studio surfaces">
+          {[
+            ['cta', '🃏 CTA CARDS'],
+            ['phone', '📱 PHONE'],
+            ['reel', '🎬 VIDEO ENGINE'],
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={mode === id}
+              className={`mode-tab-v4 ${mode === id ? 'active' : ''}`}
+              onClick={() => handleModeChange(id)}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 

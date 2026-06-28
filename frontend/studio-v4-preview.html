@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sovereign Studio V4 — Isolated Preview Harness</title>
+    <!-- NOTE: the production app shell (index.html) loads Bebas Neue + Barlow
+         Condensed from Google Fonts. This dev harness deliberately omits that
+         <link>: the sandbox proxy blocks fonts.googleapis.com, and a blocked
+         cross-origin stylesheet makes html2canvas hang during export. Omitting it
+         lets PNG export be verified here (typography falls back to system fonts in
+         this harness only; production renders Bebas/Barlow normally). -->
+    <style>
+      html,body,#harness-root{margin:0;height:100%;background:#0a0a0a;}
+      /* approximate the brand condensed look with system fallbacks for the harness */
+      body{font-family:'Arial Narrow',sans-serif;}
+    </style>
+  </head>
+  <body>
+    <!-- DEV/VERIFICATION ONLY harness: mounts SovereignStudioV4 in isolation,
+         bypassing the router/AuthGuard/supabase so the component can be visually
+         verified with Playwright. Not shipped in the production route table. -->
+    <div id="harness-root"></div>
+    <script type="module" src="/src/studio-v4-preview.jsx"></script>
+  </body>
+</html>
