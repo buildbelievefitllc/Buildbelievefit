@@ -1,0 +1,877 @@
+[
+  {
+    "exercise_name": "Trap-Bar Squat",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Step into the center of the hexagon. Align your mid-foot directly with the load axis. Drop your hips, drive your knees outward, and hinge until your hands find the handles. Before you apply a single ounce of vertical force, pack your lats down. Think about breaking the handles in half to engage the thoracic spine and lock the upper back. Pull the slack out of the bar. Your spine is now a rigid, non-compressible column. Inhale into your lower abdomen, expand your obliques 360 degrees, and brace. Drive the floor away through your mid-foot. Do not lead with the hips; the pelvis and shoulders must rise in unison. Maintain the vertical stack of the spine. At the apex, contract your glutes fully without hyper-extending the lumbar spine. Lower under control, tracking the knees in line with your toes.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Conventional Deadlift",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Approach the bar. Position your mid-foot directly underneath it, leaving an inch of space from your shins. Hinge at the hips, keeping the spine completely neutral, and grip the bar. Without shifting the bar, drop your shins forward until they make light contact. Push your knees slightly out to engage the external rotators of the hip. Now, active tension: pull your shoulder blades down into your back pockets. You should hear the metallic click of the slack leaving the system. Inhale deep into your pelvic floor, packing that air against a rigid abdominal wall. Brace as if anticipating a blow. Drive your feet through the platform. Feel the immediate transfer of force from the floor, up the posterior chain, and into the bar. Keep the bar pinned to your legs. Lock out by driving the hips forward into the bar.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Bulgarian Split Squat",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Set your rear foot on the bench behind you, anchoring with the top of the foot. Slide your front foot forward until your shin remains vertical or slightly forward-traveling at the bottom of the hinge. Hold dumbbells at your sides, keeping your collarbone wide and scapulae stabilized. Before moving, brace your lower trunk. Inhale and lower your rear knee toward the floor, maintaining a slight forward torso lean to align the load with your lead hip joint. Do not let the pelvis tilt. Tension must remain entirely in the working glute and quadriceps. Stop just before the rear knee touches the floor. Drive through the heel of the front foot, keeping the knee tracking over the second toe. Do not allow knee cave. Rise back to the start position, exhaling as you clear the hardest portion of the concentric phase.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Kettlebell Swing",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Place the bell one foot in front of you. Set your feet wider than shoulder-width, hinge at the hips, and grasp the handle with both hands. Tilt the bell back. Pack your lats, pulling your shoulders away from your ears to create a unified upper torso. Inhale, hike the bell back high between your thighs, making contact with your forearms to your inner pelvis. This is your spring. Your hamstrings and glutes are loaded with potential energy. Now, snap your hips forward with maximum velocity, contracting your glutes and quads into absolute extension. The bell should float up to chest height purely from hip-driven momentum\u2014your arms are nothing but cables. At the apex, form a straight vertical plank. Let gravity bring the bell back down. Wait until your upper arms touch your ribs before hinging again to catch the load.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Strict Muscle-Up",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Hang from the rings with a false grip, resting the base of your palms directly on top of the wood. This shifts the pivot point and shortens the lever arm. Begin with your arms fully extended, body in a hollow position\u2014quads compressed, toes pointed, anterior core braced. Pull your shoulders down to activate your lats. Initiate the pull by driving your elbows down toward your hips, bringing the rings to your sternum. As you reach maximum height, aggressively lean your chest forward, transitioning your shoulders over the rings while keeping them close to your ribs. Do not let the rings flare out. This is the critical transition phase. Keep your core tight. Once your shoulders are above the rings, drive your palms downward to extend your elbows into a full lockout. Maintain structural control throughout the entire descent.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Lat Pulldown",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Anchor your thighs securely under the roller pads to counteract the upward pull of the load. Grasp the bar with a pronated grip slightly wider than shoulder-width. Sit tall, maintaining a slight posterior lean of the torso\u2014no more than ten degrees\u2014to clear your face. Before you pull, depress your shoulder blades; do not let your shoulders migrate toward your ears. Inhale deep into your core, bracing your midsection. Initiate the movement by driving your elbows down and slightly forward, targeting your back pockets. Pull the bar to your upper chest. Do not use momentum or lean back excessively to cheat the weight. At the bottom, squeeze your shoulder blades together, feeling the intense contraction in your latissimus dorsi. Slowly return to the starting position, maintaining eccentric control and allowing a full stretch at the peak.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Barbell Overhead Press",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Unrack the bar across your anterior shoulders, maintaining a high chest and vertical forearms. Squeeze the bar with maximum grip force to stabilize your wrists. Your feet should be hip-width apart, rooted into the platform. Contract your quadriceps and clamp your glutes together to establish a solid foundation\u2014your lower body must act as an unyielding concrete block. Inhale into your abdomen, brace hard, and tuck your chin back slightly to clear the path. Drive the bar straight upward, shaving your nose. As the bar clears the crown of your head, push your head forward and bring your arms into alignment with your ears. At the apex, press actively against the bar, shrugging your shoulders upward to lock out. Lower the load under control, bringing your elbows forward and down back to the rack position.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Barbell Bench Press",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Lie flat on the bench with your eyes directly under the bar. Root your feet flat into the floor, driving your heels down to create leg drive. Pull your shoulder blades down and together, pinning them into the bench to form a stable platform. Grasp the bar, wrap your thumbs, and unrack the weight. Hold the bar over your shoulder joints, locking your elbows. Inhale deep, expanding your chest, and brace your core. Lower the bar in a slight arc toward your lower sternum, keeping your elbows tucked at roughly forty-five degrees to protect the shoulder capsule. Touch the chest lightly, maintaining absolute tension. Do not bounce. Drive your feet aggressively into the floor, transferring that energy up through your hips and torso, and push the bar back up. Lock out your elbows over your shoulders.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Pull-Up",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Hang from the bar with a pronated grip slightly wider than shoulder-width. Start from a dead hang with your elbows locked. Squeeze your legs together and point your toes down, entering a rigid hollow-body position to prevent energy leaks. Before pulling, depress and retract your scapulae, drawing your shoulders down and away from your ears. Inhale, brace your core, and drive your elbows down toward your ribs, pulling your chest to the bar. Think about driving your elbows back to fully engage the latissimus dorsi. Keep your neck long and avoid reaching with your chin. At the peak, your collarbone should be in line with the bar. Control the descent, resisting gravity to return to a full, active dead hang. Maintain core rigidity and lat tension throughout the entire eccentric phase.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Dips",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Mount the dip bars, locking your elbows and packing your shoulders down to stabilize the scapulae. Keep your neck long and neutral. Cross your ankles behind you and squeeze your glutes, maintaining a solid, non-swinging torso. Inhale, brace your core, and lean your chest forward at a fifteen-to-thirty degree angle to shift the load onto the pectoral muscle fibers. Lower your body by bending at the elbows, allowing them to flare slightly but keeping them in a safe plane. Descend until your shoulders are slightly below your elbow joint, feeling a deep stretch across the chest. Do not collapse into the shoulder capsule; maintain muscular control. Press through your palms, extending your elbows to return to the starting position. Exhale as you lock out, keeping your shoulders packed downward.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Romanian Deadlift (RDL)",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall holding the barbell at your thighs, feet hip-width apart. Pack your shoulders down and pull your elbows back slightly to lock your lats. Soften your knees slightly, but keep your shins vertical. Inhale, brace your core, and initiate the movement by pushing your hips straight back. Imagine trying to touch a wall behind you with your glutes. Keep the bar in constant contact with your thighs, letting it slide down toward your shins. Your spine must remain flat; do not bend at the lower back. Descend until you feel a maximum stretch in your hamstrings. At this terminal range, drive your hips forward by aggressively contracting your glutes and hamstrings. Rise to the starting position, maintaining tight lats and a neutral spine throughout. Exhale at the top.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Barbell Hip Thrust",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Position your upper back against the edge of a bench, with the barbell resting across your hips. Place your feet flat on the floor, about shoulder-width apart, so that your shins are vertical at the top of the lift. Keep your chin tucked and your gaze forward to maintain a neutral lumbar spine. Inhale, brace your core, and drive through your heels, pushing your hips upward. Focus on rotating your pelvis posteriorly at the peak of the movement to maximize glute contraction. Do not hyperextend your lower back at the top; the motion must come entirely from hip extension. At the apex, your body should form a straight line from your shoulders to your knees. Hold the contraction for a split second, then lower your hips under strict control back to the floor.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Push-Up",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Place your hands on the floor slightly wider than shoulder-width, with your fingers spread. Set your feet together and enter a rigid plank position. Squeeze your glutes, lock your knees, and brace your core to create a solid line from your heels to your head. Screw your palms into the floor to activate your external rotators and stabilize your shoulders. Inhale, then lower your entire body, keeping your elbows tucked at roughly forty-five degrees to your torso. Descend until your chest is an inch from the floor, keeping your neck neutral. Do not let your hips sag or your lower back arch. Press the floor away aggressively, extending your elbows to return to the starting position. Push through your shoulder blades at the top to complete the movement.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Goblet Squat",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand with your feet shoulder-width apart, toes flared slightly. Hold a dumbbell or kettlebell vertically against your chest, keeping your elbows tucked close to your ribs and your upper back tight. Inhale deeply, expanding your abdomen, and brace your core. Initiate the squat by breaking at the hips and knees simultaneously. Push your knees outward, tracking in line with your toes, to clear space for your pelvis. Descend as deep as possible while keeping your chest upright and your spine completely neutral. Your elbows should pass inside your knees at the bottom of the movement. Drive through your mid-foot to stand up, keeping your knees pushed out. Contract your glutes at the top. Maintain vertical torso alignment and keep the weight pinned to your chest throughout.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Dumbbell Row",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Place one knee and the matching hand flat on a bench, keeping your torso parallel to the floor. Your other foot should be rooted firmly on the ground. Hold a dumbbell in your free hand, letting it hang straight down. Before rowing, pull your shoulder blade back and down to engage your lat. Inhale, brace your core, and drive your elbow up and back toward your hip. Pull the weight in a slight arc rather than straight up to maximize lat recruitment and minimize bicep dominance. Keep your shoulder away from your ear and do not let your torso rotate. At the peak, squeeze your mid-back musculature. Lower the dumbbell slowly, fully extending your arm and letting your shoulder blade stretch forward under control. Maintain a neutral spine.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Incline Dumbbell Press",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Sit on a bench angled at thirty to forty-five degrees. Hold a dumbbell in each hand at your shoulders, with your elbows tucked at forty-five degrees. Press your shoulder blades back and down, pinning them to the pad, and root your feet into the floor. Inhale, brace your core, and press the dumbbells upward in a slight inward arc over your upper chest. Do not let the weights touch at the top; keep constant tension on the pectorals. Keep your wrists stacked directly over your elbows throughout the entire movement. Lower the dumbbells slowly, maintaining control and allowing a deep stretch across your upper chest at the bottom. Do not let your shoulders roll forward. Push through your feet to maintain stable leg drive and keep your spine braced.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Hanging Leg Raise",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Hang from a pull-up bar with a pronated grip. Squeeze your shoulder blades down to activate your lats and stabilize your shoulder joint, preventing excessive swinging. Squeeze your legs together and point your toes. Inhale, brace your core, and initiate the movement by tilting your pelvis backward. Lift your legs, keeping them completely straight, until they are parallel to the floor or higher. Focus on contracting your lower abs to curl your pelvis upward, rather than just swinging your legs at the hip joint. Avoid using momentum; the movement must be slow and deliberate. Hold the peak contraction for a brief second. Lower your legs under strict control, resisting gravity and maintaining absolute abdominal tension until your body returns to a straight vertical hang.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Cable Face Pull",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Set a cable pulley to upper chest height and attach a rope. Grasp the rope with an overhand grip, thumbs pointing back. Step back to lift the weight stack, establishing a solid stance with your knees slightly bent. Inhale, brace your core, and pull the center of the rope directly toward your nose. As you pull back, flare your elbows out and rotate your hands upward, ending with your hands higher than your elbows in a 'double biceps' pose. This external rotation is critical to target the rear deltoids and rotator cuff. Squeeze your shoulder blades together at the peak of the contraction. Avoid leaning your torso back to cheat the weight. Return to the starting position under control, allowing your shoulder blades to protract slightly.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Standing Calf Raise",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Position the balls of your feet on the edge of a step, with your heels hanging off. Hold onto a stable support for balance, keeping your knees locked to isolate the gastrocnemius. Inhale, brace your core, and lower your heels as far as possible, feeling a deep stretch through your Achilles tendon and calf muscles. Hold this stretched position for a full two seconds to eliminate the stretch reflex. Now, press aggressively through the balls of your feet, lifting your heels as high as possible. Focus on driving through your big toe to keep the ankle stable and prevent the foot from rolling outward. Contract your calf muscles intensely at the apex. Lower your heels slowly under strict control, taking at least three seconds to return to the bottom.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Farmers Walk",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand between two heavy dumbbells or specialized bars. Hinge at your hips, grip the handles tightly, and deadlift the load to a standing position. Pull your shoulder blades down and back, packing your shoulders and locking your lats to stabilize your spine. Inhale deep into your abdomen, brace your core, and look straight ahead. Begin walking with short, quick, deliberate steps. Keep your chest up and your shoulders squared. Do not let the weights sway or spin; maintain a death grip on the handles to challenge your forearms. Your torso must remain upright, with no side-to-side leaning. Maintain full spinal alignment and core tension throughout the walk. Walk for the designated distance, then set the weights down under control.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Barbell Bicep Curl",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall with your feet hip-width apart. Grasp a barbell with an underhand grip, hands shoulder-width apart. Squeeze your glutes, lock your knees, and brace your core to prevent your torso from swaying. Pin your elbows to your ribs. Inhale, brace, and curl the bar upward by flexing at your elbows. Keep your wrists straight and stiff; do not let them curl inward. Raise the bar until your biceps are fully contracted, keeping your elbows fixed in place and avoiding the temptation to swing the weight. Squeeze your biceps at the peak. Lower the barbell slowly, resisting the weight throughout the eccentric phase until your arms are fully extended. Keep your shoulders back and down throughout the movement to prevent anterior deltoid dominance.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Overhead Tricep Extension",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand with feet shoulder-width apart. Grasp a dumbbell or kettlebell with both hands, pressing your palms against the inner plate. Lift the weight directly overhead, locking your elbows. Squeeze your glutes and brace your core to prevent your lower back from arching. Keep your elbows pointing forward, not flared out to the sides. Inhale, then lower the weight behind your head by bending only at your elbows. Descend until your forearms make contact with your biceps, feeling a deep stretch in the triceps. Your upper arms must remain vertical and stationary throughout. Press the weight back up to the starting position by extending your elbows, exhaling as you reach lockout. Squeeze your triceps at the top while keeping your shoulders packed down.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Ab Wheel Rollout",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Kneel on a pad, grasping the handles of the ab wheel. Start with your shoulders directly over the wheel and your spine in a slightly rounded position, with your glutes and core fully contracted. Inhale, brace your core, and roll the wheel forward, extending your body into a straight line. Only go as far as you can maintain a neutral lower back\u2014do not let your hips sag or your lumbar spine arch. Keep your arms straight throughout. Your core must act as an unyielding bridge, resisting gravity. At your maximum point, contract your abdominals aggressively to pull the wheel back under your chest. Focus on flexing your spine and hips to return to the start, rather than just pulling with your arms. Exhale as you return.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Lateral Raise",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall with dumbbells at your sides, feet hip-width apart. Lean your torso forward slightly\u2014about five to ten degrees\u2014to align the lateral deltoid fibers with the plane of motion. Soften your elbows. Inhale, brace your core, and raise the weights out to your sides. Think about pushing the dumbbells away from your body, sweeping them wide, rather than just lifting them up. Keep your wrists, elbows, and shoulders in a straight plane, with your pinkies tilted slightly upward at the top to target the medial head. Raise the weights to shoulder height. Do not shrug your shoulders or use momentum to cheat. Lower the dumbbells slowly, maintaining tension on the lateral deltoids. Stop just before they touch your thighs to keep the muscle loaded.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Rear Delt Fly",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Hinge at your hips until your torso is nearly parallel to the floor, keeping your spine flat and knees slightly bent. Hold dumbbells beneath your chest, palms facing each other. Let your arms hang, with a slight bend in the elbows. Inhale, brace your core, and sweep your arms out to the sides in a wide arc. Focus on using your posterior deltoids to drive the movement, rather than squeezing your shoulder blades together, to minimize rhomboid and trapezius dominance. Keep your neck relaxed and neutral. Raise the dumbbells until your upper arms are in line with your shoulders. Lower the weights slowly under strict control, feeling the stretch in the back of your shoulders. Avoid bouncing or using leg drive.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Front Rack Reverse Lunge",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Clean a barbell or a pair of kettlebells into the front rack position. Keep your elbows high to create a solid shelf, and brace your upper back. Stand tall with your feet together. Inhale, brace your core, and take a controlled step backward with one leg. Lower your hips until your back knee is just hovering above the floor and your front thigh is parallel to the ground. Your front shin should remain nearly vertical. Keep your torso upright, resisting the forward pull of the front rack load. Drive through the mid-foot of your front leg to push yourself back to the starting position. Squeeze your glutes at the top. Ensure your knees track in line with your toes throughout the entire movement.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Step-Up",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Place your entire foot flat on a stable box of appropriate height. Your heel should be securely supported. Hold dumbbells at your sides, keeping your chest up and shoulders packed down. Inhale, brace your core, and lean forward slightly to shift your center of mass over the working foot. Drive through your heel to extend your knee and hip, lifting your body onto the box. Do not push off with your trailing foot; make the lead leg do all the work. Stand tall on the box, contracting your glute fully. To descend, hinge at your hip and step down slowly, taking at least three seconds to touch the floor under control. Maintain knee alignment and core rigidity throughout.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Turkish Get-Up",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Lie on your side, grasp a kettlebell, roll onto your back, and press it straight up with one arm. Bend the knee on the same side, placing that foot flat on the floor. Extend your opposite arm and leg at a forty-five degree angle. Pack your working shoulder down. Keep your eyes locked on the bell. Roll onto your opposite forearm, then push up onto your hand, keeping the loaded arm vertical. Lift your hips into a bridge. Sweep your straight leg back, placing the knee directly under your hip. Sit up into a half-kneeling position, adjusting your legs. Drive through your feet to stand up. Reverse these steps slowly to return to the floor. Absolute shoulder stability and core brace are mandatory.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Sandbag Clean",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Straddle the sandbag with a wide stance. Hinge at your hips, sink your glutes, and shove your hands underneath the bag, wrapping your arms around it. Squeeze the bag tight against your chest. Inhale, brace your core, and drive through your feet to rip the bag off the floor. As the bag clears your knees, perform an explosive hip extension, snapping your hips forward to drive the bag upward. Simultaneously, pull the bag up your torso, transitioning your hands underneath it. Catch the sandbag in a front rack position, keeping your elbows high and torso upright. Stand tall, locking out your hips and glutes. Return the bag to the floor under control, maintaining a neutral spine throughout the descent.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Sled Push (Prowler)",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Grasp the upright poles of the sled with your arms fully locked out or bent at the elbows, depending on your mechanical preference. Lean forward at a forty-five degree angle, creating a straight line from your ankles to your hips and shoulders. Your spine must remain neutral. Inhale, brace your core, and drive through the balls of your feet, taking powerful, piston-like strides. Think about pushing the ground away behind you. Keep your hips low and do not allow your lower back to round or your pelvis to twist. Every stride must transfer force directly from your foot, through a braced core, and into the sled. Maintain a consistent pace and explosive foot drive throughout the sprint.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Chin-Up",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Hang from a pull-up bar with a supinated grip, hands shoulder-width apart. Begin from a full dead hang with your elbows extended. Squeeze your legs together, point your toes, and enter a rigid hollow-body position to avoid energy leaks. Depress your shoulder blades, pulling your shoulders down away from your ears. Inhale, brace your core, and pull your chest to the bar by driving your elbows down and back toward your spine. Focus on using your biceps and latissimus dorsi in tandem. Keep your neck neutral; do not reach with your chin. At the peak, squeeze your shoulder blades together. Lower your body under strict control, resisting gravity until you reach a full, active dead hang.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Inverted Row",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Set a barbell in a rack at waist height. Lie underneath the bar and grasp it with a pronated grip slightly wider than shoulder-width. Extend your legs straight out, resting your heels on the floor. Your body must form a rigid plank from your head to your heels. Squeeze your glutes, lock your knees, and brace your core. Inhale, then depress your shoulder blades. Pull your chest toward the bar by driving your elbows back. Think about pulling the bar to your lower chest, keeping your body perfectly straight. Do not let your hips sag. Squeeze your upper back musculature at the top. Lower yourself under control, extending your arms fully while maintaining a rigid plank position throughout.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Single-Leg Romanian Deadlift",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall, holding a dumbbell or kettlebell in the hand opposite your working leg. Root your working foot flat into the floor. Inhale, brace your core, and hinge at your hip while extending your non-working leg straight behind you. Your body should form a straight line from your head to your back heel, parallel to the floor. Keep your hips square to the ground; do not let your pelvis rotate outward. The working knee should have a soft bend, but the shin must remain vertical. Feel the stretch in your working hamstring. At the bottom, drive your hip forward by contracting your glute to stand up. Maintain absolute spinal alignment and lateral core stability throughout.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Glute-Ham Raise (GHR)",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Adjust the GHR machine so your knees sit slightly behind the pad. Secure your ankles between the rollers, resting your feet flat against the footplate. Start with your torso vertical, hands crossed over your chest. Squeeze your glutes and brace your core. Inhale, then lower your torso forward by extending your knees under control. Keep your hips locked in extension\u2014your body must form a straight line from your knees to your head. Descend until your torso is parallel to the floor. To rise, flex your knees, pulling yourself upward using only your hamstrings. Do not break at the hips or use momentum. Squeeze your hamstrings and glutes hard at the top before repeating.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Deficit Deadlift",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand on a secure platform or plate, one to three inches high, placed beneath your feet. Position your feet flat, mid-foot directly under the barbell. This deficit increases the range of motion and demands greater quad drive off the floor. Hinge at your hips and grip the bar. Lower your hips slightly more than in a conventional deadlift to accommodate the deficit, keeping your spine flat. Pack your lats and pull the slack out of the bar. Inhale deeply, brace your core, and drive through your legs. Push the floor away to initiate the lift, keeping your chest and hips rising together. Once the bar clears your knees, drive your hips forward to lock out. Lower under control.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Sumo Deadlift",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand with an ultra-wide stance, toes flared outward to align with your knees. Position your shins extremely close to the barbell. Hinge at your hips and sink your pelvis down, keeping your torso more upright than in a conventional deadlift. Grasp the bar with your hands positioned inside your legs, shoulders directly over the bar. Force your knees outward to engage your hip abductors and open your hips. Pack your lats and pull the slack out of the bar. Inhale, brace your core, and push the floor away through your heels. Spread the floor with your feet as you rise. Keep the bar pinned to your shins and thighs. Lock out by driving your hips forward.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Landmine Press",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand with feet shoulder-width apart, holding the end of a landmine barbell in one hand at shoulder height. Step back slightly to create a forward lean into the bar. Root your feet and squeeze your glutes. Inhale, brace your core, and press the barbell upward and forward in a diagonal line. Focus on driving your shoulder blade forward and up at the top of the movement to engage the serratus anterior. Do not let your torso rotate or your lower back arch. Lower the bar under strict control, returning your hand to your shoulder while keeping your elbow tucked at roughly forty-five degrees. Maintain absolute torso rigidity and full core tension throughout the press.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Pallof Press",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Set a cable pulley to chest height and attach a single handle. Stand sideways to the pulley, grasp the handle with both hands, and step away to create tension. Hold the handle against the center of your chest. Set your feet shoulder-width apart, knees soft. Inhale, brace your core, and press the handle straight out in front of your chest. Your core must resist the lateral rotational pull of the cable. Do not let your hips or shoulders turn. Hold the extended position for two seconds, feeling the deep stabilizers of your trunk firing. Slowly bring the handle back to your chest under control. Maintain an upright spine and level shoulders throughout the entire set.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Ring Dip",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Mount the gymnastic rings, pressing yourself up to a full support position with elbows locked. Turn your palms outward slightly to stabilize the rings against your hips. Squeeze your legs together, point your toes, and enter a rigid hollow-body position. Inhale, brace your core, and lower your body under control. Keep your elbows tucked close to your ribs as you descend, allowing your shoulders to move forward slightly. Descend until your shoulders are below your elbows, maintaining active tension in the shoulder girdle. Do not allow the rings to drift away from your body. Press through your palms, extending your elbows to return to the top support position. Turn your palms out at lockout.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Handstand Push-Up",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Kick up into a handstand against a wall, fingers spread wide and pointing slightly outward. Establish a solid hollow-body position\u2014squeeze your glutes, lock your knees, and tuck your ribs to avoid hyper-extending your lower back. Push the floor away, shrugging your shoulders to create a stable base. Inhale, brace your core, and lower yourself under control. Lean your head forward slightly so your head and hands form a tripod at the bottom of the movement. Your elbows must remain tucked at roughly forty-five degrees. Touch the crown of your head lightly to the floor. Press through your palms aggressively, driving your body straight up until your elbows are locked. Exhale at lockout.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Pistol Squat",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall on one leg, with your other leg extended straight out in front of you. Hold your arms out for balance. Inhale, brace your core, and initiate the squat by pushing your hips back and bending your working knee. Descend slowly under strict control, keeping your foot flat on the floor. Your knee must track directly over your toes, with no lateral cave. Lower your hips until your glute is resting on your calf, keeping your non-working leg off the ground. Your torso will lean forward to balance. Drive through your mid-foot to stand up, using your glute and quad to power through the concentric phase. Stand fully tall and exhale.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Zercher Squat",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Place a barbell in the crook of your elbows, holding your forearms upright and locking your hands together. Keep the bar pinned tight against your abdomen. Stand with feet shoulder-width apart, toes flared slightly. Inhale deeply, packing air into your lower trunk, and brace your core. Hinge and squat simultaneously, driving your knees outward to clear path for your elbows. Descend until your elbows touch or pass inside your thighs, keeping your chest upright and your spine neutral. The front-loaded nature of this squat heavily challenges your anterior core and upper back. Drive through your mid-foot to stand up, contracting your glutes at the top. Maintain a solid elbow position throughout.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Overhead Squat",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Snatch or press a barbell overhead, using a wide snatch grip. Push the bar upward aggressively, shrugging your shoulders to lock out your elbows and stabilize the scapulae. Rotate your elbows down and forward to lock the shoulders in place. Stand with feet shoulder-width apart. Inhale, brace your core, and break at your hips and knees to squat down. Keep the bar tracking directly over your mid-foot\u2014do not let it drift forward or backward. Push your knees outward and descend until your thighs are below parallel, keeping your chest high and spine flat. Drive through your mid-foot to return to a standing position, maintaining upward pressure on the bar throughout.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Front Squat",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Unrack a barbell across your anterior deltoids, resting it in a clean rack position with your fingertips under the bar. Drive your elbows high to create a solid skeletal shelf and brace your upper back. Stand with feet shoulder-width apart. Inhale deeply, expanding your obliques, and brace your core. Descend into a deep squat, pushing your knees outward and keeping your hips under your shoulders. Maintain an upright torso\u2014do not let your elbows drop, as this will cause your upper back to round and the bar to slip. Lower until your thighs are past parallel. Drive through your mid-foot to stand up, actively driving your elbows upward during the ascent.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Snatch-Grip Deadlift",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Set your feet hip-width apart under the barbell. Hinge at your hips and grasp the bar with a very wide snatch grip. This wide grip demands a deeper hip hinge and increased range of motion. Lower your hips until your shins touch the bar, keeping your spine flat. Pull your shoulders down to engage your lats and take the slack out of the bar. Inhale, brace your core, and drive through your heels. Push the floor away to break the bar off the ground, keeping your chest and hips rising in unison. Keep the bar close to your body. Stand tall and drive your hips forward to lock out. Lower under control.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Push Press",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Set the barbell across your front rack position, keeping your chest high and elbows slightly forward. Stand with feet hip-width apart. Inhale, brace your core, and perform a shallow, controlled dip by bending your knees. Keep your torso completely vertical during this dip\u2014do not hinge at your hips. Now, reverse direction explosively, driving through your heels to extend your knees and hips with maximum power. Transfer this kinetic energy through your braced core and into the bar, pressing it overhead as your hips reach extension. Push your head forward at the top to lock out. Lower the bar under control, absorbing the weight with your legs.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Dumbbell Hammer Curl",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall with dumbbells in each hand at your sides, using a neutral grip with your palms facing each other. Squeeze your glutes, lock your knees, and brace your core to prevent trunk rotation or swaying. Pin your elbows to your ribs. Inhale, brace, and curl the weights upward, maintaining a neutral grip throughout the entire movement. Focus on using your brachioradialis and brachialis to drive the curl. Raise the dumbbells to shoulder height, keeping your wrists stiff. Squeeze at the peak. Lower the dumbbells slowly, resisting the load during the eccentric phase until your arms are fully extended. Keep your shoulders packed down.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "L-Sit",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Sit on the floor or mount parallettes, placing your hands flat beside your hips. Lock your elbows completely and pack your shoulders down to depress your scapulae, lifting your hips off the ground. Squeeze your legs together, lock your knees, and point your toes. Inhale, brace your core, and lift your legs until they are parallel to the floor, forming a ninety-degree angle with your torso. Your core must act as an unyielding clamp, resisting the pull of your hip flexors and legs. Hold this position, breathing shallowly through a highly braced abdominal wall. Maintain shoulder depression\u2014do not let your ears sink toward your shoulders. Lower under control.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "RKC Plank",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Assume a standard forearm plank position, with your elbows directly under your shoulders and your feet together. Clench your hands into tight fists. Squeeze your glutes as hard as possible, lock your knees, and pull your kneecaps up to contract your quads. Now, active tension: pull your elbows downward toward your toes, and drive your toes forward toward your elbows. Do not let your limbs actually move; create a massive isometric contraction instead. This creates a powerful co-contraction of the anterior and posterior chain. Inhale shallowly and brace your core to maximum capacity. Maintain this high-tension state, keeping your body perfectly straight, for the duration.",
+    "category": "Strength"
+  },
+  {
+    "exercise_name": "Nordic Hamstring Curl",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Kneel on a padded surface, securing your ankles firmly under a heavy support or having a partner hold them flat. Your torso must start completely vertical, with your hips in full extension. Squeeze your glutes and brace your core. Inhale, then lower your torso toward the floor under control by slowly extending your knees. Keep your hips locked straight\u2014do not bend at your waist. Resist gravity as long as possible using only your hamstrings during this extreme eccentric phase. When you can no longer control the fall, catch yourself with your hands in a push-up position. Push off the floor lightly, and pull yourself back up using your hamstrings.",
+    "category": "Strength"
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Bird Dog",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Lock your hands directly under your shoulders and your knees under your hips. Drive your palms into the floor to protract your shoulder blades and engage your serratus anterior, creating a solid platform. Your spine must remain neutral\u2014do not let your lower back arch or your chest sag. Inhale deeply, packing air into your obliques to brace your core. Simultaneously extend your opposite arm and leg, reaching as if trying to touch the walls on either side of the room. Forcefully flex the heel of your extended foot and squeeze that glute to ensure the movement comes from hip extension, not lumbar extension. Your pelvis must remain perfectly level, with no rotation. Hold the peak contraction for two seconds to activate the deep posterior oblique kinetic chain. Return to the starting position under strict control."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Dead Bug",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Lie flat on your back, raising your arms straight toward the ceiling and bending your hips and knees to ninety degrees. Press your lower back aggressively into the floor to tilt your pelvis posteriorly and eliminate any lumbar arch. This isometric flat-back position must be maintained throughout the movement. Inhale, bracing your abdominal wall to lock your spine. Under control, slowly lower your opposite arm and leg toward the floor, extending them fully. Hover an inch above the ground. Do not allow your lower back to lift or your ribs to flare, as this indicates a loss of anterior core stability. Squeeze your extended leg's quad and glute, keeping your nervous system highly activated. Exhale deeply as you pull the limbs back to the start position. Maintain absolute rigidity across your entire trunk."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Banded Pull-Apart",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall with your feet hip-width apart. Grasp a resistance band with an overhand grip, hands shoulder-width apart, arms fully extended in front of your chest. Squeeze your glutes and brace your core to prevent your lower back from arching. Before moving the band, depress your shoulders, pulling your collarbone wide. Inhale, brace, and pull the band apart by retracting your shoulder blades, sweeping your arms wide until the band touches your sternum. Focus on using your posterior deltoids and middle trapezius to execute the movement. Do not shrug your shoulders or let your head drift forward. At the peak of retraction, squeeze your shoulder blades together intensely for a second to reinforce scapular stability. Release the tension slowly, resisting the band as your arms return to the start."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Scapular Wall Slide",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand with your back flat against a wall, positioning your heels a few inches out. Press your lower back, upper back, and head firmly against the wall, tilting your pelvis posteriorly to lock your spine. Raise your arms to ninety degrees, pressing your elbows, forearms, and the backs of your hands against the wall. Inhale, brace your core, and slide your arms upward. Go only as high as you can maintain full contact of your back, elbows, and hands with the wall. Do not let your lower back arch or your ribs flare to cheat the range of motion. At the peak, shrug your shoulders slightly to engage the lower trapezius. Slowly pull your elbows down, dragging them against the wall, and squeeze your back muscles. This resets scapular upward and downward rotation."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Hip Airplane",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand on your working leg, rooting your foot into the floor. Extend your opposite leg straight behind you, hinging at your hip until your torso is parallel to the floor, forming a straight line from head to heel. Hold your arms out to the sides for balance. Inhale, brace your core, and initiate the movement by rotating your pelvis inward over the working hip joint, closing the hip. Pause, then reverse the rotation, opening your pelvis as far as possible toward the ceiling. The movement must occur entirely at the working hip joint; do not rotate your spine or bend your knee. This challenges the deep external and internal rotators of the hip while recruiting the gluteus medius for lateral stability. Return to the neutral position under strict control."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Banded Clamshell",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Lie on your side with a resistance band looped just above your knees. Prop your head on your arm, and bend your hips to forty-five degrees and knees to ninety degrees, stacking your feet. Press your top hip forward to ensure your pelvis remains square and does not rotate backward. Inhale, brace your lateral core, and raise your top knee as high as possible while keeping your feet pinned together. Focus on using your gluteus medius and deep external rotators to lift the leg against the band's resistance. Do not let your pelvis roll back; the motion must be purely femoral rotation. Squeeze your glute hard at the top of the range for two seconds. Lower your knee under control, maintaining tension on the band throughout the descent."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Copenhagen Plank",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Place your top leg on a stable bench, supporting it at the knee or ankle, and support your upper body on your forearm. Align your body in a straight line from your shoulders to your heels. Squeeze your glutes, lock your knees, and brace your core to prevent your hips from sagging toward the floor. Inhale, then lift your bottom leg, bringing it up to touch the underside of the bench. This places a massive isometric demand on your adductor muscle group and pelvic stabilizers, which is critical for groin health and athletic power transfer. Hold this rigid lateral plank position. Maintain shoulder stability by actively pressing your forearm into the floor, keeping your chest open. Breathe shallowly through your braced core, keeping your body perfectly aligned."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Banded Face Pull",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Anchor a resistance band at chest height. Grasp the band with an overhand grip, thumbs pointing back. Step back to create tension, standing with your knees soft. Inhale, brace your core, and pull the center of the band directly toward your nose. As you pull, flare your elbows out and rotate your hands upward, ending with your hands higher than your elbows. This external rotation is critical for targetting the rear deltoids, infraspinatus, and teres minor. Squeeze your shoulder blades together at the peak of the contraction, keeping your shoulders packed down and away from your ears. Avoid leaning your torso back or arching your lower back to cheat the weight. Return to the starting position under control, allowing your shoulder blades to stretch forward."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Single-Leg Glute Bridge",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Lie on your back with your knees bent and feet flat on the floor, close to your glutes. Raise one leg off the ground, knee bent to ninety degrees. Keep your hands on your ribs. Inhale, brace your core, and tilt your pelvis posteriorly to flatten your lower back. Drive through the heel of your working foot, pushing your hips upward until your thigh is in line with your torso. Focus on contracting your glute fully at the top of the movement; do not hyperextend your lower back. Your pelvis must remain perfectly level, with no tilting or rotation. Squeeze your glute for two seconds at the apex. Lower your hips slowly under strict control, stopping just before your glutes touch the floor to maintain tension."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Monster Walk",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Loop a resistance band around your ankles or the balls of your feet. Assume a quarter-squat position, pushing your hips back and keeping your chest up. Your feet should be hip-width apart to create initial tension on the band. Inhale, brace your core, and take a controlled step laterally with your lead foot. Follow with your trailing foot, keeping your feet wide enough to maintain continuous band tension. Do not let your knees cave inward; keep them pushed out over your toes. Focus on using your gluteus medius to drive the lateral steps. Avoid rocking your upper body or dragging your feet. Walk for the designated steps in one direction, then reverse. This builds lateral hip stability and pelvic alignment."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Prone Y-T-W Raise",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Lie face down on the floor, extending your legs straight and pointing your toes. Start with your arms overhead in a 'Y' position, thumbs pointing toward the ceiling. Inhale, brace your core, squeeze your glutes, and lift your chest slightly. Raise your arms off the floor by retracting your shoulder blades, squeezing your lower traps. Next, move your arms to a 'T' position, hands in line with your shoulders, and lift to engage the mid-traps and rear delts. Finally, bend your elbows to ninety degrees in a 'W' position, pulling your elbows down and hands up to challenge shoulder external rotators and scapular depressors. Hold each position for two seconds, keeping your neck relaxed and long. Lower under control between reps."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Cat-Cow Stretch",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Assume a quadruped position on your hands and knees, with your hands directly under your shoulders and knees under your hips. Distribute your weight evenly. Inhale deeply, and initiate the 'cow' phase by tilting your pelvis anteriorly, allowing your abdomen to sink toward the floor as you gently arch your spine. Pull your chest forward and lift your gaze. Now, exhale deeply, tucking your pelvis posteriorly and rounding your spine toward the ceiling for the 'cat' phase. Drive your palms into the floor, pushing your shoulder blades apart and letting your head relax down. Move slowly, articulation by articulation, focusing on mobilizing each segment of your spine. This restores segmental control of the vertebral column and decreases neural tension."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Kettlebell Prying Squat",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Hold a kettlebell or dumbbell by the horns against your chest, and stand with your feet shoulder-width apart, toes flared slightly. Inhale deeply, brace your core, and squat down as deep as possible while keeping your heels flat and spine completely neutral. At the bottom of the squat, place your elbows inside your knees. Press your elbows outward into your knees to open your hips. Gently shift your weight from side to side, prying open the hip joint and mobilizing your ankles and calves. Keep your chest up and collarbone wide; do not let your upper back round. This isometric deep-squat hold mobilizes the adductors and posterior hip capsule. Stand up under control, driving through your mid-foot."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Quadruped Thoracic Rotation",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Get onto your hands and knees. Sit your hips back slightly toward your heels to lock your lumbar spine. Place one hand behind your head, keeping your elbow flared. Inhale, brace your core, and rotate your elbow down toward your opposite wrist, flexing your upper back. Exhale and reverse the rotation, driving your elbow up toward the ceiling as far as possible. Your gaze should follow your elbow. Focus on keeping your hips stationary; the rotation must occur entirely at the thoracic spine. Press your supporting palm actively into the floor to stabilize your shoulder and thoracic cage. Hold the peak rotation for a second. Return to the start under control. This restores crucial upper-back mobility and scapular coordination."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Banded Tibialis Raise",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Sit on a bench with your legs extended straight, heels resting on the floor. Loop a resistance band around your toes, securing the other end to a heavy anchor in front of you. Sit tall and brace your core. Inhale, then perform ankle dorsiflexion by pulling your toes toward your shins against the band's resistance. Keep your knees locked out to isolate the tibialis anterior muscle. Pull as far as possible, feeling a deep contraction in the front of your shin. Hold the peak contraction for two seconds to build muscular endurance. This muscle is critical for shock absorption and protecting the knee and ankle joints from high-impact forces. Release the tension slowly, extending your toes forward under control."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Soleus Calf Raise",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Sit on a bench with your knees bent to ninety degrees and the balls of your feet on a step. Place a weight or a barbell across your thighs. Inhale, brace your core, and lower your heels as far as possible, feeling a deep stretch in your Achilles tendon and soleus muscle. Hold this stretch for two seconds to eliminate the stretch reflex. Now, press aggressively through the balls of your feet, lifting your heels as high as possible. Keep your knees bent to ninety degrees; this disables the gastrocnemius, isolating the deep soleus muscle. Squeeze your calf intensely at the apex. Lower your heels slowly under strict control, taking three seconds to return to the bottom stretched position."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Wrist Extension stretch",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Assume a quadruped position on your hands and knees. Rotate your wrists so your fingers point back toward your knees, and press your palms flat into the floor. Spread your fingers wide to maximize the stretch base. Pull your shoulders down and away from your ears, stabilizing your scapulae. Inhale, brace your core, and gently rock your hips back toward your heels. Keep your palms flat on the ground; do not let the heels of your hands peel up. You will feel a deep, passive stretch in your wrist flexors and forearms. Hold this position, breathing deeply. This joint preparation is critical for front-rack lifts, handstands, and wrist tendon health. Rock forward slowly to release the stretch."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Banded No-Money Drill",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall, holding a resistance band with your palms facing up. Pin your elbows to your ribs, bending them to ninety degrees. Squeeze your glutes, lock your knees, and brace your core to prevent your torso from moving. Inhale, brace, and pull your hands apart laterally by externally rotating your shoulders. Keep your elbows glued to your ribs throughout the entire movement. Focus on squeezing your rotator cuff muscles\u2014the infraspinatus and teres minor\u2014at the peak of the rotation. Do not let your lower back arch or your shoulders shrug. Hold the contraction for two seconds. Slowly return your hands to the starting position under control, resisting the band's pull. This stabilizes the glenohumeral joint."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Shin Box Transitions",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Sit on the floor with your knees bent and feet flat, wider than shoulder-width. Lower both knees to one side, forming a ninety-degree angle at both hips and knees\u2014this is your shin box. Sit tall, keeping your hands off the floor to challenge your core. Inhale, brace your core, and drive your knees into the ground, lifting your hips and pressing them forward into full extension. Squeeze your glutes at the top. Slowly lower your hips back to the floor. Now, rotate your knees up and over to the opposite side, keeping your heels anchored on the floor, and repeat the movement. This mobilizes hip internal and external rotation while building active hip control."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Banded Shoulder Pass-Through",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall with your feet hip-width apart. Grasp a light resistance band with a wide overhand grip. Squeeze your glutes and brace your core to prevent your lower back from arching during the movement. Keep your elbows locked and arms straight throughout. Inhale, brace, and slowly raise the band overhead, continuing the arc backward until it touches your lower back or glutes. Do not let your shoulders shrug or your chest flare. Now, return the band back over your head to the starting position in front of your thighs. Keep constant, light outward tension on the band to activate the rotator cuff. This movement mobilizes the shoulder joint across all planes while reinforcing scapulothoracic control."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Peterson Step-Up",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand with one foot on a low step or plate, with your heel elevated. Your trailing foot should hang off the edge, toes pointed up. Keep your hands on your hips and torso upright. Inhale, brace your core, and lower your trailing heel toward the floor by bending the knee of your working leg. The working knee should travel forward over your toes, maintaining a high heel. Touch the floor lightly with your trailing heel\u2014do not push off. Drive through the ball of your working foot to extend your knee and hip, returning to the starting position. This targets the vastus medialis oblique and strengthens the patellar tendon. Stand tall and contract your quad at the top."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Active Hip Flexor Stretch",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Kneel on one knee, placing your opposite foot flat in front of you with both knees at ninety degrees. Stand tall, placing your hands on your hips. Inhale deeply, brace your core, and perform a posterior pelvic tilt by squeezing the glute of your kneeling leg. This posterior tilt is critical to stretch the psoas and rectus femoris. Gently shift your hips forward a few inches. Do not let your lower back arch; keep your spine perfectly vertical. You should feel an intense stretch in the front of your kneeling hip. Hold this position, breathing deeply. Squeeze the glute harder on each exhale to facilitate reciprocal inhibition. Release slowly."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Ankle Mobilization",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand facing a wall, placing one foot a few inches away. Your hands should rest on the wall for balance. Keep your working heel firmly planted on the floor throughout the movement. Inhale, brace your core, and drive your knee forward, aiming to touch the wall. Ensure your knee tracks directly over your second toe; do not let it cave inward. Go as far as your ankle flexibility allows without your heel lifting. You should feel a stretch in the back of your ankle and calf. Hold for two seconds, then return to the start. This increases ankle dorsiflexion, which is critical for proper squat depth and protecting the knee joints."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Kettlebell Halo",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Stand tall with your feet hip-width apart. Hold a kettlebell upside down by the horns, keeping it close to your chest. Squeeze your glutes, lock your knees, and brace your core to prevent your hips and torso from moving. Inhale, then circle the kettlebell around your head. Keep the bell as close to your neck as possible, flaring your elbows slightly as it passes behind your head. Your head and neck must remain stationary and upright; do not duck your chin. Complete the circle and return the bell to your chest. Reverse the direction for the next rep. This mobilizes the shoulder joints and thoracic spine while demanding dynamic core stability."
+  },
+  {
+    "category": "Prehab",
+    "exercise_name": "Quadruped Rocking",
+    "series": "The Mechanic",
+    "target_duration": "60s",
+    "script": "Assume a quadruped position on your hands and knees, with your hands directly under your shoulders and your knees wider than your hips, toes tucked. Keep your spine flat and neck long. Inhale deeply, packing air into your core. Initiate the movement by slowly pushing your hips straight back toward your heels, maintaining a neutral lumbar spine. Go only as far as you can without your lower back rounding. Feel the deep stretch in your hip joints and adductors. Hold this stretched position for two seconds, then rock forward to the starting position. This mobilizes the posterior hip capsule, preparing your hips for deep squatting and hinging movements."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "90/90 Hip Switch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Anchor both sit bones firmly into the floor and set your knee angles at a strict ninety degrees. Sit tall, extending your spine to create space in the abdominal cavity. Take a deep diaphragmatic inhale, expanding your belly, and brace your core lightly. Keep your spine long as you begin the transition. Slowly rotate your back knee upward and outward, keeping your lead heel anchored. Let the lead knee follow only when the tension forces it. Feel the deep articular capsule rotation in both hip joints. Sink into the resistance; do not force the range of motion. Match the rotation with a slow, controlled five-second exhale, signaling your nervous system to relax. Continue the switch until your knees are stacked in ninety-degree angles on the opposite side. Stay upright and breathe."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "PNF Hamstring Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie flat on your back, wrapping a strap around the ball of one foot. Raise your leg to find a mild hamstring stretch. Hold this position, breathing slowly, for ten seconds. Now, inhale, brace your core, and contract your hamstring aggressively by pushing your heel down against the strap's resistance. Maintain this contraction at forty percent effort for five seconds. Keep breathing. Now, exhale deeply, relax the muscle completely, and pull the strap slightly closer to your chest, entering a deeper stretch. Hold this new range. This contract-relax protocol utilizes autogenic inhibition to override the stretch reflex, allowing your nervous system to accept a wider range of motion. Repeat this cycle three times, maintaining structural pelvis alignment throughout."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Thoracic Spine Rotation",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie on your side, bending your knees to ninety degrees to lock your pelvis and lumbar spine. Extend your arms out in front of you, palms together. Inhale, expanding your ribcage. On a slow, steady exhale, sweep your top hand up and over your body, rotating your chest toward the ceiling. Keep your knees pinned together and touching the floor. Let your head follow the movement, looking toward your hand. Focus on rotating from your middle back, not your shoulder joint. Feel the deep fascial release across your chest and upper back. Sink your shoulders toward the floor. Hold the stretched position, inhaling to expand the ribcage further. Exhale and return to the starting position. This promotes parasympathetic down-regulation."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Psoas Release",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie face down, placing a lacrosse ball or kettlebell handle just medial to your anterior superior iliac spine, angling inward toward your psoas. Rest your upper body on your forearms. Relax your legs completely. Inhale deeply, focusing the breath directly against the pressure of the ball. Feel your abdominal wall expand against the object. As you exhale, let your body weight sink completely into the tissue, allowing the ball to penetrate the deep hip flexor fibers. Do not tense up; brace against the discomfort by using slow, deep breathing. This direct pressure triggers a myofascial release, reducing hypertonicity in the psoas. Stay on one spot for several breath cycles, then gently pivot your pelvis to find another tender area."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Box Breathing",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit in a comfortable upright position or lie flat on your back. Place one hand on your chest and the other on your abdomen. Close your eyes. Empty your lungs completely. Now, inhale slowly through your nose for a count of four, drawing the air deep into your pelvic floor and expanding your abdomen 360 degrees. Hold your breath at the top of the inhale for a count of four, keeping your throat relaxed and calm. Exhale slowly and smoothly through your mouth for a count of four, releasing all physical tension. Hold your lungs empty at the bottom for a count of four before beginning the next cycle. This equal-duration breath cadence directly stimulates the vagus nerve, inducing a parasympathetic state."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Elevated Pigeon Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Place your working leg on an elevated flat surface like a table or plyo box. Bend your knee to ninety degrees, keeping your shin parallel to the front edge. Your trailing leg should be extended behind you. Sit or stand tall, squaring your hips. Inhale deeply, creating length in your spine. As you exhale slowly, hinge forward at your hips, keeping your lower back flat. Do not round your shoulders or collapse your chest. Sink your hips back and down, directing the stretch deep into your gluteus maximus, piriformis, and posterior hip capsule. Hold this position, focusing on four-second inhales and six-second exhales. Allow your hip to open and sink deeper on each exhale. This down-regulates hip hypertonicity."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Couch Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Place your rear knee against the back of a couch or wall, with your shin vertical. Step your opposite foot forward into a lunge. Keep your chest up and hands on your front knee. Inhale deeply, expanding your obliques. Now, perform a posterior pelvic tilt by squeezing your rear glute aggressively. This tilt is critical to stretch the deep rectus femoris and hip flexor fibers. On a slow, controlled exhale, sink your hips forward slightly, maintaining a vertical spine\u2014do not let your lower back arch. Feel the intense stretch down the front of your thigh. Hold this position, focusing on diaphragmatic breathing. Let the nervous system accept the length, reducing tension in the anterior kinetic chain."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Deep Squat Utility Hold",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Assume your standard squat stance, with your heels flat on the floor. Lower your hips down into a deep squat, resting your elbows inside your knees. Clasp your hands together and use your elbows to gently press your knees outward. Sit tall, lifting your chest and lengthening your spine\u2014do not collapse into a rounded lower back. Inhale deeply, focusing the breath into your pelvic floor and lower abdomen. On a slow, six-second exhale, allow your hips and ankles to sink deeper into the bottom position. This passive stretch mobilizes your hips, ankles, and adductors while decompressing your lumbar spine. Stay down, breathing calmly, allowing your nervous system to adapt to this foundational human posture."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Lat Foam Rolling",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie on your side, placing a foam roller under your armpit. Extend your arm overhead, palm facing up. Rotate your torso slightly backward to expose the thick muscle belly of your latissimus dorsi. Inhale, bracing lightly, and slowly roll back and forth over the lat. When you find a tender, hyperactive trigger point, stop. Hold your position directly on the spot. Inhale deeply, and as you exhale slowly, let your body weight sink completely into the roller, melting the tissue over it. Take slow, diaphragmatic breaths, allowing the pressure to release the tight fascial sheet. Rotate your arm and shoulder slightly to target different fibers. This restores shoulder mobility and decreases lat tension."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Pec Minor Lacrosse Ball Release",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Place a lacrosse ball just below your collarbone and slightly medial to your shoulder joint, directly on the pectoralis minor. Lean forward, pressing the ball against a wall or door frame. Inhale deeply, feeling your ribcage expand against the ball. On a slow, controlled exhale, let your body weight lean into the ball, sinking into the deep chest musculature. To enhance the release, slowly raise your arm on the working side overhead, then lower it behind your back. This pin-and-stretch technique mobilizes the fascia and muscle tissue under direct compression. Maintain slow, parasympathetic breathing, letting the muscle release. This resets scapular positioning, reducing rounded-shoulder posture and improving shoulder kinematics."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Subscapularis Mobilization",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie flat on your back or side, placing a lacrosse ball or small roller under your armpit, targeting the anterior surface of the scapula\u2014the subscapularis. Extend your arm to ninety degrees, resting it on the floor. Inhale, and as you exhale, sink your weight onto the ball. To mobilize, slowly rotate your forearm down toward the floor in internal rotation, then up toward your head in external rotation. This active movement under compression breaks up adhesions and releases this deep, hidden rotator cuff muscle. Breathe slowly, allowing the pressure to penetrate the lateral ribcage area. This release improves shoulder external rotation and restores proper glenohumeral tracking."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Adductor Rockback",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Get onto your hands and knees. Extend one leg straight out to the side, foot flat on the floor, in line with your opposite knee. Keep your spine flat and shoulders packed. Inhale deeply into your abdomen. On a slow, five-second exhale, push your hips straight back toward your heel. Keep your extended leg straight and foot flat, feeling a deep stretch along the adductor and groin muscles. Do not let your lower back round at the bottom of the movement. Hold this stretched position, breathing deeply. Rock forward slowly to release, then repeat. This active mobilization restores lateral hip mobility and releases tight groin muscles, which is critical for pelvic alignment."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Frog Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Kneel on a soft pad, sliding your knees out as wide as possible. Bend your knees to ninety degrees and turn your feet outward, resting the inner edges flat on the floor. Lower your upper body onto your forearms, keeping your spine completely flat. Inhale deeply into your lower abdomen, expanding your pelvic floor. On a slow, controlled exhale, push your hips straight back toward your heels. Feel the deep stretch across your adductors, groin, and hip capsules. Hold this position, focusing on deep, parasympathetic diaphragmatic breathing. Let your pelvis sink closer to the floor on each exhale. This protocol releases the adductor complex and mobilizes the medial hip compartment."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Childs Pose with Lateral Reach",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Kneel on the floor, sitting your hips back onto your heels. Lower your torso down, extending your arms straight out in front of you, resting your forehead on the floor. Now, walk both hands as far to one side as possible, placing one hand on top of the other. Inhale deeply, focusing the breath into the lateral ribcage and lat on the stretched side. Feel the deep fascial stretch from your pinky finger down to your hip. On a slow, relaxed exhale, let your chest sink closer to the floor, intensifying the stretch. Hold this position, breathing diaphragmatically. This mobilizes the latissimus dorsi, intercostals, and thoracic spine while inducing deep relaxation."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Side-Lying Windmill",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie on your side, bending your top knee to ninety degrees and resting it on a foam roller. Your bottom leg should be straight. Hold both arms straight out in front of you. Inhale. On a slow, controlled exhale, sweep your top hand overhead in a wide circle, rotating your chest toward the ceiling. Keep your top knee pinned to the roller throughout the movement to stabilize your lumbar spine. Allow your arm to trace a path along the floor, opening your chest and thoracic spine. Look toward your hand. At the peak of rotation, hold and take a deep diaphragmatic breath. Exhale and return to the start. This restores thoracic rotation and chest mobility."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Posterior Capsule Sleeper Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie on your side with your working shoulder tucked underneath you, bent to ninety degrees. Your elbow should also be bent to ninety degrees, hand pointing toward the ceiling. Keep your head supported on a block. Inhale, brace lightly, and use your opposite hand to gently press your wrist down toward the floor, internally rotating the shoulder. Stop when you feel a mild stretch in the back of the shoulder joint. Hold this position, breathing slowly. On each exhale, allow the shoulder to relax, sinking deeper into internal rotation. Do not force the stretch; let the posterior capsule release slowly. This restores shoulder internal rotation and improves glenohumeral alignment."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Thoracic Extension on Foam Roller",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Place a foam roller horizontally across your mid-back. Lie over it, placing your hands behind your head to support your neck. Bend your knees and place your feet flat on the floor. Inhale deeply, expanding your ribcage. On a slow, steady exhale, lower your shoulders toward the floor, extending your upper spine over the roller. Keep your hips on the ground and pull your ribs down to prevent your lower back from arching. Focus the extension entirely on the thoracic spine. Hold the extension, taking a deep diaphragmatic breath. Exhale, sit up slightly, and roll the roller an inch higher or lower to target a different segment. This restores thoracic extension mobility."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Calf Foam Rolling",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit on the floor with one leg extended, placing a foam roller under your mid-calf. Cross your opposite leg over it to increase compression. Support your upper body on your hands, lifting your hips. Inhale, brace your core, and roll slowly back and forth over your calf muscle. When you find a tender trigger point, stop. Hold your position. Inhale deeply, and as you exhale, let your calf muscle relax completely, sinking into the roller. To enhance the release, slowly rotate your ankle in circles, flossing the muscle fibers under pressure. This myofascial release decreases tension in the gastrocnemius and soleus, improving ankle dorsiflexion and reducing Achilles tendon stress."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Plantar Fascia Ball Roll",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Stand or sit, placing a lacrosse ball under the arch of your bare foot. Inhale deeply, brace lightly, and slowly roll the ball back and forth from your heel to your toes. When you find a tender trigger point, stop and hold the pressure. Inhale, and as you exhale, let your foot relax completely, melting your foot over the ball. Flex and extend your toes slowly to floss the plantar fascia under compression. This myofascial release decreases tension in the plantar fascia and deep foot stabilizers, restoring ankle mobility and ankle-foot kinematics. Spend time on the arch and heel insertion points, letting the tissue release. This promotes deep sensory feedback."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Tibialis Anterior Foam Rolling",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Kneel on a foam roller, placing your shin bone slightly lateral to the roller so it contacts only the fleshy muscle belly of your tibialis anterior. Support your weight on your hands. Inhale, brace, and roll slowly down and up your shin. When you find a tender spot, stop. Hold your position. Inhale deeply, and as you exhale slowly, let your body weight sink onto the roller, melting the front shin muscle. Flex and extend your ankle slowly to floss the tibialis anterior under compression. This release decreases tension in the shin, which is critical for restoring ankle dorsiflexion, reducing shin splints, and protecting the knee joints during high-impact loading."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Glute Max Ball Release",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit on the floor, placing a lacrosse ball under your working glute. Cross your opposite ankle over your knee to open up the hip joint. Support your upper body on your hands. Inhale, brace, and roll slowly over the gluteus maximus, searching for tender trigger points. When you find a spot, stop and hold. Inhale deeply, and as you exhale slowly, let your glute muscle relax completely, sinking your full body weight onto the ball. Breathe diaphragmatically, letting the pressure penetrate the thick muscle fibers and release the tight fascia. This resets glute activation, reduces posterior hip tightness, and relieves tension on the lumbar spine."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Glute Medius Ball Release",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie on your side, placing a lacrosse ball just below your hip bone, targeting your gluteus medius and minimus. Support your upper body on your forearm. Inhale, brace, and roll slowly over the lateral hip area. When you find a tender spot, stop. Hold your position. Inhale deeply, and as you exhale slowly, let your hip relax completely, sinking your weight onto the ball. Breathe diaphragmatically, allowing the pressure to release this deep hip stabilizer. This myofascial release improves pelvic stability, reduces lateral knee pain, and restores proper hip abduction kinematics. Gently shift your pelvis forward and backward to target different lateral hip fibers."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Upper Trap Massage and Release",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Stand or sit, placing a lacrosse ball on your upper trapezius. If standing, lean forward slightly, pinning the ball between your shoulder and a wall or door frame. Inhale deeply, feeling your upper back expand against the ball. On a slow, controlled exhale, let your body weight press into the ball, sinking into the tight upper back musculature. To enhance the release, slowly raise your arm on the working side up and down in a slow arc, flossing the upper trap under compression. Maintain slow, parasympathetic breathing, letting the muscle tissue release. This reduces neck stiffness, improves scapular mechanics, and down-regulates hyperactive upper trapezius fibers."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Levator Scapulae Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit tall on a chair, grasping the seat with one hand to pin your shoulder down. Turn your head forty-five degrees away from that shoulder, and tuck your chin toward your armpit. Place your free hand gently on the back of your head. Inhale deeply. On a slow, controlled exhale, pull your head downward diagonally with very light pressure, feeling a deep stretch down the levator scapulae on the pinned side. Do not force the neck; keep the movement gentle. Hold this position, focusing on slow diaphragmatic breathing. Let the shoulder relax further. This stretch reduces neck tension, headaches, and shoulder shrugging, improving neck and scapular mobility."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Scalene Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit tall, placing your hands flat on your collarbone on one side, pressing down firmly to anchor the first rib. Tilt your head back slightly and tilt it away from the anchored side. Inhale deeply into your upper chest, feeling the rib try to rise against your hand's pressure. On a slow, controlled exhale, allow your head to sink deeper into the lateral bend, feeling an intense stretch across the front and side of your neck. Hold this position, breathing slowly. Let the neck muscles relax under the passive stretch. This release reduces tension in the scalenes, which is critical for restoring neck mobility and improving ribcage breathing mechanics."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Quad Foam Rolling",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie face down, placing a foam roller under your thighs. Support your upper body on your forearms. Inhale, brace your core lightly to keep your spine flat, and slowly roll from the top of your knees up to your hips. When you find a tender trigger point in your quadriceps, stop. Hold your position. Inhale deeply, and as you exhale slowly, let your thighs relax completely, sinking into the roller. To enhance the release, slowly bend your knee on the working side to ninety degrees, then straighten it, flossing the rectus femoris under compression. This myofascial release decreases knee cap tension and improves hip extension."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "IT Band Foam Rolling",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie on your side, placing a foam roller under your lateral thigh. Place your opposite foot flat on the floor in front of you for support, and prop yourself up on your forearm. Inhale, brace, and roll slowly from your hip down to just above your knee. If you find a tender spot, stop. Hold your position. Inhale deeply, and as you exhale slowly, let your lateral thigh muscles relax, sinking onto the roller. Focus the roller on the tensor fasciae latae (TFL) at the hip rather than just the knee. This myofascial release improves hip rotation and lateral knee alignment, reducing outer thigh tightness."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Hamstring Flossing",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit on a stable bench or table, placing a lacrosse ball or small roller under your thigh, targeting your hamstring. Lean your torso forward slightly, keeping your spine flat. Inhale deeply, feeling your thigh expand against the ball. On a slow, controlled exhale, let your weight sink onto the ball. To mobilize, slowly extend your knee on the working side until your leg is straight, then slowly bend it back down. This active flossing under compression breaks up adhesions and releases tight hamstring muscles. Breathe slowly and deeply, letting the pressure penetrate the muscle fibers. This restores hamstring length and knee extension mobility."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Standing QL Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Stand tall, crossing your working leg behind your opposite leg, feet flat. Raise your arm on the working side overhead, grabbing your wrist with your opposite hand. Inhale deeply, lengthening your spine. On a slow, controlled exhale, bend your torso laterally toward the opposite side, gently pulling your wrist to intensify the stretch. Keep your chest open and do not let your torso twist forward. Feel the deep stretch down your side, targeting the quadratus lumborum (QL) and lateral hip. Hold this position, focusing on deep breathing into your lower back. This stretch reduces lower back stiffness and restores lateral spinal mobility."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Sphinx Pose",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie face down, propping your upper body up on your forearms, with your elbows directly under your shoulders. Keep your forearms parallel and palms flat. Relax your legs and glutes completely. Inhale deeply, drawing the air into your lower chest. On a slow, smooth exhale, actively press your elbows into the floor, pulling your collarbone wide and driving your chest forward. Think about lengthening your spine up and out of your pelvis, creating extension in your upper back. Do not squeeze your glutes or jam your lower back. Hold this position, breathing diaphragmatically. This restores thoracic extension and decompresses the lumbar spine, down-regulating back extensors."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Seal Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie face down, placing your palms on the floor beside your lower ribs, fingers pointing forward. Relax your legs, hips, and glutes completely. Inhale deeply. On a slow, smooth exhale, press through your palms to extend your arms, lifting your chest and torso off the floor. Keep your hips on the ground, letting your lower spine go into passive extension. Pull your shoulders down away from your ears, opening your chest. Look forward. Feel the deep stretch across your abdominal wall and anterior hip flexors. Hold this position, breathing slowly into your abdomen. This passive extension decompresses the spine and down-regulates hyperactive trunk flexors."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Crocodile Breathing",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie face down on the floor, resting your forehead on your stacked hands. Relax your legs and glutes completely. Close your eyes. Empty your lungs. Inhale slowly through your nose, directing the air deep into your pelvic floor. Focus on expanding your lower back and obliques\u2014you should feel your abdomen press firmly into the floor, causing your lower back to rise. Hold this breath for a count of two, then exhale slowly and smoothly through your mouth, letting your entire body sink into the floor. This posture isolates diaphragmatic breathing, removing accessory neck muscles, and directly stimulates the parasympathetic nervous system, triggering rapid down-regulation."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Alternate Nostril Breathing",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit tall with your spine aligned, eyes closed. Place your right hand in front of your face. Close your right nostril with your thumb and inhale slowly through your left nostril for a count of four. At the top, close your left nostril with your ring finger, release your thumb, and exhale slowly through your right nostril for a count of four. Now, inhale through your right nostril for a count of four. Close it, and exhale through your left nostril for a count of four. Continue this rhythmic cycle, keeping your breath smooth and silent. This breathing protocol balances the autonomic nervous system, promoting mental clarity and deep physical relaxation."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Physiological Sigh",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit comfortably or lie flat on your back. Empty your lungs completely. Inhale deeply through your nose, filling your lungs nearly to capacity. At the very top of that inhale, take a second, sharp sniff through your nose to fully expand any collapsed alveoli in your lungs. Now, exhale slowly through your mouth, blowing the air out through pursed lips in a long, controlled sigh. The exhale should be at least twice as long as the double inhale. Repeat this pattern for several cycles. This physiological sigh immediately drops your heart rate and down-regulates your sympathetic nervous system, inducing rapid, profound physical and mental calm."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "4-7-8 Breathing Protocol",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit tall or lie down, placing the tip of your tongue against the tissue behind your upper front teeth. Empty your lungs. Inhale quietly through your nose for a count of four, drawing the air deep into your abdomen. Hold your breath at the top for a count of seven, keeping your throat and face completely relaxed. Now, exhale audibly through your mouth with a whoosh sound for a count of eight, releasing all physical and mental tension. Repeat this cycle three more times. This specific breath ratio increases carbon dioxide tolerance and directly activates the vagus nerve, rapidly lowering heart rate and down-regulating the nervous system."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Wall Chest Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Stand facing a wall, placing your forearm flat against it at ninety degrees, elbow in line with your shoulder. Press your palm and elbow firmly against the wall. Step forward with your opposite foot, and slowly rotate your torso away from the wall. Keep your shoulder down and your chest high; do not let your shoulder roll forward. Inhale deeply, expanding your chest. On a slow, controlled exhale, sink deeper into the rotation, feeling an intense stretch across your pectoralis major and anterior deltoid. Hold this position, focusing on diaphragmatic breathing. Let the chest muscles release. This stretch improves chest mobility and scapular mechanics."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Shoulder Extension Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Sit on the floor, placing your hands flat behind you, fingers pointing away from your body. Keep your knees bent and feet flat on the ground. Inhale, brace your core lightly, and slide your hips forward away from your hands. Pull your shoulder blades down and back, opening your chest wide\u2014do not let your shoulders roll forward or collapse. Stop when you feel a deep stretch across the front of your shoulders and biceps. Hold this position, focusing on slow diaphragmatic breathing. Let your shoulders relax deeper on each exhale. This stretch restores shoulder extension mobility, which is critical for overhead performance."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Brethely Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie on your side, bending your top knee to ninety degrees and pinning it to the floor with your bottom hand. Bend your bottom knee behind you, reaching back with your top hand to grab your foot. Pull your shoulder blades down and back. Inhale deeply, expanding your obliques. On a slow, controlled exhale, rotate your top shoulder back toward the floor, trying to touch it. Pull your bottom heel toward your glute to stretch your quad. This multi-planar stretch mobilizes your thoracic spine, shoulders, hips, and quads simultaneously. Hold and breathe diaphragmatically, allowing the nervous system to relax into this deep twist posture."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Jefferson Curl",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Stand tall on a raised box or flat ground, feet together. Lock your knees completely. Inhale, brace lightly, and tuck your chin to your chest. Slowly round your spine forward, segment by segment, starting from your neck, then upper back, mid-back, and lower back. Let your arms hang heavy toward the floor. Go as deep as possible under control, feeling a deep stretch along your entire posterior chain\u2014from your calves up to your neck. Hold the bottom position, taking a slow diaphragmatic breath, allowing the spine to decompress. Roll up slowly, reversing the movement, segment by segment, until you are standing tall. This decompresses the vertebral column."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Spinal Traction Dead Hang",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Grasp a pull-up bar with an overhand grip, hands shoulder-width apart. Let your body hang completely free, keeping your arms straight and shoulders relaxed. Squeeze your legs together lightly, but let your hips, pelvis, and spine hang completely passive. Inhale deeply into your lower abdomen, feeling your ribcage expand. On a slow, relaxed exhale, let gravity pull your pelvis down, decompressing your lumbar vertebrae and elongating your spine. You will feel a deep release in your lower back, lats, and shoulders. Hold this position, breathing slowly. This dead hang provides passive traction, reducing pressure on spinal discs and down-regulating spinal erectors."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Banded Ankle Distraction",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Anchor a heavy resistance band to a stable post behind you. Loop the other end around the front of your ankle joint, resting on the talus bone. Step forward to create heavy forward tension. Place your foot flat on a step or floor. Inhale, brace, and drive your knee forward over your toes, keeping your heel firmly planted. The band's backward pull distracts the ankle joint, creating joint space and overcoming bony restrictions. Hold the forward position for three seconds, then release. Repeat this mobilization slowly, focusing on deep breathing. This protocol dramatically increases ankle dorsiflexion, which is critical for knee and hip mechanics."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Wrist Decompression Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Assume a quadruped position on your hands and knees. Rotate your hands so the backs of your hands are flat on the floor, fingers pointing toward each other. Spread your fingers wide. Pull your shoulders down away from your ears, stabilizing your scapulae. Inhale, brace lightly, and slowly shift your weight from side to side, then rock back slightly. Keep your elbows locked and the backs of your hands flat; do not let them peel up. You will feel a deep, passive stretch in your wrist extensors and forearms. Hold and breathe slowly, allowing the joint capsule to decompress. This joint prep restores wrist extension and relieves carpal tunnel stress."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "First Rib Mobilization",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Drape a mobility strap or heavy towel over your shoulder, crossing it over your upper trap. Grasp both ends with your hand, pulling downward and forward with firm pressure to pin the first rib. Tilt your head back slightly and tilt it away from the strapped side. Inhale deeply into your upper chest, feeling the rib try to push against the strap's pressure. On a slow, controlled exhale, allow your head to sink deeper into the stretch, releasing the scalenes and opening the thoracic outlet. Hold this position, focusing on slow diaphragmatic breathing. This release reduces shoulder shrugging, neck stiffness, and thoracic outlet compression."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Dynamic Hamstring Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Lie flat on your back, raising one leg to ninety degrees and grasping behind your knee with both hands. Keep your opposite leg straight and flat on the floor. Inhale, brace your core, and slowly extend your working knee, pointing your toes toward the ceiling. Extend only until you feel a mild stretch in your hamstring. Hold this peak position for two seconds, then slowly lower your foot. Repeat this movement slowly and dynamically, flossing the sciatic nerve and hamstring muscle belly. Focus on slow diaphragmatic breathing, keeping your pelvis flat on the floor. This dynamic mobilization increases hamstring length without triggering the stretch reflex."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Banded Hip Distraction",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Anchor a heavy resistance band to a stable post. Loop the other end around your upper thigh, close to your groin. Step away from the post, creating a heavy lateral and forward pull. Kneel on your inside knee, stepping your outside foot forward into a lunge. Inhale deeply, and as you exhale slowly, let your hips sink forward, allowing the band to pull your femur laterally. This distraction creates space inside the hip joint capsule, reducing impingement and mobilizing the posterior capsule. Hold this position, breathing diaphragmatically. Let your hips sink deeper on each exhale. This restores hip extension and internal rotation."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Cross-Legged ITB Stretch",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Stand tall, crossing your working leg behind your opposite leg, keeping both feet flat on the floor. Place your hand on a wall or a stable support for balance. Inhale deeply, lengthening your entire spine toward the ceiling. On a slow, controlled exhale, push your hips laterally toward the working side. Keep your torso completely straight\u2014do not lean forward, slump, or twist your pelvis. Feel the deep stretch down your outer thigh and hip, specifically targeting the tensor fasciae latae and the iliotibial band. Hold this position, focusing on deep diaphragmatic breathing into your lateral ribcage and hip. On each exhale, allow your hips to sink further laterally, releasing tension under passive traction. This reduces hip tightness and lateral knee stress."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Scapular CARs",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Stand tall with your feet hip-width apart, arms fully extended at your sides, hands in tight fists. Squeeze your glutes, lock your knees, and brace your core to prevent your spine or neck from moving. Now, perform Controlled Articular Rotations (CARs) with your shoulder blades. Slowly elevate your shoulders toward your ears. Retract them, squeezing your shoulder blades together. Depress them, pulling them down into your back pockets. Protract them, pushing them forward as far as possible. Complete this slow, circular path under strict control, isolating the movement to your scapulae. Focus on slow, diaphragmatic breathing. This restores scapular mobility and motor control."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Hip CARs",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Assume a quadruped position on your hands and knees. Keep your spine flat and core braced. Lift one knee off the ground, keeping it bent at ninety degrees. Perform Hip Controlled Articular Rotations (CARs). Slowly flex your hip, bringing your knee toward your chest. Abduct your hip, lifting your knee out to the side like a dog at a fire hydrant. Internally rotate your hip, kicking your heel toward the ceiling while keeping your knee high. Extend your hip, kicking straight back, then return to the start. Complete this slow circle, avoiding any spinal movement or pelvic tilt. This maintains hip joint health and cartilage."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Neck CARs",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Stand tall with your feet hip-width apart, hands in tight fists at your sides. Squeeze your glutes, lock your knees, and brace your core to isolate your neck. Perform Neck Controlled Articular Rotations (CARs). Slowly tuck your chin to your chest. Rotate your chin toward your right shoulder. Tilt your right ear back toward your shoulder. Extension your neck, tracing your chin across the ceiling. Tilt your left ear toward your left shoulder. Rotate your chin to your left shoulder, then tuck your chin back to your chest. Complete this slow circle under control, avoiding any shoulder movement. This maintains cervical spine joint health."
+  },
+  {
+    "category": "Recovery",
+    "exercise_name": "Lumbar Segmental Cat-Cow",
+    "series": "The Sanctuary",
+    "target_duration": "60s",
+    "script": "Assume a quadruped position on your hands and knees, with your hands placed directly under your shoulder joints and your knees under your hips. Your spine should start in a completely flat, neutral position. Focus on mobilizing your vertebral column segment by segment, starting from your pelvis. Inhale deeply into your abdomen. On a slow, controlled exhale, tilt your pelvis anteriorly, allowing your lower back to arch. Slowly ripple this extension up your spine, vertebra by vertebra, ending by lifting your gaze. Now, inhale deeply, and as you exhale, tuck your pelvis posteriorly, rounding your lower back. Sequentially move this flexion up your spine, segment by segment, ending by tucking your chin to your chest. This segmental motor control down-regulates spinal erectors and reduces muscular guarding."
+  }
+]

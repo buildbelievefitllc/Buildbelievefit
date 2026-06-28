@@ -249,10 +249,14 @@ serve(async (req: Request) => {
   const series = String(payload?.series ?? '').trim();
   const vibe = resolveVibe(payload?.vibe);
   const lang = (['en', 'es', 'pt'].includes(String(payload?.lang || 'en'))) ? String(payload?.lang || 'en') : 'en';
-  const rawDur = Number(payload?.target_duration ?? payload?.targetDuration ?? payload?.duration);
-  if (!Number.isFinite(rawDur)) return jsonResponse({ error: 'missing_duration', detail: 'Provide TargetDuration in seconds.' }, 400);
+  // Accept a number (30) or a suffixed string ("60s") for the duration.
+  const rawDur = parseFloat(String(payload?.target_duration ?? payload?.targetDuration ?? payload?.duration ?? '').replace(/[^0-9.]/g, ''));
+  if (!Number.isFinite(rawDur) || rawDur <= 0) return jsonResponse({ error: 'missing_duration', detail: 'Provide TargetDuration in seconds (e.g. 60 or "60s").' }, 400);
   const duration = Math.max(MIN_DURATION, Math.min(MAX_DURATION, Math.round(rawDur)));
   const force = payload?.force === true; // bypass the cache (re-render)
+  // Optional pre-written script — when present we skip the LLM entirely and voice
+  // this EXACT text (batch vault seeding). Empty/absent → fall back to LLM gen.
+  const providedScript = typeof payload?.provided_script === 'string' ? payload.provided_script.trim() : '';
 
   // ── 1 · CACHE LOOKUP ──
   const slug = await buildSlug({ vibe, series, topic, duration, lang });
@@ -263,21 +267,34 @@ serve(async (req: Request) => {
   console.log(`[${FN}] cache MISS slug=${slug} — generating`);
 
   const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
-  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   if (!ELEVENLABS_API_KEY) return jsonResponse({ error: 'tts_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
-  if (!ANTHROPIC_API_KEY) return jsonResponse({ error: 'llm_unconfigured', detail: 'ANTHROPIC_API_KEY is not set.' }, 503);
 
-  // ── 2 · DYNAMIC GENERATION (cache miss) ──
+  // ── 2 · SCRIPT (provided verbatim, or LLM-generated on miss) ──
   const words = Math.max(8, Math.round(duration * WORDS_PER_SEC));
-  const model = routeAndLog(FN, 'studio_voiceover_script');
   const spec = VIBES[vibe];
+  let script: string;
+  let model: string | null = null;   // null when we voice a provided script (no LLM)
+  let llmUsage: unknown = null;
+  let source: 'provided_script' | 'llm';
 
-  const scripted = await writeScript(ANTHROPIC_API_KEY, model, { topic, series, words, tone: spec.tone, lang });
-  if (!scripted.ok) {
-    console.error(`[${FN}] script gen failed ${scripted.status}: ${scripted.detail}`);
-    return jsonResponse({ error: 'script_failed', detail: `Claude could not write the script (${scripted.status}).` }, 502);
+  if (providedScript) {
+    // Pre-written script → skip the Anthropic/Haiku call entirely.
+    script = providedScript;
+    source = 'provided_script';
+    console.log(`[${FN}] using provided_script (${script.length} chars) — LLM skipped`);
+  } else {
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!ANTHROPIC_API_KEY) return jsonResponse({ error: 'llm_unconfigured', detail: 'ANTHROPIC_API_KEY is not set.' }, 503);
+    model = routeAndLog(FN, 'studio_voiceover_script');
+    const scripted = await writeScript(ANTHROPIC_API_KEY, model, { topic, series, words, tone: spec.tone, lang });
+    if (!scripted.ok) {
+      console.error(`[${FN}] script gen failed ${scripted.status}: ${scripted.detail}`);
+      return jsonResponse({ error: 'script_failed', detail: `Claude could not write the script (${scripted.status}).` }, 502);
+    }
+    script = scripted.text;
+    llmUsage = scripted.usage;
+    source = 'llm';
   }
-  let script = scripted.text;
   if (script.length > MAX_SCRIPT_CHARS) script = script.slice(0, MAX_SCRIPT_CHARS);
 
   const ssml = buildSsml(script, vibe);
@@ -295,7 +312,7 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'vault_write_failed', detail: 'Synthesis succeeded but the audio could not be cached.' }, 502);
   }
 
-  console.log(`[${FN}] STORED slug=${slug} model=${model} words=${words} script_chars=${script.length} billed_chars=${ssml.length} bytes=${tts.buf.byteLength}`);
+  console.log(`[${FN}] STORED slug=${slug} source=${source} model=${model ?? 'none'} words=${words} script_chars=${script.length} billed_chars=${ssml.length} bytes=${tts.buf.byteLength}`);
   return jsonResponse({
     ok: true,
     cached: false,
@@ -303,13 +320,14 @@ serve(async (req: Request) => {
     url: publicUrl(SUPABASE_URL, slug),
     vibe,
     duration,
+    source,
     model,
     usage: {
       words_target: words,
       script_chars: script.length,
       billed_chars: ssml.length,
       audio_bytes: tts.buf.byteLength,
-      llm: scripted.usage,
+      llm: llmUsage,
     },
   });
 });
