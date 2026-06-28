@@ -26,7 +26,11 @@ import { statSync } from 'node:fs';
  *
  * Selectors verified against bbf-sovereign-studio-v3.html: exportStage(),
  * drawReelOverlay()/drawVideoCover()/pickRecorderMime()/ensureReelFonts(),
- * #reel-export, #reel-export-vid, #reel-file-vid, #reel-vid, #reel-lbl-vid.
+ * #reel-export-vid, #reel-file-vid, #reel-vid, #reel-lbl-vid.
+ *
+ * NOTE (FRONT 6): the Video Engine's image export (#reel-export) + cover queue/post
+ * were purged when the Sovereign voice + music engine was integrated. The PNG
+ * exportStage() upgrade is now exercised via the Spotlight panel (#sp-export).
  */
 
 const STUDIO = '/bbf-sovereign-studio-v3.html';
@@ -98,7 +102,14 @@ test.describe('Sovereign Studio v3 — export pipeline', () => {
   });
 
   test('Upgrade 1: PNG export uses scale:2 + onclone that neutralizes the preview transform', async ({ page }) => {
-    await loadReel(page);
+    // FRONT 6 retired the Video Engine's image export; exercise the SAME exportStage()
+    // onclone logic via the Spotlight panel's PNG export (1080×1350).
+    const errors: string[] = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    page.on('dialog', (d) => d.dismiss().catch(() => {}));
+    await page.goto(STUDIO, { waitUntil: 'load' });
+    await page.locator('.mode-tab[data-m="spot"]').click();
+    await expect(page.locator('#panel-spot')).toHaveClass(/active/);
     // Stub the (CDN) rasterizer to capture the options OUR code passes and to run
     // its onclone against a fake cloned doc — then assert the transform was reset.
     await page.evaluate(() => {
@@ -117,7 +128,7 @@ test.describe('Sovereign Studio v3 — export pipeline', () => {
       };
     });
     const downloadP = page.waitForEvent('download', { timeout: 20_000 });
-    await page.click('#reel-export');
+    await page.click('#sp-export');
     const download = await downloadP;
     expect(download.suggestedFilename()).toMatch(/\.png$/);
 
@@ -125,10 +136,11 @@ test.describe('Sovereign Studio v3 — export pipeline', () => {
     expect(h.scale, 'scale:2 for crisp output').toBe(2);
     expect(h.useCORS, 'useCORS:true').toBe(true);
     expect(h.w).toBe(1080);
-    expect(h.h).toBe(1920);
+    expect(h.h).toBe(1350);
     expect(h.onclone, 'onclone provided').toBeTruthy();
     expect(h.reset, 'onclone neutralizes the .stage-scaler transform').toBe('none');
     expect(h.forced, 'onclone forces the clone to full stage width').toBe('1080px');
+    expect(errors, 'no uncaught JS exceptions').toEqual([]);
   });
 
   test('Upgrade 2: captureStream → MediaRecorder yields a non-empty Blob', async ({ page }) => {
