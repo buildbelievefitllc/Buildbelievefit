@@ -8,6 +8,12 @@ import StageScaler from './StageScaler';
 import QueueMonitor from './QueueMonitor';
 import { renderMarkup } from './markup.jsx';
 
+const PLATFORMS = [
+  ['instagram', 'Instagram'],
+  ['facebook', 'Facebook'],
+  ['tiktok', 'TikTok'],
+];
+
 const stripMarkup = (s) => String(s || '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').trim();
 
 function humanizePostErr(slug) {
@@ -18,6 +24,20 @@ function humanizePostErr(slug) {
     no_platform: 'Enable at least one platform (Instagram / Facebook).',
   };
   return map[slug] || `Failed (${slug}). The asset may be saved — try QUEUE, or retry.`;
+}
+
+function humanizeReelErr(slug) {
+  const map = {
+    no_recorder: 'This browser can’t record canvas video — try Chrome or Safari on a recent device.',
+    no_footage: 'Upload reel footage first (EXPORT still works for the cover).',
+    no_stage: 'Reel preview not ready — switch to the Video Engine tab and retry.',
+    empty_recording: 'The recording produced no data — try again, or use a different browser.',
+    play_failed: 'Could not start footage playback — re-upload the clip and retry.',
+    recorder_init: 'Recorder init failed — try a different browser.',
+    no_admin_session: 'No admin session — sign in to the Command Center, then retry.',
+    not_admin: 'This session is not an authorized admin.',
+  };
+  return map[slug] || `Reel export/post failed (${slug}).`;
 }
 
 export default function StudioLayout({
@@ -37,10 +57,16 @@ export default function StudioLayout({
   const [exporting, setExporting] = useState(false);
   const [posting, setPosting] = useState(false);
   const [postNote, setPostNote] = useState(null); // { ok: boolean, text: string }
+  // Reel MediaRecorder state (drives the hard UI lock + progress overlay).
+  const [recording, setRecording] = useState(false);
+  const [recordPct, setRecordPct] = useState(0);
   // Social auto-post target toggles (V3 parity → server distributors route the post).
-  const [igOn, setIgOn] = useState(true);
-  const [fbOn, setFbOn] = useState(true);
-  const platformTarget = () => (igOn && fbOn ? 'online' : igOn ? 'instagram' : fbOn ? 'facebook' : null);
+  const [targets, setTargets] = useState({ instagram: true, facebook: true, tiktok: false });
+  const toggleTarget = (k) => setTargets((t) => ({ ...t, [k]: !t[k] }));
+  const selectedPlatforms = () => PLATFORMS.map(([k]) => k).filter((k) => targets[k]);
+  // CSV of selected platforms → platform_target (persists TikTok intent too); null = none.
+  const platformTarget = () => (selectedPlatforms().join(',') || null);
+  const platformLabel = () => selectedPlatforms().map((k) => PLATFORMS.find(([p]) => p === k)[1]).join(' + ');
 
   // Render the active 1080-res stage to a canvas (transform neutralized).
   const renderStageCanvas = async () => {
@@ -100,13 +126,13 @@ export default function StudioLayout({
     if (!target) { setPostNote({ ok: false, text: humanizePostErr('no_platform') }); return; }
     if (now) {
       const cap = (fields.caption || '').slice(0, 600) || '(no caption)';
-      if (!window.confirm(`POST NOW to ${target === 'online' ? 'Instagram + Facebook' : target}?\n\nPublishes immediately and cannot be undone.\n\n— CAPTION —\n${cap}`)) {
+      if (!window.confirm(`POST NOW to ${platformLabel()}?\n\nPublishes immediately and cannot be undone.\n\n— CAPTION —\n${cap}`)) {
         setPostNote({ ok: true, text: 'Cancelled — nothing was posted.' });
         return;
       }
     }
     setPosting(true);
-    setPostNote({ ok: true, text: now ? 'Posting to IG/FB now…' : 'Queuing…' });
+    setPostNote({ ok: true, text: now ? `Posting to ${platformLabel()} now…` : 'Queuing…' });
     try {
       const { queuePost } = await import('../../lib/studioQueueApi.js');
       const r = await queuePost({ kind: 'image', fields: { ...fields, platform_target: target }, getBlob: getStageBlob, now });
@@ -134,29 +160,111 @@ export default function StudioLayout({
     };
   };
 
-  // Shared IG/FB toggle + QUEUE/POST-NOW control block for the image panels.
-  // Plain render helper (NOT a nested component) so the inputs don't remount.
+  // Shared social target toggles (Instagram / Facebook / TikTok). Plain render
+  // helper (NOT a nested component) so the inputs don't remount.
+  const socialToggles = () => (
+    <div className="post-toggles-v4">
+      {PLATFORMS.map(([k, label]) => (
+        <label key={k} className={`post-toggle-v4 ${targets[k] ? 'on' : ''}`}>
+          <input type="checkbox" checked={targets[k]} onChange={() => toggleTarget(k)} /> {label}
+        </label>
+      ))}
+    </div>
+  );
+
+  // Image panels (CTA / Phone): toggles + QUEUE + POST NOW.
   const postControls = (fields) => (
     <>
-      <div className="post-toggles-v4">
-        <label className={`post-toggle-v4 ${igOn ? 'on' : ''}`}>
-          <input type="checkbox" checked={igOn} onChange={(e) => setIgOn(e.target.checked)} /> Instagram
-        </label>
-        <label className={`post-toggle-v4 ${fbOn ? 'on' : ''}`}>
-          <input type="checkbox" checked={fbOn} onChange={(e) => setFbOn(e.target.checked)} /> Facebook
-        </label>
-      </div>
+      {socialToggles()}
       <button className="queue-btn-v4" onClick={() => postCard(fields, false)} disabled={posting}>
-        {posting ? '… WORKING' : '📡 QUEUE → IG/FB'}
+        {posting ? '… WORKING' : '📡 QUEUE → SOCIAL'}
       </button>
       <button className="postnow-btn-v4" onClick={() => postCard(fields, true)} disabled={posting}>
-        {posting ? '… WORKING' : '🚀 POST NOW → IG/FB'}
+        {posting ? '… WORKING' : '🚀 POST NOW → SOCIAL'}
       </button>
       {postNote && (
         <div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>
       )}
     </>
   );
+
+  // ── REEL: record (MediaRecorder) → export-only or post, driven by toggle state ──
+  const reelFields = () => {
+    const hl = (reelData.hook || '').replace(/\n/g, ' ').trim();
+    const bd = (reelData.hookSub || '').trim();
+    return {
+      headline: hl,
+      body: bd,
+      eye_label: reelData.series || '',
+      color_palette: 'custom',
+      caption: [hl, bd, '', '#BuildBelieveFit'].filter(Boolean).join('\n'),
+    };
+  };
+
+  const exportOrPostReel = async () => {
+    if (recording || posting) return;
+    const target = platformTarget();
+    const hasVideo = !!reelData.videoFile?.url;
+    setPostNote(null);
+
+    // No footage → fall back to the cover frame (export PNG, or post as image).
+    if (!hasVideo) {
+      if (!target) { await exportPNG('reel-cover'); setPostNote({ ok: true, text: 'Exported reel cover (PNG). Upload footage to record/post video.' }); return; }
+      await postCard(reelFields(), true);
+      return;
+    }
+
+    setRecording(true);
+    setRecordPct(0);
+    try {
+      const { recordReel, canRecordMp4 } = await import('../../lib/reelRecorder.js');
+      const result = await recordReel({
+        stageNode: stageRef.current,
+        voUrl: reelData.voUrl,
+        durationCap: target ? 90 : 1200,
+        onProgress: (p) => setRecordPct(Math.round(p * 100)),
+      });
+      if (!result || !result.blob) throw new Error('record_failed');
+
+      // EXPORT ONLY (no targets) → download the recording.
+      if (!target) {
+        const url = URL.createObjectURL(result.blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `bbf-reel-1080x1920.${result.ext}`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 120000);
+        setPostNote({ ok: result.ext === 'mp4', text: result.ext === 'mp4' ? '✓ Exported reel (MP4).' : 'Exported .webm — your browser can’t record MP4; convert before posting to IG/FB.' });
+        return;
+      }
+
+      // POST → IG/FB/TikTok reject WebM; only post real MP4.
+      if (result.ext !== 'mp4' || !canRecordMp4()) {
+        const url = URL.createObjectURL(result.blob);
+        const a = document.createElement('a'); a.href = url; a.download = `bbf-reel.${result.ext}`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 120000);
+        setPostNote({ ok: false, text: 'This browser records WebM (IG/FB/TikTok reject it). Downloaded the clip — post from Safari/a recent iPhone, which records MP4.' });
+        return;
+      }
+
+      setPosting(true);
+      setPostNote({ ok: true, text: `Posting reel to ${platformLabel()}…` });
+      const { queuePost, pollPostStatus } = await import('../../lib/studioQueueApi.js');
+      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => result.blob, now: true });
+      if (res.status === 'posting') {
+        setPostNote({ ok: true, text: 'Posting reel… Meta is transcoding (~60–90s).' });
+        const verdict = await pollPostStatus({ kind: 'video', id: res.id });
+        setPostNote({ ok: verdict === 'posted', text: verdict === 'posted' ? '✓ Reel posted.' : verdict === 'failed' ? 'Meta rejected the reel — the asset is saved.' : 'Still finishing at Meta — check IG/FB shortly.' });
+      } else {
+        setPostNote({ ok: true, text: '✓ Reel posted.' });
+      }
+    } catch (e) {
+      setPostNote({ ok: false, text: humanizeReelErr(e?.message) });
+    } finally {
+      setRecording(false);
+      setPosting(false);
+    }
+  };
 
   return (
     <div className="layout-v4">
@@ -369,6 +477,20 @@ export default function StudioLayout({
               reelData={reelData}
               handleReelChange={handleReelChange}
             />
+            <div className="divider-v4"></div>
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">📤 Distribute Reel</label>
+              {socialToggles()}
+              <button className="postnow-btn-v4" onClick={exportOrPostReel} disabled={recording || posting}>
+                {recording ? `🎬 RECORDING… ${recordPct}%` : platformTarget() ? `🚀 EXPORT & POST → ${platformLabel()}` : '⬇ EXPORT VIDEO'}
+              </button>
+              <div className="hint-v4">
+                Toggles OFF → records &amp; downloads the reel. Toggles ON → records &amp; posts it. Needs uploaded footage (else exports the cover frame).
+              </div>
+              {postNote && (
+                <div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -429,7 +551,7 @@ export default function StudioLayout({
         {mode === 'reel' && (
           <div className="stage-host-v4 active">
             <StageScaler designWidth={1080} designHeight={1920}>
-              <ReelPreviewEngine reelData={reelData} handleReelChange={handleReelChange} />
+              <ReelPreviewEngine reelData={reelData} handleReelChange={handleReelChange} stageRef={stageRef} />
             </StageScaler>
           </div>
         )}
@@ -440,6 +562,19 @@ export default function StudioLayout({
           </div>
         )}
       </div>
+
+      {/* Hard UI lock + encoding overlay while the MediaRecorder runs in real time. */}
+      {recording && (
+        <div className="rec-lock-v4" role="alertdialog" aria-busy="true" aria-label="Recording reel">
+          <div className="rec-lock-card">
+            <div className="rec-spinner" />
+            <div className="rec-title">RECORDING REEL</div>
+            <div className="rec-sub">Encoding the canvas in real time — please keep this tab open.</div>
+            <div className="rec-bar"><div className="rec-bar-fill" style={{ width: `${recordPct}%` }} /></div>
+            <div className="rec-pct">{recordPct}%</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

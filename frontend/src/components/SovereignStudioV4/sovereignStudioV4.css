@@ -153,6 +153,42 @@
 .post-toggle-v4.on { color: var(--wht); border-color: var(--pur); background: rgba(106, 13, 173, 0.18); }
 .post-toggle-v4 input { accent-color: var(--yel); }
 
+/* ===== HOOK AUTO-GEN (Haiku) ===== */
+.hook-actions-v4 { display: flex; gap: 8px; align-items: stretch; }
+.hook-actions-v4 .spin-btn-v4 { flex: 1; }
+.haiku-btn-v4 {
+  flex: 0 0 auto; border-radius: 8px; padding: 0 16px; cursor: pointer;
+  font-family: var(--hb); font-size: 0.82rem; letter-spacing: 1.2px; white-space: nowrap;
+  color: var(--yel); background: rgba(245, 200, 0, 0.08);
+  border: 1px solid rgba(245, 200, 0, 0.5); transition: all 0.15s;
+}
+.haiku-btn-v4:hover { background: rgba(245, 200, 0, 0.18); color: var(--wht); }
+.haiku-btn-v4:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== RECORDING LOCK (MediaRecorder hard lock + progress) ===== */
+.rec-lock-v4 {
+  position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
+  background: rgba(8, 6, 12, 0.82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  cursor: progress;
+}
+.rec-lock-card {
+  width: min(420px, 86vw); text-align: center; padding: 34px 30px; border-radius: 16px;
+  background: var(--gry2); border: 1px solid var(--bbf-glass-border, rgba(245, 200, 0, 0.25));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+}
+.rec-spinner {
+  width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 50%;
+  border: 5px solid rgba(245, 200, 0, 0.18); border-top-color: var(--yel);
+  animation: rec-spin 0.9s linear infinite;
+}
+@keyframes rec-spin { to { transform: rotate(360deg); } }
+.rec-title { font-family: var(--hb); font-size: 1.5rem; letter-spacing: 3px; color: var(--wht); }
+.rec-title::after { content: ''; }
+.rec-sub { font-size: 0.84rem; color: var(--mut); margin-top: 8px; line-height: 1.45; }
+.rec-bar { height: 10px; border-radius: 6px; background: var(--gry3); overflow: hidden; margin-top: 18px; }
+.rec-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--pur), var(--yel)); transition: width 0.2s linear; }
+.rec-pct { font-family: var(--hb); font-size: 1.1rem; letter-spacing: 2px; color: var(--yel); margin-top: 10px; }
+
 /* ===== QUEUE MONITOR ===== */
 .queue-host-v4 { width: 100%; max-width: 680px; margin: 0 auto; }
 .qmon { width: 100%; color: var(--wht); }

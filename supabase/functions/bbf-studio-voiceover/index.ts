@@ -192,6 +192,37 @@ async function writeScript(apiKey: string, model: string, opts: { topic: string;
   return { ok: true, text, usage: body?.usage ?? null };
 }
 
+// FRONT 5 · Hook auto-gen — Haiku writes a punchy reel HOOK + sub-line for an
+// exercise/topic. Returns { hook, sub } (1-line each). Low-stakes copy → HAIKU.
+async function writeHook(apiKey: string, model: string, opts: { topic: string; spectrum: string; lang: string }): Promise<{ ok: true; hook: string; sub: string; usage: any } | { ok: false; status: number; detail: string }> {
+  const langName = ({ en: 'English', es: 'Spanish', pt: 'Portuguese' } as Record<string, string>)[opts.lang] || 'English';
+  const spec = opts.spectrum ? ` Spectrum/theme: ${opts.spectrum}.` : '';
+  const sys = `You are BBF Coach Akeem writing scroll-stopping hooks for a Build Believe Fit training reel. Output STRICT JSON only: {"hook":"...","sub":"..."}. Rules: write in ${langName}; "hook" is a punchy 2-4 word ALL-CAPS headline (may use a newline); "sub" is one short supporting sentence (≤90 chars). No markdown, no extra keys, no commentary.`;
+  const user = `Exercise / topic: ${opts.topic}.${spec} Write the hook + sub now as JSON.`;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model, max_tokens: 300, system: sys, messages: [{ role: 'user', content: user }] }),
+  });
+  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    const detail = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
+    return { ok: false, status: res.status, detail: String(detail).slice(0, 200) };
+  }
+  const block = Array.isArray(body?.content) ? body.content.find((b: any) => b?.type === 'text' && typeof b.text === 'string') : null;
+  const text = (block?.text || '').trim();
+  try {
+    const m = text.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(m ? m[0] : text);
+    const hook = String(parsed.hook || '').trim();
+    const sub = String(parsed.sub || '').trim();
+    if (!hook) return { ok: false, status: 502, detail: 'empty_hook' };
+    return { ok: true, hook, sub, usage: body?.usage ?? null };
+  } catch {
+    return { ok: false, status: 502, detail: 'hook_parse_failed' };
+  }
+}
+
 // Wrap the spoken script in the CEO-specified <break time="0.5s"/> head/tail
 // padding (and light sentence-level pauses for the slow Sanctuary tone).
 function buildSsml(raw: string, vibe: Vibe): string {
@@ -249,6 +280,20 @@ serve(async (req: Request) => {
   const series = String(payload?.series ?? '').trim();
   const vibe = resolveVibe(payload?.vibe);
   const lang = (['en', 'es', 'pt'].includes(String(payload?.lang || 'en'))) ? String(payload?.lang || 'en') : 'en';
+
+  // ── HOOK AUTO-GEN (text only, no audio/cache) ──
+  if (payload?.action === 'hook' || payload?.mode === 'hook') {
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!ANTHROPIC_API_KEY) return jsonResponse({ error: 'llm_unconfigured', detail: 'ANTHROPIC_API_KEY is not set.' }, 503);
+    const hookModel = routeAndLog(FN, 'studio_voiceover_script');
+    const spectrum = String(payload?.spectrum ?? '').trim();
+    const h = await writeHook(ANTHROPIC_API_KEY, hookModel, { topic, spectrum, lang });
+    if (!h.ok) {
+      console.error(`[${FN}] hook gen failed ${h.status}: ${h.detail}`);
+      return jsonResponse({ error: 'hook_failed', detail: `Hook engine failed (${h.status}).` }, 502);
+    }
+    return jsonResponse({ ok: true, hook: h.hook, sub: h.sub, model: hookModel, usage: h.usage });
+  }
   // Accept a number (30) or a suffixed string ("60s") for the duration.
   const rawDur = parseFloat(String(payload?.target_duration ?? payload?.targetDuration ?? payload?.duration ?? '').replace(/[^0-9.]/g, ''));
   if (!Number.isFinite(rawDur) || rawDur <= 0) return jsonResponse({ error: 'missing_duration', detail: 'Provide TargetDuration in seconds (e.g. 60 or "60s").' }, 400);

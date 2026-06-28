@@ -14,7 +14,7 @@ const OVERLAY_CLASS = {
   frame: 'ovl-frame',
 };
 
-export default function ReelPreviewEngine({ reelData }) {
+export default function ReelPreviewEngine({ reelData, stageRef }) {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -94,9 +94,9 @@ export default function ReelPreviewEngine({ reelData }) {
   const pct = duration ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={`stage-reel-v4 ${overlayClass}`}>
+    <div className={`stage-reel-v4 ${overlayClass}`} ref={stageRef}>
       {reelData.videoFile?.url ? (
-        <video ref={videoRef} src={reelData.videoFile.url} className="reel-video-v4" playsInline />
+        <video ref={videoRef} src={reelData.videoFile.url} className="reel-video-v4" playsInline crossOrigin="anonymous" />
       ) : (
         <div className="reel-placeholder-v4">
           <div className="placeholder-text-v4">UPLOAD A VIDEO<br />TO PREVIEW</div>

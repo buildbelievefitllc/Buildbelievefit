@@ -97,6 +97,30 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
   return j;
 }
 
+// FRONT 5 · Hook auto-gen. Haiku writes a reel hook + sub-line for the selected
+// exercise/topic (no audio, no cache). Returns { hook, sub }. Throws on failure.
+export async function generateHook({ topic, spectrum, lang }) {
+  const token = getStoredVaultToken();
+  const res = await fetch(`${FUNCTIONS_BASE}/bbf-studio-voiceover`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      ...(token ? { 'x-bbf-vault-token': token } : {}),
+    },
+    body: JSON.stringify({ action: 'hook', topic, spectrum: spectrum || '', lang: lang || 'en', vault_token: token }),
+  });
+  if (!res.ok) {
+    let detail = `hook_failed_${res.status}`;
+    try { const j = await res.json(); detail = j.detail || j.error || detail; } catch { /* non-JSON */ }
+    throw new Error(detail);
+  }
+  const j = await res.json().catch(() => null);
+  if (!j || !j.hook) throw new Error('hook_no_data');
+  return j;
+}
+
 // Optional: fetch the Vibe Matrix from the server (the UI ships its own copy, so
 // this is only a diagnostic / future-proofing hook).
 export async function fetchStudioVibes() {

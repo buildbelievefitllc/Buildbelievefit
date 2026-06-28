@@ -40,6 +40,13 @@ const DURATIONS = [
   [60, '60s Masterclass'],
 ];
 
+// Trilingual — the lang the Claude script + ElevenLabs voice are generated in.
+const LANGS = [
+  ['en', 'EN'],
+  ['es', 'ES'],
+  ['pt', 'PT'],
+];
+
 function humanizeVoErr(slug) {
   const map = {
     not_admin: 'Admin session required — sign in to the Command Center.',
@@ -99,6 +106,8 @@ export default function VibeSelector({ reelData, handleReelChange }) {
   const logoInputRef = useRef(null);
   const [voBusy, setVoBusy] = useState(false);
   const [voNote, setVoNote] = useState(null); // { ok: boolean, text: string }
+  const [hookBusy, setHookBusy] = useState(false);
+  const [hookNote, setHookNote] = useState(null); // { ok: boolean, text: string }
 
   // Pull a random hook from the chosen spectrum, or across ALL spectrums when the
   // default "— all spectrums (shuffle) —" is selected (v3 parity — no dead button).
@@ -115,6 +124,27 @@ export default function VibeSelector({ reelData, handleReelChange }) {
     handleReelChange('spectrum', spectrum);
     if (spectrum) pullHook(spectrum);
   };
+
+  // FRONT 5 — Auto-Generate the hook + sub-line via Claude Haiku, seeded by the
+  // exercise selected in the zero-latency dropdown (reelData.voTopic).
+  async function handleAutoHook() {
+    if (hookBusy) return;
+    const topic = (reelData.voTopic || '').trim();
+    if (!topic) { setHookNote({ ok: false, text: 'Pick an exercise in the Voiceover panel below first — it seeds the hook.' }); return; }
+    setHookBusy(true);
+    setHookNote(null);
+    try {
+      const { generateHook } = await import('../../lib/studioApi.js');
+      const r = await generateHook({ topic, spectrum: reelData.spectrum, lang: reelData.lang || 'en' });
+      handleReelChange('hook', r.hook);
+      if (r.sub) handleReelChange('hookSub', r.sub);
+      setHookNote({ ok: true, text: `Hook auto-filled via Haiku for “${topic}”.` });
+    } catch (e) {
+      setHookNote({ ok: false, text: e?.message === 'no_admin_session' ? 'Sign in to the Command Center first.' : 'Hook auto-gen failed — try again.' });
+    } finally {
+      setHookBusy(false);
+    }
+  }
 
   // FRONT 5 — generate (or cache-hit) the voiceover, then hand the URL to the
   // ReelPreviewEngine. studioApi is imported DYNAMICALLY so this component still
@@ -158,11 +188,17 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         <div className="hint-v4"><b>SPIN A HOOK</b> pulls a headline + sub-line from this spectrum (or shuffles all).</div>
       </div>
 
-      <div className="ctl-group-v4">
+      <div className="ctl-group-v4 hook-actions-v4">
         <button className="spin-btn-v4" onClick={() => pullHook(reelData.spectrum)}>
           🎰 SPIN A HOOK
         </button>
+        <button className="haiku-btn-v4" onClick={handleAutoHook} disabled={hookBusy} title="Auto-write the hook + sub-line from the selected exercise via Claude Haiku">
+          {hookBusy ? '…' : '✨ AUTO (HAIKU)'}
+        </button>
       </div>
+      {hookNote && (
+        <div className="hint-v4" style={{ color: hookNote.ok ? 'var(--green, #4ade80)' : '#fb923c', marginTop: -8 }}>{hookNote.text}</div>
+      )}
 
       <div className="divider-v4"></div>
 
@@ -200,6 +236,23 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         <div className="hint-v4">
           <b>{CACHED_COUNT}</b> exercises pre-cached across {EXERCISE_GROUPS.length} categories (zero-cost instant load). Pick one, or type a new topic to generate &amp; cache it.
         </div>
+      </div>
+
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🌐 Language</label>
+        <div className="seg-v4">
+          {LANGS.map(([code, label]) => (
+            <button
+              key={code}
+              type="button"
+              className={reelData.lang === code ? 'active' : ''}
+              onClick={() => handleReelChange('lang', code)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="hint-v4">Drives which language the Claude script + ElevenLabs voice are generated in (sports video library).</div>
       </div>
 
       <div className="ctl-group-v4">
@@ -312,13 +365,6 @@ export default function VibeSelector({ reelData, handleReelChange }) {
             <option key={value || 'none'} value={value}>{label}</option>
           ))}
         </select>
-      </div>
-
-      <div className="ctl-group-v4">
-        <button className="export-btn-v4" disabled title="Video render (MediaRecorder) ships in V4.1">
-          🎬 EXPORT VIDEO · SOON
-        </button>
-        <div className="hint-v4">Cover composition is live above. Baked video export (footage + overlay) lands in V4.1.</div>
       </div>
     </>
   );
