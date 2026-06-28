@@ -1,0 +1,178 @@
+/* SovereignStudio — FRONT 5 voice production console.
+   LOCKED brand tokens: BBF Purple #6a0dad, BBF Gold #f5c800, Matte Black #090909
+   (approved surface only). Bebas headers via var(--hb/--display), Barlow body. */
+
+.sst { max-width: 760px; }
+
+.sst-head { margin-bottom: 1.6rem; }
+.sst-kicker {
+  font-family: var(--hb), 'Bebas Neue', sans-serif;
+  font-size: .72rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #f5c800;
+  margin-bottom: .4rem;
+}
+.sst-title {
+  font-family: var(--display), 'Bebas Neue', sans-serif;
+  font-size: 2.1rem;
+  letter-spacing: 1px;
+  margin: 0 0 .5rem;
+  color: var(--wht, #fff);
+}
+.sst-sub {
+  font-family: var(--bd), 'Barlow Condensed', sans-serif;
+  font-size: .95rem;
+  line-height: 1.5;
+  color: var(--mut, #9aa);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.sst-field { margin-bottom: 1.3rem; }
+.sst-label {
+  display: block;
+  font-family: var(--hb), 'Bebas Neue', sans-serif;
+  font-size: .74rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-soft, #f5d97a);
+  margin-bottom: .5rem;
+}
+
+.sst-select {
+  width: 100%;
+  font-family: var(--bd), 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  color: var(--wht, #fff);
+  background: rgba(9, 9, 9, .7);
+  border: 1px solid rgba(245, 200, 0, .34);
+  border-radius: 12px;
+  padding: .75rem .9rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(135deg, rgba(106, 13, 173, .25), rgba(9, 9, 9, .2));
+}
+.sst-select:focus { outline: none; border-color: #f5c800; box-shadow: 0 0 0 2px rgba(245, 200, 0, .25); }
+.sst-vibe-desc {
+  font-family: var(--bd), 'Barlow Condensed', sans-serif;
+  font-size: .86rem;
+  color: rgba(244, 238, 251, .7);
+  margin-top: .45rem;
+}
+
+.sst-quick {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: .9rem;
+}
+.sst-quick-lbl {
+  font-family: var(--hb), 'Bebas Neue', sans-serif;
+  font-size: .68rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--mut, #9aa);
+  margin-right: .2rem;
+}
+.sst-chip {
+  font-family: var(--bd), 'Barlow Condensed', sans-serif;
+  font-size: .82rem;
+  font-weight: 600;
+  color: #f5c800;
+  background: rgba(106, 13, 173, .28);
+  border: 1px solid rgba(245, 200, 0, .4);
+  border-radius: 999px;
+  padding: .35rem .8rem;
+  cursor: pointer;
+  transition: background .15s ease, transform .12s ease;
+}
+.sst-chip:hover { background: rgba(106, 13, 173, .5); }
+.sst-chip:active { transform: scale(.96); }
+
+.sst-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--bd), 'Barlow Condensed', sans-serif;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--wht, #fff);
+  background: rgba(9, 9, 9, .72);
+  border: 1px solid rgba(245, 200, 0, .3);
+  border-radius: 14px;
+  padding: .9rem 1rem;
+  resize: vertical;
+  min-height: 9rem;
+}
+.sst-textarea:focus { outline: none; border-color: #f5c800; box-shadow: 0 0 0 2px rgba(245, 200, 0, .22); }
+.sst-textarea.is-over { border-color: var(--red, #ff5d5d); }
+
+.sst-meter {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: .45rem;
+}
+.sst-count { font-family: var(--bd), 'Barlow Condensed', sans-serif; font-size: .82rem; color: var(--mut, #9aa); }
+.sst-count.is-over { color: var(--red, #ff5d5d); font-weight: 700; }
+.sst-cost { font-family: var(--bd), 'Barlow Condensed', sans-serif; font-size: .78rem; color: rgba(244, 238, 251, .55); text-align: right; }
+
+.sst-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: .4rem; }
+.sst-generate {
+  font-family: var(--hb), 'Bebas Neue', sans-serif;
+  font-size: .92rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #090909;
+  background: linear-gradient(135deg, #f5c800, #ffd83a);
+  border: none;
+  border-radius: 12px;
+  padding: .85rem 1.6rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(245, 200, 0, .28);
+  transition: transform .12s ease, opacity .15s ease;
+}
+.sst-generate:hover:not(:disabled) { transform: translateY(-1px); }
+.sst-generate:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+.sst-err { font-family: var(--bd), 'Barlow Condensed', sans-serif; font-size: .88rem; font-weight: 600; color: var(--red, #ff5d5d); }
+
+.sst-preview {
+  margin-top: 1.6rem;
+  padding: 1.1rem 1.2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(245, 200, 0, .45);
+  background: linear-gradient(135deg, rgba(106, 13, 173, .34), rgba(9, 9, 9, .65));
+  box-shadow: 0 6px 24px rgba(106, 13, 173, .22);
+}
+.sst-preview-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: .7rem; }
+.sst-preview-kicker {
+  font-family: var(--hb), 'Bebas Neue', sans-serif;
+  font-size: .8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f5c800;
+}
+.sst-preview-billed { font-family: var(--bd), 'Barlow Condensed', sans-serif; font-size: .8rem; color: rgba(244, 238, 251, .7); }
+.sst-audio { width: 100%; margin: .2rem 0 .9rem; }
+
+.sst-save {
+  font-family: var(--hb), 'Bebas Neue', sans-serif;
+  font-size: .85rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f5c800;
+  background: transparent;
+  border: 1.5px solid #f5c800;
+  border-radius: 12px;
+  padding: .7rem 1.3rem;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.sst-save:hover { background: #f5c800; color: #090909; }
+.sst-save-note { font-family: var(--bd), 'Barlow Condensed', sans-serif; font-size: .78rem; color: rgba(244, 238, 251, .55); margin: .55rem 0 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sst-chip, .sst-generate, .sst-save { transition: none; }
+}

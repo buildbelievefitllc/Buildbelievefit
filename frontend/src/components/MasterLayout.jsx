@@ -27,6 +27,8 @@ const NAV_ITEMS = [
   { labelKey: 'cmd-tab-coach-lab', to: '/command/coach-lab', isActive: (tab) => tab === 'coach-lab' },
   // The Coach's Cave — admin-only sport-psychology film library (own deep-link).
   { labelKey: 'cmd-tab-coach-cave', to: '/command/coach-cave', isActive: (tab) => tab === 'coach-cave' },
+  // Sovereign Studio (FRONT 5) — admin-only ElevenLabs voiceover producer (own deep-link).
+  { labelKey: 'cmd-tab-studio', to: '/command/studio', isActive: (tab) => tab === 'studio' },
   { labelKey: 'cmd-tab-sports', to: '/command/sports', isActive: (tab) => tab === 'sports' },
   { labelKey: 'cmd-tab-language', to: '/command/language', isActive: (tab) => tab === 'language' },
   { labelKey: 'vault-tab-settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },

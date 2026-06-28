@@ -28,6 +28,7 @@ import CoachCave from '../components/command/CoachCave.jsx';
 import CoachLab from '../components/command/CoachLab.jsx';
 import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
 import ContentEngine from '../components/command/ContentEngine.jsx';
+import SovereignStudio from '../components/command/SovereignStudio.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import SportsPortal from '../components/sports/SportsPortal.jsx';
@@ -73,6 +74,10 @@ const TABS = [
   // Content Engine — operator-editable marketing CTA cards (the calibration deck); the
   // public landing reads these live. Admin-only via the AdminGuard /command route.
   { id: 'content', labelKey: 'cmd-tab-content', Panel: ContentEngine },
+  // Sovereign Studio (FRONT 5) — private ElevenLabs voiceover producer (Akeem clone +
+  // Vibe Matrix). Admin-only via the AdminGuard /command route; the webhook re-gates
+  // server-side on the admin's vault token.
+  { id: 'studio', labelKey: 'cmd-tab-studio', Panel: SovereignStudio },
   // The Coach Lab — BBF Lab Continuous Knowledge Ecosystem (Research Vault live;
   // Kinesiology Lab · Coach's Arena · Broadcast Hub on the build path). Admin-only.
   { id: 'coach-lab', labelKey: 'cmd-tab-coach-lab', Panel: CoachLab },

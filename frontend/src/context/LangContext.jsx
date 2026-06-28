@@ -646,6 +646,9 @@ const DICT = {
   // The Coach Lab — admin-only Continuous Knowledge Ecosystem. Proper noun, kept
   // identical across languages (like 'Founder Five' / 'Comlink').
   'cmd-tab-coach-lab': { en: 'Coach Lab', es: 'Coach Lab', pt: 'Coach Lab' },
+  // Sovereign Studio — admin-only ElevenLabs voiceover producer (FRONT 5). Proper
+  // noun feel; ES/PT localize lightly.
+  'cmd-tab-studio': { en: 'Sovereign Studio', es: 'Estudio Soberano', pt: 'Estúdio Soberano' },
   // Content Studio launcher (admin sidebar) — opens the standalone
   // /bbf-studio.html "Sovereign Studio" content tool in a new tab.
   'cmd-studio': { en: 'Content Studio', es: 'Estudio de Contenido', pt: 'Estúdio de Conteúdo' },
