@@ -5,6 +5,13 @@
 // returns a cached-or-fresh MP3 URL that loads into the ReelPreviewEngine.
 
 import { useRef, useState } from 'react';
+// Manifest of the 125 pre-generated (zero-cost) vault exercises. Keys are the
+// exact exercise names; values are the cached vault URLs (filled by the seeder
+// run). The topic field offers these as a datalist so the user can pick a cached
+// exercise instead of guessing the string — while still free-typing a new one.
+import audioVaultManifest from '../../data/audioVaultManifest.json';
+
+const CACHED_EXERCISES = Object.keys(audioVaultManifest);
 
 // Voice characters (vibes) — drive the VO script tone + ElevenLabs physics. ids
 // MUST match the Edge Function's VIBES map.
@@ -177,11 +184,17 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         <input
           type="text"
           className="input-v4"
+          list="bbf-cached-exercises"
           value={reelData.voTopic}
           onChange={(e) => handleReelChange('voTopic', e.target.value)}
-          placeholder="Exercise / topic (e.g. Barbell Squat)"
+          placeholder="Select an exercise from the vault, or type a new one…"
         />
-        <div className="hint-v4">Keys the audio vault — we reuse the asset on a repeat combo (no re-spend).</div>
+        <datalist id="bbf-cached-exercises">
+          {CACHED_EXERCISES.map((name) => <option key={name} value={name} />)}
+        </datalist>
+        <div className="hint-v4">
+          <b>{CACHED_EXERCISES.length}</b> exercises are pre-cached (zero-cost instant load). Pick one, or type a new topic to generate &amp; cache it.
+        </div>
       </div>
 
       <div className="ctl-group-v4">

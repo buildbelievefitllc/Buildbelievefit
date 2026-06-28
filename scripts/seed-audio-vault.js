@@ -27,7 +27,7 @@
  *   SUPABASE_URL           (default https://ihclbceghxpuawymlvgi.supabase.co)
  *   SUPABASE_ANON_KEY      (optional gateway apikey)
  *   SEED_FILE              (default ./master-vault-seed.json)
- *   MANIFEST_FILE          (default ./audio-vault-manifest.json)
+ *   MANIFEST_FILE          (default ./frontend/src/data/audioVaultManifest.json)
  *   DRY_RUN=1 | --dry-run  (validate mapping/loop/manifest without the network)
  *
  * Usage:
@@ -45,7 +45,9 @@ const ANON = process.env.SUPABASE_ANON_KEY || '';
 const ADMIN = process.env.BBF_COACH_AGENT_TOKEN || process.env.BBF_ADMIN_TOKEN || '';
 const DRY_RUN = process.env.DRY_RUN === '1' || process.argv.includes('--dry-run');
 const SEED_FILE = process.env.SEED_FILE || path.resolve(process.cwd(), 'master-vault-seed.json');
-const MANIFEST_FILE = process.env.MANIFEST_FILE || path.resolve(process.cwd(), 'audio-vault-manifest.json');
+// Default to the file the V4 frontend imports (single source of truth) so a live
+// run fills in the real vault URLs the UI's exercise datalist is built from.
+const MANIFEST_FILE = process.env.MANIFEST_FILE || path.resolve(process.cwd(), 'frontend/src/data/audioVaultManifest.json');
 const ENDPOINT = `${SUPABASE_URL}/functions/v1/bbf-studio-voiceover`;
 
 const DELAY_MS = 2000;            // strict 2s between LIVE requests (CEO directive)
