@@ -37,6 +37,7 @@ export type UseCase =
   | 'snapshot_synthesis'      // Athlete snapshot 2-4 sentence digest
   | 'sovereign_brief'         // Founder cockpit nightly synthesis
   | 'i18n_translation'        // Linguist · language pack rotation
+  | 'studio_voiceover_script' // Sovereign Studio · dynamic VO script for a cached exercise/topic reel (low-stakes narration → margin protection)
   // forecast_1rm — MIGRATED off the LLM to the deterministic engine
   //   (_shared/forecast-engine.mjs · Epley + Brzycki + OLS regression). No LLM route.
   | 'sport_immersion_seed'    // Immersion · static sport-immersion seed
@@ -71,6 +72,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   snapshot_synthesis:    MODELS.HAIKU,
   sovereign_brief:       MODELS.HAIKU,
   i18n_translation:      MODELS.HAIKU,
+  studio_voiceover_script: MODELS.HAIKU, // batch content-production VO script — low-stakes narration (CLAUDE.md §4 · margin protection)
   // forecast_1rm removed — now deterministic (see _shared/forecast-engine.mjs).
   sport_immersion_seed:  MODELS.HAIKU,
   kinematic_form_score:  MODELS.SONNET,
