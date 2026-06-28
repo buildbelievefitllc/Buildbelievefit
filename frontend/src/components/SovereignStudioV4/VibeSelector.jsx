@@ -65,6 +65,7 @@ const HOOKS = {
 const SERIES = [
   ['', '— series database —'],
   ['form-fix', 'FORM FIX'],
+  ['recovery-protocol', 'RECOVERY PROTOCOL'],
   ['mindset', 'MINDSET PROTOCOL'],
   ['metabolic', 'METABOLIC WINDOW'],
   ['12hour', '12-HOUR SURVIVAL'],

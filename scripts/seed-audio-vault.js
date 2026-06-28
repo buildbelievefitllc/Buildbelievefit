@@ -5,12 +5,20 @@
  * FRONT 5 — Batch-seed the Sovereign Studio audio vault.
  *
  * Reads master-vault-seed.json from the repo root and POSTs each pre-written
- * script to the LIVE bbf-studio-voiceover Edge Function. Because each item ships
- * a `provided_script`, the function skips the Anthropic/Haiku LLM entirely and
+ * script to the LIVE bbf-studio-voiceover Edge Function. Each item ships a
+ * `provided_script`, so the function skips the Anthropic/Haiku LLM entirely and
  * voices the EXACT text, then caches the MP3 in the studio-audio-vault bucket.
  *
  * Sequential, with a strict 2-second delay between requests. Each response is
- * logged so progress is visible in the terminal.
+ * logged; after the run a manifest (exercise_name → vault URL) is written.
+ *
+ * DATA ALIGNMENT (so the V4 frontend gets cache HITS, not a 0% rate):
+ *   series  "The Mechanic"  → form-fix           (existing V4 dropdown slug)
+ *   series  "The Sanctuary" → recovery-protocol  (added to the V4 dropdown)
+ *   vibe    default         → the-architect      (server resolves to the_architect)
+ *   fallback                → slugify(anything unmatched)
+ * The Edge Function keys its cache slug on (topic, duration, series, vibe, lang),
+ * so these MUST match what the frontend later sends for the lookup to hit.
  *
  * Auth (server-to-server): X-BBF-Admin-Token === BBF_COACH_AGENT_TOKEN.
  *
@@ -19,7 +27,8 @@
  *   SUPABASE_URL           (default https://ihclbceghxpuawymlvgi.supabase.co)
  *   SUPABASE_ANON_KEY      (optional gateway apikey)
  *   SEED_FILE              (default ./master-vault-seed.json)
- *   DRY_RUN=1 | --dry-run  (validate mapping/loop without calling the network)
+ *   MANIFEST_FILE          (default ./audio-vault-manifest.json)
+ *   DRY_RUN=1 | --dry-run  (validate mapping/loop/manifest without the network)
  *
  * Usage:
  *   BBF_COACH_AGENT_TOKEN=*** node scripts/seed-audio-vault.js
@@ -36,11 +45,22 @@ const ANON = process.env.SUPABASE_ANON_KEY || '';
 const ADMIN = process.env.BBF_COACH_AGENT_TOKEN || process.env.BBF_ADMIN_TOKEN || '';
 const DRY_RUN = process.env.DRY_RUN === '1' || process.argv.includes('--dry-run');
 const SEED_FILE = process.env.SEED_FILE || path.resolve(process.cwd(), 'master-vault-seed.json');
+const MANIFEST_FILE = process.env.MANIFEST_FILE || path.resolve(process.cwd(), 'audio-vault-manifest.json');
 const ENDPOINT = `${SUPABASE_URL}/functions/v1/bbf-studio-voiceover`;
 
 const DELAY_MS = 2000;            // strict 2s between LIVE requests (CEO directive)
 const DRY_DELAY_MS = 5;           // negligible pause in dry-run so validation is fast
-const VIBE_DEFAULT = 'The Architect';
+const VIBE_DEFAULT = 'the-architect';
+
+// Map the seed's human series names → the exact V4 frontend dropdown slugs so the
+// cache key the seeder writes equals the key the UI later looks up. Anything not
+// in the table falls back to a slugified form.
+const SERIES_MAP = {
+  'the mechanic': 'form-fix',
+  'the sanctuary': 'recovery-protocol',
+};
+const slugify = (s) => String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const mapSeries = (name) => SERIES_MAP[String(name || '').trim().toLowerCase()] || slugify(name);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // "60s" | "60" | 60 → 60 (the Edge Function also parses this, belt-and-suspenders).
@@ -53,15 +73,15 @@ async function postItem(item, idx, total) {
   const payload = {
     topic: item.exercise_name,
     target_duration: toSeconds(item.target_duration),
-    series: item.series || '',
+    series: mapSeries(item.series),
     vibe: VIBE_DEFAULT,
     provided_script: item.script,   // critical: ElevenLabs voices our EXACT text
   };
   const tag = `[${String(idx + 1).padStart(3, '0')}/${total}] ${item.exercise_name}`;
 
   if (DRY_RUN) {
-    console.log(`${tag}  →  ${payload.target_duration}s · series="${payload.series}" · script=${String(item.script || '').length} chars  [DRY]`);
-    return { ok: true, cached: false, dry: true };
+    console.log(`${tag}  →  ${payload.target_duration}s · series="${payload.series}" · vibe="${payload.vibe}" · script=${String(item.script || '').length} chars  [DRY]`);
+    return { ok: true, cached: false, url: null };
   }
 
   try {
@@ -78,13 +98,13 @@ async function postItem(item, idx, total) {
     if (res.ok && json && json.ok) {
       const state = json.cached ? 'CACHE HIT ($0)' : `GENERATED (${json.source || 'fresh'})`;
       console.log(`${tag}  ✓  ${state}  →  ${json.url}`);
-      return { ok: true, cached: !!json.cached };
+      return { ok: true, cached: !!json.cached, url: json.url };
     }
     console.log(`${tag}  ✗  HTTP ${res.status}  ${json ? (json.error || '') : ''} ${json ? (json.detail || '') : ''}`.trim());
-    return { ok: false };
+    return { ok: false, url: null };
   } catch (e) {
     console.log(`${tag}  ✗  network: ${e && e.message ? e.message : e}`);
-    return { ok: false };
+    return { ok: false, url: null };
   }
 }
 
@@ -108,14 +128,31 @@ async function main() {
   console.log(`\n🎙  Seeding ${items.length} scripts → ${ENDPOINT}${DRY_RUN ? '   [DRY RUN — no network]' : ''}`);
   console.log(`    vibe="${VIBE_DEFAULT}"  ·  ${DRY_RUN ? 'no delay' : `${DELAY_MS}ms between requests`}\n`);
 
+  const manifest = {};   // exercise_name → returned vault URL
   let ok = 0, cached = 0, fail = 0;
   for (let i = 0; i < items.length; i++) {
-    const r = await postItem(items[i], i, items.length);
-    if (r.ok) { ok++; if (r.cached) cached++; } else { fail++; }
+    const item = items[i];
+    const r = await postItem(item, i, items.length);
+    if (r.ok) {
+      ok++;
+      if (r.cached) cached++;
+      // Manifest maps the exercise to its permanent vault URL (null in dry-run).
+      manifest[item.exercise_name] = r.url;
+    } else {
+      fail++;
+    }
     if (i < items.length - 1) await sleep(DRY_RUN ? DRY_DELAY_MS : DELAY_MS);
   }
 
-  console.log(`\nDone. ${ok}/${items.length} ok  (cache hits: ${cached}, fresh: ${ok - cached})  ·  failed: ${fail}\n`);
+  // Write the manifest the frontend can consume to map exercises → audio assets.
+  try {
+    fs.writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2) + '\n');
+    console.log(`\n📝  Manifest written: ${Object.keys(manifest).length} entries → ${MANIFEST_FILE}`);
+  } catch (e) {
+    console.error(`\n⚠️  Could not write manifest to ${MANIFEST_FILE}: ${e.message}`);
+  }
+
+  console.log(`Done. ${ok}/${items.length} ok  (cache hits: ${cached}, fresh: ${ok - cached})  ·  failed: ${fail}\n`);
   process.exit(!DRY_RUN && fail > 0 ? 2 : 0);
 }
 
