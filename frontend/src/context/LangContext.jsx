@@ -649,6 +649,7 @@ const DICT = {
   // Sovereign Studio — admin-only ElevenLabs voiceover producer (FRONT 5). Proper
   // noun feel; ES/PT localize lightly.
   'cmd-tab-studio': { en: 'Sovereign Studio', es: 'Estudio Soberano', pt: 'Estúdio Soberano' },
+  'cmd-tab-studio-v4': { en: 'Studio V4', es: 'Studio V4', pt: 'Studio V4' },
   // Content Studio launcher (admin sidebar) — opens the standalone
   // /bbf-studio.html "Sovereign Studio" content tool in a new tab.
   'cmd-studio': { en: 'Content Studio', es: 'Estudio de Contenido', pt: 'Estúdio de Conteúdo' },

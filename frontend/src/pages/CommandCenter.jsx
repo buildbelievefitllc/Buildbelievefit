@@ -29,6 +29,7 @@ import CoachLab from '../components/command/CoachLab.jsx';
 import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
 import ContentEngine from '../components/command/ContentEngine.jsx';
 import SovereignStudio from '../components/command/SovereignStudio.jsx';
+import SovereignStudioV4 from '../components/SovereignStudioV4/index.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import SportsPortal from '../components/sports/SportsPortal.jsx';
@@ -78,6 +79,9 @@ const TABS = [
   // Vibe Matrix). Admin-only via the AdminGuard /command route; the webhook re-gates
   // server-side on the admin's vault token.
   { id: 'studio', labelKey: 'cmd-tab-studio', Panel: SovereignStudio },
+  // Sovereign Studio V4 — Fresh React rebuild for all-in-one content: CTA cards,
+  // Phone mockups, Video Engine with reel overlay skins. Replaces the v3 monolith.
+  { id: 'studio-v4', labelKey: 'cmd-tab-studio-v4', Panel: SovereignStudioV4 },
   // The Coach Lab — BBF Lab Continuous Knowledge Ecosystem (Research Vault live;
   // Kinesiology Lab · Coach's Arena · Broadcast Hub on the build path). Admin-only.
   { id: 'coach-lab', labelKey: 'cmd-tab-coach-lab', Panel: CoachLab },
