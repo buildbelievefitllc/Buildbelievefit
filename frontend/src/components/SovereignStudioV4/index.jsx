@@ -69,6 +69,12 @@ export default function SovereignStudioV4() {
     backgroundColor: '#08060a',
     logoImage: null,
     videoFile: null,
+    // FRONT 5 · Sovereign Voiceover (lazy-cached bbf-studio-voiceover)
+    voTopic: '',            // Exercise / topic that keys the cache
+    vibe: 'the_architect',  // voice character → script tone + ElevenLabs physics
+    targetDuration: 30,     // seconds: 15 Hook / 30 Breakdown / 60 Masterclass
+    lang: 'en',             // payload lang (en/es/pt) — defaults EN
+    voUrl: null,            // returned Supabase Storage public URL → ReelPreviewEngine
   });
 
   // Keep a live ref to the reel blob URLs so the unmount cleanup revokes whatever

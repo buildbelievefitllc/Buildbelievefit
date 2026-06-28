@@ -20,6 +20,11 @@ export default function ReelPreviewEngine({ reelData }) {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
+  // FRONT 5 — Sovereign Voiceover playback (the cached/generated MP3 URL handed up
+  // from VibeSelector via reelData.voUrl).
+  const voRef = useRef(null);
+  const [voPlaying, setVoPlaying] = useState(false);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return undefined;
@@ -59,6 +64,32 @@ export default function ReelPreviewEngine({ reelData }) {
     else video.pause();
   };
 
+  // Voiceover audio: bind play/pause state to the element's real events; reset when
+  // a new VO URL is loaded so a stale "playing" glyph never lingers.
+  useEffect(() => {
+    const audio = voRef.current;
+    if (!audio) return undefined;
+    setVoPlaying(false);
+    const onPlay = () => setVoPlaying(true);
+    const onPause = () => setVoPlaying(false);
+    const onEnded = () => setVoPlaying(false);
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    audio.addEventListener('ended', onEnded);
+    return () => {
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('ended', onEnded);
+    };
+  }, [reelData.voUrl]);
+
+  const toggleVoiceover = () => {
+    const audio = voRef.current;
+    if (!audio) return;
+    if (audio.paused) audio.play().catch(() => {});
+    else audio.pause();
+  };
+
   const overlayClass = OVERLAY_CLASS[reelData.overlayStyle] || 'ovl-scrim';
   const pct = duration ? (currentTime / duration) * 100 : 0;
 
@@ -84,7 +115,15 @@ export default function ReelPreviewEngine({ reelData }) {
         {reelData.hook && <div className="reel-hl-v4">{reelData.hook}</div>}
         {reelData.hookSub && <div className="reel-sub-v4">{reelData.hookSub}</div>}
         {(reelData.hook || reelData.hookSub) && <div className="reel-watch-v4">▶ WATCH</div>}
+        {reelData.voUrl && (
+          <button type="button" className="reel-vo-v4" onClick={toggleVoiceover} aria-label={voPlaying ? 'Pause voiceover' : 'Play voiceover'}>
+            {voPlaying ? '❚❚ VOICEOVER' : '🎙 PLAY VOICEOVER'}
+          </button>
+        )}
       </div>
+
+      {/* Hidden VO audio element — the lazy-cached/generated MP3 from the Edge Function */}
+      {reelData.voUrl && <audio ref={voRef} src={reelData.voUrl} preload="auto" />}
 
       {reelData.logoImage?.url && (
         <div className="reel-logo-v4">

@@ -247,6 +247,12 @@
 .reel-watch-v4 { display: inline-flex; align-items: center; gap: 14px; margin-top: 34px;
   font-family: var(--hb); font-size: 38px; letter-spacing: 3px; padding: 20px 46px; border-radius: 60px;
   background: var(--yel); color: #060606; text-transform: uppercase; }
+/* Sovereign Voiceover play control — purple/gold so it reads distinct from the
+   gold WATCH chip. Authored in 1080-design space (StageScaler shrinks it). */
+.reel-vo-v4 { display: inline-flex; align-items: center; gap: 14px; margin-top: 22px; margin-left: 18px;
+  font-family: var(--hb); font-size: 34px; letter-spacing: 3px; padding: 18px 40px; border-radius: 60px;
+  background: linear-gradient(135deg, var(--pur), var(--purl)); color: var(--wht);
+  border: 3px solid rgba(245, 200, 0, 0.6); text-transform: uppercase; cursor: pointer; vertical-align: middle; }
 .reel-logo-v4 { position: absolute; top: 58px; right: 64px; width: 128px; height: 128px; border-radius: 50%;
   overflow: hidden; z-index: 6; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(245, 200, 0, 0.35); }
 .reel-logo-v4 img { width: 100%; height: 100%; object-fit: cover; }

@@ -1,10 +1,42 @@
 // src/components/SovereignStudioV4/VibeSelector.jsx
-// Reel inputs: hook spectrum + spin, footage/logo upload, overlay skin, series tag.
-// (The v3 ElevenLabs voiceover subsystem — script box, vibe→TTS, music bed — is
-// out of scope for this UI rebuild, so the orphaned "Vibe Character" control was
-// removed rather than left as a dead input.)
+// Reel inputs: hook spectrum + spin, footage/logo upload, overlay skin, series tag,
+// and the FRONT 5 Sovereign Voiceover engine (lazy-cached bbf-studio-voiceover):
+// pick a topic + voice character + target duration → Generate → the Edge Function
+// returns a cached-or-fresh MP3 URL that loads into the ReelPreviewEngine.
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+
+// Voice characters (vibes) — drive the VO script tone + ElevenLabs physics. ids
+// MUST match the Edge Function's VIBES map.
+const VOICES = [
+  ['the_architect', 'The Architect — resonant storytelling'],
+  ['the_mechanic', 'The Mechanic — sharp, technical'],
+  ['real_talk', 'Real Talk — conversational'],
+  ['the_sanctuary', 'The Sanctuary — deep, slow'],
+  ['the_reframe', 'The Reframe — perspective shift'],
+];
+
+// Target runtime → seconds. Script length is derived server-side (~2.5 words/sec).
+const DURATIONS = [
+  [15, '15s Hook'],
+  [30, '30s Breakdown'],
+  [60, '60s Masterclass'],
+];
+
+function humanizeVoErr(slug) {
+  const map = {
+    not_admin: 'Admin session required — sign in to the Command Center.',
+    missing_topic: 'Enter an exercise / topic first.',
+    missing_duration: 'Pick a target duration.',
+    tts_unconfigured: 'Voice engine not configured (ElevenLabs key missing).',
+    llm_unconfigured: 'Script engine not configured (Anthropic key missing).',
+    script_failed: 'The script engine failed — try again.',
+    tts_failed: 'ElevenLabs could not synthesize this take — try again.',
+    vault_write_failed: 'Audio generated but could not be cached — try again.',
+    voiceover_no_url: 'The engine returned no audio URL — try again.',
+  };
+  return map[slug] || 'Voiceover generation failed — try again.';
+}
 
 // Hook banks ported from the v3 HOOK_SPECTRUMS reference (headline + sub-line).
 const HOOKS = {
@@ -47,6 +79,8 @@ const SERIES = [
 export default function VibeSelector({ reelData, handleReelChange }) {
   const videoInputRef = useRef(null);
   const logoInputRef = useRef(null);
+  const [voBusy, setVoBusy] = useState(false);
+  const [voNote, setVoNote] = useState(null); // { ok: boolean, text: string }
 
   // Pull a random hook from the chosen spectrum, or across ALL spectrums when the
   // default "— all spectrums (shuffle) —" is selected (v3 parity — no dead button).
@@ -63,6 +97,34 @@ export default function VibeSelector({ reelData, handleReelChange }) {
     handleReelChange('spectrum', spectrum);
     if (spectrum) pullHook(spectrum);
   };
+
+  // FRONT 5 — generate (or cache-hit) the voiceover, then hand the URL to the
+  // ReelPreviewEngine. studioApi is imported DYNAMICALLY so this component still
+  // mounts in the supabase-less verification harness (the import only evaluates
+  // supabaseClient on click, never at mount).
+  async function handleGenerateVoiceover() {
+    const topic = (reelData.voTopic || '').trim();
+    if (voBusy) return;
+    if (!topic) { setVoNote({ ok: false, text: humanizeVoErr('missing_topic') }); return; }
+    setVoBusy(true);
+    setVoNote(null);
+    try {
+      const { generateStudioVoiceover } = await import('../../lib/studioApi.js');
+      const r = await generateStudioVoiceover({
+        topic,
+        targetDuration: reelData.targetDuration,
+        series: reelData.series,
+        vibe: reelData.vibe,
+        lang: reelData.lang || 'en',
+      });
+      handleReelChange('voUrl', r.url); // → ReelPreviewEngine <audio>
+      setVoNote({ ok: true, text: r.cached ? 'Loaded from vault — cache hit, $0 spend.' : 'Generated & cached to the vault.' });
+    } catch (e) {
+      setVoNote({ ok: false, text: humanizeVoErr(e?.message) });
+    } finally {
+      setVoBusy(false);
+    }
+  }
 
   return (
     <>
@@ -104,6 +166,59 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           className="textarea-v4"
           placeholder="The supporting beat"
         />
+      </div>
+
+      <div className="divider-v4"></div>
+
+      {/* ── FRONT 5 · SOVEREIGN VOICEOVER (lazy-cached) ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🎙 Sovereign Voiceover — Akeem clone</label>
+        <input
+          type="text"
+          className="input-v4"
+          value={reelData.voTopic}
+          onChange={(e) => handleReelChange('voTopic', e.target.value)}
+          placeholder="Exercise / topic (e.g. Barbell Squat)"
+        />
+        <div className="hint-v4">Keys the audio vault — we reuse the asset on a repeat combo (no re-spend).</div>
+      </div>
+
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">Voice Character</label>
+        <select
+          value={reelData.vibe}
+          onChange={(e) => handleReelChange('vibe', e.target.value)}
+          className="select-v4"
+        >
+          {VOICES.map(([id, label]) => (
+            <option key={id} value={id}>{label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">Target Duration</label>
+        <select
+          value={reelData.targetDuration}
+          onChange={(e) => handleReelChange('targetDuration', Number(e.target.value))}
+          className="select-v4"
+        >
+          {DURATIONS.map(([secs, label]) => (
+            <option key={secs} value={secs}>{label}</option>
+          ))}
+        </select>
+        <div className="hint-v4">Script length is derived server-side at ~2.5 words/sec.</div>
+      </div>
+
+      <div className="ctl-group-v4">
+        <button className="export-btn-v4" onClick={handleGenerateVoiceover} disabled={voBusy}>
+          {voBusy ? '… GENERATING' : '🎙 GENERATE VOICEOVER'}
+        </button>
+        {voNote && (
+          <div className="hint-v4" style={{ color: voNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>
+            {voNote.text}
+          </div>
+        )}
       </div>
 
       <div className="divider-v4"></div>
