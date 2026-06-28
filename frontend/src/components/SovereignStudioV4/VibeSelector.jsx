@@ -5,13 +5,23 @@
 // returns a cached-or-fresh MP3 URL that loads into the ReelPreviewEngine.
 
 import { useRef, useState } from 'react';
-// Manifest of the 125 pre-generated (zero-cost) vault exercises. Keys are the
-// exact exercise names; values are the cached vault URLs (filled by the seeder
-// run). The topic field offers these as a datalist so the user can pick a cached
-// exercise instead of guessing the string — while still free-typing a new one.
-import audioVaultManifest from '../../data/audioVaultManifest.json';
+import ExerciseCombobox from './ExerciseCombobox';
+// Lean name→category map for the 125 cached vault exercises (extracted from the
+// seed — NO script text, so the client bundle stays small). Drives the grouped
+// topic picker. The actual zero-cost URL lookup lives in studioApi.js.
+import audioVaultCategories from '../../data/audioVaultCategories.json';
 
-const CACHED_EXERCISES = Object.keys(audioVaultManifest);
+// Group the cached exercises by category for the topic picker. Friendly labels +
+// a deliberate order; any unknown category falls in after, alphabetically.
+const CATEGORY_LABELS = { Strength: 'Core Strength', Prehab: 'Prehab', Recovery: 'Recovery' };
+const CATEGORY_ORDER = ['Strength', 'Prehab', 'Recovery'];
+const EXERCISE_GROUPS = (() => {
+  const byCat = {};
+  for (const [name, cat] of Object.entries(audioVaultCategories)) (byCat[cat] = byCat[cat] || []).push(name);
+  const cats = [...CATEGORY_ORDER.filter((c) => byCat[c]), ...Object.keys(byCat).filter((c) => !CATEGORY_ORDER.includes(c)).sort()];
+  return cats.map((cat) => ({ label: (CATEGORY_LABELS[cat] || cat).toUpperCase(), items: byCat[cat] }));
+})();
+const CACHED_COUNT = Object.keys(audioVaultCategories).length;
 
 // Voice characters (vibes) — drive the VO script tone + ElevenLabs physics. ids
 // MUST match the Edge Function's VIBES map.
@@ -181,19 +191,14 @@ export default function VibeSelector({ reelData, handleReelChange }) {
       {/* ── FRONT 5 · SOVEREIGN VOICEOVER (lazy-cached) ── */}
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">🎙 Sovereign Voiceover — Akeem clone</label>
-        <input
-          type="text"
-          className="input-v4"
-          list="bbf-cached-exercises"
+        <ExerciseCombobox
           value={reelData.voTopic}
-          onChange={(e) => handleReelChange('voTopic', e.target.value)}
+          onChange={(v) => handleReelChange('voTopic', v)}
+          groups={EXERCISE_GROUPS}
           placeholder="Select an exercise from the vault, or type a new one…"
         />
-        <datalist id="bbf-cached-exercises">
-          {CACHED_EXERCISES.map((name) => <option key={name} value={name} />)}
-        </datalist>
         <div className="hint-v4">
-          <b>{CACHED_EXERCISES.length}</b> exercises are pre-cached (zero-cost instant load). Pick one, or type a new topic to generate &amp; cache it.
+          <b>{CACHED_COUNT}</b> exercises pre-cached across {EXERCISE_GROUPS.length} categories (zero-cost instant load). Pick one, or type a new topic to generate &amp; cache it.
         </div>
       </div>
 

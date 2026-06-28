@@ -135,6 +135,38 @@
 .cc-k-v4 { font-size: 0.54rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
 .cc-v-v4 { font-family: var(--hb); font-size: 0.78rem; letter-spacing: 1px; color: var(--wht); }
 
+/* ===== EXERCISE COMBOBOX (grouped, type-to-filter topic picker) ===== */
+.excb { position: relative; }
+.excb .input-v4 { padding-right: 30px; }
+.excb-caret { position: absolute; right: 11px; top: 11px; color: var(--mut); font-size: 0.8rem; pointer-events: none; }
+.excb-panel {
+  position: absolute; z-index: 40; left: 0; right: 0; top: calc(100% + 4px);
+  max-height: 280px; overflow-y: auto; background: var(--gry2);
+  border: 1px solid var(--pur); border-radius: 8px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+}
+.excb-empty { padding: 12px 13px; font-size: 0.82rem; color: var(--mut); line-height: 1.4; }
+.excb-empty b { color: var(--wht); }
+.excb-group { padding: 4px 0; border-top: 1px solid var(--gry3); }
+.excb-group:first-child { border-top: none; }
+.excb-grouphead {
+  position: sticky; top: 0; background: linear-gradient(180deg, #1a0533, var(--purx));
+  font-family: var(--hb); font-size: 0.72rem; letter-spacing: 2px; color: var(--yel);
+  padding: 7px 13px; display: flex; align-items: center; justify-content: space-between;
+}
+.excb-count { font-family: var(--bd); font-weight: 700; font-size: 0.62rem; color: var(--mut);
+  background: rgba(245, 200, 0, 0.12); border-radius: 20px; padding: 1px 8px; }
+.excb-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+  text-align: left; background: none; border: none; cursor: pointer;
+  font-family: var(--bd); font-weight: 600; font-size: 0.9rem; color: var(--wht);
+  padding: 8px 13px; transition: background 0.12s;
+}
+.excb-item:hover, .excb-item.is-active { background: rgba(106, 13, 173, 0.35); }
+.excb-item.is-active { box-shadow: inset 3px 0 0 var(--yel); }
+.excb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.excb-tag { flex-shrink: 0; font-family: var(--hb); font-size: 0.62rem; letter-spacing: 1px; color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 20px; padding: 1px 7px; }
+
 /* ===== PREVIEW PANE ===== */
 .preview-wrap-v4 {
   display: flex; flex-direction: column; align-items: center; padding: 26px;
