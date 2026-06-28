@@ -245,7 +245,7 @@ serve(async (req) => {
       const row: Record<string, unknown> = {
         id,                                   // MUST equal the uploaded object stem
         status: 'queued',                     // posts on the next daily drip
-        platform_target: 'online',           // metadata only (distributor routes by enabled channels)
+        platform_target: clip(body?.platform_target, 40) || 'online', // from the V4 IG/FB toggle (distributor still routes by enabled channels)
         headline: clip(body?.headline, 300),
         body: clip(body?.body, 2000),
         eye_label: clip(body?.eye_label, 200),
@@ -300,6 +300,24 @@ serve(async (req) => {
       const row = Array.isArray(rows) && rows.length ? rows[0] : null;
       if (!row) return jsonResponse({ ok: false, error: 'not_found' }, 404);
       return jsonResponse({ ok: true, id, kind, status: row.status ?? null, last_error: row.last_error ?? null, post_refs: row.post_refs ?? null });
+    }
+
+    // ── list: recent jobs across both batch tables (queue monitor read) ──────────
+    if (action === 'list') {
+      const limit = Math.min(Math.max(Number(body?.limit) || 25, 1), 100);
+      const cols = 'id,status,headline,caption,platform_target,created_at,posted_at,last_error,attempts';
+      const pull = async (kind: Kind) => {
+        const cfg = ROUTING[kind];
+        const rows = await pgGet(`${cfg.table}?select=${cols}&order=created_at.desc&limit=${limit}`) as Array<Record<string, unknown>>;
+        return (Array.isArray(rows) ? rows : []).map((r) => ({ ...r, kind }));
+      };
+      const [images, videos] = await Promise.all([pull('image'), pull('video')]);
+      const jobs = [...images, ...videos]
+        .sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')))
+        .slice(0, limit);
+      const counts: Record<string, number> = {};
+      for (const j of jobs) counts[String(j.status ?? 'unknown')] = (counts[String(j.status ?? 'unknown')] || 0) + 1;
+      return jsonResponse({ ok: true, jobs, counts });
     }
 
     return jsonResponse({ error: 'unknown_action', detail: action }, 400);

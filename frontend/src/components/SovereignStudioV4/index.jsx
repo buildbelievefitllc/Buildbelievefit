@@ -138,6 +138,7 @@ export default function SovereignStudioV4() {
             ['cta', '🃏 CTA CARDS'],
             ['phone', '📱 PHONE'],
             ['reel', '🎬 VIDEO ENGINE'],
+            ['queue', '📡 QUEUE'],
           ].map(([id, label]) => (
             <button
               key={id}

@@ -5,7 +5,20 @@ import { useRef, useState } from 'react';
 import VibeSelector from './VibeSelector';
 import ReelPreviewEngine from './ReelPreviewEngine';
 import StageScaler from './StageScaler';
+import QueueMonitor from './QueueMonitor';
 import { renderMarkup } from './markup.jsx';
+
+const stripMarkup = (s) => String(s || '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').trim();
+
+function humanizePostErr(slug) {
+  const map = {
+    no_admin_session: 'No admin session in this browser — sign in to the Command Center, then retry.',
+    not_admin: 'This session is not an authorized admin.',
+    empty_asset: 'Nothing to post — render the card first.',
+    no_platform: 'Enable at least one platform (Instagram / Facebook).',
+  };
+  return map[slug] || `Failed (${slug}). The asset may be saved — try QUEUE, or retry.`;
+}
 
 export default function StudioLayout({
   mode,
@@ -18,29 +31,45 @@ export default function StudioLayout({
   handleReelChange,
 }) {
   // Ref to the active export stage (the un-scaled 1080-wide node). The preview
-  // shows it visually shrunk via StageScaler's transform; for export we briefly
-  // neutralize that transform so html2canvas captures at full export resolution.
+  // shows it visually shrunk via StageScaler's transform; for export/post we
+  // briefly neutralize that transform so html2canvas captures at full resolution.
   const stageRef = useRef(null);
   const [exporting, setExporting] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [postNote, setPostNote] = useState(null); // { ok: boolean, text: string }
+  // Social auto-post target toggles (V3 parity → server distributors route the post).
+  const [igOn, setIgOn] = useState(true);
+  const [fbOn, setFbOn] = useState(true);
+  const platformTarget = () => (igOn && fbOn ? 'online' : igOn ? 'instagram' : fbOn ? 'facebook' : null);
 
-  const exportPNG = async (slug) => {
+  // Render the active 1080-res stage to a canvas (transform neutralized).
+  const renderStageCanvas = async () => {
     const node = stageRef.current;
-    if (!node || exporting) return;
-    setExporting(true);
+    if (!node) return null;
     const scaler = node.closest('.stage-scaler-inner');
     const prevTransform = scaler ? scaler.style.transform : null;
     if (scaler) scaler.style.transform = 'none';
     try {
       const { default: html2canvas } = await import('html2canvas');
-      const canvas = await html2canvas(node, {
+      return await html2canvas(node, {
         backgroundColor: '#0a0a0a',
         scale: 1,
         useCORS: true,
-        imageTimeout: 4000, // never hang indefinitely on a slow/blocked asset
+        imageTimeout: 4000,
         width: node.offsetWidth,
         height: node.offsetHeight,
       });
-      // Blob + object URL is far more reliable for download than a giant data: URL.
+    } finally {
+      if (scaler) scaler.style.transform = prevTransform || '';
+    }
+  };
+
+  const exportPNG = async (slug) => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const canvas = await renderStageCanvas();
+      if (!canvas) return;
       const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -51,13 +80,83 @@ export default function StudioLayout({
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
     } catch (e) {
-      /* export failures are non-fatal — surface nothing rather than crash the UI */
       console.error('[StudioV4] PNG export failed:', e);
     } finally {
-      if (scaler) scaler.style.transform = prevTransform || '';
       setExporting(false);
     }
   };
+
+  // Bake the current image stage → Blob (for queue/post upload).
+  const getStageBlob = async () => {
+    const canvas = await renderStageCanvas();
+    if (!canvas) return null;
+    return new Promise((res) => canvas.toBlob(res, 'image/png'));
+  };
+
+  // QUEUE (drip) or POST NOW (immediate) the current image card → IG/FB.
+  const postCard = async (fields, now) => {
+    if (posting) return;
+    const target = platformTarget();
+    if (!target) { setPostNote({ ok: false, text: humanizePostErr('no_platform') }); return; }
+    if (now) {
+      const cap = (fields.caption || '').slice(0, 600) || '(no caption)';
+      if (!window.confirm(`POST NOW to ${target === 'online' ? 'Instagram + Facebook' : target}?\n\nPublishes immediately and cannot be undone.\n\n— CAPTION —\n${cap}`)) {
+        setPostNote({ ok: true, text: 'Cancelled — nothing was posted.' });
+        return;
+      }
+    }
+    setPosting(true);
+    setPostNote({ ok: true, text: now ? 'Posting to IG/FB now…' : 'Queuing…' });
+    try {
+      const { queuePost } = await import('../../lib/studioQueueApi.js');
+      const r = await queuePost({ kind: 'image', fields: { ...fields, platform_target: target }, getBlob: getStageBlob, now });
+      if (r.status === 'posted') setPostNote({ ok: true, text: '✓ Posted to IG/FB now.' });
+      else if (r.status === 'posting') setPostNote({ ok: true, text: 'Posting… Meta is finishing — check IG/FB shortly.' });
+      else setPostNote({ ok: true, text: '✓ Queued for IG/FB — posts on the next daily drip.' });
+    } catch (e) {
+      setPostNote({ ok: false, text: humanizePostErr(e?.message) });
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  // Build the IG/FB post metadata (caption etc.) from a card's fields.
+  const cardFields = (eyebrow, headline, body, cta, palette) => {
+    const hl = stripMarkup(headline);
+    const bd = stripMarkup(body);
+    return {
+      headline: hl,
+      body: bd,
+      eye_label: stripMarkup(eyebrow),
+      cta: stripMarkup(cta),
+      color_palette: palette || 'custom',
+      caption: [hl, bd, '', '#BuildBelieveFit'].filter(Boolean).join('\n'),
+    };
+  };
+
+  // Shared IG/FB toggle + QUEUE/POST-NOW control block for the image panels.
+  // Plain render helper (NOT a nested component) so the inputs don't remount.
+  const postControls = (fields) => (
+    <>
+      <div className="post-toggles-v4">
+        <label className={`post-toggle-v4 ${igOn ? 'on' : ''}`}>
+          <input type="checkbox" checked={igOn} onChange={(e) => setIgOn(e.target.checked)} /> Instagram
+        </label>
+        <label className={`post-toggle-v4 ${fbOn ? 'on' : ''}`}>
+          <input type="checkbox" checked={fbOn} onChange={(e) => setFbOn(e.target.checked)} /> Facebook
+        </label>
+      </div>
+      <button className="queue-btn-v4" onClick={() => postCard(fields, false)} disabled={posting}>
+        {posting ? '… WORKING' : '📡 QUEUE → IG/FB'}
+      </button>
+      <button className="postnow-btn-v4" onClick={() => postCard(fields, true)} disabled={posting}>
+        {posting ? '… WORKING' : '🚀 POST NOW → IG/FB'}
+      </button>
+      {postNote && (
+        <div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>
+      )}
+    </>
+  );
 
   return (
     <div className="layout-v4">
@@ -180,9 +279,7 @@ export default function StudioLayout({
               <button className="export-btn-v4" onClick={() => exportPNG('cta')} disabled={exporting}>
                 {exporting ? '… RENDERING' : '⬇ EXPORT PNG'}
               </button>
-              <button className="queue-btn-v4" disabled title="Auto-post pipeline ships in V4.1">
-                📡 QUEUE → IG/FB · SOON
-              </button>
+              {postControls(cardFields(ctaData.eyebrow, ctaData.headline, ctaData.body, ctaData.buttonText, ctaData.primaryColor))}
             </div>
           </div>
         )}
@@ -252,6 +349,16 @@ export default function StudioLayout({
               <button className="export-btn-v4" onClick={() => exportPNG('phone')} disabled={exporting}>
                 {exporting ? '… RENDERING' : '⬇ EXPORT 1080×1350'}
               </button>
+              {postControls(cardFields(phoneData.eyebrow, phoneData.headline, phoneData.benefit, '', 'custom'))}
+            </div>
+          </div>
+        )}
+
+        {mode === 'queue' && (
+          <div className="panel-v4 active">
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">📡 Supabase Auto-Post Queue</label>
+              <div className="hint-v4">Live monitor of cards &amp; reels queued or posted to IG/FB — the right pane lists active &amp; pending jobs and auto-refreshes every 15s.</div>
             </div>
           </div>
         )}
@@ -324,6 +431,12 @@ export default function StudioLayout({
             <StageScaler designWidth={1080} designHeight={1920}>
               <ReelPreviewEngine reelData={reelData} handleReelChange={handleReelChange} />
             </StageScaler>
+          </div>
+        )}
+
+        {mode === 'queue' && (
+          <div className="queue-host-v4">
+            <QueueMonitor />
           </div>
         )}
       </div>

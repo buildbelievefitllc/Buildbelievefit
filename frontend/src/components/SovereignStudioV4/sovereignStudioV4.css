@@ -135,6 +135,57 @@
 .cc-k-v4 { font-size: 0.54rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
 .cc-v-v4 { font-family: var(--hb); font-size: 0.78rem; letter-spacing: 1px; color: var(--wht); }
 
+/* ===== SOCIAL AUTO-POST (toggles + POST NOW) ===== */
+.postnow-btn-v4 {
+  display: block; width: 100%; text-align: center; border-radius: 8px; margin-top: 8px;
+  background: linear-gradient(135deg, var(--yel), #e6b800); color: #0a0a0a;
+  border: 1px solid rgba(106, 13, 173, 0.55); font-family: var(--hb); font-size: 0.9rem;
+  letter-spacing: 2px; padding: 13px; cursor: pointer; transition: all 0.15s;
+}
+.postnow-btn-v4:hover { filter: brightness(1.08); box-shadow: 0 0 18px rgba(245, 200, 0, 0.5); }
+.postnow-btn-v4:disabled, .queue-btn-v4:disabled { opacity: 0.45; cursor: not-allowed; filter: none; box-shadow: none; }
+.post-toggles-v4 { display: flex; gap: 8px; margin: 10px 0 4px; }
+.post-toggle-v4 {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  font-family: var(--bd); font-weight: 700; font-size: 0.8rem; color: var(--mut);
+  background: var(--gry2); border: 1px solid var(--gry3); border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.15s;
+}
+.post-toggle-v4.on { color: var(--wht); border-color: var(--pur); background: rgba(106, 13, 173, 0.18); }
+.post-toggle-v4 input { accent-color: var(--yel); }
+
+/* ===== QUEUE MONITOR ===== */
+.queue-host-v4 { width: 100%; max-width: 680px; margin: 0 auto; }
+.qmon { width: 100%; color: var(--wht); }
+.qmon-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.qmon-title { font-family: var(--hb); font-size: 1.1rem; letter-spacing: 2px; }
+.qmon-refresh {
+  font-family: var(--hb); font-size: 0.74rem; letter-spacing: 1.5px; color: var(--yel);
+  background: transparent; border: 1px solid rgba(245, 200, 0, 0.5); border-radius: 30px;
+  padding: 7px 14px; cursor: pointer; transition: all 0.15s;
+}
+.qmon-refresh:hover { background: rgba(245, 200, 0, 0.12); }
+.qmon-counts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.qmon-stat { background: var(--gry2); border: 1px solid var(--gry3); border-radius: 8px; padding: 12px 8px; text-align: center; }
+.qmon-stat-n { display: block; font-family: var(--hb); font-size: 1.6rem; line-height: 1; }
+.qmon-stat-l { display: block; font-size: 0.56rem; font-weight: 700; letter-spacing: 1.5px; color: var(--mut); margin-top: 5px; }
+.qmon-stat.q-pending { border-color: rgba(245, 200, 0, 0.4); } .qmon-stat.q-pending .qmon-stat-n { color: var(--yel); }
+.qmon-stat.q-posting { border-color: rgba(139, 26, 191, 0.5); } .qmon-stat.q-posting .qmon-stat-n { color: var(--purl); }
+.qmon-stat.q-posted  { border-color: rgba(74, 222, 128, 0.4); } .qmon-stat.q-posted .qmon-stat-n { color: var(--green); }
+.qmon-stat.q-failed  { border-color: rgba(251, 146, 60, 0.4); } .qmon-stat.q-failed .qmon-stat-n { color: #fb923c; }
+.qmon-msg { padding: 18px 4px; color: var(--mut); font-size: 0.9rem; }
+.qmon-msg-warn { color: #fb923c; }
+.qmon-list { display: flex; flex-direction: column; gap: 8px; }
+.qmon-row { display: flex; align-items: flex-start; gap: 11px; background: var(--gry2); border: 1px solid var(--gry3); border-radius: 8px; padding: 11px 13px; }
+.qmon-badge { flex-shrink: 0; font-family: var(--hb); font-size: 0.6rem; letter-spacing: 1.2px; padding: 4px 9px; border-radius: 20px; border: 1px solid var(--gry3); color: var(--mut); }
+.qmon-badge.q-pending { color: var(--yel); border-color: rgba(245, 200, 0, 0.5); }
+.qmon-badge.q-posting { color: var(--purl); border-color: rgba(139, 26, 191, 0.6); }
+.qmon-badge.q-posted  { color: var(--green); border-color: rgba(74, 222, 128, 0.5); }
+.qmon-badge.q-failed  { color: #fb923c; border-color: rgba(251, 146, 60, 0.5); }
+.qmon-row-main { min-width: 0; flex: 1; }
+.qmon-row-title { font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; gap: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qmon-kind { flex-shrink: 0; }
+.qmon-row-sub { font-size: 0.72rem; color: var(--mut); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* ===== EXERCISE COMBOBOX (grouped, type-to-filter topic picker) ===== */
 .excb { position: relative; }
 .excb .input-v4 { padding-right: 30px; }
