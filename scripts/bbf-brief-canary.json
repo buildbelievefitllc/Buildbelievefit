@@ -1,0 +1,86 @@
+[
+  {
+    "client_id": "BBF-1001",
+    "language_preference": "EN",
+    "cns_score": 78,
+    "sleep_quality": 82,
+    "stress_level": 35,
+    "program_load": { "reps": 5, "sets": 5, "weight_lbs": 95 },
+    "friction_points": ["bench press strength stall"],
+    "prehab_zone": "shoulder",
+    "date": "2026-06-28T08:00:00Z"
+  },
+  {
+    "client_id": "BBF-1002",
+    "language_preference": "ES",
+    "sleep_quality": 64,
+    "stress_level": 58,
+    "program_load": { "reps": 8, "sets": 4, "weight_lbs": 120 },
+    "friction_points": ["tight ankles", "limited hip range of motion"],
+    "prehab_zone": "ankle",
+    "date": "2026-06-28T08:00:00Z",
+    "history": [
+      { "date": "2026-06-21T08:00:00Z", "cns_score": 62, "program_load": { "reps": 8, "sets": 4, "weight_lbs": 115 } },
+      { "date": "2026-06-14T08:00:00Z", "cns_score": 58, "program_load": { "reps": 8, "sets": 4, "weight_lbs": 110 } },
+      { "date": "2026-06-09T08:00:00Z", "cns_score": 60, "program_load": { "reps": 8, "sets": 4, "weight_lbs": 110 } }
+    ]
+  },
+  {
+    "client_id": "BBF-1003",
+    "language_preference": "PT",
+    "cns_score": 44,
+    "program_load": { "reps": 10, "sets": 3, "weight_lbs": 45 },
+    "friction_points": ["constant soreness and fatigue"],
+    "prehab_zone": "lower_back",
+    "date": "2026-06-28T08:00:00Z"
+  },
+  {
+    "client_id": "BBF-1004",
+    "language_preference": "EN",
+    "cns_score": 88,
+    "sleep_quality": 90,
+    "stress_level": 22,
+    "program_load": { "reps": 5, "sets": 5, "weight_lbs": 150 },
+    "friction_points": ["knee valgus on squats", "balance wobble"],
+    "prehab_zone": "knee",
+    "date": "2026-06-28T08:00:00Z",
+    "history": [
+      { "date": "2026-06-22T08:00:00Z", "cns_score": 85, "program_load": { "reps": 5, "sets": 5, "weight_lbs": 95 } },
+      { "date": "2026-06-15T08:00:00Z", "cns_score": 84, "program_load": { "reps": 5, "sets": 5, "weight_lbs": 90 } },
+      { "date": "2026-06-10T08:00:00Z", "cns_score": 86, "program_load": { "reps": 5, "sets": 5, "weight_lbs": 92 } }
+    ]
+  },
+  {
+    "client_id": "BBF-1005",
+    "language_preference": "ES",
+    "cns_score": 55,
+    "sleep_quality": 60,
+    "stress_level": 50,
+    "program_load": { "reps": 12, "sets": 3, "weight_lbs": 60 },
+    "friction_points": ["vibes feel off", "just not clicking"],
+    "prehab_zone": "general",
+    "date": "2026-06-28T08:00:00Z"
+  },
+  {
+    "client_id": "BBF-1006",
+    "language_preference": "EN",
+    "cns_score": 95,
+    "sleep_quality": 75,
+    "stress_level": 30,
+    "program_load": { "reps": 3, "sets": 5, "weight_lbs": 225 },
+    "friction_points": ["deadlift power plateau"],
+    "prehab_zone": "hip",
+    "date": "2026-06-28T08:00:00Z"
+  },
+  {
+    "client_id": "BBF-1007",
+    "language_preference": "FR",
+    "cns_score": 70,
+    "sleep_quality": 70,
+    "stress_level": 40,
+    "program_load": { "reps": 8, "sets": 3, "weight_lbs": 80 },
+    "friction_points": ["tight hips"],
+    "prehab_zone": "hip",
+    "date": "2026-06-28T08:00:00Z"
+  }
+]

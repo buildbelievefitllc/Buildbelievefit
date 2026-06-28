@@ -1,0 +1,209 @@
+[
+  {
+    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "client_id": "BBF-1001",
+    "language": "EN",
+    "phase_1_verification": {
+      "status": "PASS",
+      "flags": [],
+      "notes": [
+        "Load present but no trailing history → spike not assessable."
+      ],
+      "resolved": {
+        "cns_score": 78,
+        "sleep_quality": 82,
+        "stress_level": 35,
+        "session_volume": 2375,
+        "trailing_volume_avg": null,
+        "load_lbs": 95,
+        "friction_category": "strength",
+        "friction_suggested": null,
+        "spike": false
+      }
+    },
+    "phase_2_tabling": {
+      "scenario_id": "EN_80_100_40_100_strength",
+      "measurement_matrix_entry": {
+        "brief_script_reference": "vault://briefs/EN_80_100_40_100_strength",
+        "customization_required": false
+      }
+    }
+  },
+  {
+    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "client_id": "BBF-1002",
+    "language": "ES",
+    "phase_1_verification": {
+      "status": "PARTIAL",
+      "flags": [
+        "PARTIAL_BIO"
+      ],
+      "notes": [
+        "CNS missing → baseline 60 from 3-sample 3-week trailing avg."
+      ],
+      "resolved": {
+        "cns_score": 60,
+        "sleep_quality": 64,
+        "stress_level": 58,
+        "session_volume": 3840,
+        "trailing_volume_avg": 3573,
+        "load_lbs": 120,
+        "friction_category": "mobility",
+        "friction_suggested": null,
+        "spike": false
+      }
+    },
+    "phase_2_tabling": {
+      "scenario_id": "ES_60_70_70_150_mobility",
+      "measurement_matrix_entry": {
+        "brief_script_reference": "vault://briefs/ES_60_70_70_150_mobility",
+        "customization_required": true
+      }
+    }
+  },
+  {
+    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "client_id": "BBF-1003",
+    "language": "PT",
+    "phase_1_verification": {
+      "status": "PARTIAL",
+      "flags": [
+        "ASSUMED"
+      ],
+      "notes": [
+        "sleep_quality missing → assumed 50.",
+        "stress_level missing → assumed 50.",
+        "Load present but no trailing history → spike not assessable."
+      ],
+      "resolved": {
+        "cns_score": 44,
+        "sleep_quality": 50,
+        "stress_level": 50,
+        "session_volume": 1350,
+        "trailing_volume_avg": null,
+        "load_lbs": 45,
+        "friction_category": "recovery",
+        "friction_suggested": null,
+        "spike": false
+      }
+    },
+    "phase_2_tabling": {
+      "scenario_id": "PT_60_70_70_50_recovery",
+      "measurement_matrix_entry": {
+        "brief_script_reference": "vault://briefs/PT_60_70_70_50_recovery",
+        "customization_required": true
+      }
+    }
+  },
+  {
+    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "client_id": "BBF-1004",
+    "language": "EN",
+    "phase_1_verification": {
+      "status": "PARTIAL",
+      "flags": [
+        "SPIKE_WARNING"
+      ],
+      "notes": [
+        "Session volume 3750 is 62% over the 3-week avg (2308)."
+      ],
+      "resolved": {
+        "cns_score": 88,
+        "sleep_quality": 90,
+        "stress_level": 22,
+        "session_volume": 3750,
+        "trailing_volume_avg": 2308,
+        "load_lbs": 150,
+        "friction_category": "stability",
+        "friction_suggested": null,
+        "spike": true
+      }
+    },
+    "phase_2_tabling": {
+      "scenario_id": "EN_100_100_40_150_stability",
+      "measurement_matrix_entry": {
+        "brief_script_reference": "vault://briefs/EN_100_100_40_150_stability",
+        "customization_required": true
+      }
+    }
+  },
+  {
+    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "client_id": "BBF-1005",
+    "language": "ES",
+    "phase_1_verification": {
+      "status": "PARTIAL",
+      "flags": [
+        "FRICTION_UNMAPPED"
+      ],
+      "notes": [
+        "Load present but no trailing history → spike not assessable.",
+        "Friction unmapped → suggested \"recovery\"."
+      ],
+      "resolved": {
+        "cns_score": 55,
+        "sleep_quality": 60,
+        "stress_level": 50,
+        "session_volume": 2160,
+        "trailing_volume_avg": null,
+        "load_lbs": 60,
+        "friction_category": "recovery",
+        "friction_suggested": "recovery",
+        "spike": false
+      }
+    },
+    "phase_2_tabling": {
+      "scenario_id": "ES_60_70_70_100_recovery",
+      "measurement_matrix_entry": {
+        "brief_script_reference": "vault://briefs/ES_60_70_70_100_recovery",
+        "customization_required": true
+      }
+    }
+  },
+  {
+    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "client_id": "BBF-1006",
+    "language": "EN",
+    "phase_1_verification": {
+      "status": "PASS",
+      "flags": [],
+      "notes": [
+        "Load present but no trailing history → spike not assessable."
+      ],
+      "resolved": {
+        "cns_score": 95,
+        "sleep_quality": 75,
+        "stress_level": 30,
+        "session_volume": 3375,
+        "trailing_volume_avg": null,
+        "load_lbs": 225,
+        "friction_category": "strength",
+        "friction_suggested": null,
+        "spike": false
+      }
+    },
+    "phase_2_tabling": {
+      "scenario_id": "EN_100_100_40_151_plus_strength",
+      "measurement_matrix_entry": {
+        "brief_script_reference": "vault://briefs/EN_100_100_40_151_plus_strength",
+        "customization_required": false
+      }
+    }
+  },
+  {
+    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "client_id": "BBF-1007",
+    "language": "FR",
+    "phase_1_verification": {
+      "status": "FAIL",
+      "flags": [
+        "INVALID_LANGUAGE"
+      ],
+      "notes": [
+        "language_preference \"FR\" not in EN|ES|PT."
+      ],
+      "resolved": null
+    },
+    "phase_2_tabling": null
+  }
+]
