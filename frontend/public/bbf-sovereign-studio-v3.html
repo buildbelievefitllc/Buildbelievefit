@@ -578,9 +578,7 @@ YOUR CLOCK</textarea></div>
       <div class="vid-progress" id="sp-vid-progress"><div class="vid-progress-bar" id="sp-vid-bar"></div></div>
       <div class="vid-note" id="sp-vid-note"></div>
       <button class="export-btn" id="sp-vid-save" style="display:none;margin-top:8px;">💾 SAVE VIDEO TO PHONE</button>
-      <button class="export-btn" id="sp-download-orig" style="margin-top:10px;">⬇️ DOWNLOAD ORIGINAL (full length, no overlay)</button>
-      <div class="vid-note" id="sp-orig-note"></div>
-      <div class="hint">Bakes the name, shout-out &amp; CTA onto the moving clip → a branded Spotlight video. Or grab the raw clip, any length.</div>
+      <div class="hint">Bakes the name, shout-out &amp; CTA onto the moving clip → a branded Spotlight video.</div>
     </div>
     <div class="ctl-group"><label class="ctl-label">Client Name</label><input type="text" id="sp-name" value="JACKY"></div>
     <div class="ctl-group"><label class="ctl-label">Sub-line</label><input type="text" id="sp-sub" value="Performance Laboratory • West Valley AZ"></div>
@@ -620,30 +618,47 @@ YOUR CLOCK</textarea></div>
   <!-- ============ REEL PANEL ============ -->
   <div class="panel" id="panel-reel">
     <div class="ctl-group">
-      <label class="ctl-label">🎬 Series Preset</label>
-      <select id="reel-series">
-        <option value="">— pick a series —</option>
-      </select>
-      <div class="hint">Locks the series color + tag, loads the hook bank.</div>
-    </div>
-    <div class="ctl-group">
       <label class="ctl-label">⚡ Hook Spectrum (themed)</label>
       <select id="reel-spectrum">
-        <option value="">— use series hook bank —</option>
+        <option value="">— all spectrums (shuffle) —</option>
         <option value="bioenergetics">Bioenergetics &amp; Fasting</option>
         <option value="solis">Solis-Transit Psychology</option>
         <option value="prehab">Biomechanical Pre-hab</option>
         <option value="shift">12-Hour Shift Adherence</option>
       </select>
-      <div class="hint">When set, <b>SPIN A HOOK</b> pulls from this spectrum instead of the series bank.</div>
+      <div class="hint"><b>SPIN A HOOK</b> pulls a headline + sub-line from this spectrum (or shuffles all).</div>
     </div>
     <div class="ctl-group"><button class="spin-btn" id="reel-spin">🎰 SPIN A HOOK</button></div>
     <div class="divider"></div>
-    <div class="ctl-group"><label class="ctl-label">🎨 Built-in Background — pick one, no upload needed</label>
-      <div class="swatches bg-swatches" id="reel-bg-swatches"></div>
-      <div class="hint">On-brand cover backgrounds (applies to EXPORT IMAGE). Upload / footage still overrides.</div></div>
-    <div class="ctl-group"><label class="ctl-label">Background (video frame)</label>
-      <label class="upload-btn" id="reel-lbl-bg" for="reel-file-bg">UPLOAD BACKGROUND</label><input type="file" id="reel-file-bg" accept="image/*"></div>
+
+    <!-- ============ SOVEREIGN VOICE & AUDIO (FRONT 6) ============ -->
+    <div class="ctl-group" id="reel-voice-panel">
+      <label class="ctl-label">🎙 Sovereign Voiceover — Akeem clone</label>
+      <select id="reel-vibe">
+        <option value="the_architect">The Architect — resonant storytelling</option>
+        <option value="the_mechanic">The Mechanic — sharp, technical</option>
+        <option value="real_talk">Real Talk — conversational</option>
+        <option value="the_sanctuary">The Sanctuary — deep, slow</option>
+        <option value="the_reframe">The Reframe — perspective shift</option>
+      </select>
+      <button class="spin-btn" id="reel-vo-pull" style="margin-top:8px;">↺ Pull from Hook + Sub-line</button>
+      <textarea id="reel-vo-script" style="margin-top:8px;min-height:70px;" placeholder="The exact words Akeem speaks. Pull from the on-screen hook, or write your own."></textarea>
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:11px;">
+        <span id="reel-vo-count" style="color:#9aa;">0 / 2400 characters</span>
+        <span id="reel-vo-cost" style="color:rgba(245,238,251,.55);text-align:right;">Preview spends ~0 ElevenLabs characters</span>
+      </div>
+      <button class="export-btn" id="reel-vo-gen" style="margin-top:8px;">🎙 GENERATE VOICEOVER</button>
+      <div class="vid-note" id="reel-vo-note"></div>
+      <audio id="reel-vo-audio" controls style="display:none;width:100%;margin-top:8px;"></audio>
+      <div class="hint">Akeem's clone voices your script (admin-gated). Preview before you spend, then mix it onto the video below.</div>
+    </div>
+    <div class="ctl-group">
+      <label class="ctl-label">🎵 Background Music — layer a bed (e.g. 432Hz drone)</label>
+      <label class="upload-btn" id="reel-music-lbl" for="reel-music-file">UPLOAD BACKGROUND MUSIC</label><input type="file" id="reel-music-file" accept="audio/*">
+      <label class="ctl-label" style="margin-top:8px;">Music volume <span class="range-val" id="reel-music-vol-val">18%</span></label>
+      <input type="range" id="reel-music-vol" min="0" max="60" value="18">
+      <div class="hint">Ducked under the voiceover, looped to cover the footage length.</div>
+    </div>
     <div class="ctl-group"><label class="ctl-label">Logo (optional corner badge)</label>
       <label class="upload-btn" id="reel-lbl-l" for="reel-file-l">UPLOAD LOGO</label><input type="file" id="reel-file-l" accept="image/*"></div>
     <div class="ctl-group"><label class="ctl-label">🎬 Reel Footage (MP4 / MOV)</label>
@@ -709,23 +724,13 @@ STRAIGHT UP</textarea></div>
       </div>
       <div class="hint">Placement + alignment apply to the cover image <b>and</b> the exported video overlay.</div>
     </div>
-    <div class="ctl-group"><button class="export-btn" id="reel-export">⬇ EXPORT IMAGE 1080×1920</button>
-      <button class="queue-btn" id="reel-queue">📡 QUEUE COVER → IG/FB</button>
-      <div class="queue-note" id="reel-queue-note"></div>
-      <button class="postnow-btn" id="reel-postnow">🚀 POST COVER NOW → IG/FB</button>
-      <div class="queue-note" id="reel-postnow-note"></div></div>
     <div class="ctl-group"><button class="export-btn" id="reel-export-vid">🎬 EXPORT VIDEO</button>
       <div class="vid-progress" id="reel-vid-progress"><div class="vid-progress-bar" id="reel-vid-bar"></div></div>
       <div class="vid-note" id="reel-vid-note"></div>
       <button class="export-btn" id="reel-vid-save" style="display:none;margin-top:8px;">💾 SAVE VIDEO TO PHONE</button>
       <div class="hint">Bakes the overlay onto your footage — full length. Real-time render, so a long clip takes its own runtime.</div>
-      <button class="export-btn" id="reel-download-orig" style="margin-top:10px;">⬇️ DOWNLOAD ORIGINAL (full length, no overlay)</button>
-      <div class="vid-note" id="reel-orig-note"></div>
-      <div class="hint">Saves your uploaded footage exactly as-is — any length, instant, no recompression.</div>
-      <button class="export-btn" id="reel-export-audio" style="margin-top:10px;">🎵 EXTRACT AUDIO (music from video)</button>
-      <div class="vid-note" id="reel-audio-note"></div>
-      <button class="export-btn" id="reel-audio-save" style="display:none;margin-top:8px;">💾 SAVE AUDIO TO PHONE</button>
-      <div class="hint">Pulls the soundtrack out of your footage as a .wav — use it as music anywhere.</div>
+      <button class="export-btn" id="reel-apply-audio" style="margin-top:10px;">🎬🔊 APPLY AUDIO TO VIDEO → EXPORT</button>
+      <div class="hint">Mixes the generated voiceover + background music onto your footage, then exports the final video (progress + save shown above).</div>
       <button class="queue-btn" id="reel-queue-vid">📡 QUEUE REEL VIDEO → IG/FB</button>
       <div class="queue-note" id="reel-queue-vid-note"></div>
       <button class="postnow-btn" id="reel-postnow-vid">🚀 POST REEL NOW → IG/FB</button>
@@ -3099,17 +3104,7 @@ function recordSpotlight(download){ return new Promise((resolve)=>{ (async ()=>{
 })(); }); }
 $('sp-export-vid').onclick=()=> recordSpotlight(true);
 
-// ⬇️ DOWNLOAD ORIGINAL — the raw hero clip, any length, instant, no overlay.
-$('sp-download-orig').onclick=async()=>{
-  const n=$('sp-orig-note');
-  if(!spSrcFile){ n.className='vid-note active warn'; n.textContent='Upload a hero video first.'; return; }
-  const b=$('sp-download-orig'), o=b.textContent; b.disabled=true; b.textContent='SAVING…';
-  const ext=(spSrcFile.name&&spSrcFile.name.indexOf('.')>=0)?spSrcFile.name.split('.').pop():'mp4';
-  const fname=(spSrcFile.name&&spSrcFile.name.trim())?spSrcFile.name:('bbf-spotlight-footage-'+Date.now()+'.'+ext);
-  const r=await deliverBlob(spSrcFile, fname);
-  n.className='vid-note active'; n.textContent= r==='shared'?'Shared ✓':r==='canceled'?'Save canceled — tap again.':'Saved ✓ — full-length original.';
-  b.disabled=false; b.textContent=o;
-};
+// FRONT 6 — Spotlight DOWNLOAD ORIGINAL was purged.
 // SAVE VIDEO TO PHONE — fresh-gesture share for the baked Spotlight video (mobile).
 $('sp-vid-save').onclick=async()=>{
   if(!spLastVideo) return; const n=$('sp-vid-note');
@@ -3120,31 +3115,13 @@ $('sp-vid-save').onclick=async()=>{
 /* ============ REEL MODE ============ */
 let reelLastIdx=-1;
 buildSwatches($('reel-swatches'), c=>{ $('reel-out-eye').style.color=c; $('reel-out-eye').style.borderColor=c; });
-buildBgSwatches($('reel-bg-swatches'), BRAND_BGS, applyReelBg, 'darkstripe');
-applyReelBg(BRAND_BGS[0]);
-(function fillReelSeries(){
-  const sel=$('reel-series');
-  Object.keys(SERIES).forEach(k=>{
-    const o=document.createElement('option'); o.value=k; o.textContent=SERIES[k].tag; sel.appendChild(o);
-  });
-})();
-$('reel-series').addEventListener('change', e=>{
-  const s=SERIES[e.target.value]; if(!s) return;
-  $('reel-eye').value=s.tag+' • EP. 1'; $('reel-watch').value=s.watch;
-  $('reel-out-eye').style.color=s.color; $('reel-out-eye').style.borderColor=s.color;
-  $('reel-swatches').querySelectorAll('.sw').forEach(x=>x.classList.toggle('active', x.dataset.c===s.color));
-  renderReel();
-});
+// FRONT 6 — the Series Preset picker + Built-in Background swatches were purged from
+// the Video Engine. SPIN A HOOK now pulls from the chosen Hook Spectrum, or shuffles
+// across every spectrum when none is selected.
 $('reel-spin').onclick=()=>{
-  // V4 — a chosen Hook Spectrum wins over the Series hook bank.
   const spec=$('reel-spectrum').value;
-  let hooks;
-  if(spec && HOOK_SPECTRUMS[spec]){ hooks=HOOK_SPECTRUMS[spec]; }
-  else {
-    const key=$('reel-series').value;
-    if(!key){ alert('Pick a Series Preset or a Hook Spectrum first — the spin pulls hooks from one of them.'); return; }
-    hooks=SERIES[key].hooks;
-  }
+  const hooks = (spec && HOOK_SPECTRUMS[spec]) ? HOOK_SPECTRUMS[spec] : Object.values(HOOK_SPECTRUMS).flat();
+  if(!hooks || !hooks.length){ alert('No hooks available — pick a Hook Spectrum.'); return; }
   let idx; do{ idx=Math.floor(Math.random()*hooks.length); }while(hooks.length>1 && idx===reelLastIdx);
   reelLastIdx=idx;
   const [hl,sub]=hooks[idx];
@@ -3190,7 +3167,6 @@ document.querySelectorAll('#reel-vfit button').forEach(btn=>{
     btn.classList.add('active'); reelVidFit=btn.dataset.fit; applyReelVideoFit(); };
 });
 applyReelLayout();
-bindFile('reel-file-bg','reel-lbl-bg', src=>{ $('reel-bg').src=src; $('reel-bg').style.display='block'; $('reel-bgph').style.display='none'; });
 bindFile('reel-file-l','reel-lbl-l', src=>{ $('reel-logoimg').src=src; $('reel-logo').style.display='block'; });
 $('reel-dark').addEventListener('input', e=>{ $('reel-dark-val').textContent=e.target.value+'%'; $('reel-ov').style.opacity=(+e.target.value)/100; });
 // V5 — overlay style (skin) for the cover + exported video. Preview = a class on
@@ -3232,58 +3208,9 @@ $('reel-vid-save').onclick=async()=>{
   else if(r==='canceled'){ n.className='vid-note active'; n.textContent='Save canceled — tap SAVE VIDEO to try again.'; }
 };
 
-// ⬇️ DOWNLOAD ORIGINAL — deliver the uploaded footage as-is: any length, instant,
-// no canvas re-record, no overlay, no recompression. The full-length escape hatch
-// for long demonstration videos that the branded reel render would otherwise clip.
-$('reel-download-orig').onclick=async()=>{
-  const n=$('reel-orig-note');
-  if(!reelSrcFile){ n.className='vid-note active warn'; n.textContent='Upload reel footage first.'; return; }
-  const b=$('reel-download-orig'), o=b.textContent; b.disabled=true; b.textContent='SAVING…';
-  const ext=(reelSrcFile.name&&reelSrcFile.name.indexOf('.')>=0)?reelSrcFile.name.split('.').pop():'mp4';
-  const fname=(reelSrcFile.name&&reelSrcFile.name.trim())?reelSrcFile.name:('bbf-footage-'+Date.now()+'.'+ext);
-  const r=await deliverBlob(reelSrcFile, fname);
-  n.className='vid-note active'; n.textContent = r==='shared'?'Shared ✓':r==='canceled'?'Save canceled — tap again to retry.':'Saved ✓ — full-length original, untouched.';
-  b.disabled=false; b.textContent=o;
-};
-
-// 🎵 EXTRACT AUDIO — decode the footage's soundtrack offline → 16-bit WAV. Instant,
-// any length, no real-time playback (reelVid is muted, so we read the file bytes).
-function audioBufferToWav(buf){
-  const nCh=buf.numberOfChannels, sr=buf.sampleRate, len=buf.length, bps=2, blockAlign=nCh*bps;
-  const dataLen=len*blockAlign, ab=new ArrayBuffer(44+dataLen), view=new DataView(ab);
-  const ws=(o,s)=>{ for(let i=0;i<s.length;i++) view.setUint8(o+i,s.charCodeAt(i)); };
-  ws(0,'RIFF'); view.setUint32(4,36+dataLen,true); ws(8,'WAVE'); ws(12,'fmt ');
-  view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,nCh,true);
-  view.setUint32(24,sr,true); view.setUint32(28,sr*blockAlign,true); view.setUint16(32,blockAlign,true); view.setUint16(34,16,true);
-  ws(36,'data'); view.setUint32(40,dataLen,true);
-  const ch=[]; for(let c=0;c<nCh;c++) ch.push(buf.getChannelData(c));
-  let off=44; for(let i=0;i<len;i++){ for(let c=0;c<nCh;c++){ let s=Math.max(-1,Math.min(1,ch[c][i])); view.setInt16(off, s<0?s*0x8000:s*0x7FFF, true); off+=2; } }
-  return new Blob([ab],{type:'audio/wav'});
-}
-$('reel-export-audio').onclick=async()=>{
-  const note=$('reel-audio-note'), b=$('reel-export-audio'), o=b.textContent;
-  const fail=(m)=>{ note.className='vid-note active warn'; note.textContent=m; b.disabled=false; b.textContent=o; };
-  if(!reelSrcFile){ fail('Upload reel footage first.'); return; }
-  const AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC){ fail('This browser has no Web Audio support — try Chrome or Safari.'); return; }
-  b.disabled=true; b.textContent='EXTRACTING…'; note.className='vid-note active'; note.textContent='Decoding the soundtrack…';
-  try{
-    const arr=await reelSrcFile.arrayBuffer(); const ac=new AC();
-    const buf=await ac.decodeAudioData(arr); if(ac.close) ac.close();
-    if(!buf||!buf.length){ fail('No audio track found in this video.'); return; }
-    const wav=audioBufferToWav(buf);
-    const base=(reelSrcFile.name||'bbf-audio').replace(/\.[^.]+$/,''); const fname=base+'-audio.wav';
-    reelLastAudio={blob:wav,name:fname};
-    if(IS_MOBILE){ $('reel-audio-save').style.display='block'; note.className='vid-note active'; note.textContent='Audio ready ✓ ('+Math.round(buf.duration)+'s) — tap SAVE AUDIO.'; }
-    else { await deliverBlob(wav,fname); note.className='vid-note active'; note.textContent='Audio extracted ✓ ('+Math.round(buf.duration)+'s .wav).'; }
-  }catch(e){ fail('Couldn’t decode audio: '+((e&&e.message)||e)+'. Try an MP4 (H.264 / AAC).'); return; }
-  b.disabled=false; b.textContent=o;
-};
-$('reel-audio-save').onclick=async()=>{
-  if(!reelLastAudio) return; const n=$('reel-audio-note');
-  const r=await deliverBlob(reelLastAudio.blob, reelLastAudio.name);
-  n.className='vid-note active'; n.textContent = r==='shared'?'Shared ✓':r==='canceled'?'Save canceled — tap again.':'Saved ✓';
-};
+// FRONT 6 — DOWNLOAD ORIGINAL + EXTRACT AUDIO (and the WAV encoder) were purged from
+// the Video Engine. Audio now FLOWS IN: the generated voiceover + uploaded music are
+// mixed onto the footage by APPLY AUDIO TO VIDEO (see the Sovereign Voice & Audio block).
 
 // Upload footage → hidden muted <video>; preview shows live motion behind the overlay.
 $('reel-file-vid').addEventListener('change', e=>{
@@ -3304,39 +3231,14 @@ $('reel-file-vid').addEventListener('change', e=>{
   reelVid.onerror=()=>{ const n=$('reel-vid-note'); n.className='vid-note active warn'; n.textContent='Couldn’t read this video — try an MP4 (H.264).'; };
 });
 
-// PNG export of the reel: if footage is loaded, capture the CURRENT frame as a poster
-// (html2canvas can't rasterize a <video>), then restore the live preview after.
-$('reel-export').onclick=async ()=>{
-  let restore=false;
-  if(reelHasVideo && reelVid.readyState>=2){
-    const c=document.createElement('canvas'); c.width=1080; c.height=1920;
-    drawVideoFit(c.getContext('2d'), reelVid, 1080, 1920, reelVidFit);
-    $('reel-bg').src=c.toDataURL('image/png'); $('reel-bg').style.display='block'; reelVid.style.display='none'; $('reel-vid-blur').style.display='none';
-    restore=true;
-  }
-  await exportStage('stage-reel','bbf-reel',1080,1920,$('reel-export'),
-    grabSettings(['reel-eye','reel-hl','reel-sub','reel-watch','reel-series']));
-  if(restore){ $('reel-bg').style.display='none'; reelVid.style.display='block'; applyReelVideoFit(); reelVid.play().catch(()=>{}); }
-};
+// FRONT 6 — EXPORT IMAGE (PNG cover) was purged from the Video Engine.
 $('reel-copycap').onclick=()=> copyText(buildReelCaption(), $('reel-copycap'));
 
 // Reel fields shared by the cover-image queue and the video queue.
 function reelQueueFields(){ return {
   headline:$('reel-hl').value, body:$('reel-sub').value, eye_label:$('reel-eye').value,
   cta:$('reel-watch').value, caption:buildReelCaption() }; }
-// Bake the reel COVER (still PNG → calling-cards queue). Mirrors the PNG-export poster
-// trick so a loaded video frame is captured rather than a blank <video>.
-async function reelCoverBlob(){
-  let restore=false;
-  if(reelHasVideo && reelVid.readyState>=2){
-    const c=document.createElement('canvas'); c.width=1080; c.height=1920;
-    drawVideoFit(c.getContext('2d'), reelVid, 1080, 1920, reelVidFit);
-    $('reel-bg').src=c.toDataURL('image/png'); $('reel-bg').style.display='block'; reelVid.style.display='none'; $('reel-vid-blur').style.display='none'; restore=true;
-  }
-  try{ return await bakeStageBlob('stage-reel',1080,1920); }
-  finally{ if(restore){ $('reel-bg').style.display='none'; reelVid.style.display='block'; applyReelVideoFit(); reelVid.play().catch(()=>{}); } }
-}
-$('reel-queue').onclick=()=> queuePost('image', reelQueueFields(), reelCoverBlob, $('reel-queue'), $('reel-queue-note'));
+// FRONT 6 — the reel COVER queue/post (still image) was purged; the VIDEO queue/post below stays.
 
 // Ensure both webfonts (every weight/size the overlay draws) are decoded before any
 // canvas text — same root-cause fix as the PNG export.
@@ -3509,7 +3411,7 @@ function drawReelOverlay(ctx,o){
 // EXPORT VIDEO (download=true) and QUEUE REEL VIDEO (download=false → resolves the
 // Blob for upload). Resolves {blob,ext,mime} on success, or null on any failure
 // (with the reason shown in the vid-note). Export behavior is unchanged.
-function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
+function recordReel(download, audioMix){ return new Promise((resolve)=>{ (async ()=>{
   const btn=$('reel-export-vid'), note=$('reel-vid-note'), prog=$('reel-vid-progress'), bar=$('reel-vid-bar');
   const fail=(m)=>{ note.className='vid-note active warn'; note.textContent=m; };
   if(!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream){
@@ -3527,6 +3429,8 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
     eyeText:$('reel-eye').value, hlText:$('reel-hl').value, subText:$('reel-sub').value, watchText:$('reel-watch').value,
     hlScale:reelHlScale(), logoImg, hAlign:reelHAlign, vAlign:reelVPos, overlay:reelOverlay};
   const mime=pickRecorderMime(), stream=canvas.captureStream(30);
+  // FRONT 6 — APPLY AUDIO TO VIDEO threads a mixed VO+music track into the recorder stream.
+  if(audioMix && audioMix.stream){ try{ audioMix.stream.getAudioTracks().forEach(t=>stream.addTrack(t)); }catch(_){} }
   let rec; try{ rec=mime?new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000}):new MediaRecorder(stream); }
   catch(err){ fail('Recorder init failed: '+err.message); resolve(null); return; }
   const chunks=[]; rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
@@ -3547,7 +3451,7 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
   const restorePreview=()=>{ reelRecording=false; btn.disabled=false; btn.textContent=orig; prog.classList.remove('active'); reelVid.loop=true; reelVid.play().catch(()=>{}); };
   const finish=()=>{ if(stopped) return; stopped=true; try{ rec.stop(); }catch(e){} };
   reelVid.onended=finish;
-  rec.onstop=async()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop());
+  rec.onstop=async()=>{ clearTimeout(killTimer); stream.getTracks().forEach(t=>t.stop()); if(audioMix && audioMix.stop){ try{ audioMix.stop(); }catch(_){} }
     let out=null;
     try{
       const ext=(mime&&mime.indexOf('mp4')>=0)?'mp4':'webm'; let blob=new Blob(chunks,{type:mime||('video/'+ext)});
@@ -3583,7 +3487,7 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
     else { const t=setInterval(()=>{ if(reelVid.videoWidth>0 && reelVid.currentTime>0){ clearInterval(t); go(); } },16); }
     setTimeout(go,600); });
   if(stopped){ resolve(null); return; }
-  rec.start(); killTimer=setTimeout(finish,(dur+1.5)*1000);
+  rec.start(); if(audioMix && audioMix.start){ try{ audioMix.start(); }catch(_){} } killTimer=setTimeout(finish,(dur+1.5)*1000);
   (function frame(){ if(stopped) return;
     drawVideoFit(ctx,reelVid,W,H,reelVidFit);
     const t=reelVid.currentTime||0;
@@ -3592,6 +3496,93 @@ function recordReel(download){ return new Promise((resolve)=>{ (async ()=>{
     if(reelVid.ended || t>=dur){ finish(); return; } requestAnimationFrame(frame); })();
 })(); }); }
 $('reel-export-vid').onclick=()=> recordReel(true);
+
+/* ============ FRONT 6 — SOVEREIGN VOICE & AUDIO ============ */
+const BBF_STUDIO_FN = BBF_SB_URL + '/functions/v1/bbf-sovereign-studio';
+let studioVoiceBlob=null, studioVoiceURL=null, studioMusicBlob=null;
+
+// Character / cost meter — ElevenLabs bills per character; show the spend before generating.
+function updateVoMeter(){
+  const n=($('reel-vo-script').value||'').length;
+  $('reel-vo-count').textContent=n.toLocaleString()+' / 2400 characters';
+  $('reel-vo-cost').textContent='Preview spends ~'+n.toLocaleString()+' ElevenLabs characters';
+  $('reel-vo-count').style.color = n>2400 ? '#ff5d5d' : '#9aa';
+}
+$('reel-vo-script').addEventListener('input', updateVoMeter);
+updateVoMeter();
+
+// Pull the on-screen hook + sub-line into the voiceover script.
+$('reel-vo-pull').onclick=()=>{
+  const hook=($('reel-hl').value||'').replace(/\s*\n\s*/g,' ').trim();
+  const sub=($('reel-sub').value||'').trim();
+  $('reel-vo-script').value=[hook, sub].filter(Boolean).join('. ').replace(/\.\s*\./g,'.');
+  updateVoMeter();
+};
+$('reel-music-vol').addEventListener('input', e=>{ $('reel-music-vol-val').textContent=e.target.value+'%'; });
+
+// Generate the voiceover via the admin-gated bbf-sovereign-studio webhook → preview blob.
+$('reel-vo-gen').onclick=async()=>{
+  const note=$('reel-vo-note'), b=$('reel-vo-gen'), o=b.textContent;
+  const fail=(m)=>{ note.className='vid-note active warn'; note.textContent=m; b.disabled=false; b.textContent=o; };
+  const script=($('reel-vo-script').value||'').trim();
+  if(!script){ fail('Write a script — or tap “Pull from Hook + Sub-line”.'); return; }
+  if(script.length>2400){ fail('Script exceeds the 2400-character limit.'); return; }
+  const token=bbfVaultToken();
+  if(!token){ fail('No admin session in THIS browser — open the Command Center on this site, sign in, then retry.'); return; }
+  b.disabled=true; b.textContent='SYNTHESIZING…'; note.className='vid-note active'; note.textContent='Akeem is recording…';
+  try{
+    const res=await fetch(BBF_STUDIO_FN, { method:'POST',
+      headers:{ 'Content-Type':'application/json', apikey:BBF_SB_ANON, Authorization:'Bearer '+BBF_SB_ANON, 'x-bbf-vault-token':token },
+      body:JSON.stringify({ script, vibe:$('reel-vibe').value, vault_token:token }) });
+    if(!res.ok){ let d='studio_'+res.status; try{ const j=await res.json(); d=j.detail||j.error||d; }catch(_){} fail('Voiceover failed: '+d); return; }
+    const ct=res.headers.get('content-type')||''; if(!ct.includes('audio')){ fail('No audio returned — try again.'); return; }
+    const billed=res.headers.get('X-BBF-Billed-Chars');
+    if(studioVoiceURL) URL.revokeObjectURL(studioVoiceURL);
+    studioVoiceBlob=await res.blob(); studioVoiceURL=URL.createObjectURL(studioVoiceBlob);
+    const au=$('reel-vo-audio'); au.src=studioVoiceURL; au.style.display='block'; au.play().catch(()=>{});
+    note.className='vid-note active'; note.textContent='Voiceover ready ✓'+(billed?(' ('+(+billed).toLocaleString()+' chars billed)'):'')+' — mix it onto the video below.';
+  }catch(e){ fail('Voiceover error: '+((e&&e.message)||e)); return; }
+  b.disabled=false; b.textContent=o;
+};
+
+// Upload a background-music bed (e.g. the 432Hz tactical drone).
+$('reel-music-file').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  studioMusicBlob=f; $('reel-music-lbl').textContent='✓ MUSIC LOADED';
+});
+
+// Mix the voiceover (full) + background music (ducked, looped) into a MediaStream for
+// the recorder. Returns { stream, start, stop } or null if there's nothing to mix.
+async function buildAudioMix(){
+  const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return null;
+  if(!studioVoiceBlob && !studioMusicBlob) return null;
+  const ac=new AC();
+  const dest=ac.createMediaStreamDestination();
+  const sources=[];
+  const decode=async(blob)=>{ const arr=await blob.arrayBuffer(); return await ac.decodeAudioData(arr); };
+  if(studioVoiceBlob){
+    try{ const vb=await decode(studioVoiceBlob); const s=ac.createBufferSource(); s.buffer=vb;
+      const g=ac.createGain(); g.gain.value=1.0; s.connect(g).connect(dest); sources.push(s); }catch(_){}
+  }
+  if(studioMusicBlob){
+    try{ const mb=await decode(studioMusicBlob); const s=ac.createBufferSource(); s.buffer=mb; s.loop=true;
+      const g=ac.createGain(); g.gain.value=Math.max(0,Math.min(0.6,((+$('reel-music-vol').value)||18)/100)); s.connect(g).connect(dest); sources.push(s); }catch(_){}
+  }
+  if(!sources.length){ try{ ac.close(); }catch(_){} return null; }
+  return { stream:dest.stream,
+    start:()=>{ try{ ac.resume(); }catch(_){} const t=ac.currentTime+0.05; sources.forEach(s=>{ try{ s.start(t); }catch(_){} }); },
+    stop:()=>{ sources.forEach(s=>{ try{ s.stop(); }catch(_){} }); try{ ac.close(); }catch(_){} } };
+}
+
+// APPLY AUDIO TO VIDEO — mix VO + music, bake onto the footage, export the final video.
+$('reel-apply-audio').onclick=async()=>{
+  const note=$('reel-vid-note');
+  if(!reelHasVideo){ note.className='vid-note active warn'; note.textContent='Upload reel footage first.'; return; }
+  if(!studioVoiceBlob && !studioMusicBlob){ note.className='vid-note active warn'; note.textContent='Generate a voiceover or upload background music first.'; return; }
+  const mix=await buildAudioMix();
+  if(!mix){ note.className='vid-note active warn'; note.textContent='Could not prepare the audio mix — re-generate the voiceover and retry.'; return; }
+  await recordReel(true, mix);
+};
 
 // QUEUE the reel VIDEO → reels queue. Only possible when the browser records real MP4
 // (Safari / HW-h264); IG/FB reject WebM, so on WebM browsers we disable with a reason
@@ -3622,7 +3613,6 @@ $('sp-postnow').onclick=()=> queuePost('image',
   { headline:$('sp-fhead').value, body:($('sp-l1').value+' '+$('sp-l2').value).trim(),
     eye_label:$('sp-name').value, cta:$('sp-cta').value, caption:buildSpCaption() },
   ()=> bakeStageBlob('stage-spot',1080,1350), $('sp-postnow'), $('sp-postnow-note'), true);
-$('reel-postnow').onclick=()=> queuePost('image', reelQueueFields(), reelCoverBlob, $('reel-postnow'), $('reel-postnow-note'), true);
 $('reel-postnow-vid').onclick=()=>{
   const note=$('reel-postnow-vid-note');
   if(!reelHasVideo){ note.className='queue-note warn'; note.textContent='Upload reel footage first, then post the video.'; return; }
