@@ -1,8 +1,18 @@
 [
   {
-    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "execution_timestamp": "2026-06-28T23:43:26.015Z",
     "client_id": "BBF-1001",
     "language": "EN",
+    "onboarding_parameter": {
+      "status": "TRACKED",
+      "is_new_client": true,
+      "program_day": 3,
+      "window_days": 30,
+      "days_remaining": 27,
+      "phase": "FOUNDATION",
+      "completion_pct": 10,
+      "milestone": null
+    },
     "phase_1_verification": {
       "status": "PASS",
       "flags": [],
@@ -24,15 +34,26 @@
     "phase_2_tabling": {
       "scenario_id": "EN_80_100_40_100_strength",
       "measurement_matrix_entry": {
-        "brief_script_reference": "vault://briefs/EN_80_100_40_100_strength",
-        "customization_required": false
+        "brief_script_reference": "vault://briefs/onboarding/D3_FOUNDATION/EN_80_100_40_100_strength",
+        "brief_track": "30_day_onboarding",
+        "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "execution_timestamp": "2026-06-28T23:43:26.015Z",
     "client_id": "BBF-1002",
     "language": "ES",
+    "onboarding_parameter": {
+      "status": "TRACKED",
+      "is_new_client": true,
+      "program_day": 18,
+      "window_days": 30,
+      "days_remaining": 12,
+      "phase": "MOMENTUM",
+      "completion_pct": 60,
+      "milestone": null
+    },
     "phase_1_verification": {
       "status": "PARTIAL",
       "flags": [
@@ -56,15 +77,26 @@
     "phase_2_tabling": {
       "scenario_id": "ES_60_70_70_150_mobility",
       "measurement_matrix_entry": {
-        "brief_script_reference": "vault://briefs/ES_60_70_70_150_mobility",
+        "brief_script_reference": "vault://briefs/onboarding/D18_MOMENTUM/ES_60_70_70_150_mobility",
+        "brief_track": "30_day_onboarding",
         "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "execution_timestamp": "2026-06-28T23:43:26.015Z",
     "client_id": "BBF-1003",
     "language": "PT",
+    "onboarding_parameter": {
+      "status": "TRACKED",
+      "is_new_client": true,
+      "program_day": 30,
+      "window_days": 30,
+      "days_remaining": 0,
+      "phase": "GRADUATION",
+      "completion_pct": 100,
+      "milestone": "GRADUATION"
+    },
     "phase_1_verification": {
       "status": "PARTIAL",
       "flags": [
@@ -90,15 +122,26 @@
     "phase_2_tabling": {
       "scenario_id": "PT_60_70_70_50_recovery",
       "measurement_matrix_entry": {
-        "brief_script_reference": "vault://briefs/PT_60_70_70_50_recovery",
+        "brief_script_reference": "vault://briefs/onboarding/D30_GRADUATION/PT_60_70_70_50_recovery",
+        "brief_track": "30_day_onboarding",
         "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "execution_timestamp": "2026-06-28T23:43:26.015Z",
     "client_id": "BBF-1004",
     "language": "EN",
+    "onboarding_parameter": {
+      "status": "TRACKED",
+      "is_new_client": false,
+      "program_day": 59,
+      "window_days": 30,
+      "days_remaining": 0,
+      "phase": "ESTABLISHED",
+      "completion_pct": 100,
+      "milestone": null
+    },
     "phase_1_verification": {
       "status": "PARTIAL",
       "flags": [
@@ -123,14 +166,25 @@
       "scenario_id": "EN_100_100_40_150_stability",
       "measurement_matrix_entry": {
         "brief_script_reference": "vault://briefs/EN_100_100_40_150_stability",
+        "brief_track": "standard",
         "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "execution_timestamp": "2026-06-28T23:43:26.015Z",
     "client_id": "BBF-1005",
     "language": "ES",
+    "onboarding_parameter": {
+      "status": "TRACKED",
+      "is_new_client": true,
+      "program_day": 7,
+      "window_days": 30,
+      "days_remaining": 23,
+      "phase": "FOUNDATION",
+      "completion_pct": 23,
+      "milestone": "WEEK_1"
+    },
     "phase_1_verification": {
       "status": "PARTIAL",
       "flags": [
@@ -155,15 +209,27 @@
     "phase_2_tabling": {
       "scenario_id": "ES_60_70_70_100_recovery",
       "measurement_matrix_entry": {
-        "brief_script_reference": "vault://briefs/ES_60_70_70_100_recovery",
+        "brief_script_reference": "vault://briefs/onboarding/D7_FOUNDATION/ES_60_70_70_100_recovery",
+        "brief_track": "30_day_onboarding",
         "customization_required": true
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "execution_timestamp": "2026-06-28T23:43:26.015Z",
     "client_id": "BBF-1006",
     "language": "EN",
+    "onboarding_parameter": {
+      "status": "ONBOARDING_UNKNOWN",
+      "is_new_client": null,
+      "program_day": null,
+      "window_days": 30,
+      "days_remaining": null,
+      "phase": "UNKNOWN",
+      "completion_pct": null,
+      "milestone": null,
+      "note": "No start_date — onboarding position not computable."
+    },
     "phase_1_verification": {
       "status": "PASS",
       "flags": [],
@@ -186,14 +252,26 @@
       "scenario_id": "EN_100_100_40_151_plus_strength",
       "measurement_matrix_entry": {
         "brief_script_reference": "vault://briefs/EN_100_100_40_151_plus_strength",
+        "brief_track": "standard",
         "customization_required": false
       }
     }
   },
   {
-    "execution_timestamp": "2026-06-28T22:38:35.967Z",
+    "execution_timestamp": "2026-06-28T23:43:26.015Z",
     "client_id": "BBF-1007",
     "language": "FR",
+    "onboarding_parameter": {
+      "status": "ONBOARDING_UNKNOWN",
+      "is_new_client": null,
+      "program_day": null,
+      "window_days": 30,
+      "days_remaining": null,
+      "phase": "UNKNOWN",
+      "completion_pct": null,
+      "milestone": null,
+      "note": "No start_date — onboarding position not computable."
+    },
     "phase_1_verification": {
       "status": "FAIL",
       "flags": [

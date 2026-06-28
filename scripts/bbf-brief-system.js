@@ -85,6 +85,45 @@ function trailing(client) {
   return { cnsAvg: avg(cnsVals), volAvg: avg(volVals), samples: recent.length };
 }
 
+// ── 30-DAY ONBOARDING PARAMETER ───────────────────────────────────────────────
+// Brand-new clients run a 30-day window (Foundation → Calibration → Momentum →
+// Graduation-approach → Day-30 GRADUATION). We compute where the client sits so
+// the brief routes them through the onboarding track while the metrics calculate.
+const PROGRAM_WINDOW_DAYS = 30;
+function computeOnboarding(client) {
+  const start = client.start_date || client.enrollment_date || client.onboard_date || client.join_date;
+  const startMs = start ? Date.parse(start) : NaN;
+  const refMs = client && client.date ? Date.parse(client.date) : Date.now();
+  if (!Number.isFinite(startMs)) {
+    return { status: 'ONBOARDING_UNKNOWN', is_new_client: null, program_day: null, window_days: PROGRAM_WINDOW_DAYS, days_remaining: null, phase: 'UNKNOWN', completion_pct: null, milestone: null, note: 'No start_date — onboarding position not computable.' };
+  }
+  const programDay = Math.floor((refMs - startMs) / 86400000) + 1; // start day = day 1
+  let phase;
+  if (programDay < 1) phase = 'PRE_START';
+  else if (programDay <= 7) phase = 'FOUNDATION';
+  else if (programDay <= 14) phase = 'CALIBRATION';
+  else if (programDay <= 21) phase = 'MOMENTUM';
+  else if (programDay <= 29) phase = 'GRADUATION_APPROACH';
+  else if (programDay === 30) phase = 'GRADUATION';
+  else phase = 'ESTABLISHED';
+  let milestone = null;
+  if (programDay === 7) milestone = 'WEEK_1';
+  else if (programDay === 14) milestone = 'WEEK_2';
+  else if (programDay === 21) milestone = 'WEEK_3';
+  else if (programDay === 30) milestone = 'GRADUATION';
+  const isNew = programDay >= 1 && programDay <= PROGRAM_WINDOW_DAYS;
+  return {
+    status: 'TRACKED',
+    is_new_client: isNew,
+    program_day: programDay,
+    window_days: PROGRAM_WINDOW_DAYS,
+    days_remaining: Math.max(0, PROGRAM_WINDOW_DAYS - programDay),
+    phase,
+    completion_pct: Math.round(clamp(programDay / PROGRAM_WINDOW_DAYS, 0, 1) * 100),
+    milestone,
+  };
+}
+
 // ── PHASE 1 ──────────────────────────────────────────────────────────────────
 function verify(client) {
   const flags = [];
@@ -156,17 +195,25 @@ function verify(client) {
 }
 
 // ── PHASE 2 ──────────────────────────────────────────────────────────────────
-function table(client, v1) {
+function table(client, v1, ob) {
   const r = v1.resolved;
   const lang = String(client.language_preference).toUpperCase();
   const prehab = r.friction_category || 'general';
   const scenarioId = [lang, cnsToken(r.cns_score), triToken(r.sleep_quality), triToken(r.stress_level), loadToken(r.load_lbs), prehab].join('_');
-  // A brief needs human customization whenever the bio wasn't a clean PASS.
-  const customizationRequired = v1.status !== 'PASS';
+  // New clients (within the 30-day window) route onto the onboarding track; their
+  // vault pointer is namespaced by program day + phase. Everyone else is standard.
+  const newClient = !!(ob && ob.is_new_client === true);
+  const briefTrack = newClient ? '30_day_onboarding' : 'standard';
+  const briefRef = newClient
+    ? `vault://briefs/onboarding/D${ob.program_day}_${ob.phase}/${scenarioId}`
+    : `vault://briefs/${scenarioId}`;
+  // Customize when the bio wasn't a clean PASS, OR the client is still onboarding.
+  const customizationRequired = v1.status !== 'PASS' || newClient;
   return {
     scenario_id: scenarioId,
     measurement_matrix_entry: {
-      brief_script_reference: `vault://briefs/${scenarioId}`,
+      brief_script_reference: briefRef,
+      brief_track: briefTrack,
       customization_required: customizationRequired,
     },
   };
@@ -176,14 +223,16 @@ function table(client, v1) {
 function run(clients, stampISO) {
   return clients.map((client) => {
     const v1 = verify(client);
+    const ob = computeOnboarding(client);
     const base = {
       execution_timestamp: stampISO,
       client_id: (client && client.client_id) || null,
       language: String(client && client.language_preference || '').toUpperCase() || null,
+      onboarding_parameter: ob,
       phase_1_verification: { status: v1.status, flags: v1.flags, notes: v1.notes, resolved: v1.resolved },
     };
     if (v1.status === 'FAIL') return { ...base, phase_2_tabling: null };
-    return { ...base, phase_2_tabling: table(client, v1) };
+    return { ...base, phase_2_tabling: table(client, v1, ob) };
   });
 }
 
