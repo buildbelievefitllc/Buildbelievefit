@@ -43,7 +43,7 @@ function fmtStat(v) {
   return v !== null && v !== undefined && v !== '' ? Number(v).toLocaleString() : '—';
 }
 
-export default function VaultHub({ profile, isLoading, error, onSequence }) {
+export default function VaultHub({ profile, isLoading, error, onSequence, prescribedLoad = null }) {
   const { t, lang } = useLang();
   // Biokinetic Forecast — collapsible drawer on the LANDING Client Hub (the tab the
   // athlete sees on login). Default COLLAPSED so the Hub stays clean until opened.
@@ -69,7 +69,7 @@ export default function VaultHub({ profile, isLoading, error, onSequence }) {
       {/* SOVEREIGN AUDIO — the Day-30 graduation briefing in Akeem's cloned voice.
           On an active squad intercept (program.isOverride) it plays the override's
           manifest asset instead of the bespoke briefing. */}
-      <SovereignBriefingCard overrideActive={program.isOverride} overrideRef={program.briefScriptReference} />
+      <SovereignBriefingCard overrideActive={program.isOverride} overrideRef={program.briefScriptReference} programLoad={prescribedLoad} />
       {/* THE SOVEREIGN SEQUENCE — adult-only guided hand-off anchor, above the
           fold. Renders ONLY when the Vault shell passes onSequence (so it never
           appears on the Youth Sports Hub or the admin Command Center). */}

@@ -203,3 +203,25 @@ export function parseWorkoutPlan(raw) {
   const valid = arr.every((d) => d && typeof d === 'object' && (d.exercises === undefined || Array.isArray(d.exercises)));
   return valid ? arr : null;
 }
+
+// Today's prescribed TOP-SET load (lbs) from a parsed workout plan — the heaviest
+// coach-prescribed working weight on the day the athlete should execute now. Mirrors
+// ProgramGrid's day-selection (weekday match → first trainable day) + prescribedWeight
+// field tolerance (weight | target_weight | targetWeight | load). Returns a number, or
+// null for a bodyweight/rest day with no explicit load. Feeds the biometric router's
+// Load axis (see biometricRouter.js).
+export function prescribedTopSetLoad(plan) {
+  if (!Array.isArray(plan) || !plan.length) return null;
+  const weekday = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const hasWork = (d) => Array.isArray(d?.exercises) && d.exercises.length > 0 && !d?.isRest;
+  let day = plan.find((d) => String(d?.day || '').trim().toLowerCase() === weekday && hasWork(d));
+  if (!day) day = plan.find(hasWork) || null;
+  if (!day) return null;
+  let max = null;
+  for (const ex of day.exercises) {
+    const raw = ex?.weight ?? ex?.target_weight ?? ex?.targetWeight ?? ex?.load ?? '';
+    const m = String(raw).match(/\d+(?:\.\d+)?/);
+    if (m) { const n = parseFloat(m[0]); if (Number.isFinite(n) && (max === null || n > max)) max = n; }
+  }
+  return max;
+}

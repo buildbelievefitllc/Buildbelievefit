@@ -77,7 +77,7 @@ function mapErr(slug, tr) {
   return tr.err;
 }
 
-export default function SovereignBriefingCard({ overrideActive = false, overrideRef = null } = {}) {
+export default function SovereignBriefingCard({ overrideActive = false, overrideRef = null, programLoad = null } = {}) {
   const { lang } = useLang();
   const { isGraduated } = useCalibration();
   const { data: readiness } = useDailyReadiness();
@@ -100,7 +100,7 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   // state, filtered to their language. No telemetry (no check-in today) → null, and the
   // bespoke briefing below remains the graceful fallback.
   const bioMatch = (!intercept && isGraduated && readiness?.hasData)
-    ? nearestScenario({ lang, ...telemetryFromReadiness(readiness) })
+    ? nearestScenario({ lang, ...telemetryFromReadiness(readiness, programLoad) })
     : null;
   const bioUrl = bioMatch?.url || null;
 

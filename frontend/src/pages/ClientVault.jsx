@@ -25,7 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import LangToggle from '../components/LangToggle.jsx';
-import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
+import { useVaultProfile, selectPlans, parseWorkoutPlan, prescribedTopSetLoad } from '../lib/vaultApi.js';
 import { useVaultSessionGuard } from '../lib/sessionGuard.js';
 import { useEntitlement } from '../lib/useEntitlement.js';
 import { useCalibration } from '../lib/useCalibration.js';
@@ -124,6 +124,11 @@ export default function ClientVault() {
   // Single fetch-on-land; shared across every tab.
   const { data: profile, isLoading: profileLoading, error: profileError } = useVaultProfile(uid);
   const plans = useMemo(() => selectPlans(session), [session]);
+  // Today's prescribed top-set load (lbs) → the biometric router's live Load axis.
+  const prescribedLoad = useMemo(
+    () => prescribedTopSetLoad(parseWorkoutPlan(plans.workoutPlan)),
+    [plans.workoutPlan],
+  );
 
   // Agentic Handshake — the day's verdict (off the shared biometric store, same
   // payload the Check-In / Cardio / Nutrition / Program surfaces consume) drives
@@ -249,6 +254,7 @@ export default function ClientVault() {
                   isLoading={profileLoading}
                   error={profileError}
                   onSequence={onNavigate}
+                  prescribedLoad={prescribedLoad}
                 />
               )}
               {activeTab === 'checkin' && <SovereignClientHub refreshKey={checkInRefresh} onSequence={onNavigate} />}
