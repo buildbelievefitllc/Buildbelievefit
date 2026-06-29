@@ -88,5 +88,65 @@
     "lab_scenario_id": "PT_81_100_71_100_0_40_101_150_strength",
     "category": "Strength",
     "script": "Luz verde total... seus dados de hoje são exatamente o que esperamos para uma sessão de força máxima. Sistema nervoso no pico, sono excelente, estresse mínimo. Seu corpo está calibrado para receber carga alta e converter cada quilograma em adaptação real. Isso é raro... e você não vai desperdiçar. Vamos trabalhar entre 101 e 150 no Trap-Bar com intenção total, velocidade concêntrica explosiva, e cada repetição sendo uma afirmação da sua capacidade de performance. Antes de cada série... preencha o diafragma, trave o núcleo com pressão intra-abdominal máxima, e empurre o chão para longe de você. Descida controlada, subida explosiva. Descanse entre dois e três minutos entre as séries pesadas para garantir a recuperação completa do sistema ATP-CP. A força de hoje alimenta a base de amanhã. Você está preparado... completamente preparado. Agora vá e domine cada quilograma desse treino."
+  },
+  {
+    "scenario_id": "EN_40_100_100_100_recovery",
+    "lab_scenario_id": "EN_0_40_71_100_71_100_51_100_recovery",
+    "category": "Recovery",
+    "script": "Listen... I see your data today... and it's telling a very specific story... the wired and tired anomaly... You got great sleep... but your CNS score is completely bottomed out below forty... and your stress levels are through the roof... This means sleep alone isn't curing the profound neural fatigue you are carrying... Your mind is running a marathon... and your body is paying the price... Today, we are pulling the emergency brake... We are not going to push through this with standard lifting... We are pivoting completely to active recovery... Put the weights down... grab a foam roller... and let's work on lat and thoracic release... No ego... no guilt... Guilt has terrible macros... Focus on your breathing... slow, deep, diaphragmatic inhales... and long, passive exhales... Let's down-regulate that hyperactive nervous system and restore balance..."
+  },
+  {
+    "scenario_id": "ES_100_70_70_150_strength",
+    "lab_scenario_id": "ES_81_100_41_70_41_70_101_150_strength",
+    "category": "Strength",
+    "script": "Escucha... hoy tenemos una luz verde masiva para empujar los límites... Tu sistema nervioso central está por encima de ochenta... y aunque el sueño y el estrés son moderados... tu capacidad de producción de fuerza está al máximo... Hoy... nos toca cargar pesado... ciento cincuenta libras en la barra... y vamos a dominar la plataforma... Nos enfocamos en el peso muerto con barra hexagonal... Olvídate de la sentadilla tradicional con barra... hoy la barra hexagonal es nuestra herramienta de alta potencia... Entra al hexágono... clava tus pies en el suelo... y activa los dorsales... Inhala profundo... bloquea el abdomen duro como una roca... y empuja el suelo... Siente la transferencia de fuerza pura a través de tu estructura... Mantén el control mecánico en cada repetición... Sella el movimiento apretando los glúteos al tope... Concéntrate... ejecuta con autoridad..."
+  },
+  {
+    "scenario_id": "PT_80_40_40_100_stability",
+    "lab_scenario_id": "PT_61_80_0_40_0_40_51_100_stability",
+    "category": "Stability",
+    "script": "Olhe... o seu sistema de alerta central está segurando as pontas em setenta... mas o seu sono hoje foi péssimo... abaixo de quarenta... O estresse está baixo... o que é excelente... mas não podemos abusar da sorte quando o descanso é nulo... Hoje, com essa carga padrão de cem libras... o foco não é a intensidade extrema... é a estabilidade disciplinada... Esqueça os agachamentos tradicionais com barra... hoje nós vamos trabalhar com o agachamento com barra hexagonal para proteger a estrutura... e vamos focar em pranchas para estabilização profunda... Inale... trave o abdômen com força... e execute o movimento com um tempo lento e controlado... Não deixe que a fadiga comprometa a sua postura ou o seu alinhamento... Controle o ego... proteja a sua coluna... e termine o treino com total segurança..."
+  },
+  {
+    "scenario_id": "EN_60_40_100_150_mobility",
+    "lab_scenario_id": "EN_41_60_0_40_71_100_101_150_mobility",
+    "category": "Mobility",
+    "script": "Stop... I am pulling the emergency brake right now... Your metrics today are in the danger zone... CNS is moderate... sleep is completely trash below forty... and your stress levels are at an absolute peak... You were scheduled to lift a heavy load of one hundred and fifty pounds today... but pushing your body into that gap with zero recovery is a recipe for joint and biomechanical failure... We do not feed a fatigued system more stress... We are pivoting your entire session to deep mobility... No weight... no traditional heavy squats... we are going to focus on unlocking your hip rotation and decompressing the spine... Focus on your breathing... sink into the tissue... and let the nervous system reset... There is no guilt... only smart, clinical management of your physical asset... Hydrate... recover... and let's get the system right..."
+  },
+  {
+    "scenario_id": "ES_100_100_40_50_recovery",
+    "lab_scenario_id": "ES_100_100_0_40_0_50_recovery",
+    "category": "Recovery",
+    "script": "Escúchame... hoy tus datos son perfectos... Tu CNS está en cien... tuviste un sueño impecable... y el estrés está en mínimos... Tu cuerpo es un Ferrari listo para correr... pero hoy... tu programa prescribe una semana de descarga táctica... de de cincuenta libras... Sé que quieres cargar la barra... sé que quieres empujar los límites... pero la disciplina real se demuestra respetando el plano de recuperación... La descarga no es pereza... es la fase donde permitimos que los tendones sanen y el sistema nervioso se sobrecargue para el próximo ciclo... Deja el ego fuera del templo hoy... Enfócate en la prancha y el trabajo de estabilidad Pallof con tensiones ligeras... Muévete con un tempo lento... siente la conexión mecánica... y domina la descarga con disciplina... Mañana volveremos a construir con todo..."
+  },
+  {
+    "scenario_id": "PT_40_70_70_150_mobility",
+    "lab_scenario_id": "PT_0_40_41_70_41_70_101_150_mobility",
+    "category": "Mobility",
+    "script": "Espera... antes de você tocar na barra hoje, preciso que você me ouça. Seus dados estão dizendo que o sistema nervoso central está em baixa... e o plano original de carga alta? Vamos colocar isso de lado agora. Isso não é uma decisão opcional... é uma decisão fisiológica. Forçar 101 a 150 com um CNS comprometido não é treino... é lesão planejada. Então o que fazemos? Mobilidade articular com intenção total. Tornozelo, quadril, coluna torácica, ombros. Cada articulação percorrendo a amplitude completa, lentamente, com controle absoluto. Respiração parassimpática... inspire por quatro... expire por seis. Deixe o sistema nervoso autônomo começar a recalibrar. Você não está perdendo tempo hoje... você está protegendo o progresso de amanhã. A carga pesada vai esperar. O seu corpo pediu uma coisa... e hoje nós escutamos."
+  },
+  {
+    "scenario_id": "EN_100_100_40_100_stability",
+    "lab_scenario_id": "EN_100_100_0_40_51_100_stability",
+    "category": "Stability",
+    "script": "Perfect readiness across every metric... CNS at the ceiling, stress at the floor, and your body has shown up completely ready to receive work. So let's talk about exactly what we're doing with that readiness. We are building structural integrity that outlasts a single training cycle. Stability work at standard load... and I need absolute mechanical precision from you today. No sloppy reps. No compensated movements. Every Dead Bug executed with lumbar spine pressed flat, obliques fully engaged, opposite limb extension locked and controlled. Your Lat Pulldowns are about scapular depression and retraction mechanics... not just pulling weight. And your Trap-Bar Squats? Brace like you're about to absorb maximum impact. Every single rep. Perfect readiness is a window... and wasting it on careless mechanics is the fastest route to building dysfunction instead of strength. Execute with discipline. Make every rep count."
+  },
+  {
+    "scenario_id": "ES_60_100_100_50_recovery",
+    "lab_scenario_id": "ES_41_60_71_100_71_100_0_50_recovery",
+    "category": "Recovery",
+    "script": "Escúchame... esta semana de deload llegó en el momento exacto en que tu sistema la necesitaba. El sueño está bien... y eso es una ventaja real que vamos a usar hoy. Pero el estrés mental está muy elevado. Y quiero que sepas algo... yo veo eso. No solo en los números... lo veo en el patrón. La vida está presionando fuerte ahora mismo, y tu cuerpo está absorbiendo ese peso. Hoy no existe performance. Existe recuperación deliberada. Movimiento fluido de baja intensidad, respiración consciente, activación suave del sistema parasimpático. Cuatro tiempos adentro... seis tiempos afuera. Deja que el diafragma haga el trabajo que no puedes forzar. Movilidad de cadera, aperturas torácicas, trabajo de glúteo sin carga. Esta sesión no es sobre el físico... es sobre resetear el sistema completo. Sal de aquí más ligero de lo que entraste. Eso es el éxito hoy."
+  },
+  {
+    "scenario_id": "PT_80_70_70_151_plus_strength",
+    "lab_scenario_id": "PT_61_80_41_70_41_70_151_plus_strength",
+    "category": "Strength",
+    "script": "O sistema está em boa posição hoje... CNS sólido, sono adequado, estresse controlado. Não é um dia de pico absoluto... mas é um dia de empurrar os limites da carga extrema com competência e intenção total. Cento e cinquenta e um e acima no Trap-Bar... isso exige que sua mente e seu corpo estejam completamente presentes em cada repetição. Antes de cada série... posicione os pés na largura dos quadris, agarre a barra com firmeza, preencha o diafragma, trave o núcleo com pressão intra-abdominal máxima, e então puxe o chão para longe de você. Concêntrico explosivo. Excêntrico controlado. Sem perder a tensão entre as repetições. O foco cinético é a única variável que separa uma série produtiva de uma arriscada nesse nível de carga. Descanse completamente entre as séries... dois a três minutos, sem negociação. Você está pronto para essa carga. Agora mostre isso."
+  },
+  {
+    "scenario_id": "EN_40_40_40_50_mobility",
+    "lab_scenario_id": "EN_0_40_0_40_0_40_0_50_mobility",
+    "category": "Mobility",
+    "script": "Hey... I need you to hear me right now. Everything you're tracking today is telling the same story... your CNS is depleted, sleep is not restoring you, and your body has quietly run out of reserves. This isn't a bad training day... this is a full system signal. And I need you to honor that. We are not training today. We are restoring. Ground-based work only... lay down, breathe, and let gravity do what effort cannot. Diaphragmatic breathing in supine... four counts in... six counts out. Gentle supine hip rotations, slow thoracic rolls, soft neck mobility side to side. No loading, no urgency, no clock to beat. Just you and the floor... letting your nervous system remember what calm feels like. You are not behind. You are not failing. You are an athlete protecting your future capacity. That is enough. Rest is the work today."
   }
 ]
