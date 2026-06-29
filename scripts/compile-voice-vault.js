@@ -110,10 +110,17 @@ const VIBE_BY_CATEGORY = {
   'Tendon Health': 'the_mechanic',
   Recovery: 'the_sanctuary',
   Nutrition: 'real_talk',
+  // BBF Loop Breaker biometric-matrix categories: power work → Mechanic,
+  // restorative/ROM work → Sanctuary.
+  Strength: 'the_mechanic',
+  Stability: 'the_mechanic',
+  Mobility: 'the_sanctuary',
 };
 const vibeFor = (category) => VIBE_BY_CATEGORY[category] || 'the_architect';
 
-const SCRIPTS_FILE = path.resolve(__dirname, '..', 'bbf-lab-voice-scripts.json');
+// Default payload is the 31-scenario BBF Loop Breaker biometric matrix; override
+// with VAULT_SCRIPTS=<filename> (repo-root-relative) to compile a different deck.
+const SCRIPTS_FILE = path.resolve(__dirname, '..', process.env.VAULT_SCRIPTS || 'bbf-biometric-audio-matrix.json');
 const MANIFEST_FILES = [
   path.resolve(__dirname, '..', 'sovereignVaultManifest.json'),
   path.resolve(__dirname, '..', 'frontend', 'src', 'data', 'sovereignVaultManifest.json'),

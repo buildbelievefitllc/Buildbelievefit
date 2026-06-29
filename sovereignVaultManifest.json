@@ -1,202 +1,250 @@
 [
   {
-    "id": "audio_62a878f8",
-    "category": "Mindset",
-    "subjectLine": "The Elephant in the Room",
-    "scenario": "Handling a Cheat Meal",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mindset-the-elephant-in-the-room.mp3"
+    "id": "audio_86014eab",
+    "category": "Strength",
+    "subjectLine": "EN_80_100_40_100_strength",
+    "scenario": "English · CNS 80/100 · Sleep 100 · Stress 40 · Load 100lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-en-80-100-40-100-strength.mp3"
   },
   {
-    "id": "audio_425ffeb9",
-    "category": "Conditioning",
-    "subjectLine": "Stop Running From the Treadmill",
-    "scenario": "Cardio Day Motivation",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/conditioning-stop-running-from-the-treadmill.mp3"
+    "id": "audio_717d5027",
+    "category": "Mobility",
+    "subjectLine": "ES_60_70_70_150_mobility",
+    "scenario": "Spanish · CNS 60/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "53s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-es-60-70-70-150-mobility.mp3"
   },
   {
-    "id": "audio_adad2893",
+    "id": "audio_23d6495f",
     "category": "Recovery",
-    "subjectLine": "The Bed is Calling Your Name",
-    "scenario": "Morning Mobility Routine",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-the-bed-is-calling-your-name.mp3"
+    "subjectLine": "PT_60_70_70_50_recovery",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 70 · Stress 70 · Load 50lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-pt-60-70-70-50-recovery.mp3"
   },
   {
-    "id": "audio_7db50c8d",
-    "category": "Accountability",
-    "subjectLine": "No Excuses, Just Adjustments",
-    "scenario": "Dealing with a Missed Workout",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/accountability-no-excuses-just-adjustments.mp3"
+    "id": "audio_5872f97c",
+    "category": "Stability",
+    "subjectLine": "EN_100_100_40_150_stability",
+    "scenario": "English · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "duration": "55s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-en-100-100-40-150-stability.mp3"
   },
   {
-    "id": "audio_b9779b95",
-    "category": "Mindset",
-    "subjectLine": "The Mirror Doesn't Lie, But It Misleads",
-    "scenario": "Dealing with Scale Weight Fluctuations",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mindset-the-mirror-doesn-t-lie-but-it-misleads.mp3"
-  },
-  {
-    "id": "audio_b5a84e04",
-    "category": "Biomechanics",
-    "subjectLine": "Screw Your Feet Into the Platform",
-    "scenario": "Heavy Squat Day Cueing",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/biomechanics-screw-your-feet-into-the-platform.mp3"
-  },
-  {
-    "id": "audio_a8c2ffbd",
-    "category": "Nutrition",
-    "subjectLine": "Precision at 1:00 PM",
-    "scenario": "Intermittent Fasting Window Mastery",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/nutrition-precision-at-1-00-pm.mp3"
-  },
-  {
-    "id": "audio_ebbf6f72",
-    "category": "Prehab",
-    "subjectLine": "The Core is Your Shield",
-    "scenario": "Deep Core Activation / Dead Bug Mastery",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/prehab-the-core-is-your-shield.mp3"
-  },
-  {
-    "id": "audio_79f96c74",
-    "category": "Tendon Health",
-    "subjectLine": "Spring Mechanics of the Joint",
-    "scenario": "Tibialis and Soleus Prehab Cues",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/tendon-health-spring-mechanics-of-the-joint.mp3"
-  },
-  {
-    "id": "audio_da0e88e4",
-    "category": "Prehab",
-    "subjectLine": "Unlocking the Posterior Capsule",
-    "scenario": "Hip CARs and Rotational Mobility",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/prehab-unlocking-the-posterior-capsule.mp3"
-  },
-  {
-    "id": "audio_f776dfd5",
+    "id": "audio_13e284e9",
     "category": "Recovery",
-    "subjectLine": "The Growth Happens in the Dark",
-    "scenario": "Sleep and Parasympathetic Down-Regulation",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-the-growth-happens-in-the-dark.mp3"
+    "subjectLine": "ES_60_70_70_100_recovery",
+    "scenario": "Spanish · CNS 60/100 · Sleep 70 · Stress 70 · Load 100lb",
+    "duration": "53s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-es-60-70-70-100-recovery.mp3"
   },
   {
-    "id": "audio_5f5a0bc6",
-    "category": "Nutrition",
-    "subjectLine": "Fueling the Rebuild",
-    "scenario": "Post-Workout Nutrition Window",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/nutrition-fueling-the-rebuild.mp3"
+    "id": "audio_30b07cc2",
+    "category": "Strength",
+    "subjectLine": "EN_100_100_40_151_plus_strength",
+    "scenario": "English · CNS 100/100 · Sleep 100 · Stress 40 · Load 151+lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-en-100-100-40-151-plus-strength.mp3"
   },
   {
-    "id": "audio_a193fe52",
-    "category": "Biomechanics",
-    "subjectLine": "The Kinetic Link to the Floor",
-    "scenario": "Deadlift Slack Pulling Cues",
+    "id": "audio_013ba9bd",
+    "category": "Mobility",
+    "subjectLine": "PT_40_40_100_150_mobility",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 40 · Stress 100 · Load 150lb",
     "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/biomechanics-the-kinetic-link-to-the-floor.mp3"
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-pt-40-40-100-150-mobility.mp3"
   },
   {
-    "id": "audio_6f3b42a0",
-    "category": "Tendon Health",
-    "subjectLine": "Bulletproofing the Patellar Tendon",
-    "scenario": "Peterson Step-Up for VMO Activation",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/tendon-health-bulletproofing-the-patellar-tendon.mp3"
-  },
-  {
-    "id": "audio_7e672430",
-    "category": "Prehab",
-    "subjectLine": "Stability in the Shoulder Girdle",
-    "scenario": "Scapular CARs for Rotator Cuff Health",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/prehab-stability-in-the-shoulder-girdle.mp3"
-  },
-  {
-    "id": "audio_753c038e",
-    "category": "Mindset",
-    "subjectLine": "The Power of the Pivot",
-    "scenario": "Adapting to Daily Energy Levels",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mindset-the-power-of-the-pivot.mp3"
-  },
-  {
-    "id": "audio_607af528",
+    "id": "audio_e499df6b",
     "category": "Recovery",
-    "subjectLine": "The Art of Decompression",
-    "scenario": "Spinal Traction via Dead Hangs",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-the-art-of-decompression.mp3"
+    "subjectLine": "EN_60_70_100_50_recovery",
+    "scenario": "English · CNS 60/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "duration": "56s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-en-60-70-100-50-recovery.mp3"
   },
   {
-    "id": "audio_e13894a9",
-    "category": "Biomechanics",
-    "subjectLine": "The Shoulder is a Suspension Bridge",
-    "scenario": "Ring Dip Joint Preparation Cues",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/biomechanics-the-shoulder-is-a-suspension-bridge.mp3"
+    "id": "audio_5c1ccc0e",
+    "category": "Stability",
+    "subjectLine": "ES_100_100_40_100_stability",
+    "scenario": "Spanish · CNS 100/100 · Sleep 100 · Stress 40 · Load 100lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-es-100-100-40-100-stability.mp3"
   },
   {
-    "id": "audio_f779df29",
-    "category": "Prehab",
-    "subjectLine": "Groin and Pelvic Integrity",
-    "scenario": "Copenhagen Plank for Adductor Strength",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/prehab-groin-and-pelvic-integrity.mp3"
+    "id": "audio_2c571bdf",
+    "category": "Strength",
+    "subjectLine": "EN_80_70_70_150_strength",
+    "scenario": "English · CNS 80/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-en-80-70-70-150-strength.mp3"
   },
   {
-    "id": "audio_06c5ea8a",
-    "category": "Mindset",
-    "subjectLine": "Rhythm Over Chaos",
-    "scenario": "Building Long-Term Lifestyle Habits",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mindset-rhythm-over-chaos.mp3"
+    "id": "audio_0a45407d",
+    "category": "Stability",
+    "subjectLine": "ES_60_40_70_100_stability",
+    "scenario": "Spanish · CNS 60/100 · Sleep 40 · Stress 70 · Load 100lb",
+    "duration": "53s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-es-60-40-70-100-stability.mp3"
   },
   {
-    "id": "audio_d11bf88c",
-    "category": "Biomechanics",
-    "subjectLine": "The Power of the Hinge",
-    "scenario": "Romanian Deadlift Hip Mechanics",
+    "id": "audio_f5da6209",
+    "category": "Strength",
+    "subjectLine": "EN_100_70_40_151_plus_strength",
+    "scenario": "English · CNS 100/100 · Sleep 70 · Stress 40 · Load 151+lb",
     "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/biomechanics-the-power-of-the-hinge.mp3"
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-en-100-70-40-151-plus-strength.mp3"
   },
   {
-    "id": "audio_f86ce3f8",
-    "category": "Tendon Health",
-    "subjectLine": "Isometric Knee Preparation",
-    "scenario": "Wall Sit with Adductor Squeeze",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/tendon-health-isometric-knee-preparation.mp3"
+    "id": "audio_e31b14a0",
+    "category": "Recovery",
+    "subjectLine": "PT_60_70_100_50_recovery",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "duration": "56s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-pt-60-70-100-50-recovery.mp3"
   },
   {
-    "id": "audio_394e1e72",
-    "category": "Prehab",
-    "subjectLine": "Activating the Posterior Chain",
-    "scenario": "Single-Leg Glute Bridge Cues",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/prehab-activating-the-posterior-chain.mp3"
+    "id": "audio_3039fca9",
+    "category": "Mobility",
+    "subjectLine": "ES_40_40_100_100_mobility",
+    "scenario": "Spanish · CNS 40/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "duration": "58s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-es-40-40-100-100-mobility.mp3"
   },
   {
-    "id": "audio_5b4ebb63",
-    "category": "Nutrition",
-    "subjectLine": "Hydration is the Liquid Gold",
-    "scenario": "The Mechanical Role of Water Intake",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/nutrition-hydration-is-the-liquid-gold.mp3"
+    "id": "audio_b4211c56",
+    "category": "Stability",
+    "subjectLine": "EN_80_100_70_100_stability",
+    "scenario": "English · CNS 80/100 · Sleep 100 · Stress 70 · Load 100lb",
+    "duration": "59s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-en-80-100-70-100-stability.mp3"
   },
   {
-    "id": "audio_63741af1",
-    "category": "Mindset",
-    "subjectLine": "The Standard is the Standard",
-    "scenario": "Upholding Standards Over Moods",
-    "duration": "60s",
-    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mindset-the-standard-is-the-standard.mp3"
+    "id": "audio_57affa57",
+    "category": "Strength",
+    "subjectLine": "PT_100_100_40_150_strength",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "duration": "56s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-pt-100-100-40-150-strength.mp3"
+  },
+  {
+    "id": "audio_ed4c6f83",
+    "category": "Recovery",
+    "subjectLine": "EN_40_100_100_100_recovery",
+    "scenario": "English · CNS 40/100 · Sleep 100 · Stress 100 · Load 100lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-en-40-100-100-100-recovery.mp3"
+  },
+  {
+    "id": "audio_f79cf633",
+    "category": "Strength",
+    "subjectLine": "ES_100_70_70_150_strength",
+    "scenario": "Spanish · CNS 100/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "55s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-es-100-70-70-150-strength.mp3"
+  },
+  {
+    "id": "audio_2fbbaba4",
+    "category": "Stability",
+    "subjectLine": "PT_80_40_40_100_stability",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 40 · Stress 40 · Load 100lb",
+    "duration": "53s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-pt-80-40-40-100-stability.mp3"
+  },
+  {
+    "id": "audio_8d872ab0",
+    "category": "Mobility",
+    "subjectLine": "EN_60_40_100_150_mobility",
+    "scenario": "English · CNS 60/100 · Sleep 40 · Stress 100 · Load 150lb",
+    "duration": "56s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-en-60-40-100-150-mobility.mp3"
+  },
+  {
+    "id": "audio_35355cf7",
+    "category": "Recovery",
+    "subjectLine": "ES_100_100_40_50_recovery",
+    "scenario": "Spanish · CNS 100/100 · Sleep 100 · Stress 40 · Load 50lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-es-100-100-40-50-recovery.mp3"
+  },
+  {
+    "id": "audio_83682bec",
+    "category": "Mobility",
+    "subjectLine": "PT_40_70_70_150_mobility",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-pt-40-70-70-150-mobility.mp3"
+  },
+  {
+    "id": "audio_b576a976",
+    "category": "Stability",
+    "subjectLine": "EN_100_100_40_100_stability",
+    "scenario": "English · CNS 100/100 · Sleep 100 · Stress 40 · Load 100lb",
+    "duration": "56s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-en-100-100-40-100-stability.mp3"
+  },
+  {
+    "id": "audio_bdf4e805",
+    "category": "Recovery",
+    "subjectLine": "ES_60_100_100_50_recovery",
+    "scenario": "Spanish · CNS 60/100 · Sleep 100 · Stress 100 · Load 50lb",
+    "duration": "57s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-es-60-100-100-50-recovery.mp3"
+  },
+  {
+    "id": "audio_81cbce8c",
+    "category": "Strength",
+    "subjectLine": "PT_80_70_70_151_plus_strength",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 70 · Stress 70 · Load 151+lb",
+    "duration": "58s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-pt-80-70-70-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_b4a89d49",
+    "category": "Mobility",
+    "subjectLine": "EN_40_40_40_50_mobility",
+    "scenario": "English · CNS 40/100 · Sleep 40 · Stress 40 · Load 50lb",
+    "duration": "58s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-en-40-40-40-50-mobility.mp3"
+  },
+  {
+    "id": "audio_0ef89986",
+    "category": "Strength",
+    "subjectLine": "PT_100_100_40_151_plus_strength",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 100 · Stress 40 · Load 151+lb",
+    "duration": "55s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-pt-100-100-40-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_32bf881c",
+    "category": "Strength",
+    "subjectLine": "EN_60_100_40_151_plus_strength",
+    "scenario": "English · CNS 60/100 · Sleep 100 · Stress 40 · Load 151+lb",
+    "duration": "56s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-en-60-100-40-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_2c72ba69",
+    "category": "Recovery",
+    "subjectLine": "ES_80_40_100_50_recovery",
+    "scenario": "Spanish · CNS 80/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "duration": "55s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-es-80-40-100-50-recovery.mp3"
+  },
+  {
+    "id": "audio_c465deea",
+    "category": "Mobility",
+    "subjectLine": "ES_40_70_40_150_mobility",
+    "scenario": "Spanish · CNS 40/100 · Sleep 70 · Stress 40 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-es-40-70-40-150-mobility.mp3"
+  },
+  {
+    "id": "audio_64f3cc0c",
+    "category": "Stability",
+    "subjectLine": "EN_100_40_100_100_stability",
+    "scenario": "English · CNS 100/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-en-100-40-100-100-stability.mp3"
   }
 ]
