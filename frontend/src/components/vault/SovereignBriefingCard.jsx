@@ -14,8 +14,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useCalibration } from '../../lib/useCalibration.js';
+import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
 import { fetchSovereignBriefing, fetchCachedSovereignBriefing } from '../../lib/forecastApi.js';
 import { manifestUrlById } from '../../lib/sovereignManifest.js';
+import { nearestScenario, telemetryFromReadiness } from '../../lib/biometricRouter.js';
 
 // Session blob cache (locale|UTC-day → object URL) so re-mounting the Hub doesn't
 // re-download today's ~1MB briefing. Session-lived; one URL per locale/day.
@@ -78,6 +80,7 @@ function mapErr(slug, tr) {
 export default function SovereignBriefingCard({ overrideActive = false, overrideRef = null } = {}) {
   const { lang } = useLang();
   const { isGraduated } = useCalibration();
+  const { data: readiness } = useDailyReadiness();
   const tr = SB_STR[lang] || SB_STR.en;
   const [url, setUrl] = useState(null);
   const [createdAt, setCreatedAt] = useState(null); // generation timestamp (UTC ISO)
@@ -92,15 +95,27 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   const interceptUrl = overrideActive ? manifestUrlById(overrideRef) : null;
   const intercept = !!interceptUrl;
 
-  // On mount: an active intercept wins (play the public URL immediately). Otherwise,
-  // for a graduated athlete, pull TODAY'S pre-cached briefing (fast RPC). Present →
-  // ready for instant play. Absent (no check-in yet) → 'idle' for on-tap generation.
-  // State is set ONLY inside callbacks/microtasks (never synchronously) — clear of
-  // react-hooks/set-state-in-effect, StrictMode-safe.
+  // BIOMETRIC ROUTER (Phase 3): with NO override, a graduated athlete who has live
+  // check-in telemetry is routed to the nearest matrix clip for their CNS/Sleep/Stress
+  // state, filtered to their language. No telemetry (no check-in today) → null, and the
+  // bespoke briefing below remains the graceful fallback.
+  const bioMatch = (!intercept && isGraduated && readiness?.hasData)
+    ? nearestScenario({ lang, ...telemetryFromReadiness(readiness) })
+    : null;
+  const bioUrl = bioMatch?.url || null;
+
+  // On mount, precedence: (1) squad intercept → override clip; (2) biometric route →
+  // nearest matrix clip from live telemetry; (3) graduated → bespoke daily briefing
+  // (fast RPC; absent → 'idle' for on-tap generation). State is set ONLY inside
+  // callbacks/microtasks (never synchronously) — clear of react-hooks/set-state-in-effect.
   useEffect(() => {
     let cancelled = false;
     if (intercept) {
       queueMicrotask(() => { if (!cancelled) { setUrl(interceptUrl); setCreatedAt(null); setPhase('ready'); setErr(null); } });
+      return () => { cancelled = true; };
+    }
+    if (bioUrl) {
+      queueMicrotask(() => { if (!cancelled) { setUrl(bioUrl); setCreatedAt(null); setPhase('ready'); setErr(null); } });
       return () => { cancelled = true; };
     }
     if (!isGraduated) return undefined;
@@ -119,7 +134,7 @@ export default function SovereignBriefingCard({ overrideActive = false, override
       })
       .catch(() => { if (!cancelled) { setUrl(null); setCreatedAt(null); setPhase('idle'); } });
     return () => { cancelled = true; };
-  }, [intercept, interceptUrl, isGraduated, lang]);
+  }, [intercept, interceptUrl, bioUrl, isGraduated, lang]);
 
   // Render for a graduated athlete OR whenever a squad intercept is active.
   if (!isGraduated && !intercept) return null;
