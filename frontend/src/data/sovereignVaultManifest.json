@@ -246,5 +246,429 @@
     "scenario": "English · CNS 100/100 · Sleep 40 · Stress 100 · Load 100lb",
     "duration": "54s",
     "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-en-100-40-100-100-stability.mp3"
+  },
+  {
+    "id": "audio_1f30a8cc",
+    "category": "Strength",
+    "subjectLine": "ES_80_100_40_100_strength",
+    "scenario": "Spanish · CNS 80/100 · Sleep 100 · Stress 40 · Load 100lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-es-80-100-40-100-strength.mp3"
+  },
+  {
+    "id": "audio_fb3f80ed",
+    "category": "Strength",
+    "subjectLine": "PT_80_100_40_100_strength",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 100 · Stress 40 · Load 100lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-pt-80-100-40-100-strength.mp3"
+  },
+  {
+    "id": "audio_55e0a6cd",
+    "category": "Mobility",
+    "subjectLine": "EN_60_70_70_150_mobility",
+    "scenario": "English · CNS 60/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-en-60-70-70-150-mobility.mp3"
+  },
+  {
+    "id": "audio_40638683",
+    "category": "Mobility",
+    "subjectLine": "PT_60_70_70_150_mobility",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-pt-60-70-70-150-mobility.mp3"
+  },
+  {
+    "id": "audio_78507029",
+    "category": "Recovery",
+    "subjectLine": "EN_60_70_70_50_recovery",
+    "scenario": "English · CNS 60/100 · Sleep 70 · Stress 70 · Load 50lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-en-60-70-70-50-recovery.mp3"
+  },
+  {
+    "id": "audio_8ff59822",
+    "category": "Recovery",
+    "subjectLine": "ES_60_70_70_50_recovery",
+    "scenario": "Spanish · CNS 60/100 · Sleep 70 · Stress 70 · Load 50lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-es-60-70-70-50-recovery.mp3"
+  },
+  {
+    "id": "audio_0a6d425e",
+    "category": "Stability",
+    "subjectLine": "ES_100_100_40_150_stability",
+    "scenario": "Spanish · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-es-100-100-40-150-stability.mp3"
+  },
+  {
+    "id": "audio_98ce8bb0",
+    "category": "Stability",
+    "subjectLine": "PT_100_100_40_150_stability",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-pt-100-100-40-150-stability.mp3"
+  },
+  {
+    "id": "audio_d2a8fd3a",
+    "category": "Recovery",
+    "subjectLine": "EN_60_70_70_100_recovery",
+    "scenario": "English · CNS 60/100 · Sleep 70 · Stress 70 · Load 100lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-en-60-70-70-100-recovery.mp3"
+  },
+  {
+    "id": "audio_0c53c675",
+    "category": "Recovery",
+    "subjectLine": "PT_60_70_70_100_recovery",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 70 · Stress 70 · Load 100lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-pt-60-70-70-100-recovery.mp3"
+  },
+  {
+    "id": "audio_cf8091f3",
+    "category": "Strength",
+    "subjectLine": "ES_100_100_40_151_plus_strength",
+    "scenario": "Spanish · CNS 100/100 · Sleep 100 · Stress 40 · Load 151+lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-es-100-100-40-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_457b7f13",
+    "category": "Mobility",
+    "subjectLine": "EN_40_40_100_150_mobility",
+    "scenario": "English · CNS 40/100 · Sleep 40 · Stress 100 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-en-40-40-100-150-mobility.mp3"
+  },
+  {
+    "id": "audio_a9fa23b4",
+    "category": "Mobility",
+    "subjectLine": "ES_40_40_100_150_mobility",
+    "scenario": "Spanish · CNS 40/100 · Sleep 40 · Stress 100 · Load 150lb",
+    "duration": "57s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-es-40-40-100-150-mobility.mp3"
+  },
+  {
+    "id": "audio_2afb3775",
+    "category": "Recovery",
+    "subjectLine": "ES_60_70_100_50_recovery",
+    "scenario": "Spanish · CNS 60/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "duration": "53s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-es-60-70-100-50-recovery.mp3"
+  },
+  {
+    "id": "audio_bbe1e4d5",
+    "category": "Stability",
+    "subjectLine": "PT_100_100_40_100_stability",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 100 · Stress 40 · Load 100lb",
+    "duration": "55s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-pt-100-100-40-100-stability.mp3"
+  },
+  {
+    "id": "audio_306e7a33",
+    "category": "Strength",
+    "subjectLine": "ES_80_70_70_150_strength",
+    "scenario": "Spanish · CNS 80/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "53s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-es-80-70-70-150-strength.mp3"
+  },
+  {
+    "id": "audio_60c59a85",
+    "category": "Strength",
+    "subjectLine": "PT_80_70_70_150_strength",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-pt-80-70-70-150-strength.mp3"
+  },
+  {
+    "id": "audio_b06707e3",
+    "category": "Stability",
+    "subjectLine": "EN_60_40_70_100_stability",
+    "scenario": "English · CNS 60/100 · Sleep 40 · Stress 70 · Load 100lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-en-60-40-70-100-stability.mp3"
+  },
+  {
+    "id": "audio_6c080034",
+    "category": "Stability",
+    "subjectLine": "PT_60_40_70_100_stability",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 40 · Stress 70 · Load 100lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-pt-60-40-70-100-stability.mp3"
+  },
+  {
+    "id": "audio_341803f3",
+    "category": "Strength",
+    "subjectLine": "ES_100_70_40_151_plus_strength",
+    "scenario": "Spanish · CNS 100/100 · Sleep 70 · Stress 40 · Load 151+lb",
+    "duration": "57s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-es-100-70-40-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_d656bb6b",
+    "category": "Strength",
+    "subjectLine": "PT_100_70_40_151_plus_strength",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 70 · Stress 40 · Load 151+lb",
+    "duration": "57s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-pt-100-70-40-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_b970003f",
+    "category": "Mobility",
+    "subjectLine": "EN_40_40_100_100_mobility",
+    "scenario": "English · CNS 40/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "duration": "56s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-en-40-40-100-100-mobility.mp3"
+  },
+  {
+    "id": "audio_8e49911f",
+    "category": "Mobility",
+    "subjectLine": "PT_40_40_100_100_mobility",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "duration": "56s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-pt-40-40-100-100-mobility.mp3"
+  },
+  {
+    "id": "audio_6c29ea2a",
+    "category": "Stability",
+    "subjectLine": "ES_80_100_70_100_stability",
+    "scenario": "Spanish · CNS 80/100 · Sleep 100 · Stress 70 · Load 100lb",
+    "duration": "59s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-es-80-100-70-100-stability.mp3"
+  },
+  {
+    "id": "audio_0ad49f02",
+    "category": "Stability",
+    "subjectLine": "PT_80_100_70_100_stability",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 100 · Stress 70 · Load 100lb",
+    "duration": "60s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-pt-80-100-70-100-stability.mp3"
+  },
+  {
+    "id": "audio_2c3affac",
+    "category": "Strength",
+    "subjectLine": "EN_100_100_40_150_strength",
+    "scenario": "English · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-en-100-100-40-150-strength.mp3"
+  },
+  {
+    "id": "audio_461e5132",
+    "category": "Strength",
+    "subjectLine": "ES_100_100_40_150_strength",
+    "scenario": "Spanish · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-es-100-100-40-150-strength.mp3"
+  },
+  {
+    "id": "audio_f083c20c",
+    "category": "Recovery",
+    "subjectLine": "ES_40_100_100_100_recovery",
+    "scenario": "Spanish · CNS 40/100 · Sleep 100 · Stress 100 · Load 100lb",
+    "duration": "55s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-es-40-100-100-100-recovery.mp3"
+  },
+  {
+    "id": "audio_f65de16f",
+    "category": "Recovery",
+    "subjectLine": "PT_40_100_100_100_recovery",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 100 · Stress 100 · Load 100lb",
+    "duration": "56s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-pt-40-100-100-100-recovery.mp3"
+  },
+  {
+    "id": "audio_0917576f",
+    "category": "Strength",
+    "subjectLine": "EN_100_70_70_150_strength",
+    "scenario": "English · CNS 100/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-en-100-70-70-150-strength.mp3"
+  },
+  {
+    "id": "audio_f8550b84",
+    "category": "Strength",
+    "subjectLine": "PT_100_70_70_150_strength",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-pt-100-70-70-150-strength.mp3"
+  },
+  {
+    "id": "audio_4d395b87",
+    "category": "Stability",
+    "subjectLine": "EN_80_40_40_100_stability",
+    "scenario": "English · CNS 80/100 · Sleep 40 · Stress 40 · Load 100lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-en-80-40-40-100-stability.mp3"
+  },
+  {
+    "id": "audio_a7d38f82",
+    "category": "Stability",
+    "subjectLine": "ES_80_40_40_100_stability",
+    "scenario": "Spanish · CNS 80/100 · Sleep 40 · Stress 40 · Load 100lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-es-80-40-40-100-stability.mp3"
+  },
+  {
+    "id": "audio_0c4fc719",
+    "category": "Mobility",
+    "subjectLine": "ES_60_40_100_150_mobility",
+    "scenario": "Spanish · CNS 60/100 · Sleep 40 · Stress 100 · Load 150lb",
+    "duration": "53s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-es-60-40-100-150-mobility.mp3"
+  },
+  {
+    "id": "audio_30eaa8cf",
+    "category": "Mobility",
+    "subjectLine": "PT_60_40_100_150_mobility",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 40 · Stress 100 · Load 150lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-pt-60-40-100-150-mobility.mp3"
+  },
+  {
+    "id": "audio_e61e9a3f",
+    "category": "Recovery",
+    "subjectLine": "EN_100_100_40_50_recovery",
+    "scenario": "English · CNS 100/100 · Sleep 100 · Stress 40 · Load 50lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-en-100-100-40-50-recovery.mp3"
+  },
+  {
+    "id": "audio_4b80896f",
+    "category": "Recovery",
+    "subjectLine": "PT_100_100_40_50_recovery",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 100 · Stress 40 · Load 50lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-pt-100-100-40-50-recovery.mp3"
+  },
+  {
+    "id": "audio_133d7d4e",
+    "category": "Mobility",
+    "subjectLine": "EN_40_70_70_150_mobility",
+    "scenario": "English · CNS 40/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-en-40-70-70-150-mobility.mp3"
+  },
+  {
+    "id": "audio_3555fb3a",
+    "category": "Mobility",
+    "subjectLine": "ES_40_70_70_150_mobility",
+    "scenario": "Spanish · CNS 40/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-es-40-70-70-150-mobility.mp3"
+  },
+  {
+    "id": "audio_5e202980",
+    "category": "Recovery",
+    "subjectLine": "EN_60_100_100_50_recovery",
+    "scenario": "English · CNS 60/100 · Sleep 100 · Stress 100 · Load 50lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-en-60-100-100-50-recovery.mp3"
+  },
+  {
+    "id": "audio_00816137",
+    "category": "Recovery",
+    "subjectLine": "PT_60_100_100_50_recovery",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 100 · Stress 100 · Load 50lb",
+    "duration": "55s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-pt-60-100-100-50-recovery.mp3"
+  },
+  {
+    "id": "audio_ff683377",
+    "category": "Strength",
+    "subjectLine": "EN_80_70_70_151_plus_strength",
+    "scenario": "English · CNS 80/100 · Sleep 70 · Stress 70 · Load 151+lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-en-80-70-70-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_e887372b",
+    "category": "Strength",
+    "subjectLine": "ES_80_70_70_151_plus_strength",
+    "scenario": "Spanish · CNS 80/100 · Sleep 70 · Stress 70 · Load 151+lb",
+    "duration": "55s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-es-80-70-70-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_c7a306bc",
+    "category": "Mobility",
+    "subjectLine": "ES_40_40_40_50_mobility",
+    "scenario": "Spanish · CNS 40/100 · Sleep 40 · Stress 40 · Load 50lb",
+    "duration": "58s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-es-40-40-40-50-mobility.mp3"
+  },
+  {
+    "id": "audio_fbf3990b",
+    "category": "Mobility",
+    "subjectLine": "PT_40_40_40_50_mobility",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 40 · Stress 40 · Load 50lb",
+    "duration": "60s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-pt-40-40-40-50-mobility.mp3"
+  },
+  {
+    "id": "audio_9d57269e",
+    "category": "Strength",
+    "subjectLine": "ES_60_100_40_151_plus_strength",
+    "scenario": "Spanish · CNS 60/100 · Sleep 100 · Stress 40 · Load 151+lb",
+    "duration": "60s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-es-60-100-40-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_82e964b0",
+    "category": "Strength",
+    "subjectLine": "PT_60_100_40_151_plus_strength",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 100 · Stress 40 · Load 151+lb",
+    "duration": "60s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/strength-pt-60-100-40-151-plus-strength.mp3"
+  },
+  {
+    "id": "audio_e2606bef",
+    "category": "Recovery",
+    "subjectLine": "EN_80_40_100_50_recovery",
+    "scenario": "English · CNS 80/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-en-80-40-100-50-recovery.mp3"
+  },
+  {
+    "id": "audio_2302cefa",
+    "category": "Recovery",
+    "subjectLine": "PT_80_40_100_50_recovery",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "duration": "53s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-pt-80-40-100-50-recovery.mp3"
+  },
+  {
+    "id": "audio_4d017640",
+    "category": "Mobility",
+    "subjectLine": "EN_40_70_40_150_mobility",
+    "scenario": "English · CNS 40/100 · Sleep 70 · Stress 40 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-en-40-70-40-150-mobility.mp3"
+  },
+  {
+    "id": "audio_2adef690",
+    "category": "Mobility",
+    "subjectLine": "PT_40_70_40_150_mobility",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 70 · Stress 40 · Load 150lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-pt-40-70-40-150-mobility.mp3"
+  },
+  {
+    "id": "audio_1b50a1cd",
+    "category": "Stability",
+    "subjectLine": "ES_100_40_100_100_stability",
+    "scenario": "Spanish · CNS 100/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "duration": "52s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-es-100-40-100-100-stability.mp3"
+  },
+  {
+    "id": "audio_5a20ccce",
+    "category": "Stability",
+    "subjectLine": "PT_100_40_100_100_stability",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "duration": "54s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-pt-100-40-100-100-stability.mp3"
   }
 ]
