@@ -148,5 +148,35 @@
     "lab_scenario_id": "EN_0_40_0_40_0_40_0_50_mobility",
     "category": "Mobility",
     "script": "Hey... I need you to hear me right now. Everything you're tracking today is telling the same story... your CNS is depleted, sleep is not restoring you, and your body has quietly run out of reserves. This isn't a bad training day... this is a full system signal. And I need you to honor that. We are not training today. We are restoring. Ground-based work only... lay down, breathe, and let gravity do what effort cannot. Diaphragmatic breathing in supine... four counts in... six counts out. Gentle supine hip rotations, slow thoracic rolls, soft neck mobility side to side. No loading, no urgency, no clock to beat. Just you and the floor... letting your nervous system remember what calm feels like. You are not behind. You are not failing. You are an athlete protecting your future capacity. That is enough. Rest is the work today."
+  },
+  {
+    "scenario_id": "PT_100_100_40_151_plus_strength",
+    "lab_scenario_id": "PT_100_100_0_40_151_plus_strength",
+    "category": "Strength",
+    "script": "Luz verde absoluta... todos os sistemas no máximo. CNS perfeito, sono perfeito, estresse mínimo. Quando os dados chegam assim, há uma única resposta correta... você vai buscar a carga extrema e vai dominá-la. Hoje é Trap-Bar acima de 151... e isso exige que você esteja completamente presente em cada milímetro do movimento. Antes de cada série... pés na largura dos quadris, agarre a barra com intenção total, preencha o diafragma até o limite, trave o núcleo com pressão intra-abdominal máxima. Então empurre o chão para longe de você com tudo que tem. Concêntrico explosivo. Excêntrico controlado. Não perca a tensão entre as repetições. Descanse dois a três minutos entre as séries pesadas... recuperação total do sistema ATP-CP. Esse nível de prontidão não aparece toda semana. Você foi preparado para esse momento. Agora vá e execute com domínio absoluto."
+  },
+  {
+    "scenario_id": "EN_60_100_40_151_plus_strength",
+    "lab_scenario_id": "EN_41_60_71_100_0_40_151_plus_strength",
+    "category": "Strength",
+    "script": "Your CNS isn't maxed today... and I'm not going to pretend otherwise. But your sleep is excellent and stress is low... and that combination gives us enough structural support to push into extreme overload territory. This is the blue-collar session. No fireworks, no perfect feel... just a dialed athlete showing up and doing the work the body can absorb. Trap-Bar at one-fifty-one plus... not because everything is perfect, but because the data says the foundation is there. Brace deeply before every pull... fill the diaphragm, lock the core tight, drive through the floor with mechanical precision. No wasted range. No sloppy lockouts. Your Pallof Presses between sets will reinforce the anti-rotation stability your spine needs at this load level. Protect the structure, respect the weight, execute the reps. This is not a peak day... it's a proof-of-character day. Get after it."
+  },
+  {
+    "scenario_id": "ES_80_40_100_50_recovery",
+    "lab_scenario_id": "ES_61_80_0_40_71_100_0_50_recovery",
+    "category": "Recovery",
+    "script": "Oye... el sistema nervioso está aguantando, pero por poco. El sueño no está llegando... y el estrés mental está en niveles que no se pueden ignorar. El CNS te está sosteniendo hoy... pero está trabajando duro para mantenerse a flote con todo lo que estás cargando fuera del gym. Esta semana de deload no es una coincidencia... llegó exactamente cuando la necesitabas. Hoy trabajamos para bajar activamente el sistema simpático. Movimiento lento, controlado, sin carga que te exija demás. Respiración primero... cuatro tiempos dentro... seis tiempos afuera. El sistema nervioso parasimpático necesita una señal de que el peligro pasó... y esa señal eres tú moviéndote con calma. Movilidad de cadera, trabajo escapular suave, activación leve de glúteo. Sin cronómetro, sin presión. El estrés no se aplasta a golpes... se disuelve con recuperación inteligente. Confía en el proceso hoy."
+  },
+  {
+    "scenario_id": "ES_40_70_40_150_mobility",
+    "lab_scenario_id": "ES_0_40_41_70_0_40_101_150_mobility",
+    "category": "Mobility",
+    "script": "Escucha... tu estrés está bajo, lo cual es excelente... pero tu sistema nervioso central está completamente agotado hoy. El sueño fue apenas moderado... y la realidad es que tu cerebro y tu cuerpo están fritos. El programa pide levantar pesado hoy... pero no vamos a tocar esa barra. Cero ego. Hoy pivotamos a una sesión de movilidad profunda para proteger tus articulaciones... Vamos al suelo. Abre las caderas con intención... respira profundamente hacia el abdomen... cuatro segundos hacia adentro... seis segundos hacia afuera. Deja que el sistema se recupere y libere la tensión acumulada. El peso pesado exige un sistema nervioso alerta, y hoy no lo tenemos. No hay culpa en esto... es manejo inteligente de la fatiga. Mañana es otro día... hoy protegemos la máquina. Relájate y respira..."
+  },
+  {
+    "scenario_id": "EN_100_40_100_100_stability",
+    "lab_scenario_id": "EN_81_100_0_40_71_100_51_100_stability",
+    "category": "Stability",
+    "script": "Listen to me... this right here is the definition of wired and tired. Your sleep was absolute trash... and your stress is redlining... but somehow, your CNS is still firing at peak capacity. You are producing force, but you are structurally vulnerable. With a standard load today... we are focusing strictly on mechanical core stability. No sloppy reps. We are hammering Pallof Presses and Dead Bugs... lock the spine into a rigid pillar. Protect your lower back at all costs. Your nervous system is writing checks your joints cannot cash if you lose form today. Breathe deep... brace hard... and execute with absolute, dialed-in control. Let the core do the heavy lifting to stabilize the chassis. Keep the Trap-Bar work crisp and technical. Do not let the fatigue break your mechanics. Lock in... and execute."
   }
 ]
