@@ -115,6 +115,11 @@ const VIBE_BY_CATEGORY = {
   Strength: 'the_mechanic',
   Stability: 'the_mechanic',
   Mobility: 'the_sanctuary',
+  // Static-voice matrix surfaces: RPE education = technical Mechanic; affirmations
+  // = empathetic Reframe; weekly brief = Architect (matches the live brief's voice).
+  RPE_Education: 'the_mechanic',
+  Affirmation: 'the_reframe',
+  Weekly_Brief: 'the_architect',
 };
 const vibeFor = (category) => VIBE_BY_CATEGORY[category] || 'the_architect';
 

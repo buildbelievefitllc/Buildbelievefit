@@ -1,0 +1,554 @@
+[
+  {
+    "id": "audio_c5b0def0",
+    "category": "RPE_Education",
+    "subjectLine": "EN_RPE_EXPLAIN",
+    "scenario": "English · RPE education monologue",
+    "duration": "96s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/rpe-education-en-rpe-explain.mp3"
+  },
+  {
+    "id": "audio_483baad8",
+    "category": "RPE_Education",
+    "subjectLine": "ES_RPE_EXPLAIN",
+    "scenario": "Spanish · RPE education monologue",
+    "duration": "91s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/rpe-education-es-rpe-explain.mp3"
+  },
+  {
+    "id": "audio_381ad11a",
+    "category": "RPE_Education",
+    "subjectLine": "PT_RPE_EXPLAIN",
+    "scenario": "Portuguese · RPE education monologue",
+    "duration": "95s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/rpe-education-pt-rpe-explain.mp3"
+  },
+  {
+    "id": "audio_3e08dffd",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_01",
+    "scenario": "English · Daily affirmation 1",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-01.mp3"
+  },
+  {
+    "id": "audio_6e0986eb",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_01",
+    "scenario": "Spanish · Afirmación diaria 1",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-01.mp3"
+  },
+  {
+    "id": "audio_30ca0f88",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_01",
+    "scenario": "Portuguese · Afirmação diária 1",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-01.mp3"
+  },
+  {
+    "id": "audio_c4d7f7c2",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_02",
+    "scenario": "English · Daily affirmation 2",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-02.mp3"
+  },
+  {
+    "id": "audio_932aa553",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_02",
+    "scenario": "Spanish · Afirmación diaria 2",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-02.mp3"
+  },
+  {
+    "id": "audio_416c9706",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_02",
+    "scenario": "Portuguese · Afirmação diária 2",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-02.mp3"
+  },
+  {
+    "id": "audio_d3abfd57",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_03",
+    "scenario": "English · Daily affirmation 3",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-03.mp3"
+  },
+  {
+    "id": "audio_4cb34e0e",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_03",
+    "scenario": "Spanish · Afirmación diaria 3",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-03.mp3"
+  },
+  {
+    "id": "audio_61a57621",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_03",
+    "scenario": "Portuguese · Afirmação diária 3",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-03.mp3"
+  },
+  {
+    "id": "audio_242e82ae",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_04",
+    "scenario": "English · Daily affirmation 4",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-04.mp3"
+  },
+  {
+    "id": "audio_06ef32ab",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_04",
+    "scenario": "Spanish · Afirmación diaria 4",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-04.mp3"
+  },
+  {
+    "id": "audio_e841f504",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_04",
+    "scenario": "Portuguese · Afirmação diária 4",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-04.mp3"
+  },
+  {
+    "id": "audio_d73e731e",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_05",
+    "scenario": "English · Daily affirmation 5",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-05.mp3"
+  },
+  {
+    "id": "audio_806eec60",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_05",
+    "scenario": "Spanish · Afirmación diaria 5",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-05.mp3"
+  },
+  {
+    "id": "audio_a1485d3b",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_05",
+    "scenario": "Portuguese · Afirmação diária 5",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-05.mp3"
+  },
+  {
+    "id": "audio_0af25416",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_06",
+    "scenario": "English · Daily affirmation 6",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-06.mp3"
+  },
+  {
+    "id": "audio_2ee86c59",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_06",
+    "scenario": "Spanish · Afirmación diaria 6",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-06.mp3"
+  },
+  {
+    "id": "audio_7f2ad8b5",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_06",
+    "scenario": "Portuguese · Afirmação diária 6",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-06.mp3"
+  },
+  {
+    "id": "audio_568bcb6a",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_07",
+    "scenario": "English · Daily affirmation 7",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-07.mp3"
+  },
+  {
+    "id": "audio_717bcae7",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_07",
+    "scenario": "Spanish · Afirmación diaria 7",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-07.mp3"
+  },
+  {
+    "id": "audio_2e5025dc",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_07",
+    "scenario": "Portuguese · Afirmação diária 7",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-07.mp3"
+  },
+  {
+    "id": "audio_ce45938e",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_08",
+    "scenario": "English · Daily affirmation 8",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-08.mp3"
+  },
+  {
+    "id": "audio_cc60ba57",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_08",
+    "scenario": "Spanish · Afirmación diaria 8",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-08.mp3"
+  },
+  {
+    "id": "audio_147fdd84",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_08",
+    "scenario": "Portuguese · Afirmação diária 8",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-08.mp3"
+  },
+  {
+    "id": "audio_1dcd779d",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_09",
+    "scenario": "English · Daily affirmation 9",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-09.mp3"
+  },
+  {
+    "id": "audio_e1258f89",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_09",
+    "scenario": "Spanish · Afirmación diaria 9",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-09.mp3"
+  },
+  {
+    "id": "audio_17a84df6",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_09",
+    "scenario": "Portuguese · Afirmação diária 9",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-09.mp3"
+  },
+  {
+    "id": "audio_c92eca67",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_10",
+    "scenario": "English · Daily affirmation 10",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-10.mp3"
+  },
+  {
+    "id": "audio_e692e39d",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_10",
+    "scenario": "Spanish · Afirmación diaria 10",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-10.mp3"
+  },
+  {
+    "id": "audio_b699cb27",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_10",
+    "scenario": "Portuguese · Afirmação diária 10",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-10.mp3"
+  },
+  {
+    "id": "audio_5f3b3391",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_11",
+    "scenario": "English · Daily affirmation 11",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-11.mp3"
+  },
+  {
+    "id": "audio_b8ccf9d9",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_11",
+    "scenario": "Spanish · Afirmación diaria 11",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-11.mp3"
+  },
+  {
+    "id": "audio_d705650e",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_11",
+    "scenario": "Portuguese · Afirmação diária 11",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-11.mp3"
+  },
+  {
+    "id": "audio_dcf63fe8",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_12",
+    "scenario": "English · Daily affirmation 12",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-12.mp3"
+  },
+  {
+    "id": "audio_84b8f902",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_12",
+    "scenario": "Spanish · Afirmación diaria 12",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-12.mp3"
+  },
+  {
+    "id": "audio_66f91691",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_12",
+    "scenario": "Portuguese · Afirmação diária 12",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-12.mp3"
+  },
+  {
+    "id": "audio_193f9d47",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_13",
+    "scenario": "English · Daily affirmation 13",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-13.mp3"
+  },
+  {
+    "id": "audio_e4a988f5",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_13",
+    "scenario": "Spanish · Afirmación diaria 13",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-13.mp3"
+  },
+  {
+    "id": "audio_d861ac2e",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_13",
+    "scenario": "Portuguese · Afirmação diária 13",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-13.mp3"
+  },
+  {
+    "id": "audio_f47a79be",
+    "category": "Affirmation",
+    "subjectLine": "EN_AFF_14",
+    "scenario": "English · Daily affirmation 14",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-en-aff-14.mp3"
+  },
+  {
+    "id": "audio_55b220c5",
+    "category": "Affirmation",
+    "subjectLine": "ES_AFF_14",
+    "scenario": "Spanish · Afirmación diaria 14",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-es-aff-14.mp3"
+  },
+  {
+    "id": "audio_889747f2",
+    "category": "Affirmation",
+    "subjectLine": "PT_AFF_14",
+    "scenario": "Portuguese · Afirmação diária 14",
+    "duration": "8s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/affirmation-pt-aff-14.mp3"
+  },
+  {
+    "id": "audio_5e6a4c0d",
+    "category": "Weekly_Brief",
+    "subjectLine": "EN_WB_COMPLIANCE_NO_LOGS",
+    "scenario": "English · Weekly brief · COMPLIANCE_NO_LOGS",
+    "duration": "38s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-en-wb-compliance-no-logs.mp3"
+  },
+  {
+    "id": "audio_071d51cb",
+    "category": "Weekly_Brief",
+    "subjectLine": "ES_WB_COMPLIANCE_NO_LOGS",
+    "scenario": "Spanish · Resumen semanal · COMPLIANCE_NO_LOGS",
+    "duration": "38s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-es-wb-compliance-no-logs.mp3"
+  },
+  {
+    "id": "audio_6b32d094",
+    "category": "Weekly_Brief",
+    "subjectLine": "PT_WB_COMPLIANCE_NO_LOGS",
+    "scenario": "Portuguese · Resumo semanal · COMPLIANCE_NO_LOGS",
+    "duration": "42s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-pt-wb-compliance-no-logs.mp3"
+  },
+  {
+    "id": "audio_9d9e2501",
+    "category": "Weekly_Brief",
+    "subjectLine": "EN_WB_COMPLIANCE_NO_READINESS",
+    "scenario": "English · Weekly brief · COMPLIANCE_NO_READINESS",
+    "duration": "32s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-en-wb-compliance-no-readiness.mp3"
+  },
+  {
+    "id": "audio_af1affc0",
+    "category": "Weekly_Brief",
+    "subjectLine": "ES_WB_COMPLIANCE_NO_READINESS",
+    "scenario": "Spanish · Resumen semanal · COMPLIANCE_NO_READINESS",
+    "duration": "32s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-es-wb-compliance-no-readiness.mp3"
+  },
+  {
+    "id": "audio_5c293f40",
+    "category": "Weekly_Brief",
+    "subjectLine": "PT_WB_COMPLIANCE_NO_READINESS",
+    "scenario": "Portuguese · Resumo semanal · COMPLIANCE_NO_READINESS",
+    "duration": "37s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-pt-wb-compliance-no-readiness.mp3"
+  },
+  {
+    "id": "audio_4f78ec46",
+    "category": "Weekly_Brief",
+    "subjectLine": "EN_WB_COMPLIANCE_LOW_ENGAGEMENT",
+    "scenario": "English · Weekly brief · COMPLIANCE_LOW_ENGAGEMENT",
+    "duration": "30s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-en-wb-compliance-low-engagement.mp3"
+  },
+  {
+    "id": "audio_cd416b77",
+    "category": "Weekly_Brief",
+    "subjectLine": "ES_WB_COMPLIANCE_LOW_ENGAGEMENT",
+    "scenario": "Spanish · Resumen semanal · COMPLIANCE_LOW_ENGAGEMENT",
+    "duration": "31s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-es-wb-compliance-low-engagement.mp3"
+  },
+  {
+    "id": "audio_d98d0b86",
+    "category": "Weekly_Brief",
+    "subjectLine": "PT_WB_COMPLIANCE_LOW_ENGAGEMENT",
+    "scenario": "Portuguese · Resumo semanal · COMPLIANCE_LOW_ENGAGEMENT",
+    "duration": "33s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-pt-wb-compliance-low-engagement.mp3"
+  },
+  {
+    "id": "audio_598ff277",
+    "category": "Weekly_Brief",
+    "subjectLine": "EN_WB_NEUTRAL",
+    "scenario": "English · Weekly brief · NEUTRAL",
+    "duration": "11s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-en-wb-neutral.mp3"
+  },
+  {
+    "id": "audio_8bb0f4d1",
+    "category": "Weekly_Brief",
+    "subjectLine": "ES_WB_NEUTRAL",
+    "scenario": "Spanish · Resumen semanal · NEUTRAL",
+    "duration": "12s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-es-wb-neutral.mp3"
+  },
+  {
+    "id": "audio_9ea194f5",
+    "category": "Weekly_Brief",
+    "subjectLine": "PT_WB_NEUTRAL",
+    "scenario": "Portuguese · Resumo semanal · NEUTRAL",
+    "duration": "13s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-pt-wb-neutral.mp3"
+  },
+  {
+    "id": "audio_1f81d62f",
+    "category": "Weekly_Brief",
+    "subjectLine": "EN_WB_PLATEAU_WITH_HIGH_RPE",
+    "scenario": "English · Weekly brief · PLATEAU_WITH_HIGH_RPE",
+    "duration": "32s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-en-wb-plateau-with-high-rpe.mp3"
+  },
+  {
+    "id": "audio_066f7dcf",
+    "category": "Weekly_Brief",
+    "subjectLine": "ES_WB_PLATEAU_WITH_HIGH_RPE",
+    "scenario": "Spanish · Resumen semanal · PLATEAU_WITH_HIGH_RPE",
+    "duration": "32s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-es-wb-plateau-with-high-rpe.mp3"
+  },
+  {
+    "id": "audio_93f81853",
+    "category": "Weekly_Brief",
+    "subjectLine": "PT_WB_PLATEAU_WITH_HIGH_RPE",
+    "scenario": "Portuguese · Resumo semanal · PLATEAU_WITH_HIGH_RPE",
+    "duration": "36s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-pt-wb-plateau-with-high-rpe.mp3"
+  },
+  {
+    "id": "audio_a544ac24",
+    "category": "Weekly_Brief",
+    "subjectLine": "EN_WB_PROGRESSION_NEW_MAX",
+    "scenario": "English · Weekly brief · PROGRESSION_NEW_MAX",
+    "duration": "27s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-en-wb-progression-new-max.mp3"
+  },
+  {
+    "id": "audio_734e63fc",
+    "category": "Weekly_Brief",
+    "subjectLine": "ES_WB_PROGRESSION_NEW_MAX",
+    "scenario": "Spanish · Resumen semanal · PROGRESSION_NEW_MAX",
+    "duration": "29s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-es-wb-progression-new-max.mp3"
+  },
+  {
+    "id": "audio_aabd5d31",
+    "category": "Weekly_Brief",
+    "subjectLine": "PT_WB_PROGRESSION_NEW_MAX",
+    "scenario": "Portuguese · Resumo semanal · PROGRESSION_NEW_MAX",
+    "duration": "31s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-pt-wb-progression-new-max.mp3"
+  },
+  {
+    "id": "audio_9474815b",
+    "category": "Weekly_Brief",
+    "subjectLine": "EN_WB_PROGRESSION_REP_MAX",
+    "scenario": "English · Weekly brief · PROGRESSION_REP_MAX",
+    "duration": "21s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-en-wb-progression-rep-max.mp3"
+  },
+  {
+    "id": "audio_72cf171a",
+    "category": "Weekly_Brief",
+    "subjectLine": "ES_WB_PROGRESSION_REP_MAX",
+    "scenario": "Spanish · Resumen semanal · PROGRESSION_REP_MAX",
+    "duration": "20s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-es-wb-progression-rep-max.mp3"
+  },
+  {
+    "id": "audio_aa2b12a2",
+    "category": "Weekly_Brief",
+    "subjectLine": "PT_WB_PROGRESSION_REP_MAX",
+    "scenario": "Portuguese · Resumo semanal · PROGRESSION_REP_MAX",
+    "duration": "24s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-pt-wb-progression-rep-max.mp3"
+  },
+  {
+    "id": "audio_f39e52a2",
+    "category": "Weekly_Brief",
+    "subjectLine": "EN_WB_PROGRESSION_FORM_FLAG",
+    "scenario": "English · Weekly brief · PROGRESSION_FORM_FLAG",
+    "duration": "28s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-en-wb-progression-form-flag.mp3"
+  },
+  {
+    "id": "audio_c73192b7",
+    "category": "Weekly_Brief",
+    "subjectLine": "ES_WB_PROGRESSION_FORM_FLAG",
+    "scenario": "Spanish · Resumen semanal · PROGRESSION_FORM_FLAG",
+    "duration": "28s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-es-wb-progression-form-flag.mp3"
+  },
+  {
+    "id": "audio_02c33f7e",
+    "category": "Weekly_Brief",
+    "subjectLine": "PT_WB_PROGRESSION_FORM_FLAG",
+    "scenario": "Portuguese · Resumo semanal · PROGRESSION_FORM_FLAG",
+    "duration": "30s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/weekly-brief-pt-wb-progression-form-flag.mp3"
+  }
+]
