@@ -4,7 +4,8 @@
 // text-first with audio explanation. Mount at top of program page.
 
 import { useRef, useState } from 'react';
-import { FUNCTIONS_BASE } from '../../lib/supabaseClient.js';
+import { rpeExplainUrl } from '../../lib/staticVoice.js';
+import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
 
 const RPE_TEXT = {
   en: {
@@ -78,36 +79,23 @@ export default function RPEEducationCard({ preferred_locale = 'en' }) {
   const lang = ['es', 'pt'].includes(preferred_locale) ? preferred_locale : 'en';
   const tr = RPE_TEXT[lang];
 
+  // STATIC-BUCKET path (no live ElevenLabs): play the pre-rendered RPE clip from
+  // the manifest. On a manifest miss, degrade to the device-native voice reading a
+  // composed explanation (speechFallback) so the surface always works.
   const handleListenClick = async () => {
+    warmUpSpeech(); // unlock speechSynthesis inside the click gesture (iOS), cheap no-op otherwise
     setLoadingAudio(true);
     try {
-      const res = await fetch(`${FUNCTIONS_BASE}/bbf-agentic-rpe-voice-explanation`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language: lang }),
-      });
-
-      if (!res.ok) {
-        console.error('Audio fetch failed:', res.statusText);
-        setLoadingAudio(false);
-        return;
-      }
-
-      const result = await res.json();
-      if (result.ok) {
-        setAudio({
-          audio_url: result.audio_url,
-          duration_seconds: result.duration_seconds,
-          is_playing: false,
-        });
-        setTimeout(() => {
-          if (audioRef.current) audioRef.current.play();
-        }, 100);
-      } else {
-        console.error('Audio generation failed:', result.error);
+      const url = rpeExplainUrl(lang);
+      if (url) {
+        setAudio({ audio_url: url, is_playing: false });
+        setTimeout(() => { if (audioRef.current) audioRef.current.play(); }, 100);
+      } else if (browserSpeechSupported()) {
+        const cue = `${tr.subtitle}. ${tr.desc}. ${tr.whyTitle} ${tr.whyItems.join('. ')}.`;
+        await speakWithBrowser({ text: cue, lang });
       }
     } catch (err) {
-      console.error('Audio fetch error:', err);
+      console.error('RPE audio error:', err);
     }
     setLoadingAudio(false);
   };
@@ -172,9 +160,11 @@ export default function RPEEducationCard({ preferred_locale = 'en' }) {
                   controls
                   src={audio.audio_url}
                 />
-                <p className="rpe-audio-duration">
-                  {formatDuration(audio.duration_seconds)}
-                </p>
+                {Number.isFinite(audio.duration_seconds) ? (
+                  <p className="rpe-audio-duration">
+                    {formatDuration(audio.duration_seconds)}
+                  </p>
+                ) : null}
               </div>
             )}
           </div>

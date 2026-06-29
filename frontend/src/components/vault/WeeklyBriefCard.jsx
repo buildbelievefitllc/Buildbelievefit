@@ -15,6 +15,8 @@
 
 import { useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
+import { weeklyBriefUrl } from '../../lib/staticVoice.js';
+import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
 import './weeklyBrief.css';
 
 // Server scenario → trilingual verdict chip key. Falls back to the raw slug so a
@@ -46,6 +48,7 @@ function fmtGenerated(timestamp, lang) {
 export default function WeeklyBriefCard({ brief, loading, error }) {
   const { t, lang } = useLang();
   const audioRef = useRef(null);
+  const stockRef = useRef(null); // device-native fallback controller (manifest miss)
   const [playing, setPlaying] = useState(false);
   const [audioErr, setAudioErr] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
@@ -60,8 +63,9 @@ export default function WeeklyBriefCard({ brief, loading, error }) {
     );
   }
 
-  // No usable brief (API error or empty payload) → honest "not ready" state.
-  if (error || !brief || !brief.audio_url) {
+  // No usable brief (API error or empty payload) → honest "not ready" state. Audio
+  // now comes from the static bucket (by scenario substatus), not the live engine.
+  if (error || !brief) {
     return (
       <section className="wb-card wb-card--empty" data-testid="weekly-brief-card">
         <div className="wb-head">
@@ -78,13 +82,32 @@ export default function WeeklyBriefCard({ brief, loading, error }) {
   const verdictKey = SCENARIO_TKEY[brief.scenario];
   const verdict = verdictKey ? t(verdictKey) : (brief.scenario || '').replace(/_/g, ' ');
   const transcript = brief.rendered_script || '';
+  // Static-bucket clip for this week's scenario substatus (e.g. EN_WB_COMPLIANCE_NO_LOGS).
+  const audioUrl = weeklyBriefUrl(lang, brief.substatus);
 
   function togglePlay() {
-    const el = audioRef.current;
-    if (!el) return;
-    if (playing) { el.pause(); return; }
+    warmUpSpeech(); // unlock device voice inside the gesture for the fallback path
+    // Toggle an active device-native fallback.
+    if (stockRef.current) { try { stockRef.current.stop(); } catch { /* noop */ } stockRef.current = null; setPlaying(false); return; }
     setAudioErr(false);
-    el.play().catch(() => { setAudioErr(true); setShowTranscript(true); });
+    if (audioUrl) {
+      const el = audioRef.current;
+      if (!el) return;
+      if (playing) { el.pause(); return; }
+      el.play().catch(() => { setAudioErr(true); setShowTranscript(true); });
+      return;
+    }
+    // FALLBACK: no static clip → device-native voice reads the transcript.
+    if (browserSpeechSupported() && transcript) {
+      setPlaying(true);
+      speakWithBrowser({
+        text: transcript, lang,
+        onEnd: () => { setPlaying(false); stockRef.current = null; },
+        onError: () => { setAudioErr(true); setPlaying(false); stockRef.current = null; setShowTranscript(true); },
+      }).then((ctl) => { stockRef.current = ctl; }).catch(() => { setAudioErr(true); setPlaying(false); setShowTranscript(true); });
+    } else {
+      setAudioErr(true); setShowTranscript(true);
+    }
   }
 
   return (
@@ -140,7 +163,7 @@ export default function WeeklyBriefCard({ brief, loading, error }) {
 
       <audio
         ref={audioRef}
-        src={brief.audio_url}
+        src={audioUrl || undefined}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
