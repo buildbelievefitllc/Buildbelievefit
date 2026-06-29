@@ -233,6 +233,12 @@ serve(async (req: Request) => {
   // cache is keyed per-locale (column + storage path), so EN/ES/PT each persist
   // their own brief for the week instead of colliding on the first one generated.
   const locale = localeCode(url.searchParams.get('locale') || req.headers.get('x-bbf-locale'));
+  // OPERATION EVICTION — ElevenLabs synthesis is SEVERED by default. The frontend
+  // now plays pre-rendered static clips (staticVoiceManifest, {LANG}_WB_<substatus>),
+  // so the engine no longer pays to synthesize/upload per-athlete brief audio. It
+  // still buckets the metrics, calculates the scenario, and persists the row. An
+  // explicit skip_audio=false re-enables synthesis (emergency escape hatch only).
+  const skipAudio = String(url.searchParams.get('skip_audio') ?? req.headers.get('x-bbf-skip-audio') ?? 'true').toLowerCase() !== 'false';
 
   const gate = await requireVoiceCoach(supa, token);
   if (!gate.ok) return jsonResponse({ error: gate.error, detail: gate.detail }, gate.status);
@@ -272,7 +278,9 @@ serve(async (req: Request) => {
   let audioPath: string | null = null;
   let audioUrl: string | null = null;
   let voiceMeta: { voice_id: string; name: string } | null = null;
-  if (ELEVENLABS_API_KEY) {
+  if (skipAudio) {
+    console.log(`[weekly-brief] audio SEVERED (skip_audio) user=${userId} ${year}w${week} locale=${locale} — no ElevenLabs synthesis`);
+  } else if (ELEVENLABS_API_KEY) {
     voiceMeta = await resolveBriefVoice(ELEVENLABS_API_KEY);
     if (voiceMeta) {
       const buf = await synthesize(ELEVENLABS_API_KEY, voiceMeta.voice_id, scenario.rendered_script);
