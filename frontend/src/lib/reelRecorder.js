@@ -100,16 +100,35 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgres
   const W = 1080, H = 1920;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
+  // KEEP THE CANVAS IN THE LIVE DOM. Mobile browsers (and some desktops) throttle or
+  // skip compositing a DETACHED canvas, which starves canvas.captureStream to a single
+  // frame — the frozen-video bug. Park it on-screen but effectively invisible so the
+  // engine keeps honoring its paint cycle.
+  canvas.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1;';
+  document.body.appendChild(canvas);
   const ctx = canvas.getContext('2d');
+  const cleanupCanvas = () => { try { canvas.remove(); } catch { /* noop */ } };
 
   const mime = pickRecorderMime();
-  const stream = canvas.captureStream(30);
+  // MANUAL PUSH MODEL: captureStream(0) emits a frame ONLY when we call
+  // track.requestFrame(), so the stream can never be starved by paint-loop throttling
+  // on a hidden canvas. Fall back to timed auto-capture where requestFrame is absent
+  // (e.g. Safari), where the DOM-attached canvas above keeps auto-capture alive.
+  let stream = canvas.captureStream(0);
+  let vTrack = stream.getVideoTracks()[0];
+  let manualPush = !!(vTrack && typeof vTrack.requestFrame === 'function');
+  if (!manualPush) {
+    try { stream.getTracks().forEach((t) => t.stop()); } catch { /* noop */ }
+    stream = canvas.captureStream(30);
+    vTrack = stream.getVideoTracks()[0];
+  }
+
   const audio = await buildVoAudio(voUrl);
   if (audio && audio.stream) { try { audio.stream.getAudioTracks().forEach((t) => stream.addTrack(t)); } catch { /* noop */ } }
 
   let rec;
   try { rec = mime ? new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8000000 }) : new MediaRecorder(stream); }
-  catch (e) { throw new Error('recorder_init', { cause: e }); }
+  catch (e) { cleanupCanvas(); throw new Error('recorder_init', { cause: e }); }
   const chunks = [];
   rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
 
@@ -118,12 +137,17 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgres
   video.pause(); video.loop = false; video.currentTime = 0;
 
   return new Promise((resolve, reject) => {
-    let stopped = false; let killTimer = 0;
-    const finish = () => { if (stopped) return; stopped = true; try { rec.stop(); } catch { /* noop */ } };
+    let stopped = false; let killTimer = 0; let drawTimer = 0;
+    const stopLoops = () => {
+      if (drawTimer) { clearInterval(drawTimer); drawTimer = 0; }
+      if (killTimer) { clearTimeout(killTimer); killTimer = 0; }
+    };
+    const finish = () => { if (stopped) return; stopped = true; stopLoops(); try { rec.stop(); } catch { /* noop */ } };
     rec.onstop = () => {
-      clearTimeout(killTimer);
+      stopLoops();
       try { stream.getTracks().forEach((t) => t.stop()); } catch { /* noop */ }
       if (audio && audio.stop) audio.stop();
+      cleanupCanvas();
       try { video.loop = true; video.play().catch(() => {}); } catch { /* noop */ }
       const ext = (mime && mime.indexOf('mp4') >= 0) ? 'mp4' : 'webm';
       const blob = new Blob(chunks, { type: mime || `video/${ext}` });
@@ -131,20 +155,29 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgres
       resolve({ blob, ext, mime });
     };
     video.onended = finish;
-    video.play().then(() => {
-      rec.start();
-      if (audio && audio.start) audio.start();
-      killTimer = setTimeout(finish, (d + 1.5) * 1000);
-      const tick = () => {
-        if (stopped) return;
+
+    // THE IRONCLAD LOOP — a strict 33ms (~30fps) timer, NOT requestAnimationFrame.
+    // rAF is paused/throttled for hidden or offscreen surfaces on mobile; a setInterval
+    // keeps firing while the recording state is active. Every tick paints the live video
+    // frame + the baked overlay and explicitly pushes that frame into the stream.
+    const paint = () => {
+      if (stopped) return;
+      try {
         drawCover(ctx, video, W, H);
         ctx.drawImage(overlay, 0, 0, W, H);
-        const t = video.currentTime || 0;
-        if (onProgress) onProgress(Math.min(1, t / d));
-        if (video.ended || t >= d) { finish(); return; }
-        requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    }).catch(() => reject(new Error('play_failed')));
+        if (manualPush) { try { vTrack.requestFrame(); } catch { /* noop */ } }
+      } catch { /* keep the loop alive even if a single frame fails */ }
+      const t = video.currentTime || 0;
+      if (onProgress) onProgress(Math.min(1, t / d));
+      if (video.ended || t >= d) finish();
+    };
+
+    video.play().then(() => {
+      paint();                              // seed a real frame so the stream has correct dims
+      rec.start();
+      if (audio && audio.start) audio.start();
+      drawTimer = setInterval(paint, 33);   // ~30fps, bound to the active recording state
+      killTimer = setTimeout(finish, (d + 1.5) * 1000);
+    }).catch(() => { stopLoops(); cleanupCanvas(); reject(new Error('play_failed')); });
   });
 }
