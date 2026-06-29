@@ -44,10 +44,20 @@ async function getFFmpeg() {
   return ff;
 }
 
-// Recorded blob → standard MP4 Blob. sourceIsMp4 → the recorder already produced
-// H.264 (Chrome's fragmented MP4), so we COPY the video (fast) and only re-encode
-// the Opus audio to AAC + rewrite the container with a faststart moov. Otherwise
-// (WebM/VP8/VP9) we re-encode the video to H.264. onProgress(0..1).
+// Recorded blob → standard MP4 Blob (H.264 + AAC, faststart). onProgress(0..1).
+//
+// We DO NOT copy the video stream. Chrome's MediaRecorder writes variable-frame-rate
+// video with a broken media timescale (the probe showed timescale=0); `-c:v copy`
+// faithfully preserves that corrupt timing, so every frame lands on the same instant
+// → a frozen video track even though the audio (independent timing) plays. The only
+// reliable fix is to RE-ENCODE the video and regenerate timestamps from scratch:
+//   • setpts=N/30/TB  — discard the source PTS entirely; stamp each decoded frame, in
+//                       order, at exactly N/30s. Motion can't depend on corrupt input
+//                       timing anymore.
+//   • -r 30 + cfr     — emit a constant 30fps stream (matches canvas.captureStream(30)).
+//   • -fflags +genpts — synth PTS at demux so no frame is dropped before the filter.
+//   • libx264 ultrafast — keep the in-browser (single-thread) encode tolerable on mobile.
+// sourceIsMp4 only picks the input filename so ffmpeg demuxes correctly.
 export async function toStandardMp4(blob, { sourceIsMp4 = true, onProgress } = {}) {
   const { fetchFile } = await import(/* @vite-ignore */ UTIL_ESM);
   const ff = await getFFmpeg();
@@ -56,10 +66,16 @@ export async function toStandardMp4(blob, { sourceIsMp4 = true, onProgress } = {
   const outName = 'reel-out.mp4';
   try {
     await ff.writeFile(inName, await fetchFile(blob));
-    const args = sourceIsMp4
-      ? ['-i', inName, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', outName]
-      : ['-i', inName, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p',
-        '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', outName];
+    const args = [
+      '-fflags', '+genpts',
+      '-i', inName,
+      '-vf', 'setpts=N/30/TB',
+      '-r', '30',
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '23', '-pix_fmt', 'yuv420p',
+      '-c:a', 'aac', '-b:a', '160k',
+      '-movflags', '+faststart',
+      outName,
+    ];
     await ff.exec(args);
     const data = await ff.readFile(outName);
     const out = new Blob([data.buffer], { type: 'video/mp4' });
