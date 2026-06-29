@@ -118,6 +118,14 @@ const VIBE_BY_CATEGORY = {
 };
 const vibeFor = (category) => VIBE_BY_CATEGORY[category] || 'the_architect';
 
+// Dynamic language routing for the cache key: pull the true language from a
+// scenario_id-style subject_line ("EN_…"/"ES_…"/"PT_…"). Decks without a language
+// prefix (e.g. the legacy BBF Lab deck) fall back to English, preserving behavior.
+const langFor = (item) => {
+  const m = String(item.subject_line || '').match(/^(EN|ES|PT)_/i);
+  return m ? m[1].toLowerCase() : 'en';
+};
+
 // Default payload is the 31-scenario BBF Loop Breaker biometric matrix; override
 // with VAULT_SCRIPTS=<filename> (repo-root-relative) to compile a different deck.
 const SCRIPTS_FILE = path.resolve(__dirname, '..', process.env.VAULT_SCRIPTS || 'bbf-biometric-audio-matrix.json');
@@ -159,6 +167,7 @@ async function synthesizeViaEdge(item) {
       target_duration: toSeconds(item.target_duration),
       series: slugify(item.category),
       vibe: vibeFor(item.category),
+      lang: langFor(item),            // true language → correct edge cache key
       provided_script: item.script,   // voice our words verbatim — no LLM
     }),
   });
