@@ -84,6 +84,63 @@ async function buildVoAudio(voUrl) {
   }
 }
 
+// V3-PROVEN repair: Samsung Internet / Android Chrome write the video track's
+// mdhd.duration with the WRONG timescale (e.g. 13880 @ ts=30000 → 0.46s instead of
+// 13.88s), and sometimes tkhd.duration=0 — so players/IG read the track as ~0s and
+// render a FROZEN STILL with truncated audio, even though every frame is in the moof
+// fragments. We rewrite tkhd + mdhd durations from the correct mvhd total: an IN-PLACE
+// value patch (no box resized → can't corrupt the file). Returns a fixed Blob, or the
+// ORIGINAL on any parse miss / non-mp4 (zero-risk fallback).
+export async function fixMp4TrackDuration(blob) {
+  try {
+    if (!blob || !/mp4/i.test(blob.type || '')) return blob;
+    const ab = await blob.arrayBuffer();
+    const u8 = new Uint8Array(ab);
+    const dv = new DataView(ab);
+    const u32 = (o) => dv.getUint32(o);
+    const typ = (o) => String.fromCharCode(u8[o], u8[o + 1], u8[o + 2], u8[o + 3]);
+    let mvhdTs = 0, realSec = 0;
+    (function findMvhd(s, e) {
+      let p = s;
+      while (p + 8 <= e) {
+        let sz = u32(p); const t = typ(p + 4); let hdr = 8;
+        if (sz === 1) { sz = Number(dv.getBigUint64(p + 8)); hdr = 16; } else if (sz === 0) { sz = e - p; }
+        if (sz < 8 || p + sz > e) break;
+        if (t === 'mvhd') {
+          const ver = u8[p + hdr], cs = p + hdr + 4;
+          if (ver === 1) { mvhdTs = u32(cs + 16); realSec = Number(dv.getBigUint64(cs + 20)) / mvhdTs; }
+          else { mvhdTs = u32(cs + 8); realSec = u32(cs + 12) / mvhdTs; }
+        }
+        if (t === 'moov') findMvhd(p + hdr, p + sz);
+        p += sz;
+      }
+    })(0, u8.length);
+    if (!(realSec > 0) || !(mvhdTs > 0)) return blob;
+    let changed = false;
+    (function walk(s, e) {
+      let p = s;
+      while (p + 8 <= e) {
+        let sz = u32(p); const t = typ(p + 4); let hdr = 8;
+        if (sz === 1) { sz = Number(dv.getBigUint64(p + 8)); hdr = 16; } else if (sz === 0) { sz = e - p; }
+        if (sz < 8 || p + sz > e) break;
+        if (t === 'tkhd') {
+          const ver = u8[p + hdr], cs = p + hdr + 4, off = cs + (ver === 1 ? 24 : 16), nd = Math.round(realSec * mvhdTs);
+          const old = ver === 1 ? Number(dv.getBigUint64(off)) : u32(off);
+          if (old !== nd) { if (ver === 1) dv.setBigUint64(off, BigInt(nd)); else dv.setUint32(off, nd); changed = true; }
+        }
+        if (t === 'mdhd') {
+          const ver = u8[p + hdr], cs = p + hdr + 4, ts = u32(cs + (ver === 1 ? 16 : 8)), off = cs + (ver === 1 ? 20 : 12), nd = Math.round(realSec * ts);
+          const old = ver === 1 ? Number(dv.getBigUint64(off)) : u32(off);
+          if (ts > 0 && old !== nd) { if (ver === 1) dv.setBigUint64(off, BigInt(nd)); else dv.setUint32(off, nd); changed = true; }
+        }
+        if (t === 'moov' || t === 'trak' || t === 'mdia') walk(p + hdr, p + sz);
+        p += sz;
+      }
+    })(0, u8.length);
+    return changed ? new Blob([ab], { type: blob.type }) : blob;
+  } catch { return blob; }
+}
+
 // Record the reel: live footage (cover) + baked overlay + voiceover audio →
 // { blob, ext, mime }. durationCap: seconds (post=90 / export=1200). onProgress(0..1).
 export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgress }) {
@@ -152,7 +209,11 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgres
       const ext = (mime && mime.indexOf('mp4') >= 0) ? 'mp4' : 'webm';
       const blob = new Blob(chunks, { type: mime || `video/${ext}` });
       if (!blob.size) { reject(new Error('empty_recording')); return; }
-      resolve({ blob, ext, mime });
+      // V3-proven: patch the fragmented-MP4 track duration so the clip isn't a frozen
+      // ~0s still on Samsung/Android. No-op for webm or a clean file.
+      fixMp4TrackDuration(blob)
+        .then((fixed) => resolve({ blob: fixed, ext, mime }))
+        .catch(() => resolve({ blob, ext, mime }));
     };
     video.onended = finish;
 
@@ -172,7 +233,17 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgres
       if (video.ended || t >= d) finish();
     };
 
-    video.play().then(() => {
+    video.play().then(async () => {
+      // V3 parity: wait for the first DECODED frame before recording so capture never
+      // opens on the dark placeholder / a stale frame. requestVideoFrameCallback is the
+      // accurate signal; poll currentTime>0 where it's absent; 800ms hard fallback.
+      await new Promise((res) => {
+        let done = false; const go = () => { if (!done) { done = true; res(); } };
+        if (typeof video.requestVideoFrameCallback === 'function') video.requestVideoFrameCallback(() => go());
+        else { const iv = setInterval(() => { if (video.videoWidth > 0 && video.currentTime > 0) { clearInterval(iv); go(); } }, 16); }
+        setTimeout(go, 800);
+      });
+      if (stopped) return;
       paint();                              // seed a real frame so the stream has correct dims
       rec.start();
       if (audio && audio.start) audio.start();
