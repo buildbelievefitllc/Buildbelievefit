@@ -1,0 +1,485 @@
+[
+  {
+    "category": "RPE_Education",
+    "subject_line": "EN_RPE_EXPLAIN",
+    "scenario": "English · RPE education monologue",
+    "target_duration": "96s",
+    "script": "RPE stands for Rate of Perceived Exertion. It's how hard a set felt to YOU, not how much weight is on the bar.\nWhy does this matter? Because the same weight can feel different on different days. You might crush five reps on Monday, but on Wednesday that same weight might feel heavier because you didn't sleep, or you're sore, or you're stressed. The bar doesn't know that. I do.\nRPE tells me the real story. It tells me if you're recovering, if you're ready to go hard, or if you need a deload. It's the missing piece between the numbers on the bar and how your body actually feels.\nHere's the scale:\nOne to three: Easy. You could do ten, fifteen more reps. This is a warm-up feeling.\nFour to six: Moderate. You could do five to seven more reps in the tank. This is work, but it's not pushing it.\nSeven to eight: Hard. One or two reps left. You're grinding, but you know you could squeeze out one or two more.\nNine to ten: Max effort. Nothing left. Zero reps left in the tank. You're done.\nEvery single set, I want you to log the weight, the reps, and the RPE. That's three pieces of data. Three. That's how I coach you right. Because I'm not guessing. I'm reading your effort.\nSo from today on, when you log a set, ask yourself: How hard did that actually feel? Not how much weight. How hard. Got it?"
+  },
+  {
+    "category": "RPE_Education",
+    "subject_line": "ES_RPE_EXPLAIN",
+    "scenario": "Spanish · RPE education monologue",
+    "target_duration": "91s",
+    "script": "RPE significa Tasa de Esfuerzo Percibido. Es lo difícil que se sintió la serie para TI, no cuánto peso hay en la barra.\n¿Por qué importa? Porque el mismo peso puede sentirse diferente en diferentes días. Podrías lograr cinco repeticiones el lunes, pero el miércoles ese mismo peso podría sentirse más pesado porque no dormiste bien, estás adolorido o estresado. La barra no lo sabe. Yo sí.\nEl RPE me cuenta la verdadera historia. Me dice si te estás recuperando, si estás listo para dar todo, o si necesitas una descarga. Es la pieza que falta entre los números en la barra y cómo se siente realmente tu cuerpo.\nAquí está la escala:\nUno a tres: Fácil. Podrías hacer diez, quince repeticiones más. Esto es como un calentamiento.\nCuatro a seis: Moderado. Podrías hacer cinco a siete repeticiones más en el tanque. Esto es trabajo, pero no es empujar.\nSiete a ocho: Difícil. Una o dos repeticiones restantes. Estás esforzándote, pero sabes que podrías sacar una o dos más.\nNueve a diez: Máximo esfuerzo. Nada restante. Cero repeticiones en el tanque. Terminaste.\nEn cada serie, quiero que registres el peso, las repeticiones y el RPE. Son tres datos. Tres. Así es como te entreno bien. Porque no estoy adivinando. Estoy leyendo tu esfuerzo.\nAsí que de hoy en adelante, cuando registres una serie, pregúntate: ¿Qué tan difícil se sintió realmente? No cuánto peso. Qué tan difícil. ¿Entendido?"
+  },
+  {
+    "category": "RPE_Education",
+    "subject_line": "PT_RPE_EXPLAIN",
+    "scenario": "Portuguese · RPE education monologue",
+    "target_duration": "95s",
+    "script": "RPE significa Taxa de Esforço Percebido. É o quão difícil a série foi para VOCÊ, não quanto peso está na barra.\nPor que isso importa? Porque o mesmo peso pode se sentir diferente em diferentes dias. Você pode fazer cinco repetições com perfeição na segunda, mas na quarta o mesmo peso pode parecer mais pesado porque você não dormiu bem, está dolorido ou estressado. A barra não sabe disso. Eu sei.\nO RPE me conta a verdadeira história. Me diz se você está se recuperando, se está pronto para ir com tudo, ou se precisa de uma redução. É a peça que falta entre os números na barra e como seu corpo realmente se sente.\nAqui está a escala:\nUm a três: Fácil. Você conseguiria fazer dez, quinze repetições a mais. Isso é um aquecimento.\nQuatro a seis: Moderado. Você conseguiria fazer cinco a sete repetições a mais no tanque. Isso é trabalho, mas não é empurrando o limite.\nSete a oito: Difícil. Uma ou duas repetições restantes. Você está se esforçando, mas sabe que conseguiria mais uma ou duas.\nNove a dez: Esforço máximo. Nada restante. Zero repetições no tanque. Você terminou.\nA cada série, quero que você registre o peso, as repetições e o RPE. São três dados. Três. É assim que a treino corretamente. Porque não estou adivinhando. Estou lendo seu esforço.\nEntão, a partir de hoje, quando registrar uma série, pergunte-se: Quão difícil isso realmente se sentiu? Não quanto peso. Quão difícil. Entendido?"
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_01",
+    "scenario": "English · Daily affirmation 1",
+    "target_duration": "8s",
+    "script": "Your discipline today builds your legacy tomorrow."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_01",
+    "scenario": "Spanish · Afirmación diaria 1",
+    "target_duration": "8s",
+    "script": "Tu disciplina hoy construye tu legado mañana."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_01",
+    "scenario": "Portuguese · Afirmação diária 1",
+    "target_duration": "8s",
+    "script": "Sua disciplina hoje constrói seu legado amanhã."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_02",
+    "scenario": "English · Daily affirmation 2",
+    "target_duration": "8s",
+    "script": "You are stronger than your excuses."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_02",
+    "scenario": "Spanish · Afirmación diaria 2",
+    "target_duration": "8s",
+    "script": "Eres más fuerte que tus excusas."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_02",
+    "scenario": "Portuguese · Afirmação diária 2",
+    "target_duration": "8s",
+    "script": "Você é mais forte que suas desculpas."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_03",
+    "scenario": "English · Daily affirmation 3",
+    "target_duration": "8s",
+    "script": "Progress over perfection. Show up every day."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_03",
+    "scenario": "Spanish · Afirmación diaria 3",
+    "target_duration": "8s",
+    "script": "Progreso sobre perfección. Preséntate cada día."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_03",
+    "scenario": "Portuguese · Afirmação diária 3",
+    "target_duration": "8s",
+    "script": "Progresso sobre perfeição. Apareça todos os dias."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_04",
+    "scenario": "English · Daily affirmation 4",
+    "target_duration": "8s",
+    "script": "The body achieves what the mind believes."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_04",
+    "scenario": "Spanish · Afirmación diaria 4",
+    "target_duration": "8s",
+    "script": "El cuerpo logra lo que la mente cree."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_04",
+    "scenario": "Portuguese · Afirmação diária 4",
+    "target_duration": "8s",
+    "script": "O corpo alcança aquilo em que a mente acredita."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_05",
+    "scenario": "English · Daily affirmation 5",
+    "target_duration": "8s",
+    "script": "One more rep. One more day. One percent better."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_05",
+    "scenario": "Spanish · Afirmación diaria 5",
+    "target_duration": "8s",
+    "script": "Una repetición más. Un día más. Un uno por ciento mejor."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_05",
+    "scenario": "Portuguese · Afirmação diária 5",
+    "target_duration": "8s",
+    "script": "Mais uma repetição. Mais um dia. Um por cento melhor."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_06",
+    "scenario": "English · Daily affirmation 6",
+    "target_duration": "8s",
+    "script": "Comfort is the enemy of growth. Choose the hard road."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_06",
+    "scenario": "Spanish · Afirmación diaria 6",
+    "target_duration": "8s",
+    "script": "La comodidad es enemiga del crecimiento. Elige el camino difícil."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_06",
+    "scenario": "Portuguese · Afirmação diária 6",
+    "target_duration": "8s",
+    "script": "O conforto é inimigo do crescimento. Escolha o caminho difícil."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_07",
+    "scenario": "English · Daily affirmation 7",
+    "target_duration": "8s",
+    "script": "You do not rise to your goals. You fall to your habits."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_07",
+    "scenario": "Spanish · Afirmación diaria 7",
+    "target_duration": "8s",
+    "script": "No te elevas a tus metas. Caes al nivel de tus hábitos."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_07",
+    "scenario": "Portuguese · Afirmação diária 7",
+    "target_duration": "8s",
+    "script": "Você não sobe até suas metas. Você cai ao nível dos seus hábitos."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_08",
+    "scenario": "English · Daily affirmation 8",
+    "target_duration": "8s",
+    "script": "Discipline is the bridge between goals and results."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_08",
+    "scenario": "Spanish · Afirmación diaria 8",
+    "target_duration": "8s",
+    "script": "La disciplina es el puente entre las metas y los resultados."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_08",
+    "scenario": "Portuguese · Afirmação diária 8",
+    "target_duration": "8s",
+    "script": "A disciplina é a ponte entre as metas e os resultados."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_09",
+    "scenario": "English · Daily affirmation 9",
+    "target_duration": "8s",
+    "script": "Train so the person you are becoming is proud of you."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_09",
+    "scenario": "Spanish · Afirmación diaria 9",
+    "target_duration": "8s",
+    "script": "Entrena para que la persona en la que te conviertes esté orgullosa."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_09",
+    "scenario": "Portuguese · Afirmação diária 9",
+    "target_duration": "8s",
+    "script": "Treine para que a pessoa que você está se tornando se orgulhe de você."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_10",
+    "scenario": "English · Daily affirmation 10",
+    "target_duration": "8s",
+    "script": "Your only competition is who you were yesterday."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_10",
+    "scenario": "Spanish · Afirmación diaria 10",
+    "target_duration": "8s",
+    "script": "Tu única competencia es quien fuiste ayer."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_10",
+    "scenario": "Portuguese · Afirmação diária 10",
+    "target_duration": "8s",
+    "script": "Sua única competição é quem você foi ontem."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_11",
+    "scenario": "English · Daily affirmation 11",
+    "target_duration": "8s",
+    "script": "Pain is temporary. Quitting lasts forever."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_11",
+    "scenario": "Spanish · Afirmación diaria 11",
+    "target_duration": "8s",
+    "script": "El dolor es temporal. Rendirse dura para siempre."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_11",
+    "scenario": "Portuguese · Afirmação diária 11",
+    "target_duration": "8s",
+    "script": "A dor é temporária. Desistir dura para sempre."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_12",
+    "scenario": "English · Daily affirmation 12",
+    "target_duration": "8s",
+    "script": "Show up for yourself the way you show up for everyone else."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_12",
+    "scenario": "Spanish · Afirmación diaria 12",
+    "target_duration": "8s",
+    "script": "Preséntate por ti como te presentas por los demás."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_12",
+    "scenario": "Portuguese · Afirmação diária 12",
+    "target_duration": "8s",
+    "script": "Apareça por você como você aparece pelos outros."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_13",
+    "scenario": "English · Daily affirmation 13",
+    "target_duration": "8s",
+    "script": "Strength is built in the reps no one sees."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_13",
+    "scenario": "Spanish · Afirmación diaria 13",
+    "target_duration": "8s",
+    "script": "La fuerza se construye en las repeticiones que nadie ve."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_13",
+    "scenario": "Portuguese · Afirmação diária 13",
+    "target_duration": "8s",
+    "script": "A força é construída nas repetições que ninguém vê."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "EN_AFF_14",
+    "scenario": "English · Daily affirmation 14",
+    "target_duration": "8s",
+    "script": "Believe it, build it, become it."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "ES_AFF_14",
+    "scenario": "Spanish · Afirmación diaria 14",
+    "target_duration": "8s",
+    "script": "Créelo, constrúyelo, conviértete en ello."
+  },
+  {
+    "category": "Affirmation",
+    "subject_line": "PT_AFF_14",
+    "scenario": "Portuguese · Afirmação diária 14",
+    "target_duration": "8s",
+    "script": "Acredite, construa, torne-se."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "EN_WB_COMPLIANCE_NO_LOGS",
+    "scenario": "English · Weekly brief · COMPLIANCE_NO_LOGS",
+    "target_duration": "38s",
+    "script": "Look, I see you hit the program this week. That's the work. But I'm not seeing the data, weight, reps, RPE. And here's the thing: I can't coach what I can't see. Every number you log is a data point. It tells me if you're getting stronger, if you're recovering, where you're breaking down. Without it, I'm flying blind. So let's make a deal: this week, every set, three pieces. Weight, reps, how hard it felt. That's it. Thirty seconds per set. Can you do that? Because I'm ready to coach you, but I need you to meet me halfway."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "ES_WB_COMPLIANCE_NO_LOGS",
+    "scenario": "Spanish · Resumen semanal · COMPLIANCE_NO_LOGS",
+    "target_duration": "38s",
+    "script": "Mira, veo que le diste al programa esta semana. Ese es el trabajo. Pero no veo los datos: peso, repeticiones, RPE. Y la cosa es esta: no puedo entrenar lo que no puedo ver. Cada número que registras es un dato. Me dice si te estás poniendo más fuerte, si te recuperas, dónde te quiebras. Sin eso, voy a ciegas. Hagamos un trato: esta semana, cada serie, tres cosas. Peso, repeticiones, qué tan duro se sintió. Eso es todo. Treinta segundos por serie. ¿Puedes con eso? Porque estoy listo para entrenarte, pero necesito que pongas de tu parte."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "PT_WB_COMPLIANCE_NO_LOGS",
+    "scenario": "Portuguese · Resumo semanal · COMPLIANCE_NO_LOGS",
+    "target_duration": "42s",
+    "script": "Olha, eu vejo que você cumpriu o programa essa semana. Isso é o trabalho. Mas eu não tô vendo os dados: peso, repetições, RPE. E é o seguinte: eu não consigo treinar o que eu não consigo ver. Cada número que você registra é um dado. Me diz se você tá ficando mais forte, se tá recuperando, onde você tá quebrando. Sem isso, eu tô voando às cegas. Então vamos fazer um trato: essa semana, cada série, três coisas. Peso, repetições, o quão pesado foi. Só isso. Trinta segundos por série. Consegue? Porque eu tô pronto pra te treinar, mas eu preciso que você faça a sua parte."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "EN_WB_COMPLIANCE_NO_READINESS",
+    "scenario": "English · Weekly brief · COMPLIANCE_NO_READINESS",
+    "target_duration": "32s",
+    "script": "You're logging sets, I see that. Solid. But I'm not seeing sleep or soreness data. That's the second half of the picture. Sleep, soreness, how you feel, that's how I know if you're ready to go hard or if you need a deload. This week, after every session, thirty seconds: open the app, tell me how many hours you slept, how sore you are one to ten. That's it. I can't build the right plan without knowing how you're recovering. Let's go."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "ES_WB_COMPLIANCE_NO_READINESS",
+    "scenario": "Spanish · Resumen semanal · COMPLIANCE_NO_READINESS",
+    "target_duration": "32s",
+    "script": "Estás registrando las series, lo veo. Bien. Pero no veo datos de sueño ni de dolor muscular. Esa es la otra mitad del cuadro. El sueño, el dolor, cómo te sientes, así sé si estás listo para ir con todo o si necesitas una descarga. Esta semana, después de cada sesión, treinta segundos: abre la app, dime cuántas horas dormiste, qué tan adolorido estás del uno al diez. Eso es todo. No puedo armar el plan correcto sin saber cómo te recuperas. Vamos."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "PT_WB_COMPLIANCE_NO_READINESS",
+    "scenario": "Portuguese · Resumo semanal · COMPLIANCE_NO_READINESS",
+    "target_duration": "37s",
+    "script": "Você tá registrando as séries, eu vejo isso. Firmeza. Mas eu não tô vendo dados de sono nem de dor muscular. Essa é a outra metade do quadro. O sono, a dor, como você se sente, é assim que eu sei se você tá pronto pra ir com tudo ou se precisa de uma descarga. Essa semana, depois de cada sessão, trinta segundos: abre o app, me diz quantas horas você dormiu, o quão dolorido você tá de um a dez. Só isso. Eu não consigo montar o plano certo sem saber como você tá recuperando. Bora."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "EN_WB_COMPLIANCE_LOW_ENGAGEMENT",
+    "scenario": "English · Weekly brief · COMPLIANCE_LOW_ENGAGEMENT",
+    "target_duration": "30s",
+    "script": "I see the sets you logged. But the app sees you only a couple times this week. And here's what I'm telling you: the app is where I live. Between the sets, the readiness checks, the briefs I'm dropping, that's the coaching. This week, open the app every day. Even if you're not training, check your brief, see your program, get your head right. Make it a daily habit. Because I'm in there, and I'm waiting to coach you."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "ES_WB_COMPLIANCE_LOW_ENGAGEMENT",
+    "scenario": "Spanish · Resumen semanal · COMPLIANCE_LOW_ENGAGEMENT",
+    "target_duration": "31s",
+    "script": "Veo las series que registraste. Pero la app solo te ve un par de veces esta semana. Y esto es lo que te digo: la app es donde yo vivo. Entre las series, los chequeos de preparación, los resúmenes que te dejo, ahí está el coaching. Esta semana, abre la app todos los días. Aunque no entrenes, revisa tu resumen, mira tu programa, pon la cabeza en su lugar. Hazlo un hábito diario. Porque yo estoy ahí dentro, esperando para entrenarte."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "PT_WB_COMPLIANCE_LOW_ENGAGEMENT",
+    "scenario": "Portuguese · Resumo semanal · COMPLIANCE_LOW_ENGAGEMENT",
+    "target_duration": "33s",
+    "script": "Eu vejo as séries que você registrou. Mas o app só te vê umas duas vezes essa semana. E é isso que eu te digo: o app é onde eu moro. Entre as séries, os check-ins de prontidão, os resumos que eu deixo, é ali que tá o coaching. Essa semana, abre o app todo dia. Mesmo que você não treine, vê o seu resumo, olha o seu programa, ajeita a cabeça. Faz disso um hábito diário. Porque eu tô lá dentro, esperando pra te treinar."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "EN_WB_NEUTRAL",
+    "scenario": "English · Weekly brief · NEUTRAL",
+    "target_duration": "11s",
+    "script": "You logged solid this week, sessions in, readiness data coming in. This week, same plan. Stay consistent. You're building the habit, and the numbers follow. Keep showing up."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "ES_WB_NEUTRAL",
+    "scenario": "Spanish · Resumen semanal · NEUTRAL",
+    "target_duration": "12s",
+    "script": "Registraste bien esta semana, las sesiones hechas, los datos de preparación entrando. Esta semana, el mismo plan. Mantén la constancia. Estás construyendo el hábito, y los números siguen. Sigue presentándote."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "PT_WB_NEUTRAL",
+    "scenario": "Portuguese · Resumo semanal · NEUTRAL",
+    "target_duration": "13s",
+    "script": "Você registrou direitinho essa semana, as sessões feitas, os dados de prontidão chegando. Essa semana, o mesmo plano. Mantém a constância. Você tá construindo o hábito, e os números vêm atrás. Continua aparecendo."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "EN_WB_PLATEAU_WITH_HIGH_RPE",
+    "scenario": "English · Weekly brief · PLATEAU_WITH_HIGH_RPE",
+    "target_duration": "32s",
+    "script": "Hey, so your main lift has been stuck for three weeks now. And I'm seeing your RPE, you're grinding hard every rep. That tells me you're fatigued deep down, not just tired. Here's what we're doing: we're backing off about ten percent this week. Lower weight, higher reps, but the goal isn't ego, it's recovery. Let the nervous system reset. I need you fresh so we can come back stronger. This is the smart move, not the easy move. Trust me on this."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "ES_WB_PLATEAU_WITH_HIGH_RPE",
+    "scenario": "Spanish · Resumen semanal · PLATEAU_WITH_HIGH_RPE",
+    "target_duration": "32s",
+    "script": "Oye, tu levantamiento principal lleva tres semanas estancado. Y veo tu RPE, estás peleando cada repetición. Eso me dice que estás fatigado a fondo, no solo cansado. Esto es lo que vamos a hacer: bajamos cerca de un diez por ciento esta semana. Menos peso, más repeticiones, pero la meta no es el ego, es la recuperación. Deja que el sistema nervioso se reinicie. Te necesito fresco para volver más fuerte. Esta es la jugada inteligente, no la fácil. Confía en mí."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "PT_WB_PLATEAU_WITH_HIGH_RPE",
+    "scenario": "Portuguese · Resumo semanal · PLATEAU_WITH_HIGH_RPE",
+    "target_duration": "36s",
+    "script": "Ô, o seu levantamento principal tá travado faz três semanas. E eu tô vendo o seu RPE, você tá brigando em cada repetição. Isso me diz que você tá fatigado lá no fundo, não só cansado. É o seguinte que a gente vai fazer: a gente baixa cerca de dez por cento essa semana. Menos peso, mais repetições, mas a meta não é o ego, é a recuperação. Deixa o sistema nervoso resetar. Eu preciso de você descansado pra voltar mais forte. Essa é a jogada inteligente, não a fácil. Confia em mim."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "EN_WB_PROGRESSION_NEW_MAX",
+    "scenario": "English · Weekly brief · PROGRESSION_NEW_MAX",
+    "target_duration": "27s",
+    "script": "Your main lift went up. That's a win. Clean. But here's what I'm watching: your speed on the way up is slowing. You're muscling it instead of staying tight. This week, same weight as last week's max, but we're dialing in quality. Explosive lockout, controlled descent, pause at the bottom. We're not chasing a new number this week, we're refining the engine. Quality weight beats sloppy heavy every time."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "ES_WB_PROGRESSION_NEW_MAX",
+    "scenario": "Spanish · Resumen semanal · PROGRESSION_NEW_MAX",
+    "target_duration": "29s",
+    "script": "Tu levantamiento principal subió. Eso es una victoria. Limpia. Pero esto es lo que estoy observando: tu velocidad en la subida está bajando. Lo estás forzando a fuerza bruta en vez de mantenerte firme. Esta semana, el mismo peso que tu máximo de la semana pasada, pero afinamos la calidad. Bloqueo explosivo, descenso controlado, pausa abajo. Esta semana no perseguimos un número nuevo, refinamos el motor. El peso de calidad le gana al peso sucio siempre."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "PT_WB_PROGRESSION_NEW_MAX",
+    "scenario": "Portuguese · Resumo semanal · PROGRESSION_NEW_MAX",
+    "target_duration": "31s",
+    "script": "O seu levantamento principal subiu. Isso é uma vitória. Limpa. Mas é isso que eu tô observando: a sua velocidade na subida tá caindo. Você tá forçando na marra em vez de manter a firmeza. Essa semana, o mesmo peso do seu máximo da semana passada, mas a gente afina a qualidade. Travamento explosivo, descida controlada, pausa embaixo. Essa semana a gente não persegue número novo, a gente refina o motor. Peso de qualidade ganha de peso desleixado toda vez."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "EN_WB_PROGRESSION_REP_MAX",
+    "scenario": "English · Weekly brief · PROGRESSION_REP_MAX",
+    "target_duration": "21s",
+    "script": "Your main lift moved for more reps than last time. That's real progression. But I'm seeing the same thing: speed's dropping. This week, we dial the reps back by a couple, lock in explosive reps, controlled negatives. We're not grinding, we're moving with intent. You're strong. Now let's make sure the bar knows it."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "ES_WB_PROGRESSION_REP_MAX",
+    "scenario": "Spanish · Resumen semanal · PROGRESSION_REP_MAX",
+    "target_duration": "20s",
+    "script": "Tu levantamiento principal se movió por más repeticiones que la última vez. Eso es progresión real. Pero veo lo mismo: la velocidad está bajando. Esta semana, recortamos un par de repeticiones, fijamos repeticiones explosivas, negativas controladas. No estamos peleando, nos movemos con intención. Eres fuerte. Ahora que la barra se entere."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "PT_WB_PROGRESSION_REP_MAX",
+    "scenario": "Portuguese · Resumo semanal · PROGRESSION_REP_MAX",
+    "target_duration": "24s",
+    "script": "O seu levantamento principal andou por mais repetições do que da última vez. Isso é progressão de verdade. Mas eu vejo a mesma coisa: a velocidade tá caindo. Essa semana, a gente corta um par de repetições, trava repetições explosivas, negativas controladas. A gente não tá brigando, a gente se move com intenção. Você é forte. Agora deixa a barra saber disso."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "EN_WB_PROGRESSION_FORM_FLAG",
+    "scenario": "English · Weekly brief · PROGRESSION_FORM_FLAG",
+    "target_duration": "28s",
+    "script": "You got a new max on your main lift. That's a win. But your RPE is climbing and I'm seeing some form breakdown on the heavy sets. So here's the deal: we keep this weight for one more week, lock in the movement, then we reassess. You're strong enough to move the weight. Now I need you to move it right. Form first, then load. This week: same top weight, perfect reps only."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "ES_WB_PROGRESSION_FORM_FLAG",
+    "scenario": "Spanish · Resumen semanal · PROGRESSION_FORM_FLAG",
+    "target_duration": "28s",
+    "script": "Conseguiste un nuevo máximo en tu levantamiento principal. Eso es una victoria. Pero tu RPE está subiendo y veo que la técnica se rompe en las series pesadas. Así que el trato es este: mantenemos este peso una semana más, fijamos el movimiento, y luego reevaluamos. Tienes la fuerza para mover el peso. Ahora necesito que lo muevas bien. Primero la técnica, después la carga. Esta semana: el mismo peso tope, solo repeticiones perfectas."
+  },
+  {
+    "category": "Weekly_Brief",
+    "subject_line": "PT_WB_PROGRESSION_FORM_FLAG",
+    "scenario": "Portuguese · Resumo semanal · PROGRESSION_FORM_FLAG",
+    "target_duration": "30s",
+    "script": "Você bateu um novo máximo no seu levantamento principal. Isso é uma vitória. Mas o seu RPE tá subindo e eu vejo a técnica quebrando nas séries pesadas. Então o trato é o seguinte: a gente mantém esse peso por mais uma semana, trava o movimento, e depois reavalia. Você tem força pra mover o peso. Agora eu preciso que você mova certo. Primeiro a técnica, depois a carga. Essa semana: o mesmo peso máximo, só repetições perfeitas."
+  }
+]

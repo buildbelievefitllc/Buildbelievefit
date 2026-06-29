@@ -129,9 +129,13 @@ const langFor = (item) => {
 // Default payload is the 31-scenario BBF Loop Breaker biometric matrix; override
 // with VAULT_SCRIPTS=<filename> (repo-root-relative) to compile a different deck.
 const SCRIPTS_FILE = path.resolve(__dirname, '..', process.env.VAULT_SCRIPTS || 'bbf-biometric-audio-matrix.json');
+// Per-deck manifest: override with MANIFEST_OUT=<basename> so a non-biometric deck
+// (RPE / affirmations / weekly brief) writes its OWN manifest instead of clobbering
+// the shared sovereignVaultManifest.json. Default preserved.
+const MANIFEST_BASENAME = process.env.MANIFEST_OUT || 'sovereignVaultManifest.json';
 const MANIFEST_FILES = [
-  path.resolve(__dirname, '..', 'sovereignVaultManifest.json'),
-  path.resolve(__dirname, '..', 'frontend', 'src', 'data', 'sovereignVaultManifest.json'),
+  path.resolve(__dirname, '..', MANIFEST_BASENAME),
+  path.resolve(__dirname, '..', 'frontend', 'src', 'data', MANIFEST_BASENAME),
 ];
 
 // ── helpers ───────────────────────────────────────────────────────────────
