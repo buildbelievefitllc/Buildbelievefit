@@ -26,7 +26,9 @@ import SovereignReadinessDashboard from './SovereignReadinessDashboard.jsx';
 import { SovereignSequenceAnchor } from './SovereignSequence.jsx';
 import CalibrationProgress from './CalibrationProgress.jsx';
 import SovereignBriefingCard from './SovereignBriefingCard.jsx';
+import LoopBreakerBadge from './LoopBreakerBadge.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
+import { useProgramDay } from '../../lib/useProgramDay.js';
 import './vault.css';
 
 // Intel-rail indices (labels + units resolve through the dictionary in render).
@@ -52,16 +54,22 @@ export default function VaultHub({ profile, isLoading, error, onSequence }) {
   // active language is passed through so the brief is rendered AND voiced in-locale,
   // and re-fetched when the athlete switches languages.
   const { data: brief, loading: briefLoading, error: briefError } = useWeeklyBrief(profile?.uid, lang);
+  // Phase 3 — Loop Breaker / squad-intercept state (per-athlete, token-gated RPC;
+  // foldable by the Omniscience Protocol for local DOM testing).
+  const program = useProgramDay();
   return (
     <div className="pg">
+      {/* BBF LOOP BREAKER — premium macrocycle-threshold designation. Renders only
+          once the athlete crosses 84 days on protocol (program.isLoopBreaker). */}
+      <LoopBreakerBadge active={program.isLoopBreaker} daysOnProgram={program.daysOnProgram} lang={lang} />
       {/* 30-Day Biometric Calibration HUD — the Day-X/30 progress rail (or the
           permanent Sovereign Athlete badge at graduation). Renders nothing for an
           undatable / no-anchor session. Top of fold on the landing Hub. */}
       <CalibrationProgress />
       {/* SOVEREIGN AUDIO — the Day-30 graduation briefing in Akeem's cloned voice.
-          Renders only for a graduated athlete (useCalibration().isGraduated); the
-          edge fn enforces voice_coach + Day-30 + metering server-side. */}
-      <SovereignBriefingCard />
+          On an active squad intercept (program.isOverride) it plays the override's
+          manifest asset instead of the bespoke briefing. */}
+      <SovereignBriefingCard overrideActive={program.isOverride} overrideRef={program.briefScriptReference} />
       {/* THE SOVEREIGN SEQUENCE — adult-only guided hand-off anchor, above the
           fold. Renders ONLY when the Vault shell passes onSequence (so it never
           appears on the Youth Sports Hub or the admin Command Center). */}

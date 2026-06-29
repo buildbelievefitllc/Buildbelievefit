@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useCalibration } from '../../lib/useCalibration.js';
 import { fetchSovereignBriefing, fetchCachedSovereignBriefing } from '../../lib/forecastApi.js';
+import { manifestUrlById } from '../../lib/sovereignManifest.js';
 
 // Session blob cache (locale|UTC-day → object URL) so re-mounting the Hub doesn't
 // re-download today's ~1MB briefing. Session-lived; one URL per locale/day.
@@ -74,7 +75,7 @@ function mapErr(slug, tr) {
   return tr.err;
 }
 
-export default function SovereignBriefingCard() {
+export default function SovereignBriefingCard({ overrideActive = false, overrideRef = null } = {}) {
   const { lang } = useLang();
   const { isGraduated } = useCalibration();
   const tr = SB_STR[lang] || SB_STR.en;
@@ -84,14 +85,26 @@ export default function SovereignBriefingCard() {
   const [err, setErr] = useState(null);
   const audioRef = useRef(null);
 
-  // On mount (graduated): pull TODAY'S pre-cached briefing (fast RPC). Present →
+  // SQUAD INTERCEPT (Phase 3): when an override is active, the player BYPASSES the
+  // bespoke daily briefing and serves the override's permanent PUBLIC URL resolved
+  // from the manifest id (calendar_overrides.brief_script_reference). Additive — the
+  // personalized base64 briefing path below is left fully intact for the normal case.
+  const interceptUrl = overrideActive ? manifestUrlById(overrideRef) : null;
+  const intercept = !!interceptUrl;
+
+  // On mount: an active intercept wins (play the public URL immediately). Otherwise,
+  // for a graduated athlete, pull TODAY'S pre-cached briefing (fast RPC). Present →
   // ready for instant play. Absent (no check-in yet) → 'idle' for on-tap generation.
-  // State is set ONLY inside the promise callbacks (never synchronously in the effect
-  // body) — clear of react-hooks/set-state-in-effect, StrictMode-safe.
+  // State is set ONLY inside callbacks/microtasks (never synchronously) — clear of
+  // react-hooks/set-state-in-effect, StrictMode-safe.
   useEffect(() => {
+    let cancelled = false;
+    if (intercept) {
+      queueMicrotask(() => { if (!cancelled) { setUrl(interceptUrl); setCreatedAt(null); setPhase('ready'); setErr(null); } });
+      return () => { cancelled = true; };
+    }
     if (!isGraduated) return undefined;
     const key = `${lang}|${utcDay()}`;
-    let cancelled = false;
     const hit = _sovCache.get(key);
     if (hit) {
       // Defer to a microtask so the first paint isn't a synchronous setState.
@@ -106,9 +119,10 @@ export default function SovereignBriefingCard() {
       })
       .catch(() => { if (!cancelled) { setUrl(null); setCreatedAt(null); setPhase('idle'); } });
     return () => { cancelled = true; };
-  }, [isGraduated, lang]);
+  }, [intercept, interceptUrl, isGraduated, lang]);
 
-  if (!isGraduated) return null;
+  // Render for a graduated athlete OR whenever a squad intercept is active.
+  if (!isGraduated && !intercept) return null;
 
   function play() {
     queueMicrotask(() => { try { audioRef.current?.play?.(); } catch { /* user can press the native control */ } });
@@ -147,9 +161,14 @@ export default function SovereignBriefingCard() {
                              tr.generate; // idle | error
 
   return (
-    <section className="vh-sov-brief" data-testid="sovereign-briefing" data-phase={phase} style={WRAP}>
+    <section className="vh-sov-brief" data-testid="sovereign-briefing" data-phase={phase} data-intercept={intercept ? '1' : '0'} style={WRAP}>
       <div style={GLOW} aria-hidden="true" />
       <div style={{ position: 'relative' }}>
+        {intercept ? (
+          <div style={INTERCEPT} data-testid="sovereign-briefing-intercept">
+            ⚑ {({ en: 'Squad Intercept', es: 'Intercepción del Escuadrón', pt: 'Interceptação do Esquadrão' }[lang] || 'Squad Intercept')}
+          </div>
+        ) : null}
         <span style={KICKER}>★ {tr.kicker}</span>
         <h3 style={TITLE}>{tr.title}</h3>
         <p style={SUB}>{tr.sub}</p>
@@ -181,6 +200,9 @@ const TITLE = { fontFamily: 'var(--hb)', fontSize: '1.5rem', margin: '.25rem 0 .
 const SUB = { margin: 0, color: 'rgba(244,238,251,.82)', fontSize: '.9rem', lineHeight: 1.45 };
 const BTN = { fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700, color: '#0e0a16', background: 'linear-gradient(90deg,#f5c800,#ffd83a)', border: 'none', borderRadius: 999, padding: '.6rem 1.25rem', cursor: 'pointer' };
 const ERR = { marginTop: '.6rem', color: '#ffd24d', fontSize: '.8rem' };
+// Squad-intercept flag: brushed-titanium pill on the gold/purple card, signaling the
+// player is serving a CEO override asset rather than the bespoke daily briefing.
+const INTERCEPT = { display: 'inline-flex', alignItems: 'center', gap: '.4rem', marginBottom: '.5rem', padding: '.22rem .65rem', borderRadius: 999, background: 'linear-gradient(90deg,#e7e9ee,#c8ccd4)', color: '#090909', fontFamily: 'var(--hb)', fontSize: '.62rem', letterSpacing: '1px', fontWeight: 700, textTransform: 'uppercase' };
 // Brand-token timestamp pill: BBF Purple fill, BBF Gold border + text. Subtle,
 // premium, sits between the sub and the play action without competing with it.
 const STAMP = { display: 'inline-flex', alignItems: 'center', gap: '.4rem', marginTop: '.55rem', padding: '.22rem .65rem', borderRadius: 999, background: 'rgba(106,13,173,.32)', border: '1px solid rgba(245,200,0,.38)', color: '#f5cf60', fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '.7px', fontWeight: 700, textTransform: 'uppercase' };
