@@ -217,7 +217,7 @@ export default function StudioLayout({
     setRecording(true);
     setRecordPct(0);
     try {
-      const { recordReel, canRecordMp4 } = await import('../../lib/reelRecorder.js');
+      const { recordReel } = await import('../../lib/reelRecorder.js');
       const result = await recordReel({
         stageNode: stageRef.current,
         voUrl: reelData.voUrl,
@@ -226,31 +226,57 @@ export default function StudioLayout({
       });
       if (!result || !result.blob) throw new Error('record_failed');
 
-      // EXPORT ONLY (no targets) → download the recording.
-      if (!target) {
-        const url = URL.createObjectURL(result.blob);
+      // Normalize to a standard, universally-playable MP4 (H.264 + AAC, faststart)
+      // entirely in-browser. Chrome's MediaRecorder writes a FRAGMENTED MP4 with
+      // OPUS audio that shows as a still frame in basic players and is rejected by
+      // IG/FB — this is the fix. Falls back to the raw recording only if the
+      // in-browser encoder can't load.
+      let outBlob = result.blob;
+      let outExt = result.ext;
+      let finalized = false;
+      try {
+        const { toStandardMp4, transcodeSupported } = await import('../../lib/videoTranscode.js');
+        if (transcodeSupported()) {
+          setRecordPct(0);
+          setPostNote({ ok: true, text: 'Finalizing MP4 in your browser (first run loads the encoder)…' });
+          const mp4 = await toStandardMp4(result.blob, {
+            sourceIsMp4: result.ext === 'mp4',
+            onProgress: (p) => setRecordPct(Math.round(p * 100)),
+          });
+          if (mp4 && mp4.size) { outBlob = mp4; outExt = 'mp4'; finalized = true; }
+        }
+      } catch (err) {
+        console.error('[StudioV4] MP4 finalize failed:', err);
+      }
+
+      const downloadBlob = (blob, name) => {
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = `bbf-reel-1080x1920.${result.ext}`;
+        a.href = url; a.download = name;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 120000);
-        setPostNote({ ok: result.ext === 'mp4', text: result.ext === 'mp4' ? '✓ Exported reel (MP4).' : 'Exported .webm — your browser can’t record MP4; convert before posting to IG/FB.' });
+      };
+
+      // EXPORT ONLY (no targets) → download the finalized reel.
+      if (!target) {
+        downloadBlob(outBlob, `bbf-reel-1080x1920.${outExt}`);
+        setPostNote(finalized
+          ? { ok: true, text: '✓ Exported reel (MP4) — plays everywhere, voiceover baked in.' }
+          : { ok: false, text: `Couldn’t finalize the MP4 in-browser — downloaded the raw .${outExt}. Export again; the encoder may still have been loading.` });
         return;
       }
 
-      // POST → IG/FB/TikTok reject WebM; only post real MP4.
-      if (result.ext !== 'mp4' || !canRecordMp4()) {
-        const url = URL.createObjectURL(result.blob);
-        const a = document.createElement('a'); a.href = url; a.download = `bbf-reel.${result.ext}`;
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 120000);
-        setPostNote({ ok: false, text: 'This browser records WebM (IG/FB/TikTok reject it). Downloaded the clip — post from Safari/a recent iPhone, which records MP4.' });
+      // POST → IG/FB/TikTok need a real MP4. Only post the finalized one.
+      if (!finalized) {
+        downloadBlob(outBlob, `bbf-reel.${outExt}`);
+        setPostNote({ ok: false, text: 'Couldn’t finalize a postable MP4 in-browser — downloaded the clip instead. Try again so the in-browser encoder can load.' });
         return;
       }
 
       setPosting(true);
       setPostNote({ ok: true, text: `Posting reel to ${platformLabel()}…` });
       const { queuePost, pollPostStatus } = await import('../../lib/studioQueueApi.js');
-      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => result.blob, now: true });
+      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => outBlob, now: true });
       if (res.status === 'posting') {
         setPostNote({ ok: true, text: 'Posting reel… Meta is transcoding (~60–90s).' });
         const verdict = await pollPostStatus({ kind: 'video', id: res.id });
