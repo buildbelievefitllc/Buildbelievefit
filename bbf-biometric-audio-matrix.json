@@ -215,5 +215,376 @@
     "scenario": "English · CNS 100/100 · Sleep 40 · Stress 100 · Load 100lb",
     "target_duration": "54s",
     "script": "Listen to me... this right here is the definition of wired and tired. Your sleep was absolute trash... and your stress is redlining... but somehow, your CNS is still firing at peak capacity. You are producing force, but you are structurally vulnerable. With a standard load today... we are focusing strictly on mechanical core stability. No sloppy reps. We are hammering Pallof Presses and Dead Bugs... lock the spine into a rigid pillar. Protect your lower back at all costs. Your nervous system is writing checks your joints cannot cash if you lose form today. Breathe deep... brace hard... and execute with absolute, dialed-in control. Let the core do the heavy lifting to stabilize the chassis. Keep the Trap-Bar work crisp and technical. Do not let the fatigue break your mechanics. Lock in... and execute."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "ES_80_100_40_100_strength",
+    "scenario": "Spanish · CNS 80/100 · Sleep 100 · Stress 40 · Load 100lb",
+    "target_duration": "52s",
+    "script": "Escucha... hoy tu sistema nervioso está a ochenta... y con un sueño perfecto y el estrés bajo... tenemos una luz verde enorme... La cadena cinética está completamente en línea... lista para expresar fuerza de alto torque... Hoy cargamos la barra hexagonal en un rango medio... cien libras... apuntando al desarrollo de fuerza pura... Métete en el hexágono... tira de los codos hacia abajo para bloquear los dorsales... agarra la barra con firmeza... y clava los pies en la plataforma... Inhala... empaca ese aire contra un pilar abdominal rígido... y empuja el suelo... Mantén la trayectoria limpia... sin bamboleo... sin fugas de energía... Vamos a aprovechar esta bio-preparación óptima para empujar el umbral... Tu sistema nervioso está completamente en línea... así que honremos el levantamiento con precisión mecánica absoluta... Ponte alto... bloquea las caderas... y domina la plataforma hoy... Concéntrate... y ejecuta..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "PT_80_100_40_100_strength",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 100 · Stress 40 · Load 100lb",
+    "target_duration": "52s",
+    "script": "Escuta... hoje o seu sistema nervoso está em oitenta... e com um sono perfeito e o estresse baixo... temos um sinal verde enorme... A cadeia cinética está completamente online... pronta para expressar força de alto torque... Hoje vamos carregar a barra hexagonal em uma faixa média... cem libras... mirando o desenvolvimento de força pura... Entre no hexágono... puxe os cotovelos para baixo para travar os dorsais... agarre a barra com firmeza... e crave os pés na plataforma... Inspire... empacote esse ar contra um pilar abdominal rígido... e empurre o chão... Mantenha a trajetória limpa... sem oscilação... sem vazamento de energia... Vamos aproveitar essa prontidão biológica ótima para empurrar o limite... O seu sistema nervoso está completamente online... então vamos honrar o levantamento com precisão mecânica absoluta... Fique alto... trave os quadris... e domine a plataforma hoje... Foco... e execute..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "EN_60_70_70_150_mobility",
+    "scenario": "English · CNS 60/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Listen... today your nervous system is sitting at sixty... and with sleep and stress both moderate... life is asking a lot of you right now... I get it completely... You don't have to be a robot... today we take care of the temple... We've got a heavy load on the program... one hundred and fifty pounds... which means your range of motion has to be flawless to protect the joints... We're going to open with deep hip mobility... Open the joint space... feel the femoral capsule... Inhale deeply... and as you exhale slowly... let the body sink into the stretch... no forcing... with compassion... Release the tension in the connective tissue... Relieve the pressure on the lower back... Today is not about hammering the system... it's about moving with fluidity, control, and respect... Breathe... hydrate... and find your rhythm slowly..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "PT_60_70_70_150_mobility",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Escuta... hoje o seu sistema nervoso está em sessenta... e com o sono e o estresse moderados... a vida está te exigindo bastante... Eu entendo perfeitamente... Você não precisa ser um robô... hoje nós vamos cuidar do templo... Temos uma carga pesada no programa... cento e cinquenta libras... o que significa que a amplitude de movimento precisa ser impecável para proteger as articulações... Vamos começar com uma mobilidade de quadril profunda... Abra o espaço articular... sinta a cápsula femoral... Inspire profundamente... e ao expirar lentamente... permita que o corpo afunde no alongamento... sem forçar... com compaixão... Libere a tensão do tecido conjuntivo... Alivie a pressão lombar... Hoje não se trata de massacrar o sistema... se trata de se mover com fluidez, controle e respeito... Respire... hidrate-se... e recupere o ritmo lentamente..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "EN_60_70_70_50_recovery",
+    "scenario": "English · CNS 60/100 · Sleep 70 · Stress 70 · Load 50lb",
+    "target_duration": "52s",
+    "script": "Pay attention... your nervous system is sitting at sixty... your sleep was moderate and your stress is running high... I understand... life throws these stretches at us... Today the goal isn't to crush you... it's to support you and reset your system... The fifty-pound load is light for a reason... it's to focus on active recovery and structural integrity... Let's get down to the mat... breathe diaphragmatically... feel the abdomen expand three hundred and sixty degrees... As you exhale slowly... feel the muscular tension dissipate... release the moorings... Let the parasympathetic system take the wheel and regenerate the fibers... You are in control... don't fight the discomfort... use the breath to guide the relaxation... Drink water... rest well... and let's rebuild this machine with patience and focus... Breathe deep... we go slow..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "ES_60_70_70_50_recovery",
+    "scenario": "Spanish · CNS 60/100 · Sleep 70 · Stress 70 · Load 50lb",
+    "target_duration": "52s",
+    "script": "Presta atención... tu sistema nervioso está en sesenta... el sueño fue moderado y el estrés está alto... Lo entiendo... la vida tiene estas cosas... Hoy el objetivo no es aplastarte... es apoyarte y resetear tu sistema... La carga de cincuenta libras es ligera por una razón... es para enfocarnos en la recuperación activa y la integridad estructural... Vamos a bajar a la colchoneta... respira de forma diafragmática... siente el abdomen expandirse trescientos sesenta grados... Al exhalar lentamente... siente la tensión muscular disiparse... suelta las amarras... Deja que el sistema parasimpático tome el control y regenere las fibras... Tú tienes el control... no luches contra la incomodidad... usa la respiración para guiar la relajación... Bebe agua... descansa bien... y vamos a reconstruir esta máquina con paciencia y enfoque... Respira profundo... vamos con calma..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "ES_100_100_40_150_stability",
+    "scenario": "Spanish · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "target_duration": "54s",
+    "script": "Tu sistema está al cien por ciento de preparación hoy... Máxima salida del CNS... sueño perfecto... y estrés en mínimos absolutos... Esta es la luz verde definitiva... Pero con una carga pesada de ciento cincuenta libras... no podemos permitirnos ni un milímetro de deriva mecánica... Hoy... el enfoque es la estabilidad pélvica y espinal absoluta... Asume tu postura... y clava los pies planos en la plataforma... Empaca los omóplatos hacia abajo... bloquea los dorsales... y crea un pilar de hormigón incompresible a través de la pared abdominal... Inhala... haz bracing como si anticiparas un golpe directo... y mantén ese cilindro rígido durante todo el rango de movimiento... No dejes que las rodillas colapsen... no dejes que la columna se desplace... Cada gramo de fuerza debe transferirse limpio a través de una base estable e inquebrantable... Aprieta los glúteos arriba... mantente firme... y domina el peso..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "PT_100_100_40_150_stability",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "target_duration": "54s",
+    "script": "O seu sistema está em cem por cento de prontidão hoje... Máxima saída do CNS... sono perfeito... e estresse no mínimo absoluto... Este é o sinal verde definitivo... Mas com uma carga pesada de cento e cinquenta libras... não podemos nos permitir um único milímetro de desvio mecânico... Hoje... o foco é a estabilidade pélvica e espinhal absoluta... Assuma a sua base... e crave os pés planos na plataforma... Empacote as escápulas para baixo... trave os dorsais... e crie um pilar de concreto incompressível através da parede abdominal... Inspire... faça o bracing como se antecipasse um golpe direto... e mantenha esse cilindro rígido durante toda a amplitude de movimento... Não deixe os joelhos colapsarem... não deixe a coluna se deslocar... Cada grama de força deve transferir limpa através de uma base estável e inabalável... Aperte os glúteos no topo... mantenha-se travado... e domine o peso..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "EN_60_70_70_100_recovery",
+    "scenario": "English · CNS 60/100 · Sleep 70 · Stress 70 · Load 100lb",
+    "target_duration": "52s",
+    "script": "Listen to me... today your CNS is at sixty... your sleep and stress are at moderate levels... I sense you're carrying too much mental weight today... and the body is feeling it... The hundred-pound load is moderate for a reason... it's to give the body space to heal... We're going to bring the revolutions down... to decompress the spine... Lie face down... prop yourself on your forearms in a sphinx position... Inhale deeply toward the pelvic floor... and on a long, drawn-out exhale... let your pelvis sink completely... melting the tension stored in the lower back... Stimulate the vagus nerve... lower the cortisol... Let the nervous system regulate and accept the rest... There's no rush today... only intentional recovery... Take care of the temple... tomorrow we come back stronger... Breathe... stay present..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "PT_60_70_70_100_recovery",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 70 · Stress 70 · Load 100lb",
+    "target_duration": "52s",
+    "script": "Escuta... hoje o seu CNS está em sessenta... o seu sono e o estresse estão em níveis moderados... Sinto que você está carregando peso mental demais hoje... e o corpo está sentindo isso... A carga de cem libras é moderada por um motivo... é para dar espaço ao corpo para se curar... Vamos baixar as rotações... descomprimir a coluna... Deite de bruços... apoie-se nos antebraços em uma postura de esfinge... Inspire profundamente em direção ao assoalho pélvico... e em uma expiração longa e prolongada... deixe a sua pélvis afundar completamente... derretendo a tensão acumulada na lombar... Estimule o nervo vago... reduza o cortisol... Deixe o sistema nervoso se regular e aceitar o descanso... Não há pressa hoje... apenas recuperação intencional... Cuide do templo... amanhã voltamos mais fortes... Respire... mantenha-se presente..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "ES_100_100_40_151_plus_strength",
+    "scenario": "Spanish · CNS 100/100 · Sleep 100 · Stress 40 · Load 151+lb",
+    "target_duration": "52s",
+    "script": "Bio-preparación óptima absoluta hoy... el CNS está clavado en cien... sueño perfecto... y estrés bajo... Tu sistema es un generador eléctrico completamente cargado... y la plataforma está esperando... Hoy movemos hierro pesado... por encima de las ciento cincuenta y una libras... aquí es donde construimos densidad muscular real e inquebrantable... Acércate a la barra hexagonal con confianza suprema... clava los pies en el suelo... y tira de los codos para bloquear la espalda alta... Genera un torque de cadera inmenso hacia afuera... Inhala... empaca el aire... y desciende con control... Abajo... no rebotes... empuja agresivamente a través del mediopié... apartando el suelo de ti... Tus dorsales están tensos... tu núcleo es un muro de piedra sólida... Ponte alto... extiende las caderas... aprieta los glúteos... y vamos a ejecutar con potencia pura y enfocada... Sin titubeos... ejecuta..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "EN_40_40_100_150_mobility",
+    "scenario": "English · CNS 40/100 · Sleep 40 · Stress 100 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Stop... stop exactly where you are... Pull the emergency brake right now... Your data today signals an absolute red danger zone... With your central nervous system below forty, almost no sleep, and extreme stress... we are not touching that heavy one-hundred-and-fifty-pound bar today... There's no room for ego or guilt here... I understand you, real life is hard and burnout is real... Today... we pivot completely to deep mobility... We're going to decompress and lubricate the joint capsule... Bring your body to the mat... feel gravity do its work... breathe in a calm, parasympathetic rhythm... Let the tissue dissipate... release the moorings... Let the parasympathetic system take control and regenerate the fibers... You are in control... don't fight the discomfort... use the breath to guide the relaxation... Drink water... rest well... and let's rebuild this machine with patience and focus..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "ES_40_40_100_150_mobility",
+    "scenario": "Spanish · CNS 40/100 · Sleep 40 · Stress 100 · Load 150lb",
+    "target_duration": "57s",
+    "script": "Para... para exactamente donde estás... Tira del freno de emergencia ahora mismo... Tus datos de hoy indican una zona de peligro rojo absoluto... Con el sistema nervioso central por debajo de cuarenta, casi nada de sueño y estrés extremo... hoy no vamos a tocar esa barra pesada de ciento cincuenta libras... Aquí no hay espacio para el ego ni la culpa... Te entiendo, la vida real es dura y el agotamiento es real... Hoy... pivotamos completamente a la movilidad profunda... Vamos a descomprimir y lubricar la cápsula articular... Lleva tu cuerpo a la colchoneta... siente la gravedad actuar... respira de forma calmada y parasimpática... Permite que el tejido se disipe... suelta las amarras... Deja que el sistema parasimpático tome el control y regenere las fibras... Tú tienes el control... no luches contra la incomodidad... usa la respiración para guiar la relajación... Bebe agua... descansa bien... y vamos a reconstruir esta máquina con paciencia y enfoque..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "ES_60_70_100_50_recovery",
+    "scenario": "Spanish · CNS 60/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "target_duration": "53s",
+    "script": "Escúchame... tu CNS está en sesenta... el sueño fue mediocre... y tus niveles de estrés están por las nubes... Sé que estás cargando una carga mental enorme ahora mismo... y tu cuerpo está sintiendo cada gramo de ella... Hoy no vamos a pelear contra tu fisiología... Esta carga ligera de cincuenta libras es una descarga táctica deliberada... está diseñada para mantener las articulaciones en movimiento sin añadir más estrés a un sistema ya sobrecargado... Esto es recuperación activa... Baja el enfoque hacia la colchoneta... Inhala profundamente hacia el abdomen... y al exhalar lentamente... deja que esa tensión mental y física se derrita en el suelo... Estamos aquí para regular a la baja el sistema nervioso... para reconstruir... y para romper el bucle de estrés... Aprieta los músculos ligeramente... mantén la sangre fluyendo... pero deja descansar la mente... mañana es un nuevo día..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "PT_100_100_40_100_stability",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 100 · Stress 40 · Load 100lb",
+    "target_duration": "55s",
+    "script": "Prontidão perfeita em cada métrica... CNS no teto, estresse no chão, e o seu corpo apareceu completamente pronto para receber trabalho... Então vamos falar exatamente do que faremos com essa prontidão... Estamos construindo uma integridade estrutural que dura além de um único ciclo de treino... Trabalho de estabilidade com carga padrão... e hoje eu preciso de precisão mecânica absoluta de você... Sem repetições desleixadas... Sem movimentos compensados... Cada Dead Bug executado com a lombar pressionada no chão, os oblíquos totalmente ativados, a extensão do membro oposto travada e controlada... Os seus Lat Pulldowns são sobre depressão e retração escapular... não apenas puxar peso... E os seus Trap-Bar Squats? Faça o bracing como se fosse absorver impacto máximo... Cada repetição... Prontidão perfeita é uma janela... e desperdiçá-la com mecânica descuidada é a rota mais rápida para construir disfunção em vez de força... Execute com disciplina... Faça cada repetição contar..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "ES_80_70_70_150_strength",
+    "scenario": "Spanish · CNS 80/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "target_duration": "53s",
+    "script": "Concéntrate... hoy empujamos el umbral... Tu CNS está fuerte en ochenta... pero tu sueño y tu estrés están en esa zona moderada y desafiante... Con una carga pesada de ciento cincuenta libras en juego... no hay espacio para titubeos ni para una técnica descuidada... Se requiere un enfoque mecánico absoluto para proteger la columna y maximizar la producción de fuerza... Métete en la barra hexagonal... tira de los codos hacia abajo para bloquear los dorsales... y siente esa tensión de cuerpo entero fijarse... Inhala... empaca el aire profundo contra tus oblicuos en bracing... y aparta el suelo de ti... Empuja las rodillas hacia afuera... mantén el pecho alto... y deja que la potencia se transfiera limpia a través del mediopié... Adueñate de la repetición... no dejes que el peso dicte tu movimiento... Mantente firme... bloquea las caderas... y domina la plataforma hoy..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "PT_80_70_70_150_strength",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Foco... hoje nós empurramos o limite... O seu CNS está forte em oitenta... mas o seu sono e o estresse estão naquela zona moderada e desafiadora... Com uma carga pesada de cento e cinquenta libras em jogo... não há espaço para hesitação ou técnica desleixada... É exigido um foco mecânico absoluto para proteger a coluna e maximizar a produção de força... Entre na barra hexagonal... puxe os cotovelos para baixo para travar os dorsais... e sinta essa tensão de corpo inteiro se fixar... Inspire... empacote o ar fundo contra os seus oblíquos em bracing... e empurre o chão para longe... Empurre os joelhos para fora... mantenha o peito alto... e deixe a potência se transferir limpa através do mediopé... Seja dono da repetição... não deixe o peso ditar o seu movimento... Mantenha-se travado... trave os quadris... e domine a plataforma hoje..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "EN_60_40_70_100_stability",
+    "scenario": "English · CNS 60/100 · Sleep 40 · Stress 70 · Load 100lb",
+    "target_duration": "52s",
+    "script": "Listen to me... today your CNS is at sixty... your sleep was very poor... and your stress is moderate... Your body is tired... and your alert system is at its limit... I know it... and that's okay... Today is not the day to feed the ego with absurd loads... With this hundred-pound load... our absolute priority is mechanical stability... We're going to navigate this fatigue with intelligence... Drive your heels firmly into the floor... brace your midsection consciously... and inhale deep to stabilize the pelvis on every rep... Move with a controlled tempo... no rushing... feeling how your stabilizer muscles hold your structure... The goal is to maintain the stimulus without overloading your nervous system... Set the pride aside... focus... protect your spine today... and keep your calm..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "PT_60_40_70_100_stability",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 40 · Stress 70 · Load 100lb",
+    "target_duration": "52s",
+    "script": "Escuta... hoje o seu CNS está em sessenta... o seu sono foi muito deficiente... e o estresse está moderado... O seu corpo está cansado... e o seu sistema de alerta está no limite... Eu sei... e tudo bem... Hoje não é o dia de alimentar o ego com cargas absurdas... Com essa carga de cem libras... a nossa prioridade absoluta é a estabilidade mecânica... Vamos navegar essa fadiga com inteligência... Crave bem os calcanhares no chão... trave o seu core de forma consciente... e inspire fundo para estabilizar a pélvis em cada repetição... Mova-se com um tempo controlado... sem pressa... sentindo como os seus músculos estabilizadores sustentam a sua estrutura... O objetivo é manter o estímulo sem sobrecarregar o seu sistema nervoso... Deixe o orgulho de lado... concentre-se... proteja a sua coluna hoje... e mantenha a calma..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "ES_100_70_40_151_plus_strength",
+    "scenario": "Spanish · CNS 100/100 · Sleep 70 · Stress 40 · Load 151+lb",
+    "target_duration": "57s",
+    "script": "Tu sistema nervioso está disparando a capacidad máxima hoy... y cada métrica lo respalda... La salida del CNS está al máximo, el estrés está bajo, y tu sueño nos dio suficiente pista para empujar más allá del umbral... Esto es hacia lo que han estado construyendo todas esas sesiones de trabajo duro... Hoy vamos a sobrecarga extrema en la barra hexagonal... porque tu fisiología puede absorberla, y tu mente está lista para liderarla... Cárgala pesada... Empuja el suelo con intención absoluta... Cada repetición es una conversión de potencial biológico en rendimiento puro... Hablamos de sobrecarga progresiva por encima de las ciento cincuenta y una... aquí es donde ocurre la adaptación estructural real... Mantente firme en las caderas, columna neutra bloqueada, bracing al máximo antes de tirar... Deja que la trayectoria de la barra hexagonal haga su trabajo... Respira arriba... resetea el bracing... y vuelve a ir... Sin atajos... Sin titubeos... Que cada serie cuente..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "PT_100_70_40_151_plus_strength",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 70 · Stress 40 · Load 151+lb",
+    "target_duration": "57s",
+    "script": "O seu sistema nervoso está disparando em capacidade máxima hoje... e cada métrica confirma isso... A saída do CNS está no máximo, o estresse está baixo, e o seu sono nos deu pista suficiente para empurrar além do limite... É para isso que todas aquelas sessões de trabalho duro vinham construindo... Hoje vamos para a sobrecarga extrema na barra hexagonal... porque a sua fisiologia consegue absorver, e a sua mente está pronta para liderar... Carregue pesado... Empurre o chão com intenção absoluta... Cada repetição é uma conversão de potencial biológico em desempenho puro... Estamos falando de sobrecarga progressiva acima das cento e cinquenta e uma... é aqui que a adaptação estrutural real acontece... Mantenha-se firme nos quadris, coluna neutra travada, bracing no máximo antes de puxar... Deixe a trajetória da barra hexagonal fazer o trabalho dela... Respire no topo... resete o bracing... e vá de novo... Sem atalhos... Sem hesitação... Faça cada série contar..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "EN_40_40_100_100_mobility",
+    "scenario": "English · CNS 40/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "target_duration": "56s",
+    "script": "Stop... listen to me. Your metrics today are telling me exactly what your body already feels. Nervous system on the floor, poor sleep, and stress through the roof. I know you're carrying much more than just the training today... and that takes a different kind of courage. The courage to let go. We're canceling the standard load and doing a complete system reset. Joint mobility from the ankles to the shoulders... fluid movements, no ego, no resistance. Hip rotations, thoracic openers, gentle cervical mobility. Every breath activates the parasympathetic nervous system... inhale for four... exhale for six. More time releasing than taking. Your system is in survival mode right now... and our mission today is to bring it out of there with calm and precision. The Trap-Bar will still be there tomorrow. But if you don't protect the base today, tomorrow will cost you more. Take care of the athlete."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "PT_40_40_100_100_mobility",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "target_duration": "56s",
+    "script": "Pare... me escuta. As suas métricas de hoje estão me dizendo exatamente o que o seu corpo já sente. Sistema nervoso no chão, sono deficiente, e estresse nas alturas. Eu sei que você está carregando muito mais do que só o treino hoje... e isso exige um tipo diferente de coragem. A coragem de soltar. Cancelamos a carga padrão e fazemos um reset completo do sistema. Mobilidade articular dos tornozelos até os ombros... movimentos fluidos, sem ego, sem resistência. Rotações de quadril, aberturas torácicas, mobilidade cervical suave. Cada respiração ativa o sistema nervoso parassimpático... inspire por quatro... expire por seis. Mais tempo soltando do que pegando. O seu sistema está em modo de sobrevivência agora... e a nossa missão hoje é tirá-lo de lá com calma e precisão. A barra hexagonal vai continuar ali amanhã. Mas se você não proteger a base hoje, amanhã vai te custar mais. Cuide do atleta."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "ES_80_100_70_100_stability",
+    "scenario": "Spanish · CNS 80/100 · Sleep 100 · Stress 70 · Load 100lb",
+    "target_duration": "59s",
+    "script": "Llegaste afinado hoy... una preparación de CNS sólida, un sueño excelente respaldándote, y un estrés moderado que significa que cargas algo pero lo manejas... Este es el perfil que llamamos el trabajador constante... y déjame ser claro, aquí es donde realmente se construyen los campeones... No en los días pico... En días exactamente como hoy... Vamos a fijar la fuerza del pilar y la integridad estructural con carga estándar... La estabilidad del núcleo es la base que hace que cada otro levantamiento sea transferible y duradero... Hoy martillamos mecánica anti-rotación, dead bugs, y variaciones de Pallof press para reforzar tu sistema de bracing desde adentro hacia afuera... Tus Trap-Bar Squats se mantienen nítidos y técnicos... repeticiones de calidad por encima de perseguir volumen... Tus Lat Pulldowns anclan la cadena posterior y mantienen el control escapular afilado... Ejecuta cada serie con intención total... Sin repeticiones desperdiciadas, sin aliento desperdiciado... El trabajo duro es la meta... preséntate, concéntrate, y haz el trabajo..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "PT_80_100_70_100_stability",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 100 · Stress 70 · Load 100lb",
+    "target_duration": "60s",
+    "script": "Você chegou afiado hoje... uma prontidão de CNS sólida, um sono excelente te apoiando, e um estresse moderado que significa que você carrega algo mas está administrando... Este é o perfil que chamamos de trabalhador constante... e deixa eu ser claro, é aqui que os campeões são realmente construídos... Não nos dias de pico... Em dias exatamente como hoje... Vamos travar a força do pilar e a integridade estrutural com carga padrão... A estabilidade do core é a base que torna cada outro levantamento transferível e durável... Hoje martelamos mecânica anti-rotação, dead bugs, e variações de Pallof press para reforçar o seu sistema de bracing de dentro para fora... Os seus Trap-Bar Squats permanecem nítidos e técnicos... repetições de qualidade acima de perseguir volume... Os seus Lat Pulldowns ancoram a cadeia posterior e mantêm o controle escapular afiado... Execute cada série com intenção total... Sem repetições desperdiçadas, sem respiração desperdiçada... O trabalho duro é a meta... apareça, concentre-se, e faça o trabalho..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "EN_100_100_40_150_strength",
+    "scenario": "English · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Total green light... your data today is exactly what we look for in a maximal strength session... Nervous system at its peak, excellent sleep, minimal stress... Your body is calibrated to take high load and convert every pound into real adaptation... This is rare... and you will not waste it... We're going to work between one-oh-one and one-fifty on the Trap-Bar with full intention, explosive concentric speed, and every rep an affirmation of your performance capacity... Before each set... fill the diaphragm, lock the core with maximum intra-abdominal pressure, and push the floor away from you... Controlled descent, explosive rise... Rest two to three minutes between heavy sets to guarantee complete recovery of the ATP-CP system... Today's strength feeds tomorrow's foundation... You are prepared... completely prepared... Now go and dominate every pound of this session..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "ES_100_100_40_150_strength",
+    "scenario": "Spanish · CNS 100/100 · Sleep 100 · Stress 40 · Load 150lb",
+    "target_duration": "54s",
+    "script": "Luz verde total... tus datos de hoy son exactamente lo que buscamos para una sesión de fuerza máxima... Sistema nervioso en el pico, sueño excelente, estrés mínimo... Tu cuerpo está calibrado para recibir carga alta y convertir cada libra en adaptación real... Esto es raro... y no lo vas a desperdiciar... Vamos a trabajar entre ciento uno y ciento cincuenta en la barra hexagonal con intención total, velocidad concéntrica explosiva, y cada repetición siendo una afirmación de tu capacidad de rendimiento... Antes de cada serie... llena el diafragma, bloquea el núcleo con presión intra-abdominal máxima, y empuja el suelo lejos de ti... Descenso controlado, subida explosiva... Descansa de dos a tres minutos entre las series pesadas para garantizar la recuperación completa del sistema ATP-CP... La fuerza de hoy alimenta la base de mañana... Estás preparado... completamente preparado... Ahora ve y domina cada libra de esta sesión..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "ES_40_100_100_100_recovery",
+    "scenario": "Spanish · CNS 40/100 · Sleep 100 · Stress 100 · Load 100lb",
+    "target_duration": "55s",
+    "script": "Escucha... veo tus datos de hoy... y cuentan una historia muy específica... la anomalía de cansado pero acelerado... Dormiste muy bien... pero tu puntaje de CNS está completamente en el fondo, por debajo de cuarenta... y tus niveles de estrés están por las nubes... Esto significa que el sueño por sí solo no está curando la profunda fatiga neural que cargas... Tu mente está corriendo un maratón... y tu cuerpo está pagando el precio... Hoy, tiramos del freno de emergencia... No vamos a forzar esto con levantamiento estándar... Pivotamos completamente a la recuperación activa... Suelta las pesas... toma un foam roller... y trabajemos en la liberación de dorsales y zona torácica... Sin ego... sin culpa... La culpa tiene macros terribles... Enfócate en tu respiración... inhalaciones diafragmáticas lentas y profundas... y exhalaciones largas y pasivas... Vamos a regular a la baja ese sistema nervioso hiperactivo y restaurar el equilibrio..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "PT_40_100_100_100_recovery",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 100 · Stress 100 · Load 100lb",
+    "target_duration": "56s",
+    "script": "Escuta... eu vejo os seus dados de hoje... e eles contam uma história muito específica... a anomalia do cansado e acelerado... Você dormiu muito bem... mas a sua pontuação de CNS está completamente no fundo, abaixo de quarenta... e os seus níveis de estresse estão nas alturas... Isso significa que o sono sozinho não está curando a profunda fadiga neural que você carrega... A sua mente está correndo uma maratona... e o seu corpo está pagando o preço... Hoje, nós puxamos o freio de emergência... Não vamos forçar isso com levantamento padrão... Pivotamos completamente para a recuperação ativa... Solte os pesos... pegue um foam roller... e vamos trabalhar na liberação dos dorsais e da região torácica... Sem ego... sem culpa... A culpa tem macros terríveis... Foque na sua respiração... inspirações diafragmáticas lentas e profundas... e expirações longas e passivas... Vamos regular para baixo esse sistema nervoso hiperativo e restaurar o equilíbrio..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "EN_100_70_70_150_strength",
+    "scenario": "English · CNS 100/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Listen... today we have a massive green light to push the limits... Your central nervous system is above eighty... and even though sleep and stress are moderate... your force production capacity is maxed out... Today... it's time to load heavy... one hundred and fifty pounds on the bar... and we're going to dominate the platform... We're focusing on the Trap-Bar deadlift... Forget the traditional barbell squat... today the hexagonal bar is our high-power tool... Step into the hexagon... drive your feet into the floor... and engage the lats... Inhale deep... lock the abdomen hard as a rock... and push the floor away... Feel the pure force transfer through your structure... Maintain mechanical control on every rep... Seal the movement by squeezing the glutes at the top... Focus... execute with authority..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "PT_100_70_70_150_strength",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Escuta... hoje nós temos um sinal verde enorme para empurrar os limites... O seu sistema nervoso central está acima de oitenta... e mesmo que o sono e o estresse estejam moderados... a sua capacidade de produção de força está no máximo... Hoje... é hora de carregar pesado... cento e cinquenta libras na barra... e vamos dominar a plataforma... Estamos focando no levantamento terra com barra hexagonal... Esqueça o agachamento tradicional com barra... hoje a barra hexagonal é a nossa ferramenta de alta potência... Entre no hexágono... crave os pés no chão... e ative os dorsais... Inspire fundo... trave o abdômen duro como uma rocha... e empurre o chão... Sinta a transferência de força pura através da sua estrutura... Mantenha o controle mecânico em cada repetição... Sele o movimento apertando os glúteos no topo... Foco... execute com autoridade..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "EN_80_40_40_100_stability",
+    "scenario": "English · CNS 80/100 · Sleep 40 · Stress 40 · Load 100lb",
+    "target_duration": "54s",
+    "script": "Look... your central alert system is holding the line at seventy... but your sleep today was terrible... below forty... Your stress is low... which is excellent... but we can't push our luck when rest is null... Today, with this standard hundred-pound load... the focus is not extreme intensity... it's disciplined stability... Forget the traditional barbell squats... today we're going to work with the Trap-Bar Squat to protect the structure... and we'll anchor it with Pallof Presses and planks for deep core stabilization... Inhale... lock the abdomen with force... and execute the movement with a slow, controlled tempo... Feel the stabilizers do their job on every single rep... Don't let the fatigue compromise your posture or your alignment... We keep the stimulus alive without overloading a system that did not get to rest... Control the ego... protect your spine... and finish the session in complete safety..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "ES_80_40_40_100_stability",
+    "scenario": "Spanish · CNS 80/100 · Sleep 40 · Stress 40 · Load 100lb",
+    "target_duration": "52s",
+    "script": "Mira... tu sistema de alerta central está aguantando en setenta... pero tu sueño hoy fue pésimo... por debajo de cuarenta... El estrés está bajo... lo cual es excelente... pero no podemos abusar de la suerte cuando el descanso es nulo... Hoy, con esta carga estándar de cien libras... el enfoque no es la intensidad extrema... es la estabilidad disciplinada... Olvídate de las sentadillas tradicionales con barra... hoy vamos a trabajar con la Trap-Bar Squat para proteger la estructura... y nos vamos a enfocar en planchas para una estabilización profunda... Inhala... bloquea el abdomen con fuerza... y ejecuta el movimiento con un tempo lento y controlado... No dejes que la fatiga comprometa tu postura ni tu alineación... Controla el ego... protege tu columna... y termina la sesión con total seguridad..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "ES_60_40_100_150_mobility",
+    "scenario": "Spanish · CNS 60/100 · Sleep 40 · Stress 100 · Load 150lb",
+    "target_duration": "53s",
+    "script": "Para... estoy tirando del freno de emergencia ahora mismo... Tus métricas de hoy están en la zona de peligro... el CNS está moderado... el sueño es basura total, por debajo de cuarenta... y tus niveles de estrés están en un pico absoluto... Tenías programado levantar una carga pesada de ciento cincuenta libras hoy... pero empujar tu cuerpo hacia ese hueco sin recuperación es una receta para el fallo articular y biomecánico... No alimentamos un sistema fatigado con más estrés... Pivotamos tu sesión entera a movilidad profunda... Sin peso... sin sentadillas pesadas tradicionales... vamos a enfocarnos en liberar la rotación de cadera y descomprimir la columna... Enfócate en tu respiración... húndete en el tejido... y deja que el sistema nervioso se resetee... No hay culpa... solo manejo inteligente y clínico de tu activo físico... Hidrátate... recupérate... y vamos a poner el sistema en orden..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "PT_60_40_100_150_mobility",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 40 · Stress 100 · Load 150lb",
+    "target_duration": "54s",
+    "script": "Pare... eu estou puxando o freio de emergência agora mesmo... As suas métricas de hoje estão na zona de perigo... o CNS está moderado... o sono é lixo total, abaixo de quarenta... e os seus níveis de estresse estão em um pico absoluto... Você tinha programado levantar uma carga pesada de cento e cinquenta libras hoje... mas empurrar o seu corpo para dentro dessa lacuna sem recuperação é uma receita para a falha articular e biomecânica... Nós não alimentamos um sistema fatigado com mais estresse... Pivotamos a sua sessão inteira para a mobilidade profunda... Sem peso... sem agachamentos pesados tradicionais... vamos focar em liberar a rotação do quadril e descomprimir a coluna... Foque na sua respiração... afunde no tecido... e deixe o sistema nervoso resetar... Não há culpa... apenas o manejo inteligente e clínico do seu ativo físico... Hidrate-se... recupere-se... e vamos colocar o sistema em ordem..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "EN_100_100_40_50_recovery",
+    "scenario": "English · CNS 100/100 · Sleep 100 · Stress 40 · Load 50lb",
+    "target_duration": "52s",
+    "script": "Listen to me... today your data is perfect... Your CNS is at one hundred... you had impeccable sleep... and your stress is at a minimum... Your body is a Ferrari ready to race... but today... your program prescribes a week of tactical deload... fifty pounds... I know you want to load the bar... I know you want to push the limits... but real discipline is shown by respecting the recovery plan... The deload is not laziness... it's the phase where we let the tendons heal and the nervous system supercompensate for the next cycle... Leave the ego outside the temple today... Focus on the plank and light Pallof stability work with gentle tension... Move with a slow tempo... feel the mechanical connection... and dominate the deload with discipline... Tomorrow we go back to building with everything..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "PT_100_100_40_50_recovery",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 100 · Stress 40 · Load 50lb",
+    "target_duration": "52s",
+    "script": "Me escuta... hoje os seus dados estão perfeitos... O seu CNS está em cem... você teve um sono impecável... e o seu estresse está no mínimo... O seu corpo é uma Ferrari pronta para correr... mas hoje... o seu programa prescreve uma semana de deload tático... cinquenta libras... Eu sei que você quer carregar a barra... eu sei que você quer empurrar os limites... mas a disciplina real se mostra respeitando o plano de recuperação... O deload não é preguiça... é a fase em que deixamos os tendões cicatrizarem e o sistema nervoso supercompensar para o próximo ciclo... Deixe o ego fora do templo hoje... Foque na prancha e no trabalho leve de estabilidade Pallof com tensão suave... Mova-se com um tempo lento... sinta a conexão mecânica... e domine o deload com disciplina... Amanhã voltamos a construir com tudo..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "EN_40_70_70_150_mobility",
+    "scenario": "English · CNS 40/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Wait... before you touch the bar today, I need you to hear me. Your data is telling me the central nervous system is depleted... and the original high-load plan? We're setting that aside right now. This isn't an optional decision... it's a physiological one. Forcing one-oh-one to one-fifty with a compromised CNS isn't training... it's planned injury. So what do we do? Joint mobility with full intention. Ankle, hip, thoracic spine, shoulders. Every joint moving through its complete range, slowly, with absolute control. Parasympathetic breathing... inhale for four... exhale for six. Let the autonomic nervous system start to recalibrate. You are not wasting time today... you are protecting tomorrow's progress. The heavy load will wait. Your body asked for one thing... and today, we listen."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "ES_40_70_70_150_mobility",
+    "scenario": "Spanish · CNS 40/100 · Sleep 70 · Stress 70 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Espera... antes de que toques la barra hoy, necesito que me escuches. Tus datos me están diciendo que el sistema nervioso central está agotado... ¿y el plan original de carga alta? Lo dejamos a un lado ahora mismo. Esta no es una decisión opcional... es una decisión fisiológica. Forzar ciento uno a ciento cincuenta con un CNS comprometido no es entrenamiento... es lesión planeada. Entonces, ¿qué hacemos? Movilidad articular con intención total. Tobillo, cadera, columna torácica, hombros. Cada articulación recorriendo su amplitud completa, lentamente, con control absoluto. Respiración parasimpática... inhala por cuatro... exhala por seis. Deja que el sistema nervioso autónomo empiece a recalibrarse. Hoy no estás perdiendo el tiempo... estás protegiendo el progreso de mañana. La carga pesada esperará. Tu cuerpo pidió una cosa... y hoy, escuchamos."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "EN_60_100_100_50_recovery",
+    "scenario": "English · CNS 60/100 · Sleep 100 · Stress 100 · Load 50lb",
+    "target_duration": "52s",
+    "script": "Listen to me... this deload week arrived at the exact moment your system needed it... Your sleep is good... and that's a real advantage we're going to use today... But your mental stress is very elevated. And I want you to know something... I see that. Not just in the numbers... I see it in the pattern. Life is pressing hard right now, and your body is absorbing that weight. Today there is no performance. There is deliberate recovery. Fluid low-intensity movement, conscious breathing, gentle activation of the parasympathetic system. Four counts in... six counts out. Let the diaphragm do the work you can't force. Hip mobility, soft scapular work, light glute activation. No clock, no pressure. This session isn't about the physique... it's about resetting the whole system. Leave here lighter than you came in. That's success today."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "PT_60_100_100_50_recovery",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 100 · Stress 100 · Load 50lb",
+    "target_duration": "55s",
+    "script": "Me escuta... esta semana de deload chegou no momento exato em que o seu sistema precisava... O seu sono está bom... e essa é uma vantagem real que vamos usar hoje... Mas o seu estresse mental está muito elevado. E eu quero que você saiba uma coisa... eu vejo isso. Não só nos números... eu vejo no padrão. A vida está pressionando forte agora, e o seu corpo está absorvendo esse peso. Hoje não existe desempenho. Existe recuperação deliberada. Movimento fluido de baixa intensidade, respiração consciente, ativação suave do sistema parassimpático. Quatro tempos para dentro... seis tempos para fora. Deixe o diafragma fazer o trabalho que você não consegue forçar. Mobilidade de quadril, trabalho escapular suave, ativação leve de glúteo. Sem relógio, sem pressão. Esta sessão não é sobre o físico... é sobre resetar o sistema inteiro. Saia daqui mais leve do que entrou. Isso é sucesso hoje."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "EN_80_70_70_151_plus_strength",
+    "scenario": "English · CNS 80/100 · Sleep 70 · Stress 70 · Load 151+lb",
+    "target_duration": "52s",
+    "script": "The system is in a good position today... CNS solid, sleep adequate, stress controlled... It's not an absolute peak day... but it's a day to push the limits of extreme load with competence and full intention... One hundred and fifty-one and above on the Trap-Bar... that demands your mind and your body be completely present in every single rep... Before each set... position your feet hip-width, grip the bar with firmness, fill the diaphragm to the limit, lock the core with maximum intra-abdominal pressure, and then push the floor away from you... Explosive concentric... controlled eccentric... Don't lose the tension between reps... Kinetic focus is the only variable that separates a productive set from a risky one at this load level... Rest completely between sets... two to three minutes, no negotiation... You are ready for this load... Now show it..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "ES_80_70_70_151_plus_strength",
+    "scenario": "Spanish · CNS 80/100 · Sleep 70 · Stress 70 · Load 151+lb",
+    "target_duration": "55s",
+    "script": "El sistema está en buena posición hoy... CNS sólido, sueño adecuado, estrés controlado... No es un día de pico absoluto... pero es un día para empujar los límites de la carga extrema con competencia e intención total... Ciento cincuenta y uno y por encima en la barra hexagonal... eso exige que tu mente y tu cuerpo estén completamente presentes en cada repetición... Antes de cada serie... posiciona los pies al ancho de las caderas, agarra la barra con firmeza, llena el diafragma al límite, bloquea el núcleo con presión intra-abdominal máxima, y entonces empuja el suelo lejos de ti... Concéntrico explosivo... excéntrico controlado... No pierdas la tensión entre repeticiones... El enfoque cinético es la única variable que separa una serie productiva de una arriesgada en este nivel de carga... Descansa completamente entre las series... de dos a tres minutos, sin negociación... Estás listo para esta carga... Ahora demuéstralo..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "ES_40_40_40_50_mobility",
+    "scenario": "Spanish · CNS 40/100 · Sleep 40 · Stress 40 · Load 50lb",
+    "target_duration": "58s",
+    "script": "Oye... necesito que me escuches ahora mismo. Todo lo que estás registrando hoy cuenta la misma historia... tu CNS está agotado, el sueño no te está restaurando, y tu cuerpo se ha quedado en silencio sin reservas. Esto no es un mal día de entrenamiento... es una señal de todo el sistema. Y necesito que la honres. Hoy no entrenamos. Hoy restauramos. Solo trabajo en el suelo... acuéstate, respira, y deja que la gravedad haga lo que el esfuerzo no puede. Respiración diafragmática en supino... cuatro tiempos adentro... seis tiempos afuera. Rotaciones suaves de cadera en el suelo, rodamientos torácicos lentos, movilidad cervical suave de lado a lado. Sin carga, sin urgencia, sin reloj que vencer. Solo tú y el suelo... dejando que tu sistema nervioso recuerde lo que se siente la calma. No estás atrasado. No estás fallando. Eres un atleta protegiendo tu capacidad futura. Eso es suficiente. El descanso es el trabajo de hoy."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "PT_40_40_40_50_mobility",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 40 · Stress 40 · Load 50lb",
+    "target_duration": "60s",
+    "script": "Ei... eu preciso que você me escute agora. Tudo o que você está registrando hoje conta a mesma história... o seu CNS está esgotado, o sono não está te restaurando, e o seu corpo silenciosamente ficou sem reservas. Isso não é um dia ruim de treino... é um sinal de todo o sistema. E eu preciso que você honre isso. Hoje a gente não treina. Hoje a gente restaura. Só trabalho no chão... deite, respire, e deixe a gravidade fazer o que o esforço não consegue. Respiração diafragmática em supino... quatro tempos para dentro... seis tempos para fora. Rotações suaves de quadril no chão, rolamentos torácicos lentos, mobilidade cervical suave de um lado para o outro. Sem carga, sem urgência, sem relógio para vencer. Só você e o chão... deixando o seu sistema nervoso lembrar como é a calma. Você não está atrasado. Você não está falhando. Você é um atleta protegendo a sua capacidade futura. Isso é suficiente. O descanso é o trabalho de hoje."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "ES_60_100_40_151_plus_strength",
+    "scenario": "Spanish · CNS 60/100 · Sleep 100 · Stress 40 · Load 151+lb",
+    "target_duration": "60s",
+    "script": "Tu CNS no está al máximo hoy... y no voy a fingir lo contrario... Pero tu sueño es excelente y el estrés es bajo... y esa combinación nos da suficiente soporte estructural para empujar hacia el territorio de la sobrecarga extrema... Esta es la sesión obrera... Sin fuegos artificiales, sin una sensación perfecta... solo un atleta afinado presentándose y haciendo el trabajo que el cuerpo puede absorber... Barra hexagonal por encima de las ciento cincuenta y una... no porque todo sea perfecto, sino porque los datos dicen que la base está ahí... Haz bracing profundo antes de cada tirón... llena el diafragma, bloquea el núcleo firme, empuja el suelo con precisión mecánica... Sin rango desperdiciado... Sin bloqueos descuidados... Tus Pallof Presses entre series reforzarán la estabilidad anti-rotación que tu columna necesita a este nivel de carga... Protege la estructura, respeta el peso, ejecuta las repeticiones... Este no es un día pico... es un día de prueba de carácter... A por ello..."
+  },
+  {
+    "category": "Strength",
+    "subject_line": "PT_60_100_40_151_plus_strength",
+    "scenario": "Portuguese · CNS 60/100 · Sleep 100 · Stress 40 · Load 151+lb",
+    "target_duration": "60s",
+    "script": "O seu CNS não está no máximo hoje... e eu não vou fingir o contrário... Mas o seu sono é excelente e o estresse está baixo... e essa combinação nos dá suporte estrutural suficiente para empurrar para o território da sobrecarga extrema... Esta é a sessão operária... Sem fogos de artifício, sem uma sensação perfeita... apenas um atleta afiado aparecendo e fazendo o trabalho que o corpo consegue absorver... Barra hexagonal acima das cento e cinquenta e uma... não porque tudo está perfeito, mas porque os dados dizem que a base está lá... Faça o bracing profundo antes de cada puxada... encha o diafragma, trave o core firme, empurre o chão com precisão mecânica... Sem amplitude desperdiçada... Sem travamentos desleixados... Os seus Pallof Presses entre as séries vão reforçar a estabilidade anti-rotação que a sua coluna precisa nesse nível de carga... Proteja a estrutura, respeite o peso, execute as repetições... Este não é um dia de pico... é um dia de prova de caráter... Vai com tudo..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "EN_80_40_100_50_recovery",
+    "scenario": "English · CNS 80/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "target_duration": "52s",
+    "script": "Hey... the nervous system is holding, but just barely... Sleep isn't arriving... and the mental stress is at levels we can't ignore... Your CNS is carrying you today... but it's working hard to stay afloat with everything you're carrying outside the gym... This deload week is not a coincidence... it arrived exactly when you needed it... Today we work to actively bring down the sympathetic system... Slow, controlled movement, no load that demands too much of you... Breathing first... four counts in... six counts out... The parasympathetic nervous system needs a signal that the danger has passed... and that signal is you, moving with calm... Hip mobility, soft scapular work, light glute activation... No clock, no pressure... Stress isn't crushed by force... it dissolves with intelligent recovery... Trust the process today..."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "PT_80_40_100_50_recovery",
+    "scenario": "Portuguese · CNS 80/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "target_duration": "53s",
+    "script": "Ei... o sistema nervoso está aguentando, mas por pouco... O sono não está chegando... e o estresse mental está em níveis que não dá para ignorar... O seu CNS está te sustentando hoje... mas está trabalhando duro para se manter à tona com tudo o que você está carregando fora da academia... Esta semana de deload não é coincidência... chegou exatamente quando você precisava... Hoje trabalhamos para baixar ativamente o sistema simpático... Movimento lento, controlado, sem carga que te exija demais... Respiração primeiro... quatro tempos para dentro... seis tempos para fora... O sistema nervoso parassimpático precisa de um sinal de que o perigo passou... e esse sinal é você, se movendo com calma... Mobilidade de quadril, trabalho escapular suave, ativação leve de glúteo... Sem relógio, sem pressão... O estresse não se esmaga na força... ele se dissolve com recuperação inteligente... Confie no processo hoje..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "EN_40_70_40_150_mobility",
+    "scenario": "English · CNS 40/100 · Sleep 70 · Stress 40 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Listen... your stress is low, which is excellent... but your central nervous system is completely depleted today. The sleep was only moderate... and the reality is your brain and your body are fried. The program calls for lifting heavy today... but we are not touching that bar. Zero ego. Today we pivot to a deep mobility session to protect your joints... Let's get to the floor. Open the hips with intention... breathe deep into the abdomen... four seconds in... six seconds out. Let the system recover and release the accumulated tension. Heavy weight demands an alert nervous system, and today we don't have it. There's no guilt in this... it's intelligent fatigue management. Tomorrow is another day... today we protect the machine. Relax and breathe..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "PT_40_70_40_150_mobility",
+    "scenario": "Portuguese · CNS 40/100 · Sleep 70 · Stress 40 · Load 150lb",
+    "target_duration": "52s",
+    "script": "Escuta... o seu estresse está baixo, o que é excelente... mas o seu sistema nervoso central está completamente esgotado hoje. O sono foi apenas moderado... e a realidade é que o seu cérebro e o seu corpo estão fritos. O programa pede para levantar pesado hoje... mas nós não vamos tocar naquela barra. Zero ego. Hoje pivotamos para uma sessão de mobilidade profunda para proteger as suas articulações... Vamos para o chão. Abra os quadris com intenção... respire fundo em direção ao abdômen... quatro segundos para dentro... seis segundos para fora. Deixe o sistema se recuperar e liberar a tensão acumulada. Peso pesado exige um sistema nervoso alerta, e hoje nós não temos isso. Não há culpa nisso... é manejo inteligente da fadiga. Amanhã é outro dia... hoje protegemos a máquina. Relaxe e respire..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "ES_100_40_100_100_stability",
+    "scenario": "Spanish · CNS 100/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "target_duration": "52s",
+    "script": "Escúchame... esto de aquí es la definición de cansado pero acelerado... Tu sueño fue basura absoluta... y tu estrés está en zona roja... pero de alguna forma, tu CNS sigue disparando a capacidad máxima... Estás produciendo fuerza, pero eres estructuralmente vulnerable... Con una carga estándar hoy... nos enfocamos estrictamente en la estabilidad mecánica del núcleo... Sin repeticiones descuidadas... Martillamos Pallof Presses y Dead Bugs... bloquea la columna en un pilar rígido... Protege tu zona lumbar a toda costa... Tu sistema nervioso está firmando cheques que tus articulaciones no pueden cobrar si pierdes la forma hoy... Respira profundo... haz bracing fuerte... y ejecuta con un control absoluto y afinado... Deja que el núcleo haga el trabajo pesado para estabilizar el chasis... Mantén el trabajo en la barra hexagonal nítido y técnico... No dejes que la fatiga rompa tu mecánica... Concéntrate... y ejecuta..."
+  },
+  {
+    "category": "Stability",
+    "subject_line": "PT_100_40_100_100_stability",
+    "scenario": "Portuguese · CNS 100/100 · Sleep 40 · Stress 100 · Load 100lb",
+    "target_duration": "54s",
+    "script": "Me escuta... isto aqui é a definição de cansado e acelerado... O seu sono foi lixo absoluto... e o seu estresse está na zona vermelha... mas de alguma forma, o seu CNS continua disparando em capacidade máxima... Você está produzindo força, mas está estruturalmente vulnerável... Com uma carga padrão hoje... nos focamos estritamente na estabilidade mecânica do core... Sem repetições desleixadas... Martelamos Pallof Presses e Dead Bugs... trave a coluna em um pilar rígido... Proteja a sua lombar a todo custo... O seu sistema nervoso está assinando cheques que as suas articulações não conseguem pagar se você perder a forma hoje... Respire fundo... faça o bracing forte... e execute com um controle absoluto e afiado... Deixe o core fazer o trabalho pesado para estabilizar o chassi... Mantenha o trabalho na barra hexagonal nítido e técnico... Não deixe a fadiga quebrar a sua mecânica... Concentre-se... e execute..."
   }
 ]
