@@ -59,31 +59,6 @@ function drawCover(ctx, video, W, H) {
   ctx.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
 }
 
-// Build a WebAudio mix stream from the voiceover URL (best-effort; null on CORS/err).
-async function buildVoAudio(voUrl) {
-  if (!voUrl) return null;
-  const AC = window.AudioContext || window.webkitAudioContext;
-  if (!AC) return null;
-  try {
-    const ac = new AC();
-    const dest = ac.createMediaStreamDestination();
-    const arr = await (await fetch(voUrl)).arrayBuffer();
-    const buf = await ac.decodeAudioData(arr);
-    const src = ac.createBufferSource();
-    src.buffer = buf;
-    const g = ac.createGain();
-    g.gain.value = 1.0;
-    src.connect(g).connect(dest);
-    return {
-      stream: dest.stream,
-      start: () => { try { ac.resume(); } catch { /* noop */ } try { src.start(ac.currentTime + 0.05); } catch { /* noop */ } },
-      stop: () => { try { src.stop(); } catch { /* noop */ } try { ac.close(); } catch { /* noop */ } },
-    };
-  } catch {
-    return null; // CORS-tainted or undecodable → record video-only
-  }
-}
-
 // V3-PROVEN repair: Samsung Internet / Android Chrome write the video track's
 // mdhd.duration with the WRONG timescale (e.g. 13880 @ ts=30000 → 0.46s instead of
 // 13.88s), and sometimes tkhd.duration=0 — so players/IG read the track as ~0s and
@@ -143,7 +118,7 @@ export async function fixMp4TrackDuration(blob) {
 
 // Record the reel: live footage (cover) + baked overlay + voiceover audio →
 // { blob, ext, mime }. durationCap: seconds (post=90 / export=1200). onProgress(0..1).
-export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgress }) {
+export async function recordReel({ stageNode, durationCap = 90, onProgress }) {
   if (!stageNode) throw new Error('no_stage');
   if (typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) throw new Error('no_recorder');
   const video = stageNode.querySelector('.reel-video-v4');
@@ -180,8 +155,10 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgres
     vTrack = stream.getVideoTracks()[0];
   }
 
-  const audio = await buildVoAudio(voUrl);
-  if (audio && audio.stream) { try { audio.stream.getAudioTracks().forEach((t) => stream.addTrack(t)); } catch { /* noop */ } }
+  // VIDEO-ONLY by design. We do NOT mux audio here: Chrome/Edge MediaRecorder would
+  // write OPUS, and Opus-in-MP4 renders frozen + silent in Edge/Windows/Samsung and is
+  // rejected by IG/FB. The voiceover is muxed back in as AAC during finalize
+  // (videoTranscode.toStandardMp4), giving a clip every player + Meta accepts.
 
   let rec;
   try { rec = mime ? new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8000000 }) : new MediaRecorder(stream); }
@@ -203,7 +180,6 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgres
     rec.onstop = () => {
       stopLoops();
       try { stream.getTracks().forEach((t) => t.stop()); } catch { /* noop */ }
-      if (audio && audio.stop) audio.stop();
       cleanupCanvas();
       try { video.loop = true; video.play().catch(() => {}); } catch { /* noop */ }
       const ext = (mime && mime.indexOf('mp4') >= 0) ? 'mp4' : 'webm';
@@ -246,7 +222,6 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, onProgres
       if (stopped) return;
       paint();                              // seed a real frame so the stream has correct dims
       rec.start();
-      if (audio && audio.start) audio.start();
       drawTimer = setInterval(paint, 33);   // ~30fps, bound to the active recording state
       killTimer = setTimeout(finish, (d + 1.5) * 1000);
     }).catch(() => { stopLoops(); cleanupCanvas(); reject(new Error('play_failed')); });

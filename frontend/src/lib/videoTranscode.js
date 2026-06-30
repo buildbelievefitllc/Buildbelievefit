@@ -1,18 +1,19 @@
 // src/lib/videoTranscode.js
 // ─────────────────────────────────────────────────────────────────────────────
-// Client-side FAST remux → a standard, universally-playable MP4 via ffmpeg.wasm.
-// Runs ENTIRELY in the browser: no server, no API, no recurring cost.
+// Client-side reel finalizer via ffmpeg.wasm — runs ENTIRELY in the browser
+// (no server, no API, no recurring cost).
 //
-// WHY: Chrome/Android MediaRecorder writes a FRAGMENTED MP4 with OPUS audio. The
-// captured H.264 frames are real and correctly timed, but the fragmented container +
-// Opus-in-MP4 don't decode in Samsung Gallery / Windows Photos / QuickTime (frozen
-// frame, no sound) and IG/FB reject them. We DE-FRAGMENT to a standard faststart MP4
-// and transcode Opus→AAC — but we COPY the video stream (no re-encode), so it's fast
-// even on a phone: only the audio is re-encoded.
+// WHY: the recorder now captures VIDEO-ONLY (Chrome/Edge MediaRecorder would
+// otherwise mux OPUS audio, and Opus-in-MP4 renders frozen + silent in Samsung
+// Gallery / Windows / Edge and is rejected by IG/FB — proven by comparing a
+// working IG post (video-only) to a broken export (video + Opus)). Here we:
+//   • de-fragment to a standard faststart MP4 (video stream COPIED — no re-encode),
+//   • and, when a voiceover URL is given, mux it in as AAC.
+// The output is a clean, universally-playable MP4 with the voiceover in a codec
+// every player + Meta accepts.
 //
-// ffmpeg.wasm is loaded at RUNTIME from CDN (single-threaded core — no SharedArrayBuffer
-// / COOP-COEP needed). Intentionally NOT an npm dependency, so the build needs no extra
-// install and the ~30MB wasm only loads the first time a reel is finalized.
+// ffmpeg.wasm loads at RUNTIME from CDN (single-threaded core — no COOP/COEP). Not
+// an npm dependency, so the build needs no install; the ~30MB wasm loads once.
 
 const FFMPEG_ESM = 'https://esm.sh/@ffmpeg/ffmpeg@0.12.10';
 const UTIL_ESM = 'https://esm.sh/@ffmpeg/util@0.12.1';
@@ -41,21 +42,27 @@ async function getFFmpeg() {
   return ff;
 }
 
-// Recorded blob → standard MP4 Blob (faststart). The recorded H.264 video is already
-// real motion with correct timing, so we COPY it (fast) and only transcode Opus→AAC +
-// de-fragment. A WebM source (no copyable H.264) re-encodes video to H.264. onProgress(0..1).
-export async function toStandardMp4(blob, { sourceIsMp4 = true, onProgress } = {}) {
+// Video-only recording → standard faststart MP4. If voUrl is provided, the voiceover
+// is muxed in as AAC (video COPIED, audio encoded). sourceIsMp4 picks the demux name.
+// onProgress(0..1). Throws on failure (caller falls back to the raw video-only blob).
+export async function toStandardMp4(blob, { voUrl, sourceIsMp4 = true, onProgress } = {}) {
   const { fetchFile } = await import(/* @vite-ignore */ UTIL_ESM);
   const ff = await getFFmpeg();
   _onProgress = typeof onProgress === 'function' ? onProgress : null;
   const inName = sourceIsMp4 ? 'reel-in.mp4' : 'reel-in.webm';
+  const voName = 'reel-vo';
   const outName = 'reel-out.mp4';
+  const vCodec = sourceIsMp4 ? ['-c:v', 'copy'] : ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p'];
+  let haveVo = false;
   try {
     await ff.writeFile(inName, await fetchFile(blob));
-    const args = sourceIsMp4
-      ? ['-i', inName, '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', outName]
-      : ['-i', inName, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p',
-        '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', outName];
+    if (voUrl) {
+      try { await ff.writeFile(voName, await fetchFile(voUrl)); haveVo = true; } catch { haveVo = false; }
+    }
+    const args = haveVo
+      ? ['-i', inName, '-i', voName, '-map', '0:v:0', '-map', '1:a:0', ...vCodec,
+        '-c:a', 'aac', '-b:a', '160k', '-shortest', '-movflags', '+faststart', outName]
+      : ['-i', inName, ...vCodec, '-an', '-movflags', '+faststart', outName];
     await ff.exec(args);
     const data = await ff.readFile(outName);
     const out = new Blob([data.buffer], { type: 'video/mp4' });
@@ -64,6 +71,7 @@ export async function toStandardMp4(blob, { sourceIsMp4 = true, onProgress } = {
   } finally {
     _onProgress = null;
     try { await ff.deleteFile(inName); } catch { /* noop */ }
+    if (haveVo) { try { await ff.deleteFile(voName); } catch { /* noop */ } }
     try { await ff.deleteFile(outName); } catch { /* noop */ }
   }
 }

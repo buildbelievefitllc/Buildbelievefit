@@ -16,6 +16,10 @@ const PLATFORMS = [
 
 const stripMarkup = (s) => String(s || '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').trim();
 
+// Per-session base for unique export filenames. Module scope so the timestamp is read
+// once at load (the render-purity rule forbids Date.now() inside the component).
+const SESSION_STAMP = Date.now();
+
 function humanizePostErr(slug) {
   const map = {
     no_admin_session: 'No admin session in this browser — sign in to the Command Center, then retry.',
@@ -54,6 +58,7 @@ export default function StudioLayout({
   // shows it visually shrunk via StageScaler's transform; for export/post we
   // briefly neutralize that transform so html2canvas captures at full resolution.
   const stageRef = useRef(null);
+  const exportSeqRef = useRef(0); // bumps per export → unique filename
   const [exporting, setExporting] = useState(false);
   const [posting, setPosting] = useState(false);
   const [postNote, setPostNote] = useState(null); // { ok: boolean, text: string }
@@ -220,27 +225,27 @@ export default function StudioLayout({
       const { recordReel } = await import('../../lib/reelRecorder.js');
       const result = await recordReel({
         stageNode: stageRef.current,
-        voUrl: reelData.voUrl,
         durationCap: target ? 90 : 1200,
         onProgress: (p) => setRecordPct(Math.round(p * 100)),
       });
       if (!result || !result.blob) throw new Error('record_failed');
 
-      // The recorded H.264 is real motion with correct timing, but Chrome/Android
-      // wraps it as a FRAGMENTED MP4 with OPUS audio — which renders frozen + silent
-      // in Samsung Gallery / Photos and is rejected by IG/FB. Fast in-browser remux →
-      // standard faststart MP4 + AAC: the video is COPIED (no slow re-encode), only the
-      // audio is converted. Falls back to the raw recording if the converter can't load.
+      // The recording is now VIDEO-ONLY (no Opus track) → it already plays everywhere,
+      // exactly like the working IG posts. Finalize de-fragments to a standard faststart
+      // MP4 and muxes the voiceover back in as AAC (video COPIED — no re-encode). If the
+      // converter can't load, we fall back to the playable video-only clip (no voiceover)
+      // rather than ever shipping a broken/Opus file.
       let outBlob = result.blob;
       let outExt = result.ext;
       let finalized = false;
       try {
         const { toStandardMp4, transcodeSupported } = await import('../../lib/videoTranscode.js');
-        if (transcodeSupported() && result.ext === 'mp4') {
+        if (transcodeSupported()) {
           setRecordPct(0);
-          setPostNote({ ok: true, text: 'Finalizing MP4 in your browser (first run loads the converter)…' });
+          setPostNote({ ok: true, text: 'Finalizing MP4 + voiceover in your browser (first run loads the converter)…' });
           const mp4 = await toStandardMp4(result.blob, {
-            sourceIsMp4: true,
+            voUrl: reelData.voUrl || null,
+            sourceIsMp4: result.ext === 'mp4',
             onProgress: (p) => setRecordPct(Math.round(p * 100)),
           });
           if (mp4 && mp4.size) { outBlob = mp4; outExt = 'mp4'; finalized = true; }
@@ -249,6 +254,9 @@ export default function StudioLayout({
         console.error('[StudioV4] MP4 finalize failed:', err);
       }
 
+      // Unique, timestamped filename so every export is distinct (never a stale same-name file).
+      exportSeqRef.current += 1;
+      const stamp = `${SESSION_STAMP}-${exportSeqRef.current}`;
       const downloadBlob = (blob, name) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -257,26 +265,25 @@ export default function StudioLayout({
         setTimeout(() => URL.revokeObjectURL(url), 120000);
       };
 
-      // EXPORT ONLY (no targets) → download the finalized reel.
+      // EXPORT ONLY (no targets) → download.
       if (!target) {
-        downloadBlob(outBlob, `bbf-reel-1080x1920.${outExt}`);
+        downloadBlob(outBlob, `bbf-reel-${stamp}.${outExt}`);
         setPostNote(finalized
-          ? { ok: true, text: '✓ Exported reel (MP4) — plays everywhere, voiceover baked in.' }
-          : outExt === 'mp4'
-            ? { ok: false, text: 'Downloaded the raw MP4 — the in-browser converter couldn’t load, so it may show frozen in basic players. Export again to finalize.' }
-            : { ok: false, text: 'Exported .webm — convert before posting to IG/FB.' });
+          ? { ok: true, text: `✓ Exported bbf-reel-${stamp}.mp4 — plays everywhere${reelData.voUrl ? ', voiceover baked in' : ''}.` }
+          : { ok: true, text: `✓ Exported bbf-reel-${stamp}.${outExt} (video plays). Voiceover not embedded — the converter didn’t load; export again to add it.` });
         return;
       }
 
-      // POST → IG/FB/TikTok need a finalized standard MP4.
-      if (!finalized) {
-        downloadBlob(outBlob, `bbf-reel.${outExt}`);
-        setPostNote({ ok: false, text: 'Couldn’t finalize a postable MP4 in-browser — downloaded the clip instead. Try again so the converter can load.' });
+      // POST → IG/FB/TikTok. Post the finalized clip; if the converter didn't run, the
+      // video-only recording is still a valid, postable MP4 (matches the working posts).
+      if (result.ext !== 'mp4' && !finalized) {
+        downloadBlob(outBlob, `bbf-reel-${stamp}.${outExt}`);
+        setPostNote({ ok: false, text: 'This browser recorded WebM and the converter didn’t load (IG/FB reject WebM). Downloaded the clip — try again to finalize.' });
         return;
       }
 
       setPosting(true);
-      setPostNote({ ok: true, text: `Posting reel to ${platformLabel()}…` });
+      setPostNote({ ok: true, text: `Posting reel to ${platformLabel()}…${finalized ? '' : ' (video-only — voiceover didn’t embed)'}` });
       const { queuePost, pollPostStatus } = await import('../../lib/studioQueueApi.js');
       const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => outBlob, now: true });
       if (res.status === 'posting') {
