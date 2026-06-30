@@ -14,12 +14,16 @@ const { createClient } = require('@supabase/supabase-js');
 const Anthropic = require('@anthropic-ai/sdk');
 const { mintTicket, verifyTicket } = require('./bbf-ws-ticket');
 // Sovereign Studio server-side reel render ("Foundry") — real ffmpeg binary + multipart upload.
-const ffmpegPath = require('ffmpeg-static');
-const multer = require('multer');
 const { spawn } = require('node:child_process');
 const os = require('node:os');
 const fsp = require('node:fs/promises');
 const nodePath = require('node:path');
+// Loaded DEFENSIVELY: a missing/failed render dep must never crash the whole proxy
+// (voice coach, /process, etc. stay up). The render route 503s when these are absent.
+let ffmpegPath = null;
+let multer = null;
+try { ffmpegPath = require('ffmpeg-static'); } catch (e) { console.warn('[studio] ffmpeg-static unavailable:', e && e.message); }
+try { multer = require('multer'); } catch (e) { console.warn('[studio] multer unavailable:', e && e.message); }
 
 // ───────────────────────────────────────────────────────────────
 // Environment validation
@@ -653,9 +657,14 @@ app.get('/health', (req, res) => {
 // URL, and a REAL ffmpeg binary here composites them into a standard, faststart
 // 1080×1920 MP4, stores it in Supabase, and returns the URL. Auth: the admin's vault
 // session token (RPC-resolved). Origin-allowlisted.
-const reelUpload = multer({ dest: os.tmpdir(), limits: { fileSize: 300 * 1024 * 1024 } });
 const REEL_RENDER_BUCKET = 'studio-audio-vault';
 const REEL_W = 1080, REEL_H = 1920;
+const reelReady = !!(ffmpegPath && multer);
+// When the render deps loaded, parse multipart; otherwise a pass-through so the route
+// still registers and can return a clean 503 instead of crashing at boot.
+const reelUpload = reelReady
+  ? multer({ dest: os.tmpdir(), limits: { fileSize: 300 * 1024 * 1024 } }).fields([{ name: 'video', maxCount: 1 }, { name: 'overlay', maxCount: 1 }])
+  : (req, res, next) => next();
 
 async function resolveVaultUser(req) {
   const token = (req.headers['x-bbf-vault-token'] || (req.body && req.body.vault_token) || '').toString().trim();
@@ -667,11 +676,18 @@ async function resolveVaultUser(req) {
   return null;
 }
 
+// GET ping — visit this URL to confirm THIS build is the one deployed (and that the
+// ffmpeg binary loaded). If you see {ready:true,ffmpeg:true}, the new code is live.
+app.get('/api/studio/render-reel', (req, res) => {
+  res.json({ ok: true, route: 'studio/render-reel', ready: reelReady, ffmpeg: !!ffmpegPath, build: 'foundry-1' });
+});
+
 app.post('/api/studio/render-reel',
-  reelUpload.fields([{ name: 'video', maxCount: 1 }, { name: 'overlay', maxCount: 1 }]),
+  reelUpload,
   async (req, res) => {
     const origin = req.headers.origin;
     if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+    if (!reelReady) return res.status(503).json({ ok: false, error: 'render_unavailable', detail: 'ffmpeg/multer not installed on this service yet.' });
     const tmp = [];
     const cleanup = async () => { for (const f of tmp) { try { await fsp.unlink(f); } catch { /* noop */ } } };
     try {
