@@ -255,6 +255,13 @@ export default function StudioLayout({
         setTimeout(() => URL.revokeObjectURL(u), 120000);
       };
 
+      // Audio status line — explicit, never silent (CEO order: bubble the reason).
+      const audioMsg = result.audio
+        ? '🎙 Voiceover baked in.'
+        : (reelData.voUrl
+            ? `⚠ Audio failed: ${result.audioError || 'unknown'} — video exported without voiceover.`
+            : 'No voiceover was attached.');
+
       // EXPORT ONLY (no targets) → download the clean MP4.
       if (!target) {
         downloadBlob(result.blob, `bbf-reel-${stamp}.mp4`);
@@ -262,8 +269,8 @@ export default function StudioLayout({
         const frm = result.frames ? `${result.frames} real frames` : '';
         const stats = [dur, frm].filter(Boolean).join(', ');
         setPostNote({
-          ok: true,
-          text: `✓ Exported bbf-reel-${stamp}.mp4 — clean MP4${stats ? ` (${stats})` : ''}, plays everywhere. ${result.audio ? '🎙 Voiceover baked in.' : '⚠ No voiceover track on this one — the VO MP3 could not be decoded (check it’s attached/loadable).'}`,
+          ok: !!result.audio || !reelData.voUrl,
+          text: `✓ Exported bbf-reel-${stamp}.mp4 — clean MP4${stats ? ` (${stats})` : ''}, plays everywhere. ${audioMsg}`,
         });
         return;
       }
@@ -276,9 +283,9 @@ export default function StudioLayout({
       if (res.status === 'posting') {
         setPostNote({ ok: true, text: 'Posting reel… Meta is transcoding (~60–90s).' });
         const verdict = await pollPostStatus({ kind: 'video', id: res.id });
-        setPostNote({ ok: verdict === 'posted', text: verdict === 'posted' ? '✓ Reel posted.' : verdict === 'failed' ? 'Meta rejected the reel — the asset is saved.' : 'Still finishing at Meta — check IG/FB shortly.' });
+        setPostNote({ ok: verdict === 'posted', text: verdict === 'posted' ? `✓ Reel posted. ${audioMsg}` : verdict === 'failed' ? 'Meta rejected the reel — the asset is saved.' : 'Still finishing at Meta — check IG/FB shortly.' });
       } else {
-        setPostNote({ ok: true, text: '✓ Reel posted.' });
+        setPostNote({ ok: true, text: `✓ Reel posted. ${audioMsg}` });
       }
     } catch (e) {
       setPostNote({ ok: false, text: humanizeReelErr(e?.message) });

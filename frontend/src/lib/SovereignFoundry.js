@@ -53,26 +53,34 @@ export class SovereignFoundry {
   }
 
   /**
-   * Snapshot the branded overlay (DOM → 1080×1920 canvas), once. DOM-coupled but
-   * React-free. The live video / placeholder / controls are hidden so only the
-   * burned-in brand typography is captured. Returns a canvas, or null on failure.
+   * Snapshot the branded overlay → a TRUE 1080×1920 canvas. DOM-coupled but React-free.
+   *
+   * We DO NOT html2canvas the live stage: it lives inside StageScaler's
+   * `transform: scale()`, and `await import('html2canvas')` yields to the event loop
+   * long enough for a pending React re-render to re-apply that scale — html2canvas then
+   * reads the shrunk getBoundingClientRect and stamps a mini render into the top-left
+   * (the "PIP glitch"). Instead we CLONE the stage into an off-DOM, un-scaled, full-size
+   * host that React never reconciles, strip the video/controls (overlay = brand only),
+   * and rasterize the clone. Nothing can shrink it mid-capture.
    */
   static async captureOverlay(stageNode) {
     if (!stageNode) return null;
-    const HIDE = ['.reel-video-v4', '.reel-placeholder-v4', '.reel-play-v4', '.reel-vo-v4', '.reel-progress-v4'];
-    const hidden = [];
-    HIDE.forEach((sel) => stageNode.querySelectorAll(sel).forEach((el) => { hidden.push([el, el.style.visibility]); el.style.visibility = 'hidden'; }));
-    const scaler = stageNode.closest('.stage-scaler-inner');
-    const prevT = scaler ? scaler.style.transform : null;
-    if (scaler) scaler.style.transform = 'none';
+    let host = null;
     try {
       const { default: html2canvas } = await import('html2canvas');
-      return await html2canvas(stageNode, { backgroundColor: null, scale: 1, useCORS: true, imageTimeout: 4000, width: TARGET_W, height: TARGET_H });
+      const clone = stageNode.cloneNode(true);
+      clone.querySelectorAll('.reel-video-v4, .reel-placeholder-v4, .reel-play-v4, .reel-vo-v4, .reel-progress-v4')
+        .forEach((el) => el.remove());
+      clone.style.transform = 'none';
+      clone.style.width = TARGET_W + 'px';
+      clone.style.height = TARGET_H + 'px';
+      host = document.createElement('div');
+      host.style.cssText = `position:fixed;left:-99999px;top:0;width:${TARGET_W}px;height:${TARGET_H}px;transform:none;pointer-events:none;z-index:-1;`;
+      host.appendChild(clone);
+      document.body.appendChild(host);
+      return await html2canvas(clone, { backgroundColor: null, scale: 1, useCORS: true, imageTimeout: 4000, width: TARGET_W, height: TARGET_H });
     } catch { return null; }
-    finally {
-      if (scaler) scaler.style.transform = prevT || '';
-      hidden.forEach(([el, v]) => { el.style.visibility = v || ''; });
-    }
+    finally { if (host) { try { host.remove(); } catch { /* noop */ } } }
   }
 
   /**
@@ -96,8 +104,13 @@ export class SovereignFoundry {
       await this._whenReady(video);
       const footageDur = (Number.isFinite(video.duration) && video.duration > 0) ? video.duration : 0;
 
-      // Decode the voiceover FIRST so its real length can drive the reel duration.
-      const audioBuffer = await this._decodeVo(voUrl);
+      // Decode + resample the voiceover FIRST so its real length drives the duration.
+      // Any failure is captured as a REASON (never swallowed) and surfaced to the UI.
+      let audioBuffer = null, audioError = null;
+      if (voUrl) {
+        const dec = await this._decodeVo(voUrl);
+        if (dec.error) audioError = dec.error; else audioBuffer = dec.buffer;
+      }
       const voDur = audioBuffer ? (audioBuffer.length / audioBuffer.sampleRate) : 0;
 
       const naturalDur = Math.max(footageDur, voDur) || footageDur || voDur || durationCap;
@@ -110,6 +123,7 @@ export class SovereignFoundry {
       //    browsers/builds without proprietary encoders (Linux/headless/older).
       const vpick = await this._pickVideo(W, H, fps);
       const apick = audioBuffer ? await this._pickAudio(audioBuffer.sampleRate, Math.min(audioBuffer.numberOfChannels, 2)) : null;
+      if (audioBuffer && !apick) audioError = 'No AAC/Opus encoder in this browser';
 
       // ── MUXER ── clean, unfragmented, faststart MP4 with consistent timescales.
       const muxer = new Muxer({
@@ -165,7 +179,7 @@ export class SovereignFoundry {
       if (aenc) { try { aenc.close(); } catch { /* noop */ } }
       if (!blob.size) throw new Error('empty_recording');
       if (onProgress) onProgress(1);
-      return { blob, ext: 'mp4', mime: 'video/mp4', audio: !!aenc, frames, durationSec: Math.round(d * 10) / 10 };
+      return { blob, ext: 'mp4', mime: 'video/mp4', audio: !!aenc, audioError, frames, durationSec: Math.round(d * 10) / 10 };
     } finally {
       this._destroyVideo();
     }
@@ -291,17 +305,47 @@ export class SovereignFoundry {
     return null;
   }
 
+  // Fetch + decode + RESAMPLE the voiceover to a fixed 48 kHz. A sample-rate mismatch
+  // between the AudioBuffer and the AudioEncoder makes WebCodecs silently drop data
+  // (the "audio drop"); pinning everything to 48 kHz removes that whole class of bug.
+  // Returns { buffer } on success or { error: '<reason>' } — NEVER a silent null —
+  // so the UI can state exactly why audio failed (CORS / Decode / etc.).
   async _decodeVo(voUrl) {
-    if (!voUrl) return null;
+    const TARGET_SR = 48_000;
+    // ── CORS fetch ──
+    let arr;
     try {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
+      const res = await fetch(voUrl, { mode: 'cors', credentials: 'omit', cache: 'no-store' });
+      if (!res.ok) return { error: `Fetch ${res.status}` };
+      arr = await res.arrayBuffer();
+    } catch { return { error: 'CORS / network' }; }
+    if (!arr || arr.byteLength < 16) return { error: 'Empty file' };
+
+    // ── Decode (MP3/WAV/etc.) ──
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return { error: 'No AudioContext' };
+    let decoded;
+    try {
       const ac = new AC();
-      const arr = await (await fetch(voUrl, { mode: 'cors' })).arrayBuffer();
-      const buf = await ac.decodeAudioData(arr);
+      decoded = await ac.decodeAudioData(arr.slice(0));
       try { ac.close(); } catch { /* noop */ }
-      return buf;
-    } catch { return null; }
+    } catch { return { error: 'Decode' }; }
+    if (!decoded || !decoded.length) return { error: 'Decode (empty)' };
+
+    // ── Resample to TARGET_SR so the encoder rate always matches the data ──
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OAC || decoded.sampleRate === TARGET_SR) return { buffer: decoded };
+    try {
+      const ch = Math.min(decoded.numberOfChannels, 2);
+      const frames = Math.max(1, Math.ceil(decoded.duration * TARGET_SR));
+      const oac = new OAC(ch, frames, TARGET_SR);
+      const node = oac.createBufferSource();
+      node.buffer = decoded;
+      node.connect(oac.destination);
+      node.start();
+      const resampled = await oac.startRendering();
+      return { buffer: resampled };
+    } catch { return { buffer: decoded }; } // resample failed → still ship audio at native rate
   }
 
   _encodeVoiceover(muxer, audioBuffer, durationSec, apick, setErr) {
