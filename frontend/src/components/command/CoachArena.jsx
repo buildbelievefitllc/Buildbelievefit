@@ -2,19 +2,34 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Coach Lab · Pillar 3 — The Coach's Arena (client case-study simulator).
 //
-// Generate a randomized client case → write a protocol → get a scored critique
-// (vs NASM / NSCA) from Claude (bbf-coach-arena). A live sparring drill; nothing
-// persisted. Founder-only (the /command route gates it).
+// Default path: draw a case from the hardwired ARENA_CASES deck (zero API
+// calls). "Generate via AI" is an explicit fallback that calls Claude
+// (bbf-coach-arena) for a fresh one once the ten-case deck runs thin. Either
+// way, you write the protocol and get a scored critique (vs NASM / NSCA) from
+// Claude — that part always stays live. A sparring drill; nothing persisted.
+// Founder-only (the /command route gates it).
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { generateCase, critiqueProtocol } from '../../lib/coachLabApi.js';
+import { ARENA_CASES } from './coachArenaCases.js';
+
+function shuffled(n) {
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 const ARENA_L10N = {
   en: {
-    intro: 'Pressure-test your decision-making. Claude generates a realistic client case; you write the protocol; it scores you against the guidelines.',
+    intro: 'Pressure-test your decision-making. Draw a case from the deck; you write the protocol; Claude scores you against the guidelines.',
     generate: 'Generate a case', generating: 'Building case…',
+    generateAI: 'Generate via AI', generatingAI: 'Asking Claude…',
     newCase: 'New case', caseKicker: 'Client Case',
+    sourceLocal: 'Deck', sourceAI: 'AI-Generated',
     age: 'Age', trainingAge: 'Experience', goal: 'Primary goal', constraints: 'Constraints', limitations: 'Biomechanical limitations', theAsk: 'The ask',
     protocolLabel: 'Your protocol', protocolPlaceholder: 'Write your training / nutrition protocol — exercise selection, loading, progression, regressions, and your reasoning… (30+ characters)',
     submit: 'Submit for critique', critiquing: 'Scoring your protocol…',
@@ -22,9 +37,11 @@ const ARENA_L10N = {
     errorPrefix: 'Error',
   },
   es: {
-    intro: 'Pon a prueba tu toma de decisiones. Claude genera un caso real; tú escribes el protocolo; él te puntúa según las guías.',
+    intro: 'Pon a prueba tu toma de decisiones. Saca un caso del mazo; tú escribes el protocolo; Claude te puntúa según las guías.',
     generate: 'Generar un caso', generating: 'Creando caso…',
+    generateAI: 'Generar con IA', generatingAI: 'Preguntando a Claude…',
     newCase: 'Nuevo caso', caseKicker: 'Caso de Cliente',
+    sourceLocal: 'Mazo', sourceAI: 'Generado por IA',
     age: 'Edad', trainingAge: 'Experiencia', goal: 'Objetivo principal', constraints: 'Restricciones', limitations: 'Limitaciones biomecánicas', theAsk: 'El reto',
     protocolLabel: 'Tu protocolo', protocolPlaceholder: 'Escribe tu protocolo de entrenamiento / nutrición — selección de ejercicios, carga, progresión, regresiones y tu razonamiento… (30+ caracteres)',
     submit: 'Enviar a crítica', critiquing: 'Puntuando tu protocolo…',
@@ -32,9 +49,11 @@ const ARENA_L10N = {
     errorPrefix: 'Error',
   },
   pt: {
-    intro: 'Teste sua tomada de decisão. Claude gera um caso real; você escreve o protocolo; ele te pontua segundo as diretrizes.',
+    intro: 'Teste sua tomada de decisão. Tire um caso do baralho; você escreve o protocolo; Claude te pontua segundo as diretrizes.',
     generate: 'Gerar um caso', generating: 'Criando caso…',
+    generateAI: 'Gerar com IA', generatingAI: 'Perguntando ao Claude…',
     newCase: 'Novo caso', caseKicker: 'Caso de Cliente',
+    sourceLocal: 'Baralho', sourceAI: 'Gerado por IA',
     age: 'Idade', trainingAge: 'Experiência', goal: 'Objetivo principal', constraints: 'Restrições', limitations: 'Limitações biomecânicas', theAsk: 'O desafio',
     protocolLabel: 'Seu protocolo', protocolPlaceholder: 'Escreva seu protocolo de treino / nutrição — seleção de exercícios, carga, progressão, regressões e seu raciocínio… (30+ caracteres)',
     submit: 'Enviar para crítica', critiquing: 'Pontuando seu protocolo…',
@@ -54,9 +73,22 @@ export default function CoachArena() {
   const [critBusy, setCritBusy] = useState(false);
   const [error, setError] = useState(null);
 
-  const newCase = async () => {
+  // No-repeat draw queue over the hardwired deck — reshuffles once exhausted.
+  const deckRef = useRef([]);
+  const drawFromDeck = () => {
+    if (deckRef.current.length === 0) deckRef.current = shuffled(ARENA_CASES.length);
+    const idx = deckRef.current.pop();
+    return { ...ARENA_CASES[idx], _source: 'local' };
+  };
+
+  const newCase = () => {
+    setError(null); setCritique(null); setProtocol('');
+    setTheCase(drawFromDeck());
+  };
+
+  const newCaseAI = async () => {
     setGenBusy(true); setError(null); setCritique(null); setProtocol('');
-    try { setTheCase(await generateCase()); }
+    try { setTheCase({ ...(await generateCase()), _source: 'ai' }); }
     catch (e) { setError(e.message); }
     finally { setGenBusy(false); }
   };
@@ -73,9 +105,14 @@ export default function CoachArena() {
     return (
       <div className="ar" data-testid="coach-arena">
         <p className="ar-intro">{L.intro}</p>
-        <button type="button" className="ar-generate" onClick={newCase} disabled={genBusy} data-testid="ar-generate">
-          {genBusy ? L.generating : `⚔ ${L.generate}`}
-        </button>
+        <div className="ar-launch-row">
+          <button type="button" className="ar-generate" onClick={newCase} disabled={genBusy} data-testid="ar-generate">
+            ⚔ {L.generate}
+          </button>
+          <button type="button" className="ar-ai-link" onClick={newCaseAI} disabled={genBusy} data-testid="ar-generate-ai">
+            {genBusy ? L.generatingAI : `✨ ${L.generateAI}`}
+          </button>
+        </div>
         {error ? <p className="cl-err" role="alert">{L.errorPrefix}: {error}</p> : null}
       </div>
     );
@@ -88,10 +125,20 @@ export default function CoachArena() {
     <div className="ar" data-testid="coach-arena">
       <div className="ar-case" data-testid="ar-case">
         <div className="ar-case-head">
-          <span className="ar-kicker">⚔ {L.caseKicker}</span>
-          <button type="button" className="kl-btn" onClick={newCase} disabled={genBusy} data-testid="ar-newcase">
-            {genBusy ? L.generating : L.newCase}
-          </button>
+          <span className="ar-kicker">
+            ⚔ {L.caseKicker}
+            <span className={`ar-source ar-source--${theCase._source === 'ai' ? 'ai' : 'local'}`} data-testid="ar-source">
+              {theCase._source === 'ai' ? L.sourceAI : L.sourceLocal}
+            </span>
+          </span>
+          <div className="ar-case-actions">
+            <button type="button" className="kl-btn" onClick={newCase} disabled={genBusy} data-testid="ar-newcase">
+              {L.newCase}
+            </button>
+            <button type="button" className="ar-ai-link" onClick={newCaseAI} disabled={genBusy} data-testid="ar-newcase-ai">
+              {genBusy ? L.generatingAI : `✨ ${L.generateAI}`}
+            </button>
+          </div>
         </div>
         <h3 className="ar-case-title">{theCase.scenario_title}</h3>
         <div className="ar-profile">

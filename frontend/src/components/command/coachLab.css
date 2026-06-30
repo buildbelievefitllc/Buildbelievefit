@@ -667,12 +667,28 @@
 }
 .ar-generate:hover:not(:disabled) { transform: translateY(-2px); }
 .ar-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+.ar-launch-row { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
+.ar-ai-link {
+  font-family: var(--hb); font-size: 0.72rem; letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--gold-soft); background: none; border: none; padding: 0.4rem 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(245, 200, 0, 0.4);
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+.ar-ai-link:hover:not(:disabled) { color: var(--yel); }
+.ar-ai-link:disabled { opacity: 0.5; cursor: not-allowed; }
 .ar-case {
   border: 1px solid var(--cl-line); border-radius: 16px; padding: 1.4rem 1.5rem; margin-bottom: 1.6rem;
   background: radial-gradient(120% 120% at 100% 0%, rgba(106, 13, 173, 0.2) 0%, rgba(106, 13, 173, 0) 60%), var(--cl-glass);
 }
-.ar-case-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.7rem; }
-.ar-kicker { font-family: var(--hb); font-size: 0.7rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold-deep); }
+.ar-case-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.7rem; flex-wrap: wrap; }
+.ar-case-actions { display: flex; align-items: center; gap: 1rem; }
+.ar-kicker { display: inline-flex; align-items: center; gap: 0.55rem; font-family: var(--hb); font-size: 0.7rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold-deep); }
+.ar-source {
+  font-family: var(--hb); font-size: 0.58rem; letter-spacing: 1.4px; text-transform: uppercase;
+  border-radius: 999px; padding: 0.2rem 0.5rem; border: 1px solid;
+}
+.ar-source--local { color: var(--mut); border-color: var(--line); background: rgba(255, 255, 255, 0.03); }
+.ar-source--ai { color: var(--cl-purple); border-color: rgba(106, 13, 173, 0.4); background: rgba(106, 13, 173, 0.12); }
 .ar-case-title { font-family: var(--display); font-size: 1.7rem; letter-spacing: 0.5px; color: var(--wht); margin: 0 0 0.9rem; }
 .ar-profile { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-bottom: 0.9rem; }
 .ar-pf { display: flex; flex-direction: column; gap: 0.15rem; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line); border-radius: 10px; padding: 0.5rem 0.8rem; min-width: 110px; }

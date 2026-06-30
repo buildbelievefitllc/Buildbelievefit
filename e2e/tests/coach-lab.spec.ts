@@ -144,12 +144,20 @@ test.describe('Coach Lab — Knowledge Ecosystem', () => {
     await mockNetwork(page);
     await page.goto('/command/coach-lab');
 
-    // Arena
+    // Arena — default "Generate a case" draws from the hardwired local deck,
+    // zero network calls. Title should be one of the ten hardwired scenarios.
     await page.locator('[data-testid="cl-pillar-arena"]').click();
     await expect(page.locator('[data-testid="coach-arena"]')).toBeVisible({ timeout: 15_000 });
     await page.locator('[data-testid="ar-generate"]').click();
     await expect(page.locator('[data-testid="ar-case"]')).toBeVisible();
+    await expect(page.locator('[data-testid="ar-source"]')).toContainText('Deck');
+    await expect(page.locator('.ar-case-title')).not.toBeEmpty();
+
+    // "Generate via AI" is the explicit fallback that hits bbf-coach-arena.
+    await page.locator('[data-testid="ar-newcase-ai"]').click();
+    await expect(page.locator('[data-testid="ar-source"]')).toContainText('AI-Generated');
     await expect(page.locator('.ar-case-title')).toContainText('Point Guard');
+
     await page.locator('[data-testid="ar-protocol"]').fill('Phase 1: isometric calf + single-leg balance, RPE 6. Phase 2: tempo step-downs, lateral bounds low amplitude. Phase 3: reactive cutting with hop-test gating.');
     await page.locator('[data-testid="ar-submit"]').click();
     await expect(page.locator('[data-testid="ar-critique"]')).toBeVisible();
