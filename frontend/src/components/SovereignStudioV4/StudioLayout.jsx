@@ -251,7 +251,13 @@ export default function StudioLayout({
       // EXPORT ONLY (no targets) → download the clean MP4.
       if (!target) {
         downloadBlob(result.blob, `bbf-reel-${stamp}.mp4`);
-        setPostNote({ ok: true, text: `✓ Exported bbf-reel-${stamp}.mp4 — clean MP4, plays everywhere${result.audio ? ' (voiceover baked in)' : ' (no voiceover on this one)'}.` });
+        const dur = result.durationSec ? `${result.durationSec}s` : '';
+        const frm = result.frames ? `${result.frames} real frames` : '';
+        const stats = [dur, frm].filter(Boolean).join(', ');
+        setPostNote({
+          ok: true,
+          text: `✓ Exported bbf-reel-${stamp}.mp4 — clean MP4${stats ? ` (${stats})` : ''}, plays everywhere. ${result.audio ? '🎙 Voiceover baked in.' : '⚠ No voiceover track on this one — the VO MP3 could not be decoded (check it’s attached/loadable).'}`,
+        });
         return;
       }
 
