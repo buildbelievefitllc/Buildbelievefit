@@ -31,7 +31,8 @@
 // Phase 0-4 BASE · Daily Brief generation:
 // Asynchronous, cron-triggered batch that generates the next-day
 // daily_brief for every Sovereign-tier athlete. Reads each user's last
-// 24h of training (bbf_logs) + autonomic readiness (bbf_readiness), asks
+// 24h of training (bbf_logs) + autonomic readiness (Sovereign biometric
+// ledger: bbf_daily_protocols + bbf_daily_biometrics), asks
 // Claude Haiku to write a 2–3 sentence clinical intelligence brief in
 // the voice of a Sovereign-tier hypertrophy + biomechanics coach, then
 // UPDATEs bbf_users.daily_brief with the result. The brief surfaces on
@@ -100,7 +101,7 @@ const SYSTEM_PROMPT = [
   'You are the BBF Midnight Haiku Engine — a Sovereign-tier hypertrophy and biomechanics coach reporting to Head Coach Akeem Brown, founder of Build Believe Fit. You write the daily intelligence brief that greets each Sovereign-tier athlete the moment they open today\'s Workout tab.',
   '',
   '# YOUR JOB',
-  'Read the athlete\'s last 24 hours of training volume + intensity (bbf_logs / bbf_sets) and CNS readiness (bbf_readiness). Synthesize 2–3 sentences of highly specific, actionable intelligence the athlete can apply to today\'s session.',
+  'Read the athlete\'s recent training volume + intensity (bbf_logs / bbf_sets) and CNS readiness from the Sovereign biometric ledger (readiness score 0-100, sleep_hours, stress_level). Synthesize 2–3 sentences of highly specific, actionable intelligence the athlete can apply to today\'s session.',
   '',
   '# WHAT TO PRESCRIBE',
   '- Joint health and mobility cues when soreness is elevated or sleep is short',
@@ -116,6 +117,7 @@ const SYSTEM_PROMPT = [
   '- Plain text. No markdown, no headings, no lists, no JSON.',
   '- Do not begin with "Hey", "Hello", "Good morning", or the athlete\'s name — those are rendered by the client.',
   '- Do not end with motivational filler ("you got this", "let\'s go", etc.).',
+  '- READINESS NUMBER IS PINNED: if you reference a readiness score, it MUST be EXACTLY the integer in current_readiness_score — never round it differently, never embellish it ("rebounded to 86"), never invent one. If current_readiness_score is null, do not state any readiness number; speak qualitatively and note the missing signal.',
   '- If the data is sparse (no logs, no readiness) prescribe joint integrity + sub-maximal warm-up volume and acknowledge the missing signal in one clause.',
 ].join('\n');
 
@@ -147,10 +149,10 @@ type LogRow = {
 };
 
 type ReadinessRow = {
-  timestamp: string;
+  date: string;
   score: number | null;
-  sleep_quality: number | null;
-  soreness_level: number | null;
+  sleep_hours: number | null;
+  stress_level: number | null;
 };
 
 // ─── Sovereign roster sweep ───────────────────────────────────────────
@@ -201,25 +203,37 @@ async function fetchRecentLogs(
 
 async function fetchRecentReadiness(
   uuid: string,
-  sinceIso: string,
+  _sinceIso: string,
   supabaseUrl: string,
   supabaseKey: string,
 ): Promise<ReadinessRow[]> {
-  const select = 'timestamp,score,sleep_quality,soreness_level';
-  const url = `${supabaseUrl}/rest/v1/bbf_readiness` +
-    `?user_id=eq.${encodeURIComponent(uuid)}` +
-    `&timestamp=gte.${encodeURIComponent(sinceIso)}` +
-    `&order=timestamp.desc` +
-    `&select=${select}`;
-  const res = await fetch(url, {
-    headers: {
-      'apikey':        supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
-    },
+  // LIVE source: the Sovereign biometric ledger. readiness_score lives on
+  // bbf_daily_protocols; sleep/stress live on bbf_daily_biometrics (joined by date).
+  // The legacy bbf_readiness table was retired (last write 2026-05-31) — reading it
+  // fed MONTH-STALE numbers into the brief, so the brief disagreed with the athlete's
+  // dashboard. We take the most recent few protocol days so the brief always reflects
+  // their REAL current readiness, even if today's protocol isn't logged yet.
+  const headers = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` };
+  const pUrl = `${supabaseUrl}/rest/v1/bbf_daily_protocols` +
+    `?athlete_id=eq.${encodeURIComponent(uuid)}` +
+    `&readiness_score=not.is.null&order=date.desc&limit=3&select=date,readiness_score`;
+  const bUrl = `${supabaseUrl}/rest/v1/bbf_daily_biometrics` +
+    `?athlete_id=eq.${encodeURIComponent(uuid)}` +
+    `&order=date.desc&limit=3&select=date,sleep_minutes,stress_level`;
+  const [pRes, bRes] = await Promise.all([fetch(pUrl, { headers }), fetch(bUrl, { headers })]);
+  const protocols: any[] = pRes.ok ? (await pRes.json().catch(() => [])) : [];
+  const bios: any[] = bRes.ok ? (await bRes.json().catch(() => [])) : [];
+  const bioByDate = new Map<string, any>((Array.isArray(bios) ? bios : []).map((b) => [String(b.date), b]));
+  return (Array.isArray(protocols) ? protocols : []).map((p) => {
+    const bio = bioByDate.get(String(p.date)) || {};
+    const sm = bio.sleep_minutes != null ? Number(bio.sleep_minutes) : null;
+    return {
+      date: String(p.date),
+      score: p.readiness_score != null ? Math.round(Number(p.readiness_score)) : null,
+      sleep_hours: sm != null ? Math.round((sm / 60) * 10) / 10 : null,
+      stress_level: bio.stress_level != null ? Number(bio.stress_level) : null,
+    } as ReadinessRow;
   });
-  if (!res.ok) return [];
-  const rows = await res.json();
-  return Array.isArray(rows) ? rows as ReadinessRow[] : [];
 }
 
 // ─── Anthropic call with retry/backoff ────────────────────────────────
@@ -230,14 +244,17 @@ async function generateBrief(
   apiKey: string,
   localeInput = 'en',
 ): Promise<string> {
+  // PIN: the exact current readiness — the one number the brief is allowed to state.
+  const currentReadinessScore = readiness.find((r) => r.score !== null)?.score ?? null;
   const userPayload = {
     athlete: {
       name: user.name || 'Athlete',
       uid:  user.id,
     },
     window_hours: LOOKBACK_HOURS,
-    bbf_logs:      logs,
-    bbf_readiness: readiness,
+    current_readiness_score: currentReadinessScore,
+    bbf_logs:   logs,
+    readiness,
   };
 
   const requestBody = {
