@@ -34,6 +34,13 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
     setDuration(0);
     setIsPlaying(false);
 
+    // Source changed → force the element to (re)load the new blob/URL. React
+    // swaps the `src` attribute but the browser won't pick up a dynamic source
+    // change without an explicit load(); without this the player can flatline
+    // on the previously decoded clip (BigJim: "triggers .load() if the source
+    // changes dynamically").
+    try { video.load(); } catch { /* noop */ }
+
     const onTime = () => setCurrentTime(video.currentTime);
     const onMeta = () => setDuration(video.duration || 0);
     const onEnded = () => setIsPlaying(false);
