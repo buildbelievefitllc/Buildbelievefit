@@ -132,13 +132,28 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, fps = 30,
     }
   }
 
-  // ── VIDEO: real-time sample of the playing footage; encode each painted frame ──
-  video.muted = true; video.loop = false; video.pause();
-  try { video.currentTime = 0; } catch { /* noop */ }
-  const maxTs = d;
+  // ── VIDEO: encode from a DEDICATED, OFF-SCREEN CLONE of the footage, fully decoupled
+  // from the UI preview's play/pause/seek state. The previous engine sampled the shared
+  // preview <video>, so a paused/short preview produced a frozen or truncated export.
+  // Here we own a private element, play it from t=0, and encode every frame it presents.
+  const enc = document.createElement('video');
+  enc.src = video.currentSrc || video.src;
+  enc.muted = true; enc.playsInline = true; enc.preload = 'auto';
+  try { enc.crossOrigin = video.crossOrigin || 'anonymous'; } catch { /* noop */ }
+  // Parked on-screen but invisible so the browser keeps decoding/presenting frames
+  // (a display:none video may not fire requestVideoFrameCallback).
+  enc.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1;';
+  document.body.appendChild(enc);
+  const cleanupEnc = () => { try { enc.pause(); } catch { /* noop */ } try { enc.remove(); } catch { /* noop */ } };
+  await new Promise((r) => { if (enc.readyState >= 1) { r(); return; } enc.addEventListener('loadedmetadata', () => r(), { once: true }); setTimeout(r, 5000); });
+
+  const encDur = (Number.isFinite(enc.duration) && enc.duration > 0) ? enc.duration : d;
+  const maxTs = Math.min(encDur, durationCap);
+  try { enc.currentTime = 0; } catch { /* noop */ }
+
   let frameN = 0; let lastTs = -1;
   const encodeOne = (mtSec) => {
-    drawCover(ctx, video, W, H);
+    drawCover(ctx, enc, W, H);
     ctx.drawImage(overlay, 0, 0, W, H);
     let ts = Math.max(0, Math.round(mtSec * 1e6));
     if (ts <= lastTs) ts = lastTs + 1; // strictly increasing for the encoder
@@ -150,30 +165,33 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, fps = 30,
     if (onProgress) onProgress(Math.min(0.9, (mtSec / maxTs) * 0.9));
   };
 
-  await new Promise((resolve, reject) => {
-    let killer = 0; let iv = 0;
-    const done = () => { clearTimeout(killer); if (iv) clearInterval(iv); resolve(); };
-    const useRVFC = typeof video.requestVideoFrameCallback === 'function';
-    const onFrame = (_now, meta) => {
-      if (encErr) { clearTimeout(killer); reject(encErr); return; }
-      const mt = meta && typeof meta.mediaTime === 'number' ? meta.mediaTime : (video.currentTime || frameN / fps);
-      if (video.ended || mt >= maxTs) { done(); return; }
-      try { encodeOne(mt); } catch (e) { clearTimeout(killer); reject(e); return; }
-      video.requestVideoFrameCallback(onFrame);
-    };
-    video.play().then(() => {
-      killer = setTimeout(done, (d + 5) * 1000);
-      if (useRVFC) { video.requestVideoFrameCallback(onFrame); return; }
-      iv = setInterval(() => {
-        if (encErr) { clearInterval(iv); reject(encErr); return; }
-        const mt = video.currentTime || 0;
-        if (video.ended || mt >= maxTs) { done(); return; }
-        try { encodeOne(mt); } catch (e) { clearInterval(iv); reject(e); }
-      }, 1000 / fps);
-    }).catch(() => reject(new Error('play_failed')));
-  });
-
-  try { video.pause(); video.loop = true; video.play().catch(() => {}); } catch { /* noop */ }
+  try {
+    await new Promise((resolve, reject) => {
+      let killer = 0; let iv = 0;
+      const done = () => { clearTimeout(killer); if (iv) clearInterval(iv); resolve(); };
+      const useRVFC = typeof enc.requestVideoFrameCallback === 'function';
+      const onFrame = (_now, meta) => {
+        if (encErr) { clearTimeout(killer); reject(encErr); return; }
+        const mt = meta && typeof meta.mediaTime === 'number' ? meta.mediaTime : (enc.currentTime || frameN / fps);
+        if (enc.ended || mt >= maxTs) { done(); return; }
+        try { encodeOne(mt); } catch (e) { clearTimeout(killer); reject(e); return; }
+        enc.requestVideoFrameCallback(onFrame);
+      };
+      // EXPLICIT programmatic playback from the start — never relies on the UI state.
+      enc.play().then(() => {
+        killer = setTimeout(done, (maxTs + 8) * 1000);
+        if (useRVFC) { enc.requestVideoFrameCallback(onFrame); return; }
+        iv = setInterval(() => {
+          if (encErr) { clearInterval(iv); reject(encErr); return; }
+          const mt = enc.currentTime || 0;
+          if (enc.ended || mt >= maxTs) { done(); return; }
+          try { encodeOne(mt); } catch (e) { clearInterval(iv); reject(e); }
+        }, 1000 / fps);
+      }).catch(() => reject(new Error('play_failed')));
+    });
+  } finally {
+    cleanupEnc();
+  }
 
   if (onProgress) onProgress(0.95);
   await venc.flush();
