@@ -82,7 +82,19 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
         : await fetchCoachAudio({ exerciseName, targetReps, formCues, equipment, locale: lang });
       loadedLangRef.current = lang; // tag the clip with the locale it was fetched for
       setUrl(u);
-      requestAnimationFrame(() => { audioRef.current?.play().catch(() => setErr(true)); });
+      // Play immediately off the freshly-fetched URL. Assign src IMPERATIVELY instead
+      // of waiting for the React state→DOM commit: binding src via `url` state and
+      // calling play() inside a requestAnimationFrame raced that commit, so the FIRST
+      // tap played against an empty <audio src> and reported "audio unavailable" — only
+      // the second tap (the already-loaded toggle branch) worked. Setting node.src here
+      // guarantees the element has the source before play().
+      const node = audioRef.current;
+      if (node) {
+        try { node.src = u; } catch { /* noop */ }
+        await node.play().catch(() => setErr(true));
+      } else {
+        setErr(true);
+      }
     } catch {
       // FAILURE-ONLY: degrade to the device stock voice. Never the primary.
       const cue = composeCue();
