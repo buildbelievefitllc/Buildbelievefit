@@ -222,37 +222,21 @@ export default function StudioLayout({
     setRecording(true);
     setRecordPct(0);
     try {
-      const { recordReel } = await import('../../lib/reelRecorder.js');
+      // WebCodecs engine: encodes frames (H.264) + voiceover (AAC) and muxes a clean,
+      // UNFRAGMENTED MP4 directly — no MediaRecorder, no ffmpeg, no post-processing.
+      const { recordReel, webcodecsSupported } = await import('../../lib/webcodecsRecorder.js');
+      if (!webcodecsSupported()) {
+        setPostNote({ ok: false, text: 'This browser lacks WebCodecs — use a recent Chrome or Edge to render reels.' });
+        return;
+      }
+      setPostNote({ ok: true, text: 'Rendering reel (encoding frames + voiceover)…' });
       const result = await recordReel({
         stageNode: stageRef.current,
+        voUrl: reelData.voUrl || null,
         durationCap: target ? 90 : 1200,
         onProgress: (p) => setRecordPct(Math.round(p * 100)),
       });
       if (!result || !result.blob) throw new Error('record_failed');
-
-      // The recording is now VIDEO-ONLY (no Opus track) → it already plays everywhere,
-      // exactly like the working IG posts. Finalize de-fragments to a standard faststart
-      // MP4 and muxes the voiceover back in as AAC (video COPIED — no re-encode). If the
-      // converter can't load, we fall back to the playable video-only clip (no voiceover)
-      // rather than ever shipping a broken/Opus file.
-      let outBlob = result.blob;
-      let outExt = result.ext;
-      let finalized = false;
-      try {
-        const { toStandardMp4, transcodeSupported } = await import('../../lib/videoTranscode.js');
-        if (transcodeSupported()) {
-          setRecordPct(0);
-          setPostNote({ ok: true, text: 'Finalizing MP4 + voiceover in your browser (first run loads the converter)…' });
-          const mp4 = await toStandardMp4(result.blob, {
-            voUrl: reelData.voUrl || null,
-            sourceIsMp4: result.ext === 'mp4',
-            onProgress: (p) => setRecordPct(Math.round(p * 100)),
-          });
-          if (mp4 && mp4.size) { outBlob = mp4; outExt = 'mp4'; finalized = true; }
-        }
-      } catch (err) {
-        console.error('[StudioV4] MP4 finalize failed:', err);
-      }
 
       // Unique, timestamped filename so every export is distinct (never a stale same-name file).
       exportSeqRef.current += 1;
@@ -265,27 +249,18 @@ export default function StudioLayout({
         setTimeout(() => URL.revokeObjectURL(url), 120000);
       };
 
-      // EXPORT ONLY (no targets) → download.
+      // EXPORT ONLY (no targets) → download the clean MP4.
       if (!target) {
-        downloadBlob(outBlob, `bbf-reel-${stamp}.${outExt}`);
-        setPostNote(finalized
-          ? { ok: true, text: `✓ Exported bbf-reel-${stamp}.mp4 — plays everywhere${reelData.voUrl ? ', voiceover baked in' : ''}.` }
-          : { ok: true, text: `✓ Exported bbf-reel-${stamp}.${outExt} (video plays). Voiceover not embedded — the converter didn’t load; export again to add it.` });
+        downloadBlob(result.blob, `bbf-reel-${stamp}.mp4`);
+        setPostNote({ ok: true, text: `✓ Exported bbf-reel-${stamp}.mp4 — clean MP4, plays everywhere${result.audio ? ' (voiceover baked in)' : ' (no voiceover on this one)'}.` });
         return;
       }
 
-      // POST → IG/FB/TikTok. Post the finalized clip; if the converter didn't run, the
-      // video-only recording is still a valid, postable MP4 (matches the working posts).
-      if (result.ext !== 'mp4' && !finalized) {
-        downloadBlob(outBlob, `bbf-reel-${stamp}.${outExt}`);
-        setPostNote({ ok: false, text: 'This browser recorded WebM and the converter didn’t load (IG/FB reject WebM). Downloaded the clip — try again to finalize.' });
-        return;
-      }
-
+      // POST → the WebCodecs output is a standard MP4 IG/FB/TikTok accept.
       setPosting(true);
-      setPostNote({ ok: true, text: `Posting reel to ${platformLabel()}…${finalized ? '' : ' (video-only — voiceover didn’t embed)'}` });
+      setPostNote({ ok: true, text: `Posting reel to ${platformLabel()}…` });
       const { queuePost, pollPostStatus } = await import('../../lib/studioQueueApi.js');
-      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => outBlob, now: true });
+      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => result.blob, now: true });
       if (res.status === 'posting') {
         setPostNote({ ok: true, text: 'Posting reel… Meta is transcoding (~60–90s).' });
         const verdict = await pollPostStatus({ kind: 'video', id: res.id });
