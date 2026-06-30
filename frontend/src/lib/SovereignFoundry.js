@@ -146,28 +146,41 @@ export class SovereignFoundry {
       // ── AUDIO ENCODER — encode the whole VO up front; muxer interleaves ──
       const aenc = apick ? this._encodeVoiceover(muxer, audioBuffer, d, apick, setErr) : null;
 
-      // ── SEEK-AND-SAMPLE LOOP ── real, frame-exact stills; footage loops under VO.
+      // ── FRAME CAPTURE ──
+      // Composite one canvas frame (cover-fit footage + branded overlay) and push it
+      // to the encoder. `frames` is shared so keyframe cadence + counts stay correct
+      // across whichever capture path runs.
       const { VideoFrame } = window;
-      const totalFrames = Math.max(1, Math.round(d * fps));
       const frameDurUs = Math.round(1e6 / fps);
       let frames = 0;
-      for (let i = 0; i < totalFrames; i++) {
-        if (encErr) throw encErr;
-        const tSec = i / fps;
-        // Footage loops beneath a longer VO. When the duration is unknown (0 — some
-        // streams), seek linearly and let the browser clamp at the real end; NEVER
-        // collapse every frame to t=0 (that would freeze the export).
-        const seekT = footageDur > 0 ? Math.min(tSec % footageDur, footageDur - 1e-3) : tSec;
-        await this._seekReady(video, Math.max(0, seekT));
+      const encodeAt = (tSec) => {
         this._drawCover(ctx, video, W, H);
         if (overlay) { try { ctx.drawImage(overlay, 0, 0, W, H); } catch { /* overlay optional */ } }
-        const frame = new VideoFrame(canvas, { timestamp: Math.round(tSec * 1e6), duration: frameDurUs });
-        venc.encode(frame, { keyFrame: i % (fps * 2) === 0 });
+        const frame = new VideoFrame(canvas, { timestamp: Math.max(0, Math.round(tSec * 1e6)), duration: frameDurUs });
+        venc.encode(frame, { keyFrame: frames % (fps * 2) === 0 });
         frame.close();
         frames += 1;
-        if (onProgress) onProgress(Math.min(0.95, (i / totalFrames) * 0.95));
-        if (venc.encodeQueueSize > 16) await this._drain(venc);
+      };
+
+      // PRIMARY: REAL-TIME capture. Play the muted clone and grab the frames the
+      // browser actually PAINTS (requestVideoFrameCallback), looping the footage under
+      // a longer voiceover. Wall-clock = reel length (~60–90s), not one decode per
+      // frame (seeking was thousands of decodes → minutes). Falls back to the seek
+      // loop only if playback never starts (no real frame arrives) or rVFC is absent.
+      const getErr = () => encErr;
+      if (typeof video.requestVideoFrameCallback === 'function') {
+        try {
+          await this._captureRealtime({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+        } catch (e) {
+          if (e && e.message === 'play_failed') {
+            frames = 0;
+            await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+          } else { throw e; }
+        }
+      } else {
+        await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
       }
+      if (frames < 1) throw new Error('empty_recording');
 
       await venc.flush();
       if (aenc) await aenc.flush();
@@ -207,6 +220,54 @@ export class SovereignFoundry {
     try { v.removeAttribute('src'); v.load(); } catch { /* noop */ }
     try { v.remove(); } catch { /* noop */ }
     this._video = null;
+  }
+
+  // REAL-TIME capture: play the muted clone, encode the frames the browser paints.
+  // Throttled to ~`fps` (so a 120 Hz display doesn't bloat the file), looped under a
+  // longer voiceover, wall-clock timestamps (monotonic across loops). Resolves with
+  // the frame count; rejects 'play_failed' ONLY if no frame ever arrives (→ seek path).
+  _captureRealtime({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr }) {
+    return new Promise((resolve, reject) => {
+      video.loop = footageDur > 0 && d > footageDur + 0.05;
+      const minDelta = (1 / fps) * 0.85; // throttle gate to target fps
+      let t0 = null, lastEnc = -1, count = 0, finished = false, sawFrame = false;
+      const finish = () => { if (finished) return; finished = true; try { video.pause(); } catch { /* noop */ } resolve(count); };
+      const onFrame = (now) => {
+        if (finished) return;
+        if (getErr()) { finish(); return; }
+        sawFrame = true;
+        if (t0 === null) t0 = now;
+        const tSec = (now - t0) / 1000;
+        if (tSec >= d) { finish(); return; }
+        // Encode at most ~fps frames/s; drop a frame if the encoder is backed up so
+        // memory can't balloon (rare on hardware H.264).
+        if ((lastEnc < 0 || tSec - lastEnc >= minDelta) && venc.encodeQueueSize < 60) {
+          encodeAt(tSec); lastEnc = tSec; count += 1;
+          if (onProgress) onProgress(Math.min(0.95, (tSec / d) * 0.95));
+        }
+        video.requestVideoFrameCallback(onFrame);
+      };
+      video.addEventListener('ended', () => finish(), { once: true }); // fires only when not looping
+      video.requestVideoFrameCallback(onFrame);
+      try { video.currentTime = 0; } catch { /* noop */ }
+      video.play().catch(() => { /* muted autoplay; rVFC is the real signal */ });
+      setTimeout(() => { if (!sawFrame && !finished) { finished = true; try { video.pause(); } catch { /* noop */ } reject(new Error('play_failed')); } }, 5000);
+    });
+  }
+
+  // FALLBACK: frame-exact seek loop (used when rVFC is unavailable or playback never
+  // starts). Slower — one decode per frame — but deterministic.
+  async _captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr }) {
+    const totalFrames = Math.max(1, Math.round(d * fps));
+    for (let i = 0; i < totalFrames; i++) {
+      if (getErr()) throw getErr();
+      const tSec = i / fps;
+      const seekT = footageDur > 0 ? Math.min(tSec % footageDur, footageDur - 1e-3) : tSec;
+      await this._seekReady(video, Math.max(0, seekT));
+      encodeAt(tSec);
+      if (onProgress) onProgress(Math.min(0.95, (i / totalFrames) * 0.95));
+      if (venc.encodeQueueSize > 16) await this._drain(venc);
+    }
   }
 
   // Wait until the footage has metadata AND a first decoded frame is available.
