@@ -162,15 +162,20 @@ export class SovereignFoundry {
         frames += 1;
       };
 
-      // PRIMARY: REAL-TIME capture. Play the muted clone and grab the frames the
-      // browser actually PAINTS (requestVideoFrameCallback), looping the footage under
-      // a longer voiceover. Wall-clock = reel length (~60–90s), not one decode per
-      // frame (seeking was thousands of decodes → minutes). Falls back to the seek
-      // loop only if playback never starts (no real frame arrives) or rVFC is absent.
+      // PRIMARY: REAL-TIME capture (wall-clock ≈ reel length, not one decode per frame).
+      // But FIRST pre-flight that playback actually yields non-black pixels on THIS
+      // browser — some suspend decode for a backgrounded video. If the probe is black
+      // (or rVFC is absent), use the slower-but-bulletproof seek loop so the export is
+      // NEVER black. This decision is made WITHOUT polluting the encoder stream.
       const getErr = () => encErr;
+      let useRealtime = false;
       if (typeof video.requestVideoFrameCallback === 'function') {
+        useRealtime = await this._probePlaybackDecodes(video, ctx, W, H);
+      }
+      if (useRealtime) {
         try {
           await this._captureRealtime({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+          if (frames < 1) { await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr }); }
         } catch (e) {
           if (e && e.message === 'play_failed') {
             frames = 0;
@@ -207,7 +212,12 @@ export class SovereignFoundry {
     v.preload = 'auto';
     try { v.crossOrigin = 'anonymous'; } catch { /* noop */ }
     v.src = url;
-    v.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1;';
+    // CRITICAL: a real, on-screen, ON-TOP size. Chrome SUSPENDS video decode for an
+    // element that is effectively invisible (2px / behind opaque content / off-screen)
+    // — during PLAYBACK that means drawImage samples black. So we keep the clone in the
+    // viewport, on top, at a real size, but at opacity 0.01 (imperceptible, and the
+    // recording overlay covers it). Seeking forced a decode regardless; real-time does not.
+    v.style.cssText = 'position:fixed;left:0;top:0;width:160px;height:284px;opacity:0.01;pointer-events:none;z-index:2147483647;';
     (this.container || document.body).appendChild(v);
     this._video = v;
     return v;
@@ -220,6 +230,43 @@ export class SovereignFoundry {
     try { v.removeAttribute('src'); v.load(); } catch { /* noop */ }
     try { v.remove(); } catch { /* noop */ }
     this._video = null;
+  }
+
+  // Pre-flight: does PLAYBACK actually decode visible pixels on this browser? Plays
+  // briefly, samples a grid of the painted frames for any non-black pixel, then rewinds.
+  // Returns true → real-time is safe; false → fall back to seek (so output is never black).
+  _probePlaybackDecodes(video, ctx, W, H) {
+    return new Promise((resolve) => {
+      let done = false, checks = 0;
+      const finish = (v) => {
+        if (done) return; done = true;
+        try { video.pause(); } catch { /* noop */ }
+        try { video.currentTime = 0; } catch { /* noop */ }
+        resolve(v);
+      };
+      const hasContent = () => {
+        this._drawCover(ctx, video, W, H);
+        try {
+          for (let gx = 1; gx < 5; gx++) {
+            for (let gy = 1; gy < 5; gy++) {
+              const px = Math.floor((gx * W) / 5), py = Math.floor((gy * H) / 5);
+              const d = ctx.getImageData(px, py, 1, 1).data;
+              if (d[0] + d[1] + d[2] > 48) return true;
+            }
+          }
+        } catch { return true; } // tainted canvas → can't sample; prefer real-time
+        return false;
+      };
+      const onFrame = () => {
+        if (done) return;
+        if (hasContent()) { finish(true); return; }
+        if (++checks >= 8) { finish(false); return; }
+        video.requestVideoFrameCallback(onFrame);
+      };
+      video.requestVideoFrameCallback(onFrame);
+      video.play().catch(() => { /* muted autoplay; rVFC is the signal */ });
+      setTimeout(() => finish(false), 2500); // no frames at all → seek path
+    });
   }
 
   // REAL-TIME capture: play the muted clone, encode the frames the browser paints.
