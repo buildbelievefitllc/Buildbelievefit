@@ -62,6 +62,12 @@ export class SovereignFoundry {
    * (the "PIP glitch"). Instead we CLONE the stage into an off-DOM, un-scaled, full-size
    * host that React never reconciles, strip the video/controls (overlay = brand only),
    * and rasterize the clone. Nothing can shrink it mid-capture.
+   *
+   * CRITICAL: the stage's own CSS background (.stage-reel-v4 { background:#08060a }) is
+   * OPAQUE. If we capture it, the overlay becomes a solid frame that, drawn over the
+   * footage, BURIES the video → a black reel with only the brand text/gradients showing.
+   * So we force the clone (and its background-bearing sub-layers) TRANSPARENT — only the
+   * intended gradients (rgba) and text survive, and the video shows through everywhere else.
    */
   static async captureOverlay(stageNode) {
     if (!stageNode) return null;
@@ -71,11 +77,14 @@ export class SovereignFoundry {
       const clone = stageNode.cloneNode(true);
       clone.querySelectorAll('.reel-video-v4, .reel-placeholder-v4, .reel-play-v4, .reel-vo-v4, .reel-progress-v4')
         .forEach((el) => el.remove());
+      // Kill the opaque stage background so the footage isn't buried by the overlay.
       clone.style.transform = 'none';
       clone.style.width = TARGET_W + 'px';
       clone.style.height = TARGET_H + 'px';
+      clone.style.background = 'transparent';
+      clone.style.backgroundColor = 'transparent';
       host = document.createElement('div');
-      host.style.cssText = `position:fixed;left:-99999px;top:0;width:${TARGET_W}px;height:${TARGET_H}px;transform:none;pointer-events:none;z-index:-1;`;
+      host.style.cssText = `position:fixed;left:-99999px;top:0;width:${TARGET_W}px;height:${TARGET_H}px;transform:none;pointer-events:none;z-index:-1;background:transparent;`;
       host.appendChild(clone);
       document.body.appendChild(host);
       return await html2canvas(clone, { backgroundColor: null, scale: 1, useCORS: true, imageTimeout: 4000, width: TARGET_W, height: TARGET_H });
@@ -257,15 +266,19 @@ export class SovereignFoundry {
         } catch { return true; } // tainted canvas → can't sample; prefer real-time
         return false;
       };
+      // Decide on SUSTAINED decode: require content in a LATER frame (≥6), not just the
+      // first — some browsers decode the initial frame then suspend a backgrounded video.
+      let laterContent = false;
       const onFrame = () => {
         if (done) return;
-        if (hasContent()) { finish(true); return; }
-        if (++checks >= 8) { finish(false); return; }
+        checks += 1;
+        if (checks >= 6 && hasContent()) laterContent = true;
+        if (checks >= 12) { finish(laterContent); return; }
         video.requestVideoFrameCallback(onFrame);
       };
       video.requestVideoFrameCallback(onFrame);
       video.play().catch(() => { /* muted autoplay; rVFC is the signal */ });
-      setTimeout(() => finish(false), 2500); // no frames at all → seek path
+      setTimeout(() => finish(laterContent), 3000); // ran out of time → use what we saw
     });
   }
 
