@@ -27,7 +27,10 @@ services:
         - frontend/**                        # only rebuild when the frontend changes
     envVars:
       - key: NODE_VERSION
-        value: "20"
+        # Vite 8 requires Node ^20.19.0 || >=22.12.0. Render's "20" alias resolved to a
+        # 20.x below 20.19, so Vite refused to run and the static deploy failed. Pin to
+        # 22 (matches the validated local build env) to clear the floor with headroom.
+        value: "22"
       - key: VITE_SUPABASE_URL
         value: https://ihclbceghxpuawymlvgi.supabase.co
       - key: VITE_SUPABASE_ANON_KEY
