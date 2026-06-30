@@ -13,6 +13,13 @@ const http = require('http');
 const { createClient } = require('@supabase/supabase-js');
 const Anthropic = require('@anthropic-ai/sdk');
 const { mintTicket, verifyTicket } = require('./bbf-ws-ticket');
+// Sovereign Studio server-side reel render ("Foundry") — real ffmpeg binary + multipart upload.
+const ffmpegPath = require('ffmpeg-static');
+const multer = require('multer');
+const { spawn } = require('node:child_process');
+const os = require('node:os');
+const fsp = require('node:fs/promises');
+const nodePath = require('node:path');
 
 // ───────────────────────────────────────────────────────────────
 // Environment validation
@@ -626,7 +633,7 @@ app.use((req, res, next) => {
   if (origin && ALLOWED_ORIGINS.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-BBF-Admin-Token');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-BBF-Admin-Token, X-BBF-Vault-Token');
     res.setHeader('Vary', 'Origin');
   }
   if (req.method === 'OPTIONS') return res.sendStatus(204);
@@ -636,6 +643,101 @@ app.use((req, res, next) => {
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'bbf-vault-engine', model: ANTHROPIC_MODEL });
 });
+
+// ───────────────────────────────────────────────────────────────
+// Sovereign Studio — SERVER-SIDE reel render ("The Foundry")
+// ───────────────────────────────────────────────────────────────
+// The browser cannot reliably produce a clean MP4 (MediaRecorder → fragmented+Opus;
+// WebCodecs → autoplay-blocked clone; ffmpeg.wasm → CSP/SharedArrayBuffer). So the
+// frontend uploads the raw footage + a branded overlay PNG (multipart) and a voiceover
+// URL, and a REAL ffmpeg binary here composites them into a standard, faststart
+// 1080×1920 MP4, stores it in Supabase, and returns the URL. Auth: the admin's vault
+// session token (RPC-resolved). Origin-allowlisted.
+const reelUpload = multer({ dest: os.tmpdir(), limits: { fileSize: 300 * 1024 * 1024 } });
+const REEL_RENDER_BUCKET = 'studio-audio-vault';
+const REEL_W = 1080, REEL_H = 1920;
+
+async function resolveVaultUser(req) {
+  const token = (req.headers['x-bbf-vault-token'] || (req.body && req.body.vault_token) || '').toString().trim();
+  if (!token) return null;
+  try {
+    const { data, error } = await supabase.rpc('_bbf_uid_from_vault_token', { p_session_token: token });
+    if (!error && typeof data === 'string' && data) return data;
+  } catch (e) { console.warn('[render-reel] vault resolve threw:', e && e.message); }
+  return null;
+}
+
+app.post('/api/studio/render-reel',
+  reelUpload.fields([{ name: 'video', maxCount: 1 }, { name: 'overlay', maxCount: 1 }]),
+  async (req, res) => {
+    const origin = req.headers.origin;
+    if (origin && !ALLOWED_ORIGINS.has(origin)) return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
+    const tmp = [];
+    const cleanup = async () => { for (const f of tmp) { try { await fsp.unlink(f); } catch { /* noop */ } } };
+    try {
+      const userId = await resolveVaultUser(req);
+      if (!userId) { await cleanup(); return res.status(401).json({ ok: false, error: 'invalid_session' }); }
+
+      const videoFile = req.files && req.files.video && req.files.video[0];
+      if (!videoFile) { await cleanup(); return res.status(400).json({ ok: false, error: 'video_required' }); }
+      tmp.push(videoFile.path);
+      const overlayFile = req.files && req.files.overlay && req.files.overlay[0];
+      if (overlayFile) tmp.push(overlayFile.path);
+
+      // Optional voiceover: a URL the server fetches (vault MP3 / signed URL).
+      let audioPath = null;
+      const audioUrl = (req.body && typeof req.body.audioUrl === 'string') ? req.body.audioUrl.trim() : '';
+      if (audioUrl) {
+        try {
+          const ar = await fetch(audioUrl);
+          if (ar.ok) {
+            audioPath = nodePath.join(os.tmpdir(), `bbf-vo-${Date.now()}-${Math.round(Math.random() * 1e6)}`);
+            await fsp.writeFile(audioPath, Buffer.from(await ar.arrayBuffer()));
+            tmp.push(audioPath);
+          }
+        } catch (e) { console.warn('[render-reel] audio fetch failed:', e && e.message); audioPath = null; }
+      }
+
+      const outPath = nodePath.join(os.tmpdir(), `bbf-reel-${Date.now()}-${Math.round(Math.random() * 1e6)}.mp4`);
+      tmp.push(outPath);
+
+      // Cover-fit the footage to 1080×1920, composite the overlay PNG, mux the VO as AAC.
+      const args = ['-y', '-i', videoFile.path];
+      if (overlayFile) args.push('-i', overlayFile.path);
+      if (audioPath) args.push('-i', audioPath);
+      const filter = overlayFile
+        ? `[0:v]scale=${REEL_W}:${REEL_H}:force_original_aspect_ratio=increase,crop=${REEL_W}:${REEL_H}[bg];[bg][1:v]overlay=0:0[v]`
+        : `[0:v]scale=${REEL_W}:${REEL_H}:force_original_aspect_ratio=increase,crop=${REEL_W}:${REEL_H}[v]`;
+      args.push('-filter_complex', filter, '-map', '[v]');
+      if (audioPath) { args.push('-map', `${overlayFile ? 2 : 1}:a`, '-c:a', 'aac', '-b:a', '160k', '-shortest'); }
+      else { args.push('-an'); }
+      args.push('-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p', '-r', '30', '-movflags', '+faststart', outPath);
+
+      await new Promise((resolve, reject) => {
+        const ff = spawn(ffmpegPath, args, { stdio: ['ignore', 'ignore', 'pipe'] });
+        let errLog = '';
+        ff.stderr.on('data', (d) => { errLog += d.toString(); if (errLog.length > 8000) errLog = errLog.slice(-8000); });
+        ff.on('error', reject);
+        ff.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg_exit_${code}: ${errLog.slice(-400)}`))));
+      });
+
+      const outBuf = await fsp.readFile(outPath);
+      if (!outBuf.length) throw new Error('empty_output');
+      const objPath = `reels/render-${Date.now()}-${Math.round(Math.random() * 1e6)}.mp4`;
+      const { error: upErr } = await supabase.storage.from(REEL_RENDER_BUCKET)
+        .upload(objPath, outBuf, { contentType: 'video/mp4', upsert: true, cacheControl: '31536000' });
+      if (upErr) throw new Error(`upload_failed: ${upErr.message}`);
+      const { data: pub } = supabase.storage.from(REEL_RENDER_BUCKET).getPublicUrl(objPath);
+
+      await cleanup();
+      console.log(`[render-reel] ok user=${userId} bytes=${outBuf.length} → ${objPath}`);
+      return res.json({ ok: true, url: pub.publicUrl, bytes: outBuf.length });
+    } catch (e) {
+      await cleanup();
+      console.error('[render-reel] failed:', e && e.message);
+      return res.status(500).json({ ok: false, error: 'render_failed', detail: String((e && e.message) || '').slice(0, 300) });
+    }
+  });
 
 // ───────────────────────────────────────────────────────────────
 // Phase 16 — Iron Vault V2: server-enforced Sovereign Trial gate

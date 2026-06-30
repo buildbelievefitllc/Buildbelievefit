@@ -7,6 +7,32 @@ import ReelPreviewEngine from './ReelPreviewEngine';
 import StageScaler from './StageScaler';
 import QueueMonitor from './QueueMonitor';
 import { renderMarkup } from './markup.jsx';
+import { getStoredVaultToken } from '../../context/AuthContext.jsx';
+
+// Render Node service (the ffmpeg "Foundry"). Same proxy the Live Coach uses.
+const PROXY_BASE = (import.meta.env.VITE_VOICE_PROXY_URL || 'https://buildbelievefit.onrender.com').replace(/\/+$/, '');
+
+// Snapshot the branded overlay (DOM) → transparent 1080×1920 PNG blob for the server to
+// composite over the footage. This is the only piece of the old canvas path we keep —
+// it always worked. Returns null on failure (server then renders footage-only).
+async function captureOverlayPng(stageNode) {
+  if (!stageNode) return null;
+  const HIDE = ['.reel-video-v4', '.reel-placeholder-v4', '.reel-play-v4', '.reel-vo-v4', '.reel-progress-v4'];
+  const hidden = [];
+  HIDE.forEach((sel) => stageNode.querySelectorAll(sel).forEach((el) => { hidden.push([el, el.style.visibility]); el.style.visibility = 'hidden'; }));
+  const scaler = stageNode.closest('.stage-scaler-inner');
+  const prevT = scaler ? scaler.style.transform : null;
+  if (scaler) scaler.style.transform = 'none';
+  try {
+    const { default: html2canvas } = await import('html2canvas');
+    const canvas = await html2canvas(stageNode, { backgroundColor: null, scale: 1, useCORS: true, imageTimeout: 4000, width: 1080, height: 1920 });
+    return await new Promise((r) => canvas.toBlob((b) => r(b), 'image/png'));
+  } catch { return null; }
+  finally {
+    if (scaler) scaler.style.transform = prevT || '';
+    hidden.forEach(([el, v]) => { el.style.visibility = v || ''; });
+  }
+}
 
 const PLATFORMS = [
   ['instagram', 'Instagram'],
@@ -222,45 +248,50 @@ export default function StudioLayout({
     setRecording(true);
     setRecordPct(0);
     try {
-      // WebCodecs engine: encodes frames (H.264) + voiceover (AAC) and muxes a clean,
-      // UNFRAGMENTED MP4 directly — no MediaRecorder, no ffmpeg, no post-processing.
-      const { recordReel, webcodecsSupported } = await import('../../lib/webcodecsRecorder.js');
-      if (!webcodecsSupported()) {
-        setPostNote({ ok: false, text: 'This browser lacks WebCodecs — use a recent Chrome or Edge to render reels.' });
-        return;
-      }
-      setPostNote({ ok: true, text: 'Rendering reel (encoding frames + voiceover)…' });
-      const result = await recordReel({
-        stageNode: stageRef.current,
-        voUrl: reelData.voUrl || null,
-        durationCap: target ? 90 : 1200,
-        onProgress: (p) => setRecordPct(Math.round(p * 100)),
-      });
-      if (!result || !result.blob) throw new Error('record_failed');
+      // SERVER-SIDE FOUNDRY: upload raw footage + a branded overlay PNG (+ the voiceover
+      // URL) to the Render ffmpeg endpoint. A real ffmpeg binary composites a clean,
+      // standard 1080×1920 MP4 and returns its URL. Zero client-side encoding → works on
+      // every browser/device (no MediaRecorder, WebCodecs, or ffmpeg.wasm).
+      const token = getStoredVaultToken();
+      if (!token) { setPostNote({ ok: false, text: 'No admin session — sign in again to render.' }); return; }
+      const file = reelData.videoFile?.file;
+      if (!file) { setPostNote({ ok: false, text: 'Re-upload your footage and try again.' }); return; }
 
-      // Unique, timestamped filename so every export is distinct (never a stale same-name file).
+      setPostNote({ ok: true, text: 'Rendering reel on the server (footage + overlay + voiceover)… this can take a minute.' });
+
+      const overlayBlob = await captureOverlayPng(stageRef.current);
+      const fd = new FormData();
+      fd.append('video', file, file.name || 'footage.mp4');
+      if (overlayBlob) fd.append('overlay', overlayBlob, 'overlay.png');
+      if (reelData.voUrl) fd.append('audioUrl', reelData.voUrl);
+      fd.append('metadata', JSON.stringify({ ...reelFields(), platform_target: target || '' }));
+      fd.append('vault_token', token);
+
+      const rr = await fetch(`${PROXY_BASE}/api/studio/render-reel`, {
+        method: 'POST', headers: { 'x-bbf-vault-token': token }, body: fd,
+      });
+      const out = await rr.json().catch(() => null);
+      if (!rr.ok || !out || !out.ok || !out.url) throw new Error((out && out.error) || `render_http_${rr.status}`);
+
       exportSeqRef.current += 1;
       const stamp = `${SESSION_STAMP}-${exportSeqRef.current}`;
-      const downloadBlob = (blob, name) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = name;
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 120000);
-      };
 
-      // EXPORT ONLY (no targets) → download the clean MP4.
+      // EXPORT ONLY (no targets) → fetch the server-rendered MP4 and download it.
       if (!target) {
-        downloadBlob(result.blob, `bbf-reel-${stamp}.mp4`);
-        setPostNote({ ok: true, text: `✓ Exported bbf-reel-${stamp}.mp4 — clean MP4, plays everywhere${result.audio ? ' (voiceover baked in)' : ' (no voiceover on this one)'}.` });
+        const mp4 = await (await fetch(out.url)).blob();
+        const u = URL.createObjectURL(mp4);
+        const a = document.createElement('a'); a.href = u; a.download = `bbf-reel-${stamp}.mp4`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(u), 120000);
+        setPostNote({ ok: true, text: `✓ Exported bbf-reel-${stamp}.mp4 — server-rendered clean MP4, plays everywhere${reelData.voUrl ? ' with voiceover' : ''}.` });
         return;
       }
 
-      // POST → the WebCodecs output is a standard MP4 IG/FB/TikTok accept.
+      // POST → hand the server-rendered MP4 to the queue/distributor.
       setPosting(true);
       setPostNote({ ok: true, text: `Posting reel to ${platformLabel()}…` });
       const { queuePost, pollPostStatus } = await import('../../lib/studioQueueApi.js');
-      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => result.blob, now: true });
+      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => (await fetch(out.url)).blob(), now: true });
       if (res.status === 'posting') {
         setPostNote({ ok: true, text: 'Posting reel… Meta is transcoding (~60–90s).' });
         const verdict = await pollPostStatus({ kind: 'video', id: res.id });
