@@ -222,18 +222,25 @@ export default function StudioLayout({
     setRecording(true);
     setRecordPct(0);
     try {
-      // CLIENT-SIDE, ZERO BACKEND: the seek-based WebCodecs engine pulls each frame by
-      // SEEKING the footage (no play(), no autoplay policy, no React cycle), composites
-      // the branded overlay, encodes H.264 + AAC, and muxes a clean, UNFRAGMENTED MP4.
-      const { recordReel, webcodecsSupported } = await import('../../lib/webcodecsRecorder.js');
-      if (!webcodecsSupported()) {
+      // THE ISOLATION PROTOCOL (CEO order): the export runs in a pure Vanilla JS class
+      // (SovereignFoundry) that operates 100% independently of the React virtual DOM —
+      // it owns its own off-DOM <video>, SEEKS the footage frame-by-frame, composites the
+      // branded overlay, encodes (H.264+AAC, VP9+Opus fallback) and muxes one clean,
+      // UNFRAGMENTED, faststart MP4. React just hands it { videoUrl, voUrl, overlay,
+      // container } and steps out of the way.
+      const { SovereignFoundry } = await import('../../lib/SovereignFoundry.js');
+      if (!SovereignFoundry.isSupported()) {
         setPostNote({ ok: false, text: 'This browser lacks WebCodecs — use a recent Chrome/Edge (desktop).' });
         return;
       }
       setPostNote({ ok: true, text: 'Rendering reel (seeking + encoding frames + voiceover)…' });
-      const result = await recordReel({
-        stageNode: stageRef.current,
+      const videoUrl = stageRef.current?.querySelector('.reel-video-v4')?.src || reelData.videoFile?.url;
+      const overlay = await SovereignFoundry.captureOverlay(stageRef.current);
+      const foundry = new SovereignFoundry(document.body);
+      const result = await foundry.render({
+        videoUrl,
         voUrl: reelData.voUrl || null,
+        overlay,
         durationCap: target ? 90 : 1200,
         onProgress: (p) => setRecordPct(Math.round(p * 100)),
       });
