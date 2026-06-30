@@ -137,9 +137,13 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, fps = 30,
   // preview <video>, so a paused/short preview produced a frozen or truncated export.
   // Here we own a private element, play it from t=0, and encode every frame it presents.
   const enc = document.createElement('video');
-  enc.src = video.currentSrc || video.src;
-  enc.muted = true; enc.playsInline = true; enc.preload = 'auto';
+  // MUTE BYPASS (CRITICAL) — Chromium unequivocally rejects background play() on an
+  // unmuted video. Set BOTH the property and the reflecting attribute, BEFORE src/play.
+  enc.muted = true; enc.defaultMuted = true; enc.setAttribute('muted', '');
+  enc.playsInline = true; enc.setAttribute('playsinline', '');
+  enc.preload = 'auto';
   try { enc.crossOrigin = video.crossOrigin || 'anonymous'; } catch { /* noop */ }
+  enc.src = video.currentSrc || video.src;
   // Parked on-screen but invisible so the browser keeps decoding/presenting frames
   // (a display:none video may not fire requestVideoFrameCallback).
   enc.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1;';
@@ -167,8 +171,8 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, fps = 30,
 
   try {
     await new Promise((resolve, reject) => {
-      let killer = 0; let iv = 0;
-      const done = () => { clearTimeout(killer); if (iv) clearInterval(iv); resolve(); };
+      let killer = 0; let iv = 0; let started = false; let watchdog = 0;
+      const done = () => { clearTimeout(killer); clearTimeout(watchdog); if (iv) clearInterval(iv); resolve(); };
       const useRVFC = typeof enc.requestVideoFrameCallback === 'function';
       const onFrame = (_now, meta) => {
         if (encErr) { clearTimeout(killer); reject(encErr); return; }
@@ -177,8 +181,14 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, fps = 30,
         try { encodeOne(mt); } catch (e) { clearTimeout(killer); reject(e); return; }
         enc.requestVideoFrameCallback(onFrame);
       };
-      // EXPLICIT programmatic playback from the start — never relies on the UI state.
-      enc.play().then(() => {
+      // WAIT FOR THE ACTUAL 'playing' EVENT — not merely play() resolving. Under the
+      // autoplay policy a backgrounded clone can resolve play() while still paused, which
+      // is exactly what fed the encoder frozen frames. Only start pulling frames once the
+      // element is genuinely playing.
+      const beginCapture = () => {
+        if (started || encErr) return;
+        started = true;
+        clearTimeout(watchdog);
         killer = setTimeout(done, (maxTs + 8) * 1000);
         if (useRVFC) { enc.requestVideoFrameCallback(onFrame); return; }
         iv = setInterval(() => {
@@ -187,7 +197,14 @@ export async function recordReel({ stageNode, voUrl, durationCap = 90, fps = 30,
           if (enc.ended || mt >= maxTs) { done(); return; }
           try { encodeOne(mt); } catch (e) { clearInterval(iv); reject(e); }
         }, 1000 / fps);
-      }).catch(() => reject(new Error('play_failed')));
+      };
+      enc.addEventListener('playing', beginCapture, { once: true });
+      // EXPLICIT programmatic playback; catch + log a blocked promise (do not start
+      // capture on resolve — capture is driven by the 'playing' event above).
+      enc.play().catch((e) => { console.error('Clone play blocked:', e); });
+      // If the clone never reaches 'playing', fail loudly instead of capturing a frozen
+      // frame or hanging forever.
+      watchdog = setTimeout(() => { if (!started && !encErr) reject(new Error('clone_play_blocked')); }, 6000);
     });
   } finally {
     cleanupEnc();
