@@ -311,7 +311,7 @@ const roadmapPhases = [
   {
     num: '03', name: 'IMMERSION', weeks: 'WEEKS 8–11',
     es: 'God-Mode Drills 2×/week (Lost in Medellín); recite all 6 Intentions in Voice Studio; hold SRS terms at Box 4+.',
-    pt: 'God-Mode “Gym in São Paulo” weekly; advanced Sentence Builder; PT Intentions in Voice Studio.',
+    pt: 'God-Mode "Gym in São Paulo" weekly; advanced Sentence Builder; PT Intentions in Voice Studio.',
     daily: ['God-Mode (ES)', 'Voice: Intentions', 'Sentence Builder', 'God-Mode (PT)', 'Speed + Listen', 'Video Vault', 'Rest / SRS'],
   },
   {
@@ -1381,8 +1381,17 @@ const VOICE_DRILLS = [
   ...vocabData['MOTIVATION & CUES'].map((v) => ({ lang: 'es', text: v.es, label: `🇪🇸 ${v.en}`, group: 'Coach Cues' })),
 ];
 
+const ERROR_MESSAGES = {
+  network: "Network connection issue. Check your internet and try again.",
+  "not-allowed": "Microphone permission denied. Enable permissions in your browser settings.",
+  "permission-denied": "Microphone permission denied. Enable permissions in your browser settings.",
+  "network-timeout": "Connection timeout. Check your internet and try again.",
+  start_failed: "Failed to start microphone. Ensure permissions are granted.",
+  unsupported: "Voice recognition not available in this browser.",
+};
+
 function VoiceDrill({ drill }) {
-  const { supported, listening, transcript, interim, error, start, stop, reset } = useSpeechEvaluator(drill.lang);
+  const { supported, listening, transcript, interim, error, start, stop, reset, retry, retryCount } = useSpeechEvaluator(drill.lang);
   const result = useMemo(
     () => (transcript ? comparePhrases(drill.text, transcript) : null),
     [transcript, drill.text],
@@ -1394,6 +1403,8 @@ function VoiceDrill({ drill }) {
   let scoreClass = '';
   if (result) scoreClass = result.score >= 80 ? 'lr-voice-score--green' : result.score >= 50 ? 'lr-voice-score--yellow' : 'lr-voice-score--red';
 
+  const errorMessage = ERROR_MESSAGES[error] || `Microphone error: ${error}. Please try again.`;
+
   return (
     <div className="lr-voice">
       <div className="lr-voice-target">
@@ -1404,7 +1415,7 @@ function VoiceDrill({ drill }) {
 
       {!supported ? (
         <div className="lr-voice-unsupported">
-          🎙️ Voice recognition isn’t available in this browser. Use Chrome or Safari to
+          🎙️ Voice recognition isn't available in this browser. Use Chrome or Safari to
           enable the pronunciation evaluator.
         </div>
       ) : (
@@ -1437,7 +1448,10 @@ function VoiceDrill({ drill }) {
           )}
 
           {error && error !== 'no-speech' && (
-            <div className="lr-voice-err">Mic error: {error}. Check microphone permissions.</div>
+            <div className="lr-voice-err">
+              <div>{errorMessage}</div>
+              <button type="button" onClick={retry} className="lr-voice-retry">🔄 Try Again{retryCount > 0 ? ` (${retryCount})` : ''}</button>
+            </div>
           )}
         </>
       )}
@@ -1455,7 +1469,7 @@ function TabVoiceStudio() {
       <div className="lr-section-desc">
         Speak the phrase. The on-device recognizer scores your pronunciation word-by-word —
         green is locked in, red needs another rep. Drills pull from your Cardio Intentions
-        and coaching cues. Recite out loud — it’s practice and manifestation in one.
+        and coaching cues. Recite out loud — it's practice and manifestation in one.
       </div>
       <div className="lr-chips">
         {VOICE_DRILLS.map((d, idx) => (
@@ -1672,13 +1686,20 @@ const CONVERSATIONS = [
 ];
 
 // Reusable voice-input button (Web Speech API). Fills the parent input via onText.
-function MicButton({ lang, onText }) {
-  const { supported, listening, transcript, start, stop, reset } = useSpeechEvaluator(lang);
+function MicButton({ lang, onText, error: externalError }) {
+  const { supported, listening, transcript, error, start, stop, reset } = useSpeechEvaluator(lang);
   useEffect(() => { if (transcript) onText(transcript); }, [transcript]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!supported) return null;
+  const hasError = error || externalError;
   return (
-    <button type="button" className={`lr-mic${listening ? ' is-live' : ''}`} onClick={() => { if (listening) stop(); else { reset(); start(); } }} aria-label="Speak your answer">
-      {listening ? '● REC' : '🎙️'}
+    <button
+      type="button"
+      className={`lr-mic${listening ? ' is-live' : ''}${hasError ? ' has-error' : ''}`}
+      onClick={() => { if (listening) stop(); else { reset(); start(); } }}
+      aria-label="Speak your answer"
+      title={hasError ? 'Click to retry microphone' : 'Click to speak'}
+    >
+      {listening ? '● REC' : hasError ? '⚠️' : '🎙️'}
     </button>
   );
 }
