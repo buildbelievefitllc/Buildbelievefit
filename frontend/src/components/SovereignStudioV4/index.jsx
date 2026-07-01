@@ -79,17 +79,19 @@ export default function SovereignStudioV4() {
 
   // Keep a live ref to the reel blob URLs so the unmount cleanup revokes whatever
   // is current. Synced in an effect (never during render) per the hooks rules.
-  const blobUrlsRef = useRef({ video: null, logo: null });
+  const blobUrlsRef = useRef({ video: null, logo: null, phone: null });
   useEffect(() => {
     blobUrlsRef.current = {
       video: reelData.videoFile?.url || null,
       logo: reelData.logoImage?.url || null,
+      phone: phoneData.backgroundImage?.url || null,
     };
-  }, [reelData.videoFile?.url, reelData.logoImage?.url]);
+  }, [reelData.videoFile?.url, reelData.logoImage?.url, phoneData.backgroundImage?.url]);
   useEffect(() => () => {
-    const { video, logo } = blobUrlsRef.current;
+    const { video, logo, phone } = blobUrlsRef.current;
     if (video) URL.revokeObjectURL(video);
     if (logo) URL.revokeObjectURL(logo);
+    if (phone) URL.revokeObjectURL(phone);
   }, []);
 
   const handleModeChange = (newMode) => {

@@ -338,6 +338,10 @@
   color: #564f66; font-family: var(--hb); font-size: 40px; letter-spacing: 4px;
   background: repeating-linear-gradient(45deg, #0d0b12, #0d0b12 26px, #100d16 26px, #100d16 52px);
 }
+.phone-screen-img-v4 { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ph-clear-v4 { align-self: flex-start; margin-top: 6px; background: none; border: none;
+  color: #fb923c; font-family: var(--bc); font-size: 13px; cursor: pointer; padding: 2px 0; }
+.ph-clear-v4:hover { text-decoration: underline; }
 
 /* ---- REEL STAGE (1080×1920) ---- */
 .stage-reel-v4 {

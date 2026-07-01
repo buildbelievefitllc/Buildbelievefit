@@ -455,6 +455,34 @@ export default function StudioLayout({
             </div>
 
             <div className="ctl-group-v4">
+              <label className="ctl-label-v4">📱 Screen Content — upload a screenshot</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="input-v4"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (phoneData.backgroundImage?.url) URL.revokeObjectURL(phoneData.backgroundImage.url);
+                  handlePhoneChange('backgroundImage', { file, url: URL.createObjectURL(file) });
+                }}
+              />
+              {phoneData.backgroundImage?.url && (
+                <button
+                  type="button"
+                  className="ph-clear-v4"
+                  onClick={() => {
+                    if (phoneData.backgroundImage?.url) URL.revokeObjectURL(phoneData.backgroundImage.url);
+                    handlePhoneChange('backgroundImage', null);
+                  }}
+                >
+                  ✕ Remove screenshot
+                </button>
+              )}
+              <div className="hint-v4">Drops your screenshot straight into the phone screen — it exports baked into the mock-up.</div>
+            </div>
+
+            <div className="ctl-group-v4">
               <label className="ctl-label-v4">Eyebrow</label>
               <input
                 type="text"
@@ -569,7 +597,9 @@ export default function StudioLayout({
                 <div className={`phone-frame-v4 frame-${phoneData.frame} layout-${phoneData.layout}`}>
                   <div className="phone-notch-v4" />
                   <div className="phone-screen-v4">
-                    <div className="phone-screen-ph-v4">SCREENSHOT</div>
+                    {phoneData.backgroundImage?.url
+                      ? <img src={phoneData.backgroundImage.url} alt="App screenshot" className="phone-screen-img-v4" crossOrigin="anonymous" />
+                      : <div className="phone-screen-ph-v4">SCREENSHOT</div>}
                   </div>
                 </div>
               </div>
