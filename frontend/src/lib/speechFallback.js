@@ -29,15 +29,33 @@ export function warmUpSpeech() {
   } catch { /* noop */ }
 }
 
+// Browsers surface several engines under one language tag — legacy desktop
+// SAPI/eSpeak voices sound flatly robotic; neural/network voices ("Online
+// (Natural)" on Edge, "Neural"/"Premium"/"Enhanced" on Chrome/Safari) sound
+// far more natural and cost nothing extra. Score each candidate by name so
+// the least robotic one wins — still $0, just a better pick from what the
+// device already has installed.
+const NATURAL_HINTS = [/online \(natural\)/i, /\bneural\b/i, /\bpremium\b/i, /\benhanced\b/i, /\bsiri\b/i, /\bgoogle\b/i, /\bnatural\b/i, /\bonline\b/i];
+const ROBOTIC_HINTS = [/\bdesktop\b/i, /\bcompact\b/i, /espeak/i];
+function voiceScore(v) {
+  const name = String(v?.name || '');
+  let score = 0;
+  for (const re of NATURAL_HINTS) if (re.test(name)) score += 1;
+  for (const re of ROBOTIC_HINTS) if (re.test(name)) score -= 2;
+  return score;
+}
+
 // Best available voice for a BCP-47 tag: exact match → language-prefix match →
-// null (let the engine use its default for utter.lang).
+// null (let the engine use its default for utter.lang). Within the matching
+// pool, prefer the least-robotic-sounding voice by name.
 function pickVoice(voices, tag) {
   if (!Array.isArray(voices) || !voices.length) return null;
   const lc = tag.toLowerCase();
   const prefix = lc.split('-')[0];
-  return voices.find((v) => v.lang && v.lang.toLowerCase() === lc)
-    || voices.find((v) => v.lang && v.lang.toLowerCase().startsWith(prefix))
-    || null;
+  const exact = voices.filter((v) => v.lang && v.lang.toLowerCase() === lc);
+  const pool = exact.length ? exact : voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith(prefix));
+  if (!pool.length) return null;
+  return pool.reduce((best, v) => (voiceScore(v) > voiceScore(best) ? v : best), pool[0]);
 }
 
 // getVoices() is populated asynchronously in Chrome (empty until 'voiceschanged').
