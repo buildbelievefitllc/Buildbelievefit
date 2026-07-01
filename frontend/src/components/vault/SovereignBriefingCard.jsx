@@ -15,13 +15,38 @@ import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useCalibration } from '../../lib/useCalibration.js';
 import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
-import { fetchSovereignBriefing, fetchCachedSovereignBriefing } from '../../lib/forecastApi.js';
+import { fetchSovereignBriefing, fetchCachedSovereignBriefing, fetchReadinessScoreClip } from '../../lib/forecastApi.js';
 import { manifestUrlById } from '../../lib/sovereignManifest.js';
 import { nearestScenario, telemetryFromReadiness } from '../../lib/biometricRouter.js';
 
 // Session blob cache (locale|UTC-day → object URL) so re-mounting the Hub doesn't
 // re-download today's ~1MB briefing. Session-lived; one URL per locale/day.
 const _sovCache = new Map();
+// Score-clip cache (locale|score → the globally-cached Akeem-voice URL from
+// bbf-readiness-score-voice). Distinct from _sovCache: this one is NOT keyed by
+// day/athlete since the sentence is identical for every athlete who ever lands
+// on the same score — the backend already caches it globally, this just skips
+// the redundant network round-trip within one session.
+const _scoreClipCache = new Map();
+async function scoreClipUrl(score, lang) {
+  const key = `${lang}|${score}`;
+  if (_scoreClipCache.has(key)) return _scoreClipCache.get(key);
+  const url = await fetchReadinessScoreClip({ score, locale: lang });
+  _scoreClipCache.set(key, url);
+  return url;
+}
+// Plays `url` on the given <audio> element and resolves once it finishes (or
+// rejects on a genuine playback error) — used to chain the exact-score intro
+// clip before the coaching content, both in Coach Akeem's voice.
+function playToEnd(el, url) {
+  return new Promise((resolve, reject) => {
+    if (!el) { resolve(); return; }
+    el.onended = () => resolve();
+    el.onerror = () => reject(new Error('clip_playback_failed'));
+    el.src = url;
+    el.play().catch(reject);
+  });
+}
 function utcDay() { return new Date().toISOString().slice(0, 10); }
 // Generation timestamp (UTC ISO) → the athlete's LOCAL clock time, e.g. "2:13 PM".
 function fmtTime(iso, lang) {
@@ -36,6 +61,7 @@ const SB_STR = {
     kicker: 'Sovereign Audio · Daily',
     title: 'Your Sovereign Briefing',
     sub: 'Composed fresh from this morning’s check-in — in Coach Akeem’s voice.',
+    readinessLabel: 'Today’s Readiness',
     playToday: '▶ Play Today’s Briefing', generate: '▶ Generate Briefing',
     loadingToday: 'Loading today’s briefing…', generating: 'Composing your briefing…', replay: '↻ Replay',
     freshAt: (t) => `Freshly generated today at ${t}`,
@@ -48,6 +74,7 @@ const SB_STR = {
     kicker: 'Audio Soberano · Diario',
     title: 'Tu Informe Soberano',
     sub: 'Compuesto al instante desde tu registro de esta mañana — en la voz del Coach Akeem.',
+    readinessLabel: 'Preparación de Hoy',
     playToday: '▶ Reproducir el de Hoy', generate: '▶ Generar Informe',
     loadingToday: 'Cargando el informe de hoy…', generating: 'Componiendo tu informe…', replay: '↻ Repetir',
     freshAt: (t) => `Generado hoy a las ${t}`,
@@ -60,6 +87,7 @@ const SB_STR = {
     kicker: 'Áudio Soberano · Diário',
     title: 'Seu Briefing Soberano',
     sub: 'Composto na hora a partir do seu check-in desta manhã — na voz do Coach Akeem.',
+    readinessLabel: 'Prontidão de Hoje',
     playToday: '▶ Tocar o de Hoje', generate: '▶ Gerar Briefing',
     loadingToday: 'Carregando o briefing de hoje…', generating: 'Compondo seu briefing…', replay: '↻ Repetir',
     freshAt: (t) => `Gerado hoje às ${t}`,
@@ -87,6 +115,7 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   const [phase, setPhase] = useState('loading'); // loading | ready | idle | generating | error
   const [err, setErr] = useState(null);
   const audioRef = useRef(null);
+  const scoreAudioRef = useRef(null); // dedicated element for the exact-score intro clip
 
   // SQUAD INTERCEPT (Phase 3): when an override is active, the player BYPASSES the
   // bespoke daily briefing and serves the override's permanent PUBLIC URL resolved
@@ -139,7 +168,20 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   // Render for a graduated athlete OR whenever a squad intercept is active.
   if (!isGraduated && !intercept) return null;
 
-  function play() {
+  // Every time the briefing plays: if there's a live check-in score, lead with
+  // the EXACT number in Coach Akeem's real voice (bbf-readiness-score-voice —
+  // globally cached, usually an instant hit) before the coaching clip / bespoke
+  // narrative. Never blocks playback — a fetch/playback failure on the intro
+  // just falls through to the briefing itself. Skipped for a squad intercept
+  // (a CEO-authored override clip unrelated to today's individual score).
+  async function play() {
+    const hasScore = !intercept && readiness?.hasData && Number.isFinite(Number(readiness.score));
+    if (hasScore) {
+      try {
+        const clipUrl = await scoreClipUrl(Math.round(Number(readiness.score)), lang);
+        await playToEnd(scoreAudioRef.current, clipUrl);
+      } catch { /* score intro unavailable — proceed straight to the briefing */ }
+    }
     queueMicrotask(() => { try { audioRef.current?.play?.(); } catch { /* user can press the native control */ } });
   }
 
@@ -187,6 +229,14 @@ export default function SovereignBriefingCard({ overrideActive = false, override
         <span style={KICKER}>★ {tr.kicker}</span>
         <h3 style={TITLE}>{tr.title}</h3>
         <p style={SUB}>{tr.sub}</p>
+        {/* Visible confirmation of the EXACT score the audio is about to lead with —
+            the same number the Sovereign Readiness dial shows, so the card never
+            visually disagrees with what plays. */}
+        {!intercept && readiness?.hasData && Number.isFinite(Number(readiness.score)) ? (
+          <div style={READINESS} data-testid="sovereign-briefing-readiness">
+            {tr.readinessLabel}: <strong>{Math.round(Number(readiness.score))}</strong>/100
+          </div>
+        ) : null}
         {/* Premium "freshly generated" stamp — reads created_at off the cached blob.
             Purple pill + gold border/text; only when a briefing is ready. */}
         {createdAt && phase === 'ready' ? (
@@ -202,6 +252,8 @@ export default function SovereignBriefingCard({ overrideActive = false, override
         {url ? (
           <audio ref={audioRef} src={url} controls preload="auto" style={{ width: '100%', marginTop: '.7rem' }} data-testid="sovereign-briefing-audio" />
         ) : null}
+        {/* Hidden — the exact-score intro clip chains through here before audioRef plays. */}
+        <audio ref={scoreAudioRef} preload="none" style={{ display: 'none' }} data-testid="sovereign-briefing-score-audio" />
         {err ? <div role="alert" style={ERR} data-testid="sovereign-briefing-err">{err}</div> : null}
       </div>
     </section>
@@ -213,6 +265,7 @@ const GLOW = { position: 'absolute', inset: 0, background: 'radial-gradient(120%
 const KICKER = { fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#f5c800' };
 const TITLE = { fontFamily: 'var(--hb)', fontSize: '1.5rem', margin: '.25rem 0 .2rem', color: '#fff', letterSpacing: '.5px', lineHeight: 1.1 };
 const SUB = { margin: 0, color: 'rgba(244,238,251,.82)', fontSize: '.9rem', lineHeight: 1.45 };
+const READINESS = { marginTop: '.5rem', color: 'rgba(244,238,251,.9)', fontFamily: 'var(--hb)', fontSize: '.78rem', letterSpacing: '.5px' };
 const BTN = { fontFamily: 'var(--hb)', fontSize: '.82rem', letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700, color: '#0e0a16', background: 'linear-gradient(90deg,#f5c800,#ffd83a)', border: 'none', borderRadius: 999, padding: '.6rem 1.25rem', cursor: 'pointer' };
 const ERR = { marginTop: '.6rem', color: '#ffd24d', fontSize: '.8rem' };
 // Squad-intercept flag: brushed-titanium pill on the gold/purple card, signaling the

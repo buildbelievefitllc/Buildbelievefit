@@ -78,6 +78,28 @@ export async function fetchSovereignBriefing({ locale }) {
   return URL.createObjectURL(await res.blob());
 }
 
+// READINESS SCORE VOICE — the EXACT readiness_score, spoken by Coach Akeem, via
+// bbf-readiness-score-voice. Globally cached by (locale, score) — not per athlete —
+// so this is a fast lazy-cache lookup (usually a hit) that returns a PERMANENT
+// public URL, not a blob. Meant to be played immediately before the biometric-matrix
+// clip / bespoke briefing so the number spoken always matches the dashboard exactly.
+export async function fetchReadinessScoreClip({ score, locale }) {
+  const token = getStoredVaultToken();
+  const res = await fetch(`${FUNCTIONS_BASE}/bbf-readiness-score-voice`, {
+    method: 'POST',
+    headers: fnHeaders(token),
+    body: JSON.stringify({ score, locale, vault_token: token }),
+  });
+  if (!res.ok) {
+    let slug = `readiness_score_voice_failed_${res.status}`;
+    try { slug = (await res.json())?.error || slug; } catch { /* non-JSON body */ }
+    throw new Error(slug);
+  }
+  const data = await res.json();
+  if (!data?.ok || !data.url) throw new Error('readiness_score_voice_no_url');
+  return data.url;
+}
+
 // AUTO-DAILY (FRONT 3.5): read TODAY'S PRE-CACHED Sovereign Briefing — the one the
 // morning check-in tripwire generated in the background — via the token-gated
 // bbf_get_sovereign_briefing RPC. Returns { url, createdAt } for instant play (the
