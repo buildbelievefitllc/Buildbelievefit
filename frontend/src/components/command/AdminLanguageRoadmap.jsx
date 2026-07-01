@@ -1383,6 +1383,8 @@ const VOICE_DRILLS = [
 
 const ERROR_MESSAGES = {
   network: "Network connection issue. Check your internet and try again.",
+  "network-offline": "You appear to be offline. Check your internet connection.",
+  "network-blocked": "Speech recognition is blocked by your network. This feature requires access to Google's speech API, which may be restricted by your network policy or proxy settings. Try using a different network, or contact your network administrator.",
   "not-allowed": "Microphone permission denied. Enable permissions in your browser settings.",
   "permission-denied": "Microphone permission denied. Enable permissions in your browser settings.",
   "network-timeout": "Connection timeout. Check your internet and try again.",

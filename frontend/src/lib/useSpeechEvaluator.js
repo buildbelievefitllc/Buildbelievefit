@@ -106,7 +106,17 @@ export function useSpeechEvaluator(lang = 'es') {
     recog.onerror = (ev) => {
       // 'no-speech' / 'aborted' are benign user-flow outcomes, not failures.
       if (ev?.error && ev.error !== 'no-speech' && ev.error !== 'aborted') {
-        setError(ev.error);
+        // Network errors in remote/proxy environments: set a diagnostic error code
+        if (ev.error === 'network') {
+          // Check if this is a proxy/policy issue by attempting a basic connectivity test
+          if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            setError('network-offline');
+          } else {
+            setError('network-blocked');
+          }
+        } else {
+          setError(ev.error);
+        }
       }
       setListening(false);
     };
