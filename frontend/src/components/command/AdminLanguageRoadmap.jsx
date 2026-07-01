@@ -1381,16 +1381,33 @@ const VOICE_DRILLS = [
   ...vocabData['MOTIVATION & CUES'].map((v) => ({ lang: 'es', text: v.es, label: `🇪🇸 ${v.en}`, group: 'Coach Cues' })),
 ];
 
+const BROWSER_LABEL = { edge: 'Microsoft Edge', opera: 'Opera', brave: 'Brave' };
+
 const ERROR_MESSAGES = {
   network: "Network connection issue. Check your internet and try again.",
   "network-offline": "You appear to be offline. Check your internet connection.",
-  "network-blocked": "Speech recognition is blocked by your network. This feature requires access to Google's speech API, which may be restricted by your network policy or proxy settings. Try using a different network, or contact your network administrator.",
+  "network-blocked": "Speech recognition couldn't reach the recognition service. Check your internet connection, or disable any VPN/ad-blocker/privacy extension that might be blocking requests to Google's servers, then try again.",
   "not-allowed": "Microphone permission denied. Enable permissions in your browser settings.",
   "permission-denied": "Microphone permission denied. Enable permissions in your browser settings.",
   "network-timeout": "Connection timeout. Check your internet and try again.",
   start_failed: "Failed to start microphone. Ensure permissions are granted.",
   unsupported: "Voice recognition not available in this browser.",
 };
+
+// The voice recognizer (speech-to-text) only has a working cloud backend in Google
+// Chrome — every other Chromium-based browser (Edge, Opera, Brave, ...) exposes the
+// same JS API but fails every attempt with a bare 'network' error, since there's no
+// connectivity problem to fix. Resolve those dynamic `network-nobackend-<browser>`
+// codes to a message that tells the user the real, actionable fix: open Chrome.
+function resolveErrorMessage(error) {
+  if (!error) return '';
+  const noBackend = /^network-nobackend-(.+)$/.exec(error);
+  if (noBackend) {
+    const label = BROWSER_LABEL[noBackend[1]] || 'this browser';
+    return `Voice recognition doesn't work reliably in ${label} — it needs Google Chrome's speech backend, which ${label} doesn't have access to (this is a browser limitation, not a permissions issue). Open this page in Google Chrome to use the pronunciation evaluator.`;
+  }
+  return ERROR_MESSAGES[error] || `Microphone error: ${error}. Please try again.`;
+}
 
 function VoiceDrill({ drill }) {
   const { supported, listening, transcript, interim, error, start, stop, reset, retry, retryCount } = useSpeechEvaluator(drill.lang);
@@ -1405,7 +1422,10 @@ function VoiceDrill({ drill }) {
   let scoreClass = '';
   if (result) scoreClass = result.score >= 80 ? 'lr-voice-score--green' : result.score >= 50 ? 'lr-voice-score--yellow' : 'lr-voice-score--red';
 
-  const errorMessage = ERROR_MESSAGES[error] || `Microphone error: ${error}. Please try again.`;
+  const errorMessage = resolveErrorMessage(error);
+  // A no-backend browser will fail identically on every retry — offering "Try
+  // Again" there is a dead end, not a fix, so only show it for transient causes.
+  const isRetryable = error && !/^network-nobackend-/.test(error);
 
   return (
     <div className="lr-voice">
@@ -1452,7 +1472,9 @@ function VoiceDrill({ drill }) {
           {error && error !== 'no-speech' && (
             <div className="lr-voice-err">
               <div>{errorMessage}</div>
-              <button type="button" onClick={retry} className="lr-voice-retry">🔄 Try Again{retryCount > 0 ? ` (${retryCount})` : ''}</button>
+              {isRetryable && (
+                <button type="button" onClick={retry} className="lr-voice-retry">🔄 Try Again{retryCount > 0 ? ` (${retryCount})` : ''}</button>
+              )}
             </div>
           )}
         </>

@@ -57,6 +57,26 @@ export function speechRecognitionSupported() {
       || typeof window.SpeechRecognition !== 'undefined');
 }
 
+// The Web Speech API's *recognition* half (STT) is not like its *synthesis* half
+// (TTS, speechFallback.js) — synthesis is a standard every engine implements
+// locally, but recognition ships as a thin client to a proprietary cloud backend.
+// Chrome talks to Google's own backend and it works. Chromium-based browsers that
+// aren't Chrome (Edge, Brave, Opera, etc.) expose the same `webkitSpeechRecognition`
+// constructor — feature-detection says "supported" — but have no working backend
+// behind it, so recognition fails immediately with a bare 'network' error on
+// every attempt, regardless of actual connectivity. This is a well-documented
+// platform gap (not a bug in this app), so we detect it up front and tell the
+// user to switch to Chrome rather than misdiagnosing it as a firewall/proxy issue.
+function detectRecognitionBackend() {
+  if (typeof navigator === 'undefined') return 'unknown';
+  const ua = navigator.userAgent || '';
+  if (/Edg\//.test(ua)) return 'edge';               // Edge (Chromium) — no Google backend
+  if (/OPR\//.test(ua)) return 'opera';               // Opera (Chromium) — no Google backend
+  if (/Brave/.test(ua) || (navigator.brave && typeof navigator.brave.isBrave === 'function')) return 'brave';
+  if (/Chrome\//.test(ua) && !/Chromium\//.test(ua)) return 'chrome'; // genuine Google Chrome
+  return 'other';
+}
+
 // React hook wrapping a single SpeechRecognition session. The recognizer is
 // instantiated lazily on start() (inside the user gesture) and torn down on stop()
 // / unmount so we never leak a hot microphone. Exposes live + final transcript so
@@ -106,13 +126,15 @@ export function useSpeechEvaluator(lang = 'es') {
     recog.onerror = (ev) => {
       // 'no-speech' / 'aborted' are benign user-flow outcomes, not failures.
       if (ev?.error && ev.error !== 'no-speech' && ev.error !== 'aborted') {
-        // Network errors in remote/proxy environments: set a diagnostic error code
         if (ev.error === 'network') {
-          // Check if this is a proxy/policy issue by attempting a basic connectivity test
           if (typeof navigator !== 'undefined' && navigator.onLine === false) {
             setError('network-offline');
           } else {
-            setError('network-blocked');
+            // Genuinely offline rules out the connectivity theory — check whether
+            // this browser even has a working recognition backend before blaming
+            // a firewall/proxy that may not be the real cause.
+            const backend = detectRecognitionBackend();
+            setError(backend === 'chrome' || backend === 'unknown' ? 'network-blocked' : `network-nobackend-${backend}`);
           }
         } else {
           setError(ev.error);
