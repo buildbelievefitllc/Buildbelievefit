@@ -22,6 +22,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CATEGORIES, STUDIES, STUDY_TABS } from '../data/scienceHubData.js';
+import { scienceHubVoiceUrl } from '../lib/scienceHubVoice.js';
 import { browserSpeechSupported, speakWithBrowser, warmUpSpeech } from '../lib/speechFallback.js';
 import './scienceHub.css';
 
@@ -171,7 +172,7 @@ function StudyDetail({ study, tab, onTab }) {
       <div className={`shub-panel${isAkeem ? ' is-akeem' : ''}`}>
         <div className="shub-panel-head">
           <div className="shub-panel-heading">{activeTab.heading}</div>
-          <ListenButton key={`${study.id}-${tab}`} text={toSpeak} />
+          <ListenButton key={`${study.id}-${tab}`} studyId={study.id} tabId={activeTab.id} text={toSpeak} />
         </div>
         {isAkeem ? (
           <>
@@ -186,18 +187,24 @@ function StudyDetail({ study, tab, onTab }) {
   );
 }
 
-// Read the active tab's content aloud with the device's built-in stock voice
-// (window.speechSynthesis) — zero API key, zero cost, so it's always on. Not a
-// fallback here (unlike CoachAudioButton's ElevenLabs failure path): for a
-// public marketing asset with no auth/billing context, the free voice IS the
-// voice layer.
-function ListenButton({ text }) {
+// Read the active tab's content aloud in Coach Akeem's REAL voice. PRIMARY path:
+// the pre-rendered ElevenLabs clip for this (studyId, tabId) — a permanent public
+// MP3 baked ONCE into the coach-static bucket (scienceHubVoiceManifest.json),
+// zero cost per listen. FAILURE-ONLY fallback: if the manifest has no clip for
+// this tab, or the <audio> element fails to load/play, it degrades to the
+// device's built-in stock voice (window.speechSynthesis) reading the same script
+// — mirroring vault/CoachAudioButton.jsx's premium-primary / stock-voice pattern.
+function ListenButton({ studyId, tabId, text }) {
+  const url = scienceHubVoiceUrl(studyId, tabId);
   const [state, setState] = useState('idle'); // idle | loading | playing
+  const [stock, setStock] = useState(false);   // true while the stock fallback speaks
   const [err, setErr] = useState(false);
-  const controllerRef = useRef(null);
+  const audioRef = useRef(null);
+  const controllerRef = useRef(null);          // active stock-voice controller (fallback)
+  const fallingBackRef = useRef(false);        // guards against a double fallback (play() catch + audio onError)
   const mountedRef = useRef(true);
 
-  // Stop any speech in flight when the tab/study changes (remounts via `key`)
+  // Stop any playback in flight when the tab/study changes (remounts via `key`)
   // or the component unmounts — never let two reads overlap, and never touch
   // state after the async speakWithBrowser() resolves post-unmount.
   useEffect(() => {
@@ -208,35 +215,66 @@ function ListenButton({ text }) {
     };
   }, []);
 
-  if (!browserSpeechSupported()) return null;
+  // Nothing to offer if there's no premium clip AND no stock engine on the device.
+  if (!url && !browserSpeechSupported()) return null;
 
-  async function onClick() {
-    if (controllerRef.current) {
-      controllerRef.current.stop();
-      controllerRef.current = null;
-      setState('idle');
-      return;
-    }
-    warmUpSpeech(); // unlock speechSynthesis inside this click gesture (iOS/Safari)
-    setState('loading');
-    setErr(false);
+  // FAILURE-ONLY: device stock voice reading the same baked script. Never primary.
+  async function fallbackToStock() {
+    if (controllerRef.current || fallingBackRef.current) return; // already falling back
+    fallingBackRef.current = true;
+    if (!browserSpeechSupported()) { fallingBackRef.current = false; if (mountedRef.current) { setState('idle'); setErr(true); } return; }
     try {
       const controller = await speakWithBrowser({
         text,
         lang: 'en',
-        onEnd: () => { controllerRef.current = null; if (mountedRef.current) setState('idle'); },
-        onError: () => { controllerRef.current = null; if (mountedRef.current) { setState('idle'); setErr(true); } },
+        onEnd: () => { controllerRef.current = null; if (mountedRef.current) { setState('idle'); setStock(false); } },
+        onError: () => { controllerRef.current = null; if (mountedRef.current) { setState('idle'); setStock(false); setErr(true); } },
       });
+      fallingBackRef.current = false;
       if (!mountedRef.current) { controller.stop(); return; }
       controllerRef.current = controller;
+      setStock(true);
       setState('playing');
     } catch {
+      fallingBackRef.current = false;
       controllerRef.current = null;
-      if (mountedRef.current) { setState('idle'); setErr(true); }
+      if (mountedRef.current) { setState('idle'); setStock(false); setErr(true); }
     }
   }
 
-  const label = state === 'loading' ? 'Loading voice…' : state === 'playing' ? 'Stop' : 'Listen';
+  async function onClick() {
+    // Toggle an active stock-voice fallback.
+    if (controllerRef.current) {
+      try { controllerRef.current.stop(); } catch { /* noop */ }
+      controllerRef.current = null;
+      setState('idle'); setStock(false);
+      return;
+    }
+    // Toggle the premium clip mid-play.
+    const el = audioRef.current;
+    if (url && el && state === 'playing') { el.pause(); return; }
+
+    // Unlock speechSynthesis inside this click gesture (iOS/Safari) before any
+    // async hop — cheap no-op when the premium path succeeds.
+    warmUpSpeech();
+    setErr(false);
+
+    // PRIMARY: the pre-rendered Akeem clip via the <audio> element.
+    if (url && el) {
+      setState('loading');
+      try { await el.play(); }        // onPlay → state:playing; onError → fallback
+      catch { await fallbackToStock(); }
+      return;
+    }
+
+    // No clip for this tab → straight to the stock-voice fallback.
+    setState('loading');
+    await fallbackToStock();
+  }
+
+  const label = state === 'loading' ? 'Loading voice…'
+    : state === 'playing' ? (stock ? 'Stop · stock voice' : 'Pause')
+    : 'Listen';
 
   return (
     <div className="shub-listen-wrap">
@@ -245,12 +283,23 @@ function ListenButton({ text }) {
         className={`shub-listen${state === 'playing' ? ' is-playing' : ''}`}
         onClick={onClick}
         disabled={state === 'loading'}
-        aria-label={`${label} to this section`}
+        aria-label={`${label} to Coach Akeem read this section`}
       >
         <span className="shub-listen-ic" aria-hidden="true">{state === 'playing' ? '◼' : '🔊'}</span>
         {label}
       </button>
       {err ? <span className="shub-listen-err" role="status">Voice unavailable on this device.</span> : null}
+      {url ? (
+        <audio
+          ref={audioRef}
+          src={url}
+          onPlay={() => { if (mountedRef.current) { setState('playing'); setStock(false); } }}
+          onPause={() => { if (mountedRef.current && !stock) setState('idle'); }}
+          onEnded={() => { if (mountedRef.current) setState('idle'); }}
+          onError={() => { if (!controllerRef.current) fallbackToStock(); }}
+          preload="none"
+        />
+      ) : null}
     </div>
   );
 }
