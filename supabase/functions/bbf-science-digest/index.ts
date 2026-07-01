@@ -3,29 +3,19 @@
 // Returns a JSON array of { tag, finding, cite } items for the Science Hub UI in
 // bbf-app.html (BBF_SCIENCE_HUB).
 //
-// COST CONTROL (CEO burn-rate order):
-//   • Result is CACHED in public.bbf_science_digest (Postgres).
-//   • Normal client calls return the cached row — NO LLM call.
-//   • Regeneration (Gemini Flash) fires ONLY when: there is no cached row, the
-//     cached row is older than 7 days, OR an admin sends force=true with a valid
-//     X-BBF-Admin-Token. This prevents an API hit on every client page load.
+// COST CONTROL (CEO burn-rate order, 2026-07):
+//   • FULLY STATIC. No LLM call, no Gemini, no external API cost of any kind.
+//   • Content is a hand-curated, trilingual BASELINE below. To "switch it up",
+//     edit BASELINE and redeploy, or write a new row into public.bbf_science_digest
+//     (scope = "<scope>:<lang>") — a DB row, if present, is served in preference
+//     to BASELINE with no code change required.
 //
-// MODEL: Google Gemini Flash — intentionally NOT the Claude _shared/model-router.
-//   Per CEO directive, this low-stakes formatting/digest task runs on Gemini
-//   Flash to minimize burn rate. It is the one edge function deliberately outside
-//   the Claude routing matrix (see CLAUDE.md §4). All Claude-calling functions
-//   still route through model-router.ts.
-//
-// Request:  POST { scope?: string, max_items?: number, force?: boolean }
+// Request:  POST { scope?: string, max_items?: number }
 //           Authorization: Bearer <anon|user jwt>   (verify_jwt on)
-//           X-BBF-Admin-Token: <BBF_COACH_AGENT_TOKEN>   (required only for force)
 // Success:  200 { ok:true, items:[{tag,finding,cite}], model, generated_at, cached }
 // Errors:   non-2xx { error:"<slug>", detail?:"..." }
 //
-// Secrets:  GEMINI_API_KEY (required for live refresh)
-//           GEMINI_MODEL   (optional, default "gemini-2.5-flash")
-//           BBF_COACH_AGENT_TOKEN (admin force gate)
-//           SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (auto-injected by runtime)
+// Secrets:  SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (auto-injected by runtime)
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -43,18 +33,36 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 const TABLE = 'bbf_science_digest';
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-const DEFAULT_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
 const MAX_ITEMS_CAP = 10;
 
-// Established-baseline fallback — real, well-documented findings. Served only when
-// the cache is empty AND Gemini is unavailable, so the UI is never empty/broken.
-const BASELINE = [
-  { tag: 'Hypertrophy · Volume', finding: 'Muscle growth follows a dose-response to weekly hard-set volume; ~10+ challenging sets per muscle per week drive more hypertrophy than lower volumes.', cite: 'Schoenfeld, Ogborn & Krieger, 2017 — Journal of Sports Sciences (meta-analysis)' },
-  { tag: 'Protein · Intake', finding: 'Resistance-training gains in lean mass are maximized near ~1.6 g protein per kg bodyweight per day; intake beyond this yields little additional benefit for most lifters.', cite: 'Morton et al., 2018 — British Journal of Sports Medicine (meta-analysis)' },
-  { tag: 'Training Frequency', finding: 'When weekly volume is equated, training a muscle group at least twice per week tends to produce greater hypertrophy than training it once weekly.', cite: 'Schoenfeld, Ogborn & Krieger, 2016 — Sports Medicine (meta-analysis)' },
-  { tag: 'Progressive Overload', finding: 'Adaptation requires progressively increasing mechanical tension over time via load, reps, or total volume.', cite: 'ACSM Position Stand — Progression Models in Resistance Training, Med Sci Sports Exerc' },
-];
+// Hand-curated, trilingual baseline. Evergreen exercise-science findings — no live
+// regeneration needed. Edit directly and redeploy whenever the content should change.
+const BASELINE_I18N: Record<string, Array<{ tag: string; finding: string; cite: string }>> = {
+  en: [
+    { tag: 'Hypertrophy · Volume', finding: 'Muscle growth follows a dose-response to weekly hard-set volume; roughly 10+ challenging sets per muscle per week drive more hypertrophy than lower volumes.', cite: 'Schoenfeld, Ogborn & Krieger, 2017 — Journal of Sports Sciences (meta-analysis)' },
+    { tag: 'Protein · Intake', finding: 'Resistance-training gains in lean mass are maximized near ~1.6 g of protein per kg of bodyweight per day; intake beyond this yields little additional benefit for most lifters.', cite: 'Morton et al., 2018 — British Journal of Sports Medicine (meta-analysis)' },
+    { tag: 'Training Frequency', finding: 'When weekly volume is equated, training a muscle group at least twice per week tends to produce greater hypertrophy than training it once per week.', cite: 'Schoenfeld, Ogborn & Krieger, 2016 — Sports Medicine (meta-analysis)' },
+    { tag: 'Effort · Proximity to Failure', finding: 'Hypertrophy is driven by high effort. Sets taken close to failure maximize the growth stimulus; the final few hard reps carry the bulk of the adaptive signal.', cite: 'Schoenfeld & Grgic, 2019 — Strength & Conditioning Journal (review)' },
+    { tag: 'Range of Motion', finding: 'Training through a full range of motion — emphasizing the lengthened (stretched) position of the muscle — generally produces superior hypertrophy compared with partial-range work.', cite: 'Schoenfeld & Grgic, 2020 — exercise-science review' },
+    { tag: 'Progressive Overload', finding: 'Adaptation requires progressively increasing mechanical tension over time via load, reps, or total volume. Without progression, gains plateau.', cite: 'ACSM Position Stand — Progression Models in Resistance Training, Med Sci Sports Exerc' },
+  ],
+  es: [
+    { tag: 'Hipertrofia · Volumen', finding: 'El crecimiento muscular sigue una relación dosis-respuesta con el volumen semanal de series exigentes; alrededor de 10+ series duras por músculo por semana generan más hipertrofia que volúmenes menores.', cite: 'Schoenfeld, Ogborn & Krieger, 2017 — Journal of Sports Sciences (metaanálisis)' },
+    { tag: 'Proteína · Ingesta', finding: 'Las ganancias de masa magra por entrenamiento de fuerza se maximizan cerca de ~1.6 g de proteína por kg de peso corporal al día; más allá de eso aporta poco beneficio adicional para la mayoría.', cite: 'Morton et al., 2018 — British Journal of Sports Medicine (metaanálisis)' },
+    { tag: 'Frecuencia de Entrenamiento', finding: 'Con el volumen semanal igualado, entrenar un grupo muscular al menos dos veces por semana tiende a producir más hipertrofia que una vez por semana.', cite: 'Schoenfeld, Ogborn & Krieger, 2016 — Sports Medicine (metaanálisis)' },
+    { tag: 'Esfuerzo · Cercanía al Fallo', finding: 'La hipertrofia se impulsa con alto esfuerzo. Las series llevadas cerca del fallo maximizan el estímulo; las últimas repeticiones duras aportan la mayor parte de la señal adaptativa.', cite: 'Schoenfeld & Grgic, 2019 — Strength & Conditioning Journal (revisión)' },
+    { tag: 'Rango de Movimiento', finding: 'Entrenar en un rango de movimiento completo — enfatizando la posición alargada (estirada) del músculo — generalmente produce mayor hipertrofia que el trabajo parcial.', cite: 'Schoenfeld & Grgic, 2020 — revisión de ciencia del ejercicio' },
+    { tag: 'Sobrecarga Progresiva', finding: 'La adaptación requiere aumentar progresivamente la tensión mecánica con el tiempo mediante carga, repeticiones o volumen. Sin progresión, las ganancias se estancan.', cite: 'ACSM Position Stand — Progression Models in Resistance Training, Med Sci Sports Exerc' },
+  ],
+  pt: [
+    { tag: 'Hipertrofia · Volume', finding: 'O crescimento muscular segue uma relação dose-resposta com o volume semanal de séries exigentes; cerca de 10+ séries difíceis por músculo por semana geram mais hipertrofia do que volumes menores.', cite: 'Schoenfeld, Ogborn & Krieger, 2017 — Journal of Sports Sciences (metanálise)' },
+    { tag: 'Proteína · Ingestão', finding: 'Os ganhos de massa magra com treino de força são maximizados perto de ~1,6 g de proteína por kg de peso corporal por dia; além disso, há pouco benefício adicional para a maioria.', cite: 'Morton et al., 2018 — British Journal of Sports Medicine (metanálise)' },
+    { tag: 'Frequência de Treino', finding: 'Com o volume semanal igualado, treinar um grupo muscular pelo menos duas vezes por semana tende a produzir mais hipertrofia do que uma vez por semana.', cite: 'Schoenfeld, Ogborn & Krieger, 2016 — Sports Medicine (metanálise)' },
+    { tag: 'Esforço · Proximidade da Falha', finding: 'A hipertrofia é impulsionada por alto esforço. Séries levadas perto da falha maximizam o estímulo; as últimas repetições difíceis carregam a maior parte do sinal adaptativo.', cite: 'Schoenfeld & Grgic, 2019 — Strength & Conditioning Journal (revisão)' },
+    { tag: 'Amplitude de Movimento', finding: 'Treinar em amplitude completa — enfatizando a posição alongada (esticada) do músculo — geralmente produz mais hipertrofia do que o trabalho parcial.', cite: 'Schoenfeld & Grgic, 2020 — revisão de ciência do exercício' },
+    { tag: 'Sobrecarga Progressiva', finding: 'A adaptação exige aumentar progressivamente a tensão mecânica ao longo do tempo via carga, repetições ou volume. Sem progressão, os ganhos estagnam.', cite: 'ACSM Position Stand — Progression Models in Resistance Training, Med Sci Sports Exerc' },
+  ],
+};
 
 function isItemArray(x: unknown): boolean {
   return Array.isArray(x) && x.every((it: any) => it && typeof it === 'object' && typeof it.finding === 'string');
@@ -85,77 +93,6 @@ async function dbReadLatest(url: string, key: string, scope: string) {
   }
 }
 
-async function dbInsert(url: string, key: string, row: unknown): Promise<boolean> {
-  try {
-    const res = await fetch(`${url}/rest/v1/${TABLE}`, {
-      method: 'POST',
-      headers: {
-        apikey: key,
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
-      },
-      body: JSON.stringify(row),
-    });
-    return res.ok;
-  } catch (_) {
-    return false;
-  }
-}
-
-// ─── Gemini Flash digest synthesis ─────────────────────────────────────────────
-async function callGemini(apiKey: string, model: string, maxItems: number, lang: string) {
-  const langName = lang === 'es' ? 'Spanish' : lang === 'pt' ? 'Portuguese' : 'English';
-  const sys =
-    'You are a sports-science librarian for a clinical fitness platform. ' +
-    'Summarize current, well-established findings in resistance-training and exercise ' +
-    'science (hypertrophy, strength, protein/nutrition, recovery, injury prevention, ' +
-    'training frequency and volume). Report only findings that reflect the weight of ' +
-    'peer-reviewed evidence — no fringe claims. Never fabricate a citation: if you are ' +
-    'not confident a specific paper is real, attribute generically (e.g. "meta-analytic ' +
-    'consensus") instead of inventing a DOI or title.';
-  const prompt =
-    `Return EXACTLY ${maxItems} items as a JSON array. Each item is an object with ` +
-    '"tag" (short topic label, e.g. "Hypertrophy · Volume"), "finding" (one or two ' +
-    'plain-language sentences a coach can act on), and "cite" (author/year/journal, or ' +
-    '"meta-analytic consensus"). Write the "tag" and "finding" in ' + langName + '; keep ' +
-    'author names and journal titles in their original form. Output ONLY the JSON array, no prose.';
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: sys }] },
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.4, responseMimeType: 'application/json' },
-      }),
-    });
-  } catch (err) {
-    return { ok: false, status: 0, error: String((err as Error)?.message || err) };
-  }
-
-  const text = await res.text();
-  if (!res.ok) return { ok: false, status: res.status, error: text.slice(0, 500) };
-
-  let envelope: any = null;
-  try { envelope = JSON.parse(text); } catch (_) { return { ok: false, status: 502, error: 'gemini envelope not JSON' }; }
-
-  const raw = envelope?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  let items: any = null;
-  try {
-    items = JSON.parse(raw);
-  } catch (_) {
-    const m = raw.match(/\[[\s\S]*\]/); // recover array if wrapped in a code fence/object
-    if (m) { try { items = JSON.parse(m[0]); } catch (_) { /* noop */ } }
-  }
-  if (!isItemArray(items)) return { ok: false, status: 502, error: 'gemini output not an item array' };
-  return { ok: true, items };
-}
-
 // ─── Handler ───────────────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -168,60 +105,21 @@ serve(async (req: Request) => {
   const lang = (['en', 'es', 'pt'].indexOf(String(payload.lang)) !== -1) ? String(payload.lang) : 'en';
   const cacheScope = scope + ':' + lang;   // per-language cache key
   const maxItems = Math.max(3, Math.min(MAX_ITEMS_CAP, parseInt(payload.max_items, 10) || 8));
-  const wantForce = payload.force === true;
 
-  // Admin gate — required ONLY for a forced refresh. Reads are open to any caller
-  // that passed verify_jwt (anon key is sufficient).
-  const expectedToken = Deno.env.get('BBF_COACH_AGENT_TOKEN');
-  const sentToken = req.headers.get('x-bbf-admin-token') || '';
-  const isAdmin = !!expectedToken && sentToken === expectedToken;
-  if (wantForce && !isAdmin) {
-    return jsonResponse({ error: 'unauthorized', detail: 'force refresh requires a valid X-BBF-Admin-Token.' }, 401);
-  }
-  const force = wantForce && isAdmin;
+  const baseline = BASELINE_I18N[lang] || BASELINE_I18N.en;
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if (!SUPABASE_URL || !SERVICE_KEY) {
-    console.error('[bbf-science-digest] missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY.');
-    return jsonResponse({ error: 'config_missing_supabase' }, 503);
+    return jsonResponse({ ok: true, items: sanitize(baseline, maxItems), model: 'baseline', generated_at: new Date().toISOString(), cached: false, baseline: true });
   }
 
-  // 1) Read the latest cached digest for this scope.
-  const cached = await dbReadLatest(SUPABASE_URL, SERVICE_KEY, cacheScope);
-  const ageMs = cached ? (Date.now() - new Date(cached.generated_at).getTime()) : Infinity;
-  const isFresh = !!cached && ageMs < WEEK_MS;
-
-  // 2) Serve cache unless it is stale or an admin forced a refresh.
-  if (isFresh && !force) {
-    return jsonResponse({ ok: true, items: cached.items, model: cached.model || DEFAULT_MODEL, generated_at: cached.generated_at, cached: true });
+  // A hand-written DB row (inserted directly via SQL when the content should be
+  // "switched up") takes precedence over BASELINE — no redeploy required.
+  const row = await dbReadLatest(SUPABASE_URL, SERVICE_KEY, cacheScope);
+  if (row && isItemArray(row.items) && row.items.length) {
+    return jsonResponse({ ok: true, items: sanitize(row.items, maxItems), model: row.model || 'static', generated_at: row.generated_at, cached: true });
   }
 
-  // 3) Need fresh data → call Gemini Flash (guarded so we never break the UI).
-  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-  if (!GEMINI_API_KEY) {
-    console.warn('[bbf-science-digest] GEMINI_API_KEY not set — serving cache/baseline.');
-    if (cached) return jsonResponse({ ok: true, items: cached.items, model: cached.model || 'cache', generated_at: cached.generated_at, cached: true, stale: true });
-    return jsonResponse({ ok: true, items: BASELINE, model: 'baseline', generated_at: new Date().toISOString(), cached: false, baseline: true });
-  }
-
-  const gen = await callGemini(GEMINI_API_KEY, DEFAULT_MODEL, maxItems, lang);
-  if (!gen.ok) {
-    console.warn('[bbf-science-digest] gemini failed:', gen.status, gen.error);
-    if (cached) return jsonResponse({ ok: true, items: cached.items, model: cached.model || 'cache', generated_at: cached.generated_at, cached: true, stale: true });
-    return jsonResponse({ ok: true, items: BASELINE, model: 'baseline', generated_at: new Date().toISOString(), cached: false, baseline: true });
-  }
-
-  const items = sanitize(gen.items as any[], maxItems);
-  if (items.length === 0) {
-    if (cached) return jsonResponse({ ok: true, items: cached.items, model: cached.model || 'cache', generated_at: cached.generated_at, cached: true, stale: true });
-    return jsonResponse({ ok: true, items: BASELINE, model: 'baseline', generated_at: new Date().toISOString(), cached: false, baseline: true });
-  }
-
-  // 4) Persist the fresh digest (best-effort) and return it.
-  const generated_at = new Date().toISOString();
-  const wrote = await dbInsert(SUPABASE_URL, SERVICE_KEY, { scope: cacheScope, items, model: DEFAULT_MODEL, generated_at });
-  if (!wrote) console.warn('[bbf-science-digest] cache write failed (returning fresh items anyway).');
-
-  return jsonResponse({ ok: true, items, model: DEFAULT_MODEL, generated_at, cached: false });
+  return jsonResponse({ ok: true, items: sanitize(baseline, maxItems), model: 'baseline', generated_at: new Date().toISOString(), cached: false, baseline: true });
 });

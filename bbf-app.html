@@ -748,14 +748,6 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .meal-check{position:absolute;top:.7rem;right:.7rem;width:22px;height:22px;cursor:pointer;accent-color:#00ff88;margin:0}
 .nutr-card.is-checked{opacity:.7;border-left-color:#00ff88}
 .nutr-card.is-checked .nutr-ml{color:#00ff88}
-/* ═ WAR ROOM Feature 2 — Scan Meal primary button (BBF Vision Coach) ═══
-   Full-width gold CTA below the shaker; flips to a disabled "analyzing"
-   state during the Gemini fetch. */
-.bbf-primary-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.85rem 1rem;margin-bottom:.9rem;background:linear-gradient(180deg,var(--yel),#d4a800);color:#0e0e0e;border:1px solid rgba(212,175,55,.55);border-radius:12px;font-family:var(--hb,'Bebas Neue',sans-serif);font-size:1rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:opacity .25s,transform .15s,box-shadow .25s;box-shadow:0 4px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18)}
-.bbf-primary-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(212,175,55,.25),inset 0 1px 0 rgba(255,255,255,.22)}
-.bbf-primary-btn:active{transform:translateY(0)}
-.bbf-primary-btn:disabled,.bbf-primary-btn[data-state="analyzing"]{opacity:.7;cursor:wait;transform:none}
-.bbf-primary-btn[data-state="analyzing"]{background:linear-gradient(180deg,rgba(212,175,55,.55),rgba(168,124,0,.55));animation:bbfPulse 1.4s ease-in-out infinite}
 /* ═ Smart Macro Wheel · Daily Fuel dashboard (Phase 11 rebuild) ═══════ */
 .bbf-fuel-wrap{margin:.2rem 0 1.1rem}
 .bbf-fuel-card{background:linear-gradient(180deg,rgba(20,15,30,.9),rgba(10,10,15,.8));border:1px solid rgba(212,175,55,.18);border-radius:16px;padding:1.1rem 1rem 1.2rem;margin-bottom:.9rem}
@@ -805,7 +797,6 @@ html,body{height:100%;overflow:hidden;background:var(--blk);font-family:'Barlow 
 .meal-complete-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(212,175,55,.28)}
 .meal-complete-btn:active{transform:translateY(0)}
 .bbf-meal.done .meal-complete-btn{background:linear-gradient(180deg,#10c46a,#0a8f4e);color:#04210f}
-@keyframes bbfPulse{0%,100%{opacity:.65}50%{opacity:.95}}
 /* LOG */
 .lf2{display:flex;flex-direction:column;gap:.9rem}
 .lfl{font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin-bottom:.35rem;display:block}
@@ -5419,7 +5410,7 @@ window.BBF_APPLY_TRIAL_GATE = function() {
 //   architect                → Standard Macros/Meal Plan + Somatic +
 //                              Program + Log + Profile. Hide: Phantom Eye
 //                              module + Nutrition tools stack (Virtual
-//                              Chef + Nutrition Vision) + Scan Meal btn.
+//                              Chef + Nutrition Vision).
 //   sovereign                → Everything unlocked.
 //   default / unknown        → Most restrictive (Gateway treatment).
 //
@@ -5436,8 +5427,6 @@ var _BBF_TIER_GATE_ELS = [
   'virtual-chef-module',    // Nutrition-tab Virtual Chef button
   'nutrition-vision-module',// Nutrition-tab Nutrition Vision widget
   'nutrition-tools-stack',  // Wrapper around chef + vision modules (Architect-locks the whole stack)
-  'audioMealScannerBtn',    // Nutrition-tab Scan Meal CTA (dynamically rendered in #ncon)
-  'mealScannerContainer',   // Hidden WebRTC capture container (dynamic)
   'somatic-map',            // Home-tab Somatic Readiness widget
   'qa-l',                   // Home quick-action: Free Log
   'qa-n'                    // Home quick-action: Nutrition
@@ -5451,15 +5440,15 @@ var _BBF_TIER_LOCKS = {
   // Phase 10: Smart Cardio (replacing legacy Log tab) is also global —
   // removed 'log' from every tier's nav-lock list. 'log' slug is dead.
   gateway: {
-    els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer','somatic-map','qa-l','qa-n'],
+    els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','somatic-map','qa-l','qa-n'],
     navs: ['nutrition']
   },
   youth_athlete: {
-    els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer','somatic-map','qa-l','qa-n'],
+    els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','somatic-map','qa-l','qa-n'],
     navs: ['nutrition']
   },
   architect: {
-    els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack','audioMealScannerBtn','mealScannerContainer'],
+    els:  ['phantom-eye-module','virtual-chef-module','nutrition-vision-module','nutrition-tools-stack'],
     navs: []
   },
   sovereign: {
@@ -8940,7 +8929,7 @@ function TAB(name) {
     if (typeof BBF_LINGUIST  !== 'undefined') { try { BBF_LINGUIST.init();  } catch (_) {} }
   }
   // Phase 9 — re-apply tier gate after every tab switch so dynamically-
-  // rendered surfaces (Scan Meal, day-swapped meals, etc.) re-mask.
+  // rendered surfaces (day-swapped meals, etc.) re-mask.
   if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
     try { window.BBF_APPLY_TIER_GATE(); } catch(_) {}
   }
@@ -21092,235 +21081,6 @@ var BBF_NUTRITION_TRACKER = (function() {
   return { init: init, restore: restore, applyVisual: applyVisual, slugMeal: slugMeal };
 })();
 
-// ─── WAR ROOM Feature 2 · BBF Vision Coach (audio-only meal scan) ───
-// Flow: user taps Scan Meal -> in-app WebRTC camera stream opens (rear-
-// facing on mobile) -> user taps Take Photo -> frame is captured to a
-// hidden canvas -> base64 POST to /api/vision-coach on the Render
-// backend (which holds GEMINI_API_KEY and calls gemini-1.5-flash:
-// generateContent) -> response text -> window.speechSynthesis.speak().
-// Nothing is rendered to the DOM.
-//
-// State machine on the Scan Meal button:
-//   idle       -> "Scan Meal"        (click opens camera, transitions to streaming)
-//   streaming  -> "Cancel Scan"      (click stops camera, returns to idle)
-//   analyzing  -> "Analyzing..."     (fetch in flight, returns to idle on audio start)
-//
-// Hardcoded "Lance" system prompt is the literal string from the directive.
-//
-// iOS Safari note: speechSynthesis requires a prior user gesture before
-// the first speak() call. The Take Photo click is the gesture nearest
-// to the fetch, so we warm up there with a silent utterance so the
-// post-fetch speak() succeeds even though the gesture chain is broken
-// by the network round-trip.
-var BBF_VISION_COACH = (function() {
-  var ENDPOINT = 'https://buildbelievefit.onrender.com/api/vision-coach';
-  var LANCE_PROMPT = "You are Lance, a clinical fitness coach. Evaluate this meal photo. Briefly explain the nutritional benefits, confirm if the portion sizes look aligned with a high-protein recomp goal, and offer an encouraging word. Keep it under 3 sentences. Be punchy and professional.";
-
-  var _state = 'idle';
-  var _stream = null;
-
-  function setBtnState(btn, state) {
-    if (!btn) return;
-    _state = state;
-    btn.setAttribute('data-state', state);
-    if (state === 'streaming') {
-      btn.disabled = false;
-      btn.innerHTML = '&#x274C; Cancel Scan';
-    } else if (state === 'analyzing') {
-      btn.disabled = true;
-      btn.innerHTML = '&#x1F399;&#xFE0F; Analyzing&hellip;';
-    } else {
-      btn.disabled = false;
-      btn.innerHTML = '&#x1F399;&#xFE0F; Scan Meal';
-    }
-  }
-
-  function pickVoice(synth) {
-    var voices = (synth && synth.getVoices && synth.getVoices()) || [];
-    // Highest-quality "Lance"-shaped voice first, then any voice flagged
-    // Male (word-boundary so "Female" doesn't accidentally match), then
-    // first available, then null (browser default).
-    return voices.find(function(v){ return v.name && v.name.indexOf('Google UK English Male') > -1; })
-        || voices.find(function(v){ return v.name && /\bMale\b/.test(v.name) && !/Female/i.test(v.name); })
-        || voices[0]
-        || null;
-  }
-
-  function speak(text, btn) {
-    var synth = window.speechSynthesis;
-    if (!synth || typeof SpeechSynthesisUtterance === 'undefined') {
-      // No TTS — give the button back so the user isn't stuck on "Analyzing…"
-      setBtnState(btn, 'idle');
-      return;
-    }
-    function doSpeak() {
-      try { synth.cancel(); } catch (_) {}
-      var utter = new SpeechSynthesisUtterance(text);
-      utter.voice = pickVoice(synth);
-      utter.rate = 1.0;
-      utter.onstart = function() { setBtnState(btn, 'idle'); };
-      utter.onend = function() { setBtnState(btn, 'idle'); };
-      utter.onerror = function() { setBtnState(btn, 'idle'); };
-      synth.speak(utter);
-    }
-    if (synth.getVoices().length === 0) {
-      // Chrome populates voices asynchronously; wait once then speak.
-      synth.addEventListener('voiceschanged', doSpeak, { once: true });
-      try { synth.getVoices(); } catch (_) {}
-      // Failsafe: if voiceschanged never fires within 1s, speak anyway.
-      setTimeout(function() {
-        if (!synth.speaking && !synth.pending) doSpeak();
-      }, 1000);
-    } else {
-      doSpeak();
-    }
-  }
-
-  function stopStream() {
-    if (_stream) {
-      try { _stream.getTracks().forEach(function(t) { try { t.stop(); } catch(_){} }); } catch(_){}
-      _stream = null;
-    }
-    var video = document.getElementById('mealVideoFeed');
-    if (video) {
-      try { video.pause(); } catch(_) {}
-      try { video.srcObject = null; } catch(_) {}
-    }
-    var container = document.getElementById('mealScannerContainer');
-    if (container) container.style.display = 'none';
-  }
-
-  function startStream(btn) {
-    var container = document.getElementById('mealScannerContainer');
-    var video = document.getElementById('mealVideoFeed');
-    if (!container || !video) return;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      speak('Sorry — your browser does not support camera access.', btn);
-      return;
-    }
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      .then(function(stream) {
-        _stream = stream;
-        video.srcObject = stream;
-        container.style.display = '';
-        setBtnState(btn, 'streaming');
-      })
-      .catch(function(err) {
-        console.warn('[BBF_VISION_COACH] getUserMedia failed:', err && err.message);
-        setBtnState(btn, 'idle');
-        var msg = (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'))
-          ? 'Camera permission denied. Allow camera access in your browser settings to scan a meal.'
-          : 'Sorry — could not start the camera. Please try again.';
-        speak(msg, btn);
-      });
-  }
-
-  function capturePhoto(btn) {
-    var video = document.getElementById('mealVideoFeed');
-    var canvas = document.getElementById('mealCaptureCanvas');
-    if (!video || !canvas || !_stream) {
-      setBtnState(btn, 'idle');
-      stopStream();
-      return;
-    }
-    var w = video.videoWidth || 1280;
-    var h = video.videoHeight || 720;
-    canvas.width = w;
-    canvas.height = h;
-    var ctx = canvas.getContext('2d');
-    try {
-      ctx.drawImage(video, 0, 0, w, h);
-    } catch (e) {
-      console.warn('[BBF_VISION_COACH] drawImage threw:', e && e.message);
-      stopStream();
-      setBtnState(btn, 'idle');
-      speak('Could not capture the frame — please try again.', btn);
-      return;
-    }
-    var dataUrl;
-    try { dataUrl = canvas.toDataURL('image/jpeg', 0.9); }
-    catch (e) {
-      stopStream();
-      setBtnState(btn, 'idle');
-      speak('Could not encode the photo — please try again.', btn);
-      return;
-    }
-    // Camera off as soon as we have the still.
-    stopStream();
-    setBtnState(btn, 'analyzing');
-    var idx = dataUrl.indexOf(',');
-    var base64 = idx > -1 ? dataUrl.slice(idx + 1) : dataUrl;
-    fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        image_base64: base64,
-        mime_type: 'image/jpeg',
-        prompt: LANCE_PROMPT
-      })
-    }).then(function(r) {
-      if (!r.ok) throw new Error('vision_coach_' + r.status);
-      return r.json();
-    }).then(function(j) {
-      var text = (j && j.ok && j.text) || '';
-      if (!text) throw new Error('vision_coach_empty');
-      speak(text, btn);
-    }).catch(function(err) {
-      console.warn('[BBF_VISION_COACH] failure:', err && err.message);
-      speak("Sorry — I couldn't analyze that meal. Please try again in a moment.", btn);
-    });
-  }
-
-  function init() {
-    // Defensive teardown — if RN() re-rendered while a stream was active,
-    // the old DOM nodes were thrown away but the MediaStream tracks
-    // remain open. Kill them before wiring the new buttons.
-    stopStream();
-    _state = 'idle';
-
-    var btn = document.getElementById('audioMealScannerBtn');
-    var capBtn = document.getElementById('captureMealBtn');
-    if (!btn || !capBtn) return;
-    if (btn.dataset.bbfVisionWired === '1') return;
-    btn.dataset.bbfVisionWired = '1';
-
-    // Belt + suspenders: hide the page (tab switch, lock, etc.) -> kill stream.
-    document.addEventListener('visibilitychange', function() {
-      if (document.visibilityState === 'hidden' && _state === 'streaming') {
-        stopStream();
-        setBtnState(btn, 'idle');
-      }
-    });
-
-    btn.addEventListener('click', function() {
-      if (_state === 'streaming') {
-        // Cancel Scan -> teardown
-        stopStream();
-        setBtnState(btn, 'idle');
-        return;
-      }
-      if (_state === 'analyzing') return; // ignore clicks during fetch
-      startStream(btn);
-    });
-
-    capBtn.addEventListener('click', function() {
-      if (_state !== 'streaming') return;
-      // Warm up speechSynthesis inside the user gesture so iOS allows
-      // the post-fetch speak() to fire. Empty/silent utterance is a no-op.
-      try {
-        if (window.speechSynthesis && typeof SpeechSynthesisUtterance !== 'undefined') {
-          var warm = new SpeechSynthesisUtterance(' ');
-          warm.volume = 0;
-          window.speechSynthesis.speak(warm);
-        }
-      } catch (_) {}
-      capturePhoto(btn);
-    });
-  }
-
-  return { init: init, _stopStream: stopStream };
-})();
-
 // ───────────────────────────────────────────────────────────────
 // BBF_NUTRITION_ROTATOR — Phase 10 Scale Engine
 // ───────────────────────────────────────────────────────────────
@@ -22384,16 +22144,6 @@ function RN() {
   // Smart Macro Wheel + Daily Fuel Status (Phase 11 rebuild) — sits above
   // the day-nav. Macros accumulate live as meals are marked complete.
   var h = BBF_MACRO_WHEEL.shellHtml(uid);
-  // Feature 2 · Scan Meal — fires an in-app WebRTC camera stream (rear-
-  // facing on mobile), client takes a still, POSTs base64 to
-  // /api/vision-coach, and "Lance" speaks his review via Web Speech API.
-  // Nothing is rendered to the DOM; the response is audio-only.
-  h += '<button type="button" id="audioMealScannerBtn" class="bbf-primary-btn">&#x1F399;&#xFE0F; Scan Meal</button>';
-  h += '<div id="mealScannerContainer" style="display: none; width: 100%; max-width: 400px; margin: 10px auto; border-radius: 8px; overflow: hidden; position: relative;">' +
-         '<video id="mealVideoFeed" autoplay playsinline style="width: 100%; height: auto; display: block;"></video>' +
-         '<canvas id="mealCaptureCanvas" style="display: none;"></canvas>' +
-         '<button id="captureMealBtn" class="bbf-primary-btn" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 10;">&#x1F4F8; Take Photo</button>' +
-       '</div>';
   h += '<div class="dh"><div class="dl">' + plan.name + "'s Plan</div>" +
     '<div class="dn2" style="font-size:1.3rem">' + plan.cal + '</div>' +
     '<div class="df2">&#x1F3AF; ' + plan.goal + '</div></div>';
@@ -22407,14 +22157,12 @@ function RN() {
   try { BBF_MACRO_WHEEL.init(); } catch(_) {}   // delegated "Mark Complete" click wiring (idempotent)
   BBF_MACRO_WHEEL.repaint(uid);   // Phase 11 · paint wheel + status from logged set
   try { BBF_MACRO_WHEEL.hydratePhotos(); } catch(_) {}   // async Gemini meal photos
-  BBF_VISION_COACH.init();
   // Phase 10 — admin-only "🔄 AI Auto-Rotate Protocol" button. No-op for
   // clients and for Akeem on his own Nutrition tab; only renders when
   // Akeem is viewing a client's profile via the Command Center.
   if (window.BBF_NUTRITION_ROTATOR) BBF_NUTRITION_ROTATOR.injectButton(con);
-  // Phase 9 — re-apply tier gate so the dynamically-rendered Scan Meal
-  // button + scanner container inherit the same lock as the (static)
-  // Virtual Chef / Nutrition Vision modules.
+  // Phase 9 — re-apply tier gate so the Virtual Chef / Nutrition Vision
+  // modules stay locked per the active tier.
   if (typeof window.BBF_APPLY_TIER_GATE === 'function') {
     try { window.BBF_APPLY_TIER_GATE(); } catch(_) {}
   }
