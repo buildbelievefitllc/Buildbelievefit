@@ -16,6 +16,7 @@
 // weighted; Load is excluded only on a bodyweight/rest day with no prescribed weight.
 
 import manifest from '../data/sovereignVaultManifest.json';
+import { clamp, nearestByCnsThenVibe } from './biometricMatch.js';
 
 const LANGS = new Set(['EN', 'ES', 'PT']);
 const CATEGORIES = new Set(['strength', 'mobility', 'recovery', 'stability']);
@@ -41,24 +42,6 @@ const STATES = manifest
   .map((m) => { const p = parseScenario(m.subjectLine); return p ? { ...p, id: m.id, url: m.url, subjectLine: m.subjectLine } : null; })
   .filter(Boolean);
 
-// Axis normalizers + weights. CNS/Sleep/Stress are 0..100; Load ~50..165. All four
-// axes carry EQUAL weight — Load is now a live, threaded metric (today's prescribed
-// top-set weight), not a defaulted placeholder.
-const NORM = { cns: 100, sleep: 100, stress: 100, load: 165 };
-const WEIGHT = { cns: 1, sleep: 1, stress: 1, load: 1 };
-
-function distance(a, b) {
-  let sum = 0;
-  for (const k of ['cns', 'sleep', 'stress', 'load']) {
-    if (a[k] === null || a[k] === undefined) continue; // axis genuinely unmeasured (e.g. a bodyweight/rest day) → excluded, never defaulted
-    const d = (Number(a[k]) - Number(b[k])) / NORM[k];
-    sum += WEIGHT[k] * d * d;
-  }
-  return Math.sqrt(sum);
-}
-
-const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-
 // Nearest scenario for live telemetry within the active locale. Optional `category`
 // hard-filters to a training focus when supplied. Returns { id, url, subjectLine,
 // distance, ...axes } or null when the locale subset is empty.
@@ -75,12 +58,8 @@ export function nearestScenario({ lang = 'en', cns, sleep, stress, load, categor
     cns: clamp(Number(cns), 0, 100), sleep: clamp(Number(sleep), 0, 100),
     stress: clamp(Number(stress), 0, 100), load: hasLoad ? clamp(Number(load), 0, 200) : null,
   };
-  let best = null; let bestD = Infinity;
-  for (const s of pool) {
-    const d = distance(target, s);
-    if (d < bestD) { bestD = d; best = s; }
-  }
-  return best ? { ...best, distance: bestD } : null;
+  const match = nearestByCnsThenVibe(target, pool);
+  return match ? { ...match.best, distance: match.distance } : null;
 }
 
 // Derive the four router axes from the shared readiness view-model (useDailyReadiness)
