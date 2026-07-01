@@ -60,10 +60,14 @@ export async function generateStudioVoice({ script, vibe }) {
 // ({ ok, cached, slug, url, vibe, duration, model?, usage? }); throws a
 // display-ready Error on failure.
 export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang }) {
-  // Zero-latency manifest cache: exact topic match returns the pre-seeded vault
-  // URL instantly, skipping the Edge Function. `cached: true` makes the UI surface
-  // "Loaded from vault — cache hit, $0 spend." (same path as a server-side hit).
-  const cachedUrl = lookupVaultUrl(topic);
+  // Zero-latency manifest cache: exact topic match returns the pre-seeded vault URL
+  // instantly, skipping the Edge Function. But `audioVaultManifest` is ENGLISH-ONLY
+  // (keyed by exercise name with NO locale dimension), so short-circuiting to it for
+  // es/pt returned the ENGLISH clip and skipped the lang-aware Edge Function — picking
+  // Spanish/Portuguese + Generate played English. Only take the fast path for EN; es/pt
+  // fall through to bbf-studio-voiceover, which writes the script in-language and caches
+  // the result server-side (slug includes lang, so the next es/pt hit is a $0 cache hit).
+  const cachedUrl = (lang || 'en') === 'en' ? lookupVaultUrl(topic) : null;
   if (cachedUrl) {
     return { ok: true, cached: true, fromManifest: true, url: cachedUrl, vibe };
   }
