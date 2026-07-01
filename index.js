@@ -1272,129 +1272,24 @@ app.post('/process', async (req, res) => {
 });
 
 // ───────────────────────────────────────────────────────────────
-// POST /api/vision-coach — Phase 9 Feature 2: BBF Vision AI Audio Scanner
+// POST /api/rotate-nutrition — Phase 10 Scale Engine (Nutrition Rotator)
 // ───────────────────────────────────────────────────────────────
-// Single-shot Gemini Vision REST call. Receives a Base64-encoded meal
-// photo + a hardcoded "Lance" coaching prompt from the BBF Nutrition tab
-// (bbf-app.html "Scan Meal" button), forwards to the Gemini 1.5 Flash
-// generateContent endpoint, returns the text candidate. The client then
-// pipes the text through window.speechSynthesis — Lance "speaks" the
-// review out loud rather than rendering it to the DOM.
-//
-// Lives on this server (not on Supabase Edge Functions) because GEMINI_API_KEY
-// is already wired here for the live Phantom Eye WebSocket bridge — single
-// key, single source of truth, no extra env-var sprawl.
-//
-// Origin allowlist + per-IP rate limit (5 calls/minute) guards Gemini spend.
-// ───────────────────────────────────────────────────────────────
-const VISION_COACH_RATE_WINDOW_MS = 60 * 1000;
-const VISION_COACH_RATE_MAX = 5;
-const _visionCoachBuckets = new Map();
-function _visionCoachRateOk(ip) {
-  const now = Date.now();
-  let arr = _visionCoachBuckets.get(ip) || [];
-  arr = arr.filter(t => t > now - VISION_COACH_RATE_WINDOW_MS);
-  if (arr.length >= VISION_COACH_RATE_MAX) { _visionCoachBuckets.set(ip, arr); return false; }
-  arr.push(now);
-  _visionCoachBuckets.set(ip, arr);
-  return true;
-}
-
-app.post('/api/vision-coach', async (req, res) => {
-  // CORS pre-check — the global middleware already set the headers; if
-  // the origin isn't on the allowlist we refuse early so we don't burn
-  // Gemini quota on a third-party caller.
-  const origin = req.headers.origin;
-  if (origin && !ALLOWED_ORIGINS.has(origin)) {
-    return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
-  }
-  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
-  if (!_visionCoachRateOk(ip)) {
-    return res.status(429).json({ ok: false, error: 'rate_limited' });
-  }
-  if (!GEMINI_API_KEY) {
-    console.warn('[vision-coach] rejected — GEMINI_API_KEY missing');
-    return res.status(503).json({ ok: false, error: 'config_missing' });
-  }
-  const body = req.body || {};
-  const imageBase64 = typeof body.image_base64 === 'string' ? body.image_base64.trim() : '';
-  const mimeType    = typeof body.mime_type === 'string'    ? body.mime_type.trim()    : 'image/jpeg';
-  const prompt      = typeof body.prompt === 'string'       ? body.prompt              : '';
-  if (!imageBase64 || imageBase64.length < 32) {
-    return res.status(400).json({ ok: false, error: 'image_missing' });
-  }
-  if (!prompt || prompt.length < 10) {
-    return res.status(400).json({ ok: false, error: 'prompt_missing' });
-  }
-
-  // gemini-1.5-flash: GA vision-capable, fast, low-cost. Same family as
-  // the Live model used by the Phantom Eye bridge.
-  const model = 'gemini-1.5-flash';
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
-              model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
-  const payload = {
-    contents: [{
-      parts: [
-        { text: prompt },
-        { inline_data: { mime_type: mimeType, data: imageBase64 } }
-      ]
-    }],
-    generationConfig: {
-      temperature: 0.55,
-      maxOutputTokens: 200
-    }
-  };
-
-  let upstream;
-  try {
-    upstream = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error('[vision-coach] gemini fetch threw:', err && err.message);
-    return res.status(502).json({ ok: false, error: 'gemini_unreachable' });
-  }
-
-  let geminiBody = null;
-  try { geminiBody = await upstream.json(); }
-  catch (_) { /* non-JSON body */ }
-
-  if (!upstream.ok) {
-    const msg = geminiBody?.error?.message || ('gemini ' + upstream.status);
-    console.error('[vision-coach] gemini non-2xx:', upstream.status, msg);
-    return res.status(502).json({ ok: false, error: 'gemini_error', detail: msg });
-  }
-
-  const text = geminiBody?.candidates?.[0]?.content?.parts
-    ?.map(p => p?.text || '').join(' ').trim();
-  if (!text) {
-    console.warn('[vision-coach] gemini returned empty text', JSON.stringify(geminiBody).slice(0, 400));
-    return res.status(502).json({ ok: false, error: 'gemini_empty' });
-  }
-
-  return res.status(200).json({ ok: true, text });
-});
-
-// ───────────────────────────────────────────────────────────────
-// POST /api/rotate-nutrition — Phase 10 Scale Engine (AI Nutrition Rotator)
-// ───────────────────────────────────────────────────────────────
-// Admin-only Gemini call that regenerates a 7-day meal plan in the EXACT
-// shape MP[uid] uses on the frontend ({ name, cal, goal, days: [{ day,
-// meals: [{ m, i }] }] }). The client (bbf-app.html · BBF_NUTRITION_ROTATOR)
-// drops the returned plan into MP[uid] verbatim and PATCHes
-// bbf_users.nutrition_plan for persistence — zero RN() rewrite.
+// Admin-only, FULLY STATIC (no LLM call — cost eliminated 2026-07). Compiles
+// a fresh 7-day meal plan in the EXACT shape MP[uid] uses on the frontend
+// ({ name, cal, goal, days: [{ day, meals: [{ m, i, instructions }] }] })
+// by deterministically selecting from the BBF_MEALS_MATRIX (bbf_meals.json)
+// closed universe and scaling servings to the client's calorie target — the
+// exact same "pick from the compliant library, never invent food" contract
+// the Gemini prompt used to enforce, just without the API round-trip.
 //
 // Auth:    X-BBF-Admin-Token header must equal env BBF_ADMIN_TOKEN.
 //          Same pattern as /provision (which uses BBF_PROVISION_TOKEN).
-//          Without this gate any allowed-origin caller could burn Gemini
-//          quota on demand; each rotation is ~3–8k tokens.
-// Limits:  per-IP 5/min (shared budget defense) + per-UID 2/day (cost
-//          containment for the targeted client).
-// Schema:  generationConfig.responseMimeType = "application/json" plus a
-//          strict responseSchema — Gemini returns parsed-ready JSON, not
-//          free-form Markdown.
+// Limits:  per-IP 5/min + per-UID 2/day (kept as general admin-endpoint
+//          abuse defense, even though there's no per-call API cost now).
+// Safety:  if the dietary-profile + allergen filter leaves zero compliant
+//          meals, the endpoint returns 422 rather than fabricating a plan —
+//          stricter than the old Gemini free-form fallback, which could
+//          hallucinate a non-compliant meal under a thin allergen pool.
 // ───────────────────────────────────────────────────────────────
 const ROTATE_NUTRITION_IP_WINDOW_MS = 60 * 1000;
 const ROTATE_NUTRITION_IP_MAX = 5;
@@ -1428,7 +1323,7 @@ function _rotateNutritionUidRateOk(uid) {
 }
 
 app.post('/api/rotate-nutrition', async (req, res) => {
-  // Origin allowlist — refuse before burning Gemini quota.
+  // Origin allowlist.
   const origin = req.headers.origin;
   if (origin && !ALLOWED_ORIGINS.has(origin)) {
     return res.status(403).json({ ok: false, error: 'origin_not_allowed' });
@@ -1446,27 +1341,22 @@ app.post('/api/rotate-nutrition', async (req, res) => {
     return res.status(401).json({ ok: false, error: 'admin_token_invalid' });
   }
 
-  if (!GEMINI_API_KEY) {
-    console.warn('[rotate-nutrition] rejected — GEMINI_API_KEY missing');
-    return res.status(503).json({ ok: false, error: 'config_missing' });
-  }
-
   const body = req.body || {};
   const uid          = typeof body.uid === 'string'           ? body.uid.trim()           : '';
   const tdee         = typeof body.tdee === 'string'          ? body.tdee.trim()          : (body.tdee != null ? String(body.tdee) : '');
   const constraints  = typeof body.constraints === 'string'   ? body.constraints.trim()   : '';
   const previousPlan = typeof body.previousPlan === 'string'  ? body.previousPlan.trim()  : '';
-  const clientTier   = typeof body.clientTier === 'string'    ? body.clientTier.trim()    : 'gateway';
   const clientName   = typeof body.clientName === 'string'    ? body.clientName.trim()    : '';
   // Phase 22 Sovereign Intake · structured filters · empty/missing all
-  // degrade gracefully to legacy behavior (no filtering, free-form Gemini).
+  // degrade gracefully to the Omnivore/no-allergen default pool.
   const dietaryProfile = typeof body.dietary_profile === 'string' ? body.dietary_profile.trim() : 'Omnivore';
   const allergens      = Array.isArray(body.allergens)      ? body.allergens.map(s => String(s).trim()).filter(Boolean)      : [];
   const foodLikes      = Array.isArray(body.food_likes)     ? body.food_likes.map(s => String(s).trim()).filter(Boolean)     : [];
   const foodDislikes   = Array.isArray(body.food_dislikes)  ? body.food_dislikes.map(s => String(s).trim()).filter(Boolean)  : [];
   // Active language relayed from the coach's LangContext (via bbf-admin-roster
-  // compile). Drives the output-language clause appended to the Gemini prompt.
-  const lang           = normalizeLang(body.lang || body.language || body.language_preference);
+  // compile). bbf_meals.json carries en/es/pt names so the static compiler can
+  // localize the plan directly from data — no translation API call needed.
+  const lang = normalizeLang(body.lang || body.language || body.language_preference);
   if (!uid)  return res.status(400).json({ ok: false, error: 'uid_missing' });
   if (!tdee) return res.status(400).json({ ok: false, error: 'tdee_missing' });
 
@@ -1480,12 +1370,15 @@ app.post('/api/rotate-nutrition', async (req, res) => {
     return res.status(429).json({ ok: false, error: 'rate_limited_uid' });
   }
 
-  // Phase 22 · Sovereign Library filter. Before Gemini generates anything
-  // we pre-filter the 40-meal matrix by dietary_profile + allergens so the
-  // model picks from a curated, compliant universe — eliminates the prior
-  // hallucination risk where Gemini would invent meals not in our library.
-  // Filter logic:
-  //   • meal.dietary_profile must include the requested profile
+  // Phase 22 · Sovereign Library filter — pre-filter the 40-meal matrix by
+  // dietary_profile + allergens so selection only ever draws from a curated,
+  // compliant universe. Filter logic:
+  //   • dietary_profile respects the standard eating-pattern hierarchy: a
+  //     Vegetarian may eat Vegan meals, an Omnivore may eat anything in the
+  //     matrix, a Pescatarian may eat Vegetarian/Vegan meals plus the
+  //     Omnivore-tagged meals whose ingredients are seafood-based, and
+  //     Keto-Friendly is a macro filter (low-carb) independent of protein
+  //     source since the matrix carries no dedicated "Keto" tag.
   //   • for each chosen allergen, meal.restrictions_safe must include
   //     the matching "<Allergen>-Free" tag (Tree Nut → "Tree-Nut-Free"
   //     or "Nut-Free" both pass; Coconut → "Coconut-Free")
@@ -1500,13 +1393,29 @@ app.post('/api/rotate-nutrition', async (req, res) => {
     if (/^(peanut|nut)$/i.test(a))  { tags.push('Nut-Free'); }
     return Array.from(new Set(tags));
   }
+  const SEAFOOD_KEYWORDS = /salmon|tuna|shrimp|prawn|fish|cod|tilapia|shellfish|crab|scallop|sardine|halibut/i;
+  function _isSeafoodMeal(m) {
+    const text = ((m.core_ingredients || []).join(' ') + ' ' + ((m.name && m.name.en) || ''));
+    return SEAFOOD_KEYWORDS.test(text);
+  }
+  function _isKetoCompatible(m) {
+    return Number(m.carbs_g) <= 25;
+  }
+  function _profileEligible(m, dp) {
+    const tags = Array.isArray(m.dietary_profile) ? m.dietary_profile.map(t => String(t).toLowerCase()) : [];
+    switch (String(dp || '').toLowerCase()) {
+      case 'vegan':         return tags.indexOf('vegan') !== -1;
+      case 'vegetarian':    return tags.indexOf('vegetarian') !== -1 || tags.indexOf('vegan') !== -1;
+      case 'pescatarian':   return tags.indexOf('vegetarian') !== -1 || tags.indexOf('vegan') !== -1 ||
+                                    (tags.indexOf('omnivore') !== -1 && _isSeafoodMeal(m));
+      case 'keto-friendly': return _isKetoCompatible(m);
+      case 'omnivore':
+      default:              return true; // the matrix contains only Omnivore/Vegetarian/Vegan meals — all omnivore-safe
+    }
+  }
   let mealPool = Array.isArray(BBF_MEALS_MATRIX) ? BBF_MEALS_MATRIX.slice() : [];
   const poolBefore = mealPool.length;
-  if (dietaryProfile) {
-    const dp = dietaryProfile.toLowerCase();
-    mealPool = mealPool.filter(m => Array.isArray(m && m.dietary_profile)
-      && m.dietary_profile.some(p => String(p).toLowerCase() === dp));
-  }
+  mealPool = mealPool.filter(m => _profileEligible(m, dietaryProfile));
   if (allergens.length) {
     mealPool = mealPool.filter(m => {
       const safe = Array.isArray(m && m.restrictions_safe) ? m.restrictions_safe.map(t => String(t).toLowerCase()) : [];
@@ -1520,194 +1429,210 @@ app.post('/api/rotate-nutrition', async (req, res) => {
               ' · diet=' + dietaryProfile + ' · allergens=[' + allergens.join(',') + ']' +
               ' · after=' + mealPool.length);
 
-  // Compact library card for the prompt — keep it small (Gemini bills by
-  // token). Include just what the model needs to pick + portion.
-  const libraryCards = mealPool.map(m => ({
-    id:       m.id,
-    name:     (m.name && (m.name.en || Object.values(m.name)[0])) || m.id,
-    type:     m.meal_type,
-    cuisine:  m.cuisine,
-    cal:      m.calories,
-    p:        m.protein_g,
-    c:        m.carbs_g,
-    f:        m.fat_g,
-    serving:  m.serving_g,
-    ingredients: (m.core_ingredients || []).slice(0, 8)
-  }));
-
-  // Soft-bias likes/dislikes via prompt (not filter) — these are
-  // preferences, not hard constraints.
-  const likesLine    = foodLikes.length    ? "Bias toward meals featuring: " + foodLikes.join(', ') + ". "    : "";
-  const dislikesLine = foodDislikes.length ? "Avoid meals featuring: "      + foodDislikes.join(', ') + ". " : "";
-
-  // Two prompt modes:
-  //   A) FILTERED LIBRARY mode (mealPool.length > 0): tell Gemini to ONLY
-  //      use meals from libraryCards. Echo back chosen meal IDs.
-  //   B) FALLBACK mode (mealPool empty — e.g. legacy client no intake):
-  //      generate free-form clean meals respecting only constraints text.
-  let prompt;
-  if (mealPool.length > 0) {
-    prompt =
-      "You are Lance, a clinical sports nutritionist. Generate a brand new " +
-      "7-day meal plan for a client on the " + clientTier + " tier. " +
-      "Target Calories: " + tdee + ". " +
-      "Dietary Profile: " + dietaryProfile + ". " +
-      "Allergen Restrictions: " + (allergens.length ? allergens.join(', ') : 'none') + ". " +
-      likesLine + dislikesLine +
-      "Strict Medical Constraints: " + (constraints || 'none stated') + ". " +
-      "Previous Plan: " + (previousPlan || 'none provided') + ". " +
-      "Do not repeat the exact main dishes from the previous plan. " +
-      "\n\nSOVEREIGN MEAL LIBRARY · you MUST select every meal from the " +
-      "following pre-filtered library of " + mealPool.length + " compliant meals. " +
-      "Do NOT invent meals not in this library. You may adjust portion sizes " +
-      "to hit calorie targets, but ingredient composition must match. " +
-      "Library JSON:\n" + JSON.stringify(libraryCards) + "\n\n" +
-      "Return a single JSON object with: " +
-      "'name' (the client's first name — use '" + (clientName || uid) + "'), " +
-      "'cal' (a one-line calorie/protein summary, e.g. '~1,652 cal/day · High Protein'), " +
-      "'goal' (one short sentence; if medical constraints exist, restate inline), " +
-      "'days' (array of exactly 7 day objects, each with 'day' string and 'meals' array, " +
-      "each meal having 'm' label, 'i' portioned ingredients with calories+protein, and " +
-      "'instructions' — an array of 3-4 short, concise prep steps generated from THAT meal's " +
-      "specific ingredients), " +
-      "and 'meal_ids_used' (an array of the meal IDs from the library you actually used). " +
-      "No prose or markdown outside the JSON. ABSOLUTELY honor every constraint above.\n\n" +
-      BBF_CULINARY_GOVERNOR;
-  } else {
-    // Fallback — legacy compatibility when filter culls everything (e.g.
-    // dietary profile + allergens combo with no library coverage).
-    console.warn('[rotate-nutrition] meal-pool empty after filter · falling back to free-form');
-    prompt =
-      "You are Lance, a clinical sports nutritionist. Generate a brand new " +
-      "7-day meal plan for a client on the " + clientTier + " tier. " +
-      "Target Calories: " + tdee + ". " +
-      "Dietary Profile: " + dietaryProfile + ". " +
-      "Allergen Restrictions: " + (allergens.length ? allergens.join(', ') : 'none') + ". " +
-      likesLine + dislikesLine +
-      "Strict Medical Constraints: " + (constraints || 'none stated') + ". " +
-      "Previous Plan: " + (previousPlan || 'none provided') + ". " +
-      "Provide high-protein, clean-carb meals respecting every constraint above. " +
-      "Return JSON with 'name', 'cal', 'goal', 'days' (7 day objects with 'day' + 'meals' " +
-      "[{m, i, instructions}], where 'instructions' is an array of 3-4 short, concise prep " +
-      "steps generated from that meal's specific ingredients). " +
-      "No prose outside JSON. ABSOLUTELY honor every constraint.\n\n" +
-      BBF_CULINARY_GOVERNOR;
-  }
-
-  // Localize the regenerated meal plan to the athlete's active language (the
-  // coach-compile path renders straight into the React Nutrition Locker). No-op
-  // for English so existing EN plans stay byte-identical.
-  prompt += languageDirective(lang);
-
-  const responseSchema = {
-    type: 'object',
-    properties: {
-      name: { type: 'string' },
-      cal:  { type: 'string' },
-      goal: { type: 'string' },
-      days: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            day:   { type: 'string' },
-            meals: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  m: { type: 'string' },
-                  i: { type: 'string' },
-                  // Auto-generated prep steps (3-4) derived from the meal's
-                  // ingredients. Declared here so the schema-locked response
-                  // actually carries them through instead of stripping the field.
-                  instructions: {
-                    type: 'array',
-                    items: { type: 'string' }
-                  }
-                },
-                required: ['m', 'i']
-              }
-            }
-          },
-          required: ['day', 'meals']
-        }
-      },
-      meal_ids_used: {
-        type: 'array',
-        items: { type: 'string' }
-      }
-    },
-    required: ['name', 'cal', 'goal', 'days']
-  };
-
-  const model = 'gemini-1.5-flash';
-  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' +
-              model + ':generateContent?key=' + encodeURIComponent(GEMINI_API_KEY);
-  const payload = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.85,
-      maxOutputTokens: 4096,
-      responseMimeType: 'application/json',
-      responseSchema: responseSchema
-    }
-  };
-
-  let upstream;
-  try {
-    upstream = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+  // No compliant meal in the entire matrix for this diet+allergen combo —
+  // refuse rather than fabricate a plan that might violate the restriction.
+  if (mealPool.length === 0) {
+    return res.status(422).json({
+      ok: false,
+      error: 'no_compliant_meals',
+      detail: 'No meals in the library satisfy dietary_profile="' + dietaryProfile + '" with allergens=[' + allergens.join(',') + ']. Expand the Sovereign Meal Library or relax the restriction.',
     });
-  } catch (err) {
-    console.error('[rotate-nutrition] gemini fetch threw:', err && err.message);
-    return res.status(502).json({ ok: false, error: 'gemini_unreachable' });
   }
 
-  let geminiBody = null;
-  try { geminiBody = await upstream.json(); }
-  catch (_) { /* non-JSON body */ }
-
-  if (!upstream.ok) {
-    const msg = geminiBody?.error?.message || ('gemini ' + upstream.status);
-    console.error('[rotate-nutrition] gemini non-2xx:', upstream.status, msg);
-    return res.status(502).json({ ok: false, error: 'gemini_error', detail: msg });
+  // Soft preference bias — dislikes are filtered out when doing so still
+  // leaves at least one meal per slot; likes are front-loaded into the
+  // rotation order so they surface more often across the 7-day cycle;
+  // meals whose name appears in the previous plan summary are pushed to
+  // the back so a fresh rotation avoids repeating last week's main dishes
+  // whenever the (diet-filtered) pool is large enough to offer a fresh pick.
+  function _mealText(m) {
+    return ((m.name && m.name.en) || '') + ' ' + (m.core_ingredients || []).join(' ');
+  }
+  function _wasInPreviousPlan(m) {
+    if (!previousPlan) return false;
+    const name = (m.name && m.name.en) || '';
+    return !!name && previousPlan.toLowerCase().indexOf(name.toLowerCase()) !== -1;
+  }
+  if (foodDislikes.length) {
+    const dislikeRe = new RegExp(foodDislikes.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i');
+    const filtered = mealPool.filter(m => !dislikeRe.test(_mealText(m)));
+    if (filtered.length) mealPool = filtered;
+  }
+  function _shuffle(arr) {
+    const out = arr.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = out[i]; out[i] = out[j]; out[j] = tmp;
+    }
+    return out;
+  }
+  function _rankByLikes(pool) {
+    if (!foodLikes.length) return _shuffle(pool);
+    const likeRe = new RegExp(foodLikes.map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'i');
+    const liked = _shuffle(pool.filter(m => likeRe.test(_mealText(m))));
+    const rest  = _shuffle(pool.filter(m => !likeRe.test(_mealText(m))));
+    return liked.concat(rest);
+  }
+  function _rotationOrder(pool) {
+    const fresh = pool.filter(m => !_wasInPreviousPlan(m));
+    const stale = pool.filter(m => _wasInPreviousPlan(m));
+    const ordered = _rankByLikes(fresh).concat(_rankByLikes(stale));
+    return ordered.length ? ordered : pool;
+  }
+  function _pickWeek(pool, mealType) {
+    const typed = pool.filter(m => m.meal_type === mealType);
+    const source = _rotationOrder(typed.length ? typed : pool);
+    const picks = [];
+    for (let i = 0; i < 7; i++) picks.push(source[i % source.length]);
+    return picks;
   }
 
-  const rawText = geminiBody?.candidates?.[0]?.content?.parts
-    ?.map(p => p?.text || '').join('').trim();
-  if (!rawText) {
-    console.warn('[rotate-nutrition] gemini returned empty text', JSON.stringify(geminiBody).slice(0, 400));
-    return res.status(502).json({ ok: false, error: 'gemini_empty' });
+  // Deterministic prep-step generator — no LLM, derived straight from the
+  // meal's own ingredient list, so every meal always gets the same steps.
+  // Localized instruction templates — no translation API; every meal's
+  // ingredients (already in the plan's active language upstream) are
+  // dropped into a fixed, hand-translated sentence shape per language.
+  const INSTRUCTION_TEMPLATES = {
+    en: {
+      lead: (list) => 'Prep and portion: ' + list + '.',
+      cook: 'Cook the protein over medium heat until fully cooked through, seasoning to taste.',
+      rest: (list) => 'Add ' + list + ' and cook until tender, stirring occasionally.',
+      plate: (g) => 'Plate as a single ' + g + 'g serving; refrigerate leftovers up to 3 days.',
+    },
+    es: {
+      lead: (list) => 'Prepara y porciona: ' + list + '.',
+      cook: 'Cocina la proteína a fuego medio hasta que esté bien cocida, sazonando al gusto.',
+      rest: (list) => 'Agrega ' + list + ' y cocina hasta que estén tiernos, revolviendo ocasionalmente.',
+      plate: (g) => 'Sirve en una porción de ' + g + 'g; refrigera las sobras hasta por 3 días.',
+    },
+    pt: {
+      lead: (list) => 'Prepare e porcione: ' + list + '.',
+      cook: 'Cozinhe a proteína em fogo médio até cozinhar completamente, temperando a gosto.',
+      rest: (list) => 'Adicione ' + list + ' e cozinhe até ficar macio, mexendo ocasionalmente.',
+      plate: (g) => 'Sirva como uma porção única de ' + g + 'g; refrigere as sobras por até 3 dias.',
+    },
+  };
+  function _buildInstructions(m, servingG) {
+    const t = INSTRUCTION_TEMPLATES[lang] || INSTRUCTION_TEMPLATES.en;
+    const ing = Array.isArray(m.core_ingredients) ? m.core_ingredients : [];
+    const lead = ing.slice(0, Math.min(4, ing.length));
+    const rest = ing.slice(lead.length, lead.length + 3);
+    const steps = [];
+    if (lead.length) steps.push(t.lead(lead.join(', ')));
+    steps.push(t.cook);
+    if (rest.length) steps.push(t.rest(rest.join(', ')));
+    steps.push(t.plate(Math.round(servingG)));
+    return steps.slice(0, 4);
   }
 
-  let plan;
-  try { plan = JSON.parse(rawText); }
-  catch (e) {
-    console.error('[rotate-nutrition] JSON.parse failed:', e && e.message, '· raw=', rawText.slice(0, 400));
-    return res.status(502).json({ ok: false, error: 'gemini_bad_json' });
+  function _parseTargetCalories(raw) {
+    const m = String(raw || '').match(/[\d,]+/);
+    if (!m) return 2000;
+    const n = parseInt(m[0].replace(/,/g, ''), 10);
+    return Number.isFinite(n) && n > 300 ? n : 2000;
+  }
+  const targetCal = _parseTargetCalories(tdee);
+
+  const MEAL_TYPE_LABELS = {
+    en: { Breakfast: 'Breakfast', Lunch: 'Lunch', Dinner: 'Dinner', Snack: 'Snack' },
+    es: { Breakfast: 'Desayuno', Lunch: 'Almuerzo', Dinner: 'Cena', Snack: 'Merienda' },
+    pt: { Breakfast: 'Café da Manhã', Lunch: 'Almoço', Dinner: 'Jantar', Snack: 'Lanche' },
+  };
+  function _mealTypeLabel(type) {
+    return (MEAL_TYPE_LABELS[lang] && MEAL_TYPE_LABELS[lang][type]) || type;
   }
 
-  // Structural sanity — schema enforcement above is best-effort upstream.
-  if (!plan || typeof plan !== 'object' || !Array.isArray(plan.days) || plan.days.length === 0) {
-    return res.status(502).json({ ok: false, error: 'gemini_plan_shape' });
+  function _scaleMealEntry(m, scale, labelOverride) {
+    usedMealIds.add(m.id);
+    const cal     = Math.round((m.calories   || 0) * scale);
+    const protein = Math.round((m.protein_g  || 0) * scale);
+    const carbs   = Math.round((m.carbs_g    || 0) * scale);
+    const fat     = Math.round((m.fat_g      || 0) * scale);
+    const serving = Math.round((m.serving_g  || 0) * scale);
+    const name = (m.name && (m.name[lang] || m.name.en || Object.values(m.name)[0])) || m.id;
+    const label = labelOverride ? _mealTypeLabel(labelOverride) : _mealTypeLabel(m.meal_type);
+    const scaleSuffix = Math.abs(scale - 1) >= 0.08 ? ' (' + scale.toFixed(1) + 'x)' : '';
+    return {
+      cal,
+      entry: {
+        m: label + scaleSuffix,
+        i: name + ' (' + serving + 'g, ~' + cal + ' cal/' + protein + 'g P/' + carbs + 'g C/' + fat + 'g F)',
+        instructions: _buildInstructions(m, serving),
+      },
+    };
   }
 
-  // Audit echo · which library meals did Gemini actually use, plus the
-  // intake filter that produced the pool. Useful for the admin to verify
-  // compliance at a glance and for future spend analytics.
+  const DAY_LABELS = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'];
+  const breakfasts = _pickWeek(mealPool, 'Breakfast');
+  const lunches     = _pickWeek(mealPool, 'Lunch');
+  const dinners     = _pickWeek(mealPool, 'Dinner');
+  // Bonus-snack pool for the high-calorie latitude clause below — a Lunch-type
+  // meal works fine reheated/eaten cold as a fourth item (falls back to the
+  // full pool via _pickWeek if the diet-filtered pool has no Lunch entries).
+  const snacks = _pickWeek(mealPool, 'Lunch');
+  const usedMealIds = new Set();
+
+  const days = DAY_LABELS.map((dayLabel, i) => {
+    const slots = [breakfasts[i], lunches[i], dinners[i]];
+    const baseDayCal = slots.reduce((sum, m) => sum + (Number(m.calories) || 0), 0);
+    const scale = baseDayCal > 0 ? Math.max(0.7, Math.min(2.0, targetCal / baseDayCal)) : 1;
+    let dayCal = 0;
+    const meals = slots.map(m => {
+      const scaled = _scaleMealEntry(m, scale);
+      dayCal += scaled.cal;
+      return scaled.entry;
+    });
+
+    // HIGH-CALORIE LATITUDE: a 2.0x per-meal cap keeps portions realistic, but
+    // can leave very high TDEE targets (bulking athletes) short. Rather than
+    // exceed a believable single-meal size, add extra "Snack" items (max 2)
+    // sized to close the remaining gap, each capped at its own 2.0x.
+    for (let snackIdx = 0; snackIdx < 2 && targetCal - dayCal > 250 && snacks.length; snackIdx++) {
+      const remaining = targetCal - dayCal;
+      const bonus = snacks[(i + snackIdx) % snacks.length];
+      const bonusScale = Math.max(0.5, Math.min(2.0, remaining / (Number(bonus.calories) || remaining || 1)));
+      const scaled = _scaleMealEntry(bonus, bonusScale, 'Snack');
+      dayCal += scaled.cal;
+      meals.push(scaled.entry);
+    }
+    return { day: dayLabel, meals };
+  });
+
+  const DIET_LABELS = {
+    en: { Omnivore: 'Omnivore', Vegetarian: 'Vegetarian', Vegan: 'Vegan', Pescatarian: 'Pescatarian', 'Keto-Friendly': 'Keto-Friendly' },
+    es: { Omnivore: 'Omnívoro', Vegetarian: 'Vegetariano', Vegan: 'Vegano', Pescatarian: 'Pescetariano', 'Keto-Friendly': 'Keto' },
+    pt: { Omnivore: 'Onívoro', Vegetarian: 'Vegetariano', Vegan: 'Vegano', Pescatarian: 'Pescetariano', 'Keto-Friendly': 'Keto' },
+  };
+  const dietLabel = (DIET_LABELS[lang] && DIET_LABELS[lang][dietaryProfile]) || dietaryProfile;
+  const CAL_PER_DAY = { en: 'cal/day', es: 'cal/día', pt: 'cal/dia' };
+  const CUSTOM_PROTOCOL = { en: 'Custom Protocol — ', es: 'Protocolo Personalizado — ', pt: 'Protocolo Personalizado — ' };
+  const TRI_CUISINE = { en: ' Tri-Cuisine Rotation', es: ' - Rotación Tri-Culinaria', pt: ' - Rotação Tri-Culinária' };
+
+  const goal = constraints
+    ? ((CUSTOM_PROTOCOL[lang] || CUSTOM_PROTOCOL.en) + constraints).slice(0, 160)
+    : (dietLabel + (TRI_CUISINE[lang] || TRI_CUISINE.en));
+
+  const plan = {
+    name: clientName || uid,
+    cal:  '~' + targetCal.toLocaleString('en-US') + ' ' + (CAL_PER_DAY[lang] || CAL_PER_DAY.en) + ' · ' + dietLabel,
+    goal: goal,
+    days: days,
+    meal_ids_used: Array.from(usedMealIds),
+  };
+
+  // Audit echo · which library meals were actually used, plus the intake
+  // filter that produced the pool — useful for the admin to verify
+  // compliance at a glance.
   return res.status(200).json({
     ok:   true,
     plan: plan,
     meta: {
-      dietary_profile:    dietaryProfile,
-      allergens:          allergens,
-      pool_size_before:   poolBefore,
-      pool_size_after:    mealPool.length,
-      meal_ids_used:      Array.isArray(plan.meal_ids_used) ? plan.meal_ids_used : null,
-      fallback_free_form: mealPool.length === 0
+      dietary_profile:  dietaryProfile,
+      allergens:        allergens,
+      pool_size_before: poolBefore,
+      pool_size_after:  mealPool.length,
+      meal_ids_used:    plan.meal_ids_used,
+      source:           'static_compiler',
     }
   });
 });

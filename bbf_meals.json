@@ -2,7 +2,9 @@
  {
  "id": "bbf-brk-001",
  "name": {
- "en": "American Ground Turkey & Sweet Potato Hash"
+ "en": "American Ground Turkey & Sweet Potato Hash",
+ "es": "Picadillo Americano de Pavo Molido y Batata",
+ "pt": "Picadinho Americano de Peru Moído com Batata-Doce"
  },
  "cuisine": "American",
  "meal_type": "Breakfast",
@@ -19,7 +21,9 @@
  {
  "id": "bbf-brk-002",
  "name": {
- "en": "Mexican Huevos a la Mexicana with Black Bean Puree"
+ "en": "Mexican Huevos a la Mexicana with Black Bean Puree",
+ "es": "Huevos a la Mexicana con Puré de Frijoles Negros",
+ "pt": "Huevos a la Mexicana com Purê de Feijão Preto"
  },
  "cuisine": "Mexican",
  "meal_type": "Breakfast",
@@ -36,7 +40,9 @@
  {
  "id": "bbf-brk-003",
  "name": {
- "en": "Brazilian Tapioca Crepe with Shredded Chicken & Avocado"
+ "en": "Brazilian Tapioca Crepe with Shredded Chicken & Avocado",
+ "es": "Crepe de Tapioca Brasileño con Pollo Deshebrado y Aguacate",
+ "pt": "Tapioca Brasileira com Frango Desfiado e Abacate"
  },
  "cuisine": "Brazilian",
  "meal_type": "Breakfast",
@@ -53,7 +59,9 @@
  {
  "id": "bbf-brk-004",
  "name": {
- "en": "American Turkey Sausage & Spinach Egg Muffins"
+ "en": "American Turkey Sausage & Spinach Egg Muffins",
+ "es": "Muffins Americanos de Huevo con Salchicha de Pavo y Espinaca",
+ "pt": "Muffins Americanos de Ovo com Linguiça de Peru e Espinafre"
  },
  "cuisine": "American",
  "meal_type": "Breakfast",
@@ -70,7 +78,9 @@
  {
  "id": "bbf-brk-005",
  "name": {
- "en": "Brazilian Açaí Performance Bowl (Whey/Plant Boosted)"
+ "en": "Brazilian Açaí Performance Bowl (Whey/Plant Boosted)",
+ "es": "Tazón de Açaí Brasileño de Rendimiento (con Proteína Whey/Vegetal)",
+ "pt": "Tigela de Açaí Brasileira de Performance (com Whey/Proteína Vegetal)"
  },
  "cuisine": "Brazilian",
  "meal_type": "Breakfast",
@@ -87,7 +97,9 @@
  {
  "id": "bbf-brk-006",
  "name": {
- "en": "Mexican Savory Tamale Breakfast Bowl"
+ "en": "Mexican Savory Tamale Breakfast Bowl",
+ "es": "Tazón de Desayuno Mexicano Estilo Tamal Salado",
+ "pt": "Tigela de Café da Manhã Mexicana Estilo Tamal Salgado"
  },
  "cuisine": "Mexican",
  "meal_type": "Breakfast",
@@ -104,7 +116,9 @@
  {
  "id": "bbf-brk-007",
  "name": {
- "en": "American Blueberry & Greek Yogurt Power Pancakes"
+ "en": "American Blueberry & Greek Yogurt Power Pancakes",
+ "es": "Panqueques Americanos de Arándanos y Yogur Griego",
+ "pt": "Panquecas Americanas de Mirtilo e Iogurte Grego"
  },
  "cuisine": "American",
  "meal_type": "Breakfast",
@@ -121,7 +135,9 @@
  {
  "id": "bbf-brk-008",
  "name": {
- "en": "Brazilian Pão de Queijo & Soft Boiled Eggs"
+ "en": "Brazilian Pão de Queijo & Soft Boiled Eggs",
+ "es": "Pão de Queijo Brasileño con Huevos Pasados por Agua",
+ "pt": "Pão de Queijo Brasileiro com Ovos Quentes"
  },
  "cuisine": "Brazilian",
  "meal_type": "Breakfast",
@@ -138,7 +154,9 @@
  {
  "id": "bbf-brk-009",
  "name": {
- "en": "Mexican Tofu Scramble 'Migas'"
+ "en": "Mexican Tofu Scramble 'Migas'",
+ "es": "Migas Mexicanas de Tofu Revuelto",
+ "pt": "Migas Mexicanas de Tofu Mexido"
  },
  "cuisine": "Mexican",
  "meal_type": "Breakfast",
@@ -155,7 +173,9 @@
  {
  "id": "bbf-brk-010",
  "name": {
- "en": "American Mixed Berry Baked Oatmeal"
+ "en": "American Mixed Berry Baked Oatmeal",
+ "es": "Avena Horneada Americana con Frutos Rojos Mixtos",
+ "pt": "Aveia Americana Assada com Frutas Vermelhas Mistas"
  },
  "cuisine": "American",
  "meal_type": "Breakfast",
@@ -172,7 +192,9 @@
  {
  "id": "bbf-lun-001",
  "name": {
- "en": "American Honey Lemon Salmon & Broccolini"
+ "en": "American Honey Lemon Salmon & Broccolini",
+ "es": "Salmón Americano con Miel y Limón y Broccolini",
+ "pt": "Salmão Americano ao Mel e Limão com Broccolini"
  },
  "cuisine": "American",
  "meal_type": "Lunch",
@@ -189,7 +211,9 @@
  {
  "id": "bbf-lun-002",
  "name": {
- "en": "Mexican Grilled Chicken Fajita Bowl"
+ "en": "Mexican Grilled Chicken Fajita Bowl",
+ "es": "Tazón Mexicano de Fajitas de Pollo a la Parrilla",
+ "pt": "Tigela Mexicana de Fajita de Frango Grelhado"
  },
  "cuisine": "Mexican",
  "meal_type": "Lunch",
@@ -206,7 +230,9 @@
  {
  "id": "bbf-lun-003",
  "name": {
- "en": "Brazilian Picanha Steak & Vinaigrette Salad"
+ "en": "Brazilian Picanha Steak & Vinaigrette Salad",
+ "es": "Bistec de Picanha Brasileña con Ensalada de Vinagreta",
+ "pt": "Picanha Brasileira com Salada de Vinagrete"
  },
  "cuisine": "Brazilian",
  "meal_type": "Lunch",
@@ -223,7 +249,9 @@
  {
  "id": "bbf-lun-004",
  "name": {
- "en": "American Turkey Burger Lettuce Wrap & Sweet Potato Fries"
+ "en": "American Turkey Burger Lettuce Wrap & Sweet Potato Fries",
+ "es": "Hamburguesa Americana de Pavo en Envoltura de Lechuga con Papas de Batata",
+ "pt": "Hambúrguer Americano de Peru em Alface com Batata-Doce Frita"
  },
  "cuisine": "American",
  "meal_type": "Lunch",
@@ -240,7 +268,9 @@
  {
  "id": "bbf-lun-005",
  "name": {
- "en": "Mexican Shrimp Ceviche Lettuce Wraps"
+ "en": "Mexican Shrimp Ceviche Lettuce Wraps",
+ "es": "Envueltos de Lechuga con Ceviche Mexicano de Camarón",
+ "pt": "Enroladinhos de Alface com Ceviche Mexicano de Camarão"
  },
  "cuisine": "Mexican",
  "meal_type": "Lunch",
@@ -257,7 +287,9 @@
  {
  "id": "bbf-lun-006",
  "name": {
- "en": "Brazilian Moqueca Prawn Stew (Lunch Portion)"
+ "en": "Brazilian Moqueca Prawn Stew (Lunch Portion)",
+ "es": "Guiso Brasileño de Camarón Moqueca (Porción de Almuerzo)",
+ "pt": "Moqueca Brasileira de Camarão (Porção de Almoço)"
  },
  "cuisine": "Brazilian",
  "meal_type": "Lunch",
@@ -274,7 +306,9 @@
  {
  "id": "bbf-lun-007",
  "name": {
- "en": "American Chicken Buddha Bowl with Tahini"
+ "en": "American Chicken Buddha Bowl with Tahini",
+ "es": "Tazón Buddha Americano de Pollo con Tahini",
+ "pt": "Tigela Buddha Americana de Frango com Tahine"
  },
  "cuisine": "American",
  "meal_type": "Lunch",
@@ -291,7 +325,9 @@
  {
  "id": "bbf-lun-008",
  "name": {
- "en": "Mexican Veggie-Stuffed Poblano Peppers"
+ "en": "Mexican Veggie-Stuffed Poblano Peppers",
+ "es": "Chiles Poblanos Mexicanos Rellenos de Vegetales",
+ "pt": "Pimentões Poblano Mexicanos Recheados com Vegetais"
  },
  "cuisine": "Mexican",
  "meal_type": "Lunch",
@@ -308,7 +344,9 @@
  {
  "id": "bbf-lun-009",
  "name": {
- "en": "American Greek Lentil Power Bowl (Vegetarian)"
+ "en": "American Greek Lentil Power Bowl (Vegetarian)",
+ "es": "Tazón Americano de Lentejas Estilo Griego (Vegetariano)",
+ "pt": "Tigela Americana de Lentilha Estilo Grego (Vegetariana)"
  },
  "cuisine": "American",
  "meal_type": "Lunch",
@@ -325,7 +363,9 @@
  {
  "id": "bbf-lun-010",
  "name": {
- "en": "Brazilian Rice & Chickpea Medley"
+ "en": "Brazilian Rice & Chickpea Medley",
+ "es": "Mezcla Brasileña de Arroz y Garbanzos",
+ "pt": "Mistura Brasileira de Arroz com Grão-de-Bico"
  },
  "cuisine": "Brazilian",
  "meal_type": "Lunch",
@@ -342,7 +382,9 @@
  {
  "id": "bbf-lun-011",
  "name": {
- "en": "Mexican Sweet Potato & Corn Enchiladas"
+ "en": "Mexican Sweet Potato & Corn Enchiladas",
+ "es": "Enchiladas Mexicanas de Batata y Maíz",
+ "pt": "Enchiladas Mexicanas de Batata-Doce e Milho"
  },
  "cuisine": "Mexican",
  "meal_type": "Lunch",
@@ -359,7 +401,9 @@
  {
  "id": "bbf-lun-012",
  "name": {
- "en": "American Cauliflower Cashew Lunch Bowl"
+ "en": "American Cauliflower Cashew Lunch Bowl",
+ "es": "Tazón Americano de Almuerzo con Coliflor y Anacardos",
+ "pt": "Tigela Americana de Almoço com Couve-Flor e Castanha de Caju"
  },
  "cuisine": "American",
  "meal_type": "Lunch",
@@ -376,7 +420,9 @@
  {
  "id": "bbf-lun-013",
  "name": {
- "en": "Mexican Jackfruit 'Carnitas' Burrito Bowl"
+ "en": "Mexican Jackfruit 'Carnitas' Burrito Bowl",
+ "es": "Tazón Burrito Mexicano de 'Carnitas' de Yaca",
+ "pt": "Tigela de Burrito Mexicano de 'Carnitas' de Jaca"
  },
  "cuisine": "Mexican",
  "meal_type": "Lunch",
@@ -393,7 +439,9 @@
  {
  "id": "bbf-lun-014",
  "name": {
- "en": "American Spiralized Veggie Sesame Noodles"
+ "en": "American Spiralized Veggie Sesame Noodles",
+ "es": "Fideos de Vegetales en Espiral Americanos con Sésamo",
+ "pt": "Macarrão Americano de Vegetais em Espiral com Gergelim"
  },
  "cuisine": "American",
  "meal_type": "Lunch",
@@ -410,7 +458,9 @@
  {
  "id": "bbf-lun-015",
  "name": {
- "en": "Brazilian Hearts of Palm & Tomato Salad"
+ "en": "Brazilian Hearts of Palm & Tomato Salad",
+ "es": "Ensalada Brasileña de Palmitos y Tomate",
+ "pt": "Salada Brasileira de Palmito com Tomate"
  },
  "cuisine": "Brazilian",
  "meal_type": "Lunch",
@@ -427,7 +477,9 @@
  {
  "id": "bbf-din-001",
  "name": {
- "en": "Brazilian Traditional Feijoada (BBF Performance Version)"
+ "en": "Brazilian Traditional Feijoada (BBF Performance Version)",
+ "es": "Feijoada Tradicional Brasileña (Versión de Rendimiento BBF)",
+ "pt": "Feijoada Tradicional Brasileira (Versão de Performance BBF)"
  },
  "cuisine": "Brazilian",
  "meal_type": "Dinner",
@@ -444,7 +496,9 @@
  {
  "id": "bbf-din-002",
  "name": {
- "en": "Mexican Carne Asada with Brown Rice & Pinto Beans"
+ "en": "Mexican Carne Asada with Brown Rice & Pinto Beans",
+ "es": "Carne Asada Mexicana con Arroz Integral y Frijoles Pintos",
+ "pt": "Carne Asada Mexicana com Arroz Integral e Feijão Pinto"
  },
  "cuisine": "Mexican",
  "meal_type": "Dinner",
@@ -461,7 +515,9 @@
  {
  "id": "bbf-din-003",
  "name": {
- "en": "American Roast Lemon Herb Chicken & Asparagus"
+ "en": "American Roast Lemon Herb Chicken & Asparagus",
+ "es": "Pollo Americano Asado con Limón y Hierbas y Espárragos",
+ "pt": "Frango Americano Assado com Limão e Ervas com Aspargos"
  },
  "cuisine": "American",
  "meal_type": "Dinner",
@@ -478,7 +534,9 @@
  {
  "id": "bbf-din-004",
  "name": {
- "en": "Brazilian Frango Churrasco (Grilled Lemon & Garlic Chicken)"
+ "en": "Brazilian Frango Churrasco (Grilled Lemon & Garlic Chicken)",
+ "es": "Frango Churrasco Brasileño (Pollo a la Parrilla con Limón y Ajo)",
+ "pt": "Frango Churrasco Brasileiro (Frango Grelhado com Limão e Alho)"
  },
  "cuisine": "Brazilian",
  "meal_type": "Dinner",
@@ -495,7 +553,9 @@
  {
  "id": "bbf-din-005",
  "name": {
- "en": "Mexican Chicken Tinga Performance Bowl"
+ "en": "Mexican Chicken Tinga Performance Bowl",
+ "es": "Tazón de Rendimiento Mexicano de Tinga de Pollo",
+ "pt": "Tigela de Performance Mexicana de Tinga de Frango"
  },
  "cuisine": "Mexican",
  "meal_type": "Dinner",
@@ -512,7 +572,9 @@
  {
  "id": "bbf-din-006",
  "name": {
- "en": "American Lean Beef & Sweet Potato Hash (Dinner Portion)"
+ "en": "American Lean Beef & Sweet Potato Hash (Dinner Portion)",
+ "es": "Picadillo Americano de Res Magra y Batata (Porción de Cena)",
+ "pt": "Picadinho Americano de Carne Magra com Batata-Doce (Porção de Jantar)"
  },
  "cuisine": "American",
  "meal_type": "Dinner",
@@ -529,7 +591,9 @@
  {
  "id": "bbf-din-007",
  "name": {
- "en": "Brazilian Moqueca de Peixe (Fish Stew) with Brown Rice"
+ "en": "Brazilian Moqueca de Peixe (Fish Stew) with Brown Rice",
+ "es": "Moqueca de Pescado Brasileña con Arroz Integral",
+ "pt": "Moqueca de Peixe Brasileira com Arroz Integral"
  },
  "cuisine": "Brazilian",
  "meal_type": "Dinner",
@@ -546,7 +610,9 @@
  {
  "id": "bbf-din-008",
  "name": {
- "en": "American Butternut Squash & Lentil Curry"
+ "en": "American Butternut Squash & Lentil Curry",
+ "es": "Curry Americano de Calabaza Butternut y Lentejas",
+ "pt": "Curry Americano de Abóbora Butternut com Lentilha"
  },
  "cuisine": "American",
  "meal_type": "Dinner",
@@ -563,7 +629,9 @@
  {
  "id": "bbf-din-009",
  "name": {
- "en": "Mexican Chickpea & Spinach Street Tacos"
+ "en": "Mexican Chickpea & Spinach Street Tacos",
+ "es": "Tacos Callejeros Mexicanos de Garbanzo y Espinaca",
+ "pt": "Tacos de Rua Mexicanos de Grão-de-Bico e Espinafre"
  },
  "cuisine": "Mexican",
  "meal_type": "Dinner",
@@ -580,7 +648,9 @@
  {
  "id": "bbf-din-010",
  "name": {
- "en": "Brazilian Tutu de Feijão (Vegetarian Bean Puree)"
+ "en": "Brazilian Tutu de Feijão (Vegetarian Bean Puree)",
+ "es": "Tutu de Feijão Brasileño (Puré Vegetariano de Frijoles)",
+ "pt": "Tutu de Feijão Brasileiro (Purê Vegetariano de Feijão)"
  },
  "cuisine": "Brazilian",
  "meal_type": "Dinner",
@@ -597,7 +667,9 @@
  {
  "id": "bbf-din-011",
  "name": {
- "en": "American Chopped Chickpea Salad with Bulgur Wheat"
+ "en": "American Chopped Chickpea Salad with Bulgur Wheat",
+ "es": "Ensalada Americana de Garbanzos Picados con Trigo Bulgur",
+ "pt": "Salada Americana de Grão-de-Bico Picado com Trigo Bulgur"
  },
  "cuisine": "American",
  "meal_type": "Dinner",
@@ -614,7 +686,9 @@
  {
  "id": "bbf-din-012",
  "name": {
- "en": "Mexican Chickpea Pozole Verde"
+ "en": "Mexican Chickpea Pozole Verde",
+ "es": "Pozole Verde Mexicano de Garbanzo",
+ "pt": "Pozole Verde Mexicano de Grão-de-Bico"
  },
  "cuisine": "Mexican",
  "meal_type": "Dinner",
@@ -631,7 +705,9 @@
  {
  "id": "bbf-din-013",
  "name": {
- "en": "American Tempeh & Broccoli Stir Fry (Vegan)"
+ "en": "American Tempeh & Broccoli Stir Fry (Vegan)",
+ "es": "Salteado Americano de Tempeh y Brócoli (Vegano)",
+ "pt": "Refogado Americano de Tempeh com Brócolis (Vegano)"
  },
  "cuisine": "American",
  "meal_type": "Dinner",
@@ -648,7 +724,9 @@
  {
  "id": "bbf-din-014",
  "name": {
- "en": "Brazilian Plantain & Pinto Bean Stew"
+ "en": "Brazilian Plantain & Pinto Bean Stew",
+ "es": "Guiso Brasileño de Plátano y Frijoles Pintos",
+ "pt": "Ensopado Brasileiro de Banana-da-Terra com Feijão Pinto"
  },
  "cuisine": "Brazilian",
  "meal_type": "Dinner",
@@ -665,7 +743,9 @@
  {
  "id": "bbf-din-015",
  "name": {
- "en": "Mexican Jackfruit 'Carnitas' Burrito Bowl (Dinner Portion)"
+ "en": "Mexican Jackfruit 'Carnitas' Burrito Bowl (Dinner Portion)",
+ "es": "Tazón Burrito Mexicano de 'Carnitas' de Yaca (Porción de Cena)",
+ "pt": "Tigela de Burrito Mexicano de 'Carnitas' de Jaca (Porção de Jantar)"
  },
  "cuisine": "Mexican",
  "meal_type": "Dinner",
