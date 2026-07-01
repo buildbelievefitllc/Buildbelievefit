@@ -67,6 +67,7 @@ export function useSpeechEvaluator(lang = 'es') {
   const [transcript, setTranscript] = useState('');
   const [interim, setInterim] = useState('');
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   const recogRef = useRef(null);
 
   const stop = useCallback(() => {
@@ -115,6 +116,7 @@ export function useSpeechEvaluator(lang = 'es') {
       recog.start();
       recogRef.current = recog;
       setListening(true);
+      setRetryCount(0);
     } catch {
       setError('start_failed');
       setListening(false);
@@ -123,11 +125,16 @@ export function useSpeechEvaluator(lang = 'es') {
 
   const reset = useCallback(() => { setTranscript(''); setInterim(''); setError(null); }, []);
 
+  const retry = useCallback(() => {
+    setRetryCount((r) => r + 1);
+    start();
+  }, [start]);
+
   // Safety net: kill the recognizer if the component unmounts mid-listen.
   useEffect(() => () => {
     const r = recogRef.current;
     if (r) { try { r.abort(); } catch { /* noop */ } }
   }, []);
 
-  return { supported, listening, transcript, interim, error, start, stop, reset };
+  return { supported, listening, transcript, interim, error, start, stop, reset, retry, retryCount };
 }
