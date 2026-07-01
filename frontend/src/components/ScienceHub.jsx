@@ -20,8 +20,9 @@
 // Data is hardcoded reference (data/scienceHubData.js) so the layout can be
 // verified before the live Supabase-backed corpus + AI search land.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CATEGORIES, STUDIES, STUDY_TABS } from '../data/scienceHubData.js';
+import { browserSpeechSupported, speakWithBrowser, warmUpSpeech } from '../lib/speechFallback.js';
 import './scienceHub.css';
 
 export default function ScienceHub() {
@@ -137,6 +138,9 @@ export default function ScienceHub() {
 function StudyDetail({ study, tab, onTab }) {
   const activeTab = STUDY_TABS.find((t) => t.id === tab) || STUDY_TABS[0];
   const isAkeem = activeTab.id === 'akeem';
+  const toSpeak = isAkeem
+    ? `${activeTab.heading}. ${study.akeem} ${study.protocol}`
+    : `${activeTab.heading}. ${study[activeTab.key]}`;
 
   return (
     <article className="shub-study-view">
@@ -165,7 +169,10 @@ function StudyDetail({ study, tab, onTab }) {
       </nav>
 
       <div className={`shub-panel${isAkeem ? ' is-akeem' : ''}`}>
-        <div className="shub-panel-heading">{activeTab.heading}</div>
+        <div className="shub-panel-head">
+          <div className="shub-panel-heading">{activeTab.heading}</div>
+          <ListenButton key={`${study.id}-${tab}`} text={toSpeak} />
+        </div>
         {isAkeem ? (
           <>
             <p className="shub-akeem-quote">&ldquo;{study.akeem}&rdquo;</p>
@@ -176,5 +183,74 @@ function StudyDetail({ study, tab, onTab }) {
         )}
       </div>
     </article>
+  );
+}
+
+// Read the active tab's content aloud with the device's built-in stock voice
+// (window.speechSynthesis) — zero API key, zero cost, so it's always on. Not a
+// fallback here (unlike CoachAudioButton's ElevenLabs failure path): for a
+// public marketing asset with no auth/billing context, the free voice IS the
+// voice layer.
+function ListenButton({ text }) {
+  const [state, setState] = useState('idle'); // idle | loading | playing
+  const [err, setErr] = useState(false);
+  const controllerRef = useRef(null);
+  const mountedRef = useRef(true);
+
+  // Stop any speech in flight when the tab/study changes (remounts via `key`)
+  // or the component unmounts — never let two reads overlap, and never touch
+  // state after the async speakWithBrowser() resolves post-unmount.
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (controllerRef.current) { try { controllerRef.current.stop(); } catch { /* noop */ } }
+    };
+  }, []);
+
+  if (!browserSpeechSupported()) return null;
+
+  async function onClick() {
+    if (controllerRef.current) {
+      controllerRef.current.stop();
+      controllerRef.current = null;
+      setState('idle');
+      return;
+    }
+    warmUpSpeech(); // unlock speechSynthesis inside this click gesture (iOS/Safari)
+    setState('loading');
+    setErr(false);
+    try {
+      const controller = await speakWithBrowser({
+        text,
+        lang: 'en',
+        onEnd: () => { controllerRef.current = null; if (mountedRef.current) setState('idle'); },
+        onError: () => { controllerRef.current = null; if (mountedRef.current) { setState('idle'); setErr(true); } },
+      });
+      if (!mountedRef.current) { controller.stop(); return; }
+      controllerRef.current = controller;
+      setState('playing');
+    } catch {
+      controllerRef.current = null;
+      if (mountedRef.current) { setState('idle'); setErr(true); }
+    }
+  }
+
+  const label = state === 'loading' ? 'Loading voice…' : state === 'playing' ? 'Stop' : 'Listen';
+
+  return (
+    <div className="shub-listen-wrap">
+      <button
+        type="button"
+        className={`shub-listen${state === 'playing' ? ' is-playing' : ''}`}
+        onClick={onClick}
+        disabled={state === 'loading'}
+        aria-label={`${label} to this section`}
+      >
+        <span className="shub-listen-ic" aria-hidden="true">{state === 'playing' ? '◼' : '🔊'}</span>
+        {label}
+      </button>
+      {err ? <span className="shub-listen-err" role="status">Voice unavailable on this device.</span> : null}
+    </div>
   );
 }

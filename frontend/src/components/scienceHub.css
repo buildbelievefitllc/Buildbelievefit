@@ -194,11 +194,31 @@
   border: 1px solid var(--shub-border); border-radius: 14px; padding: 1.3rem 1.4rem;
 }
 .shub-panel.is-akeem { border-color: var(--shub-gold-line); border-left: 3px solid var(--yel); }
+.shub-panel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  margin-bottom: .75rem;
+}
 .shub-panel-heading {
   font-family: var(--bd); font-size: .9rem; font-weight: 800; letter-spacing: 1px;
-  text-transform: uppercase; color: var(--gold-soft); margin-bottom: .75rem;
+  text-transform: uppercase; color: var(--gold-soft);
 }
 .shub-panel-body { font-family: var(--bd); font-size: 1.04rem; font-weight: 500; line-height: 1.62; color: rgba(249, 245, 255, .82); margin: 0; }
+
+/* Listen (free stock-voice TTS) control */
+.shub-listen-wrap { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
+.shub-listen {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-family: var(--mono); font-size: .66rem; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; cursor: pointer; white-space: nowrap;
+  color: var(--gold-soft); background: transparent; border: 1px solid var(--shub-gold-line);
+  border-radius: 999px; padding: .4rem .85rem;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.shub-listen:hover:not(:disabled) { border-color: var(--yel); color: var(--yel); }
+.shub-listen:disabled { opacity: .55; cursor: not-allowed; }
+.shub-listen.is-playing { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: var(--yel); }
+.shub-listen-ic { font-size: .8rem; }
+.shub-listen-err { font-family: var(--mono); font-size: .6rem; font-weight: 600; color: var(--mut); }
 
 /* Akeem's systemic translation */
 .shub-akeem-quote {
