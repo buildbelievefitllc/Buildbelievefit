@@ -1,19 +1,16 @@
 // src/lib/pimsleurAudioEngine.js
 // ─────────────────────────────────────────────────────────────────────────────
 // Turns pimsleurAudioCurriculum.json into a flat, playable dialogue script per
-// lesson. Lesson 1 ships a fully hand-authored dialogue_flow — used verbatim.
-// Every other lesson only ships objectives/vocabulary, so this module generates
-// a script that follows the same three principles the curriculum declares
-// (methodology.principles): Graduated Interval Recall (pulling review terms
-// forward from earlier lessons), the Principle of Anticipation (a pause before
-// every native-speaker confirmation), and Back-Chaining (deconstructing a phrase
-// from its last word forward). Pure data-in/data-out — no TTS, no network.
-
-// A lesson's shipped dialogue_flow is treated as "authored" (used as-is) only if
-// it's long enough to actually drill every vocabulary item; a short/partial stub
-// (as lesson 2's raw JSON originally was) is replaced by a generated one instead
-// of teaching only part of the lesson's vocabulary.
-const MIN_ENTRIES_PER_ITEM = 6;
+// lesson. All 10 lessons ship a fully hand-authored dialogue_flow — used
+// verbatim. generateDialogueFlow() below is a defensive fallback for a lesson
+// that ships with NO dialogue_flow at all (as this curriculum's first draft
+// briefly did for lessons 2-10): it follows the same three principles the
+// curriculum declares (methodology_spec) — Graduated Interval Recall (pulling
+// review terms forward from earlier lessons), the Principle of Anticipation (a
+// pause before every native-speaker confirmation), and Back-Chaining
+// (deconstructing a phrase from its last word forward) — so the lesson still
+// plays instead of silently having no audio. Pure data-in/data-out — no TTS,
+// no network.
 
 function splitWords(phrase) {
   return String(phrase || '').trim().split(/\s+/).filter(Boolean);
@@ -99,14 +96,13 @@ export function generateDialogueFlow(lesson, priorLessons = []) {
   return flow;
 }
 
-// The dialogue_flow to actually play for a lesson: the authored script when it
-// covers the full vocabulary list, otherwise a generated one built from the same
+// The dialogue_flow to actually play for a lesson: the authored script whenever
+// the curriculum ships one, otherwise a generated one built from the same
 // principles. `priorLessons` (lessons before this one, in order) feeds the
 // review pool for Graduated Interval Recall.
 export function getLessonFlow(lesson, priorLessons = []) {
   const authored = Array.isArray(lesson.dialogue_flow) ? lesson.dialogue_flow : [];
-  const vocabCount = (lesson.vocabulary || []).length;
-  if (authored.length >= vocabCount * MIN_ENTRIES_PER_ITEM) return authored;
+  if (authored.length > 0) return authored;
   return generateDialogueFlow(lesson, priorLessons);
 }
 

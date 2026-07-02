@@ -944,7 +944,6 @@
 .lr-audio-lesson { margin-bottom: 1.2rem; }
 .lr-audio-lesson-title { font-family: var(--hb); font-size: 1.3rem; letter-spacing: 1px; color: var(--wht); }
 .lr-audio-lesson-desc { font-family: var(--bd); font-size: .92rem; line-height: 1.5; color: #999; margin: .3rem 0 .6rem; }
-.lr-audio-objectives { margin: 0; padding-left: 1.2rem; font-family: var(--bd); font-size: .88rem; color: #bbb; line-height: 1.6; }
 
 .lr-audio-player { background: #0d0d0d; border: 1px solid #222; border-radius: 12px; padding: 1.3rem; margin-bottom: 1.4rem; }
 .lr-audio-progress { height: 6px; background: #161616; border-radius: 999px; overflow: hidden; margin-bottom: 1.2rem; }

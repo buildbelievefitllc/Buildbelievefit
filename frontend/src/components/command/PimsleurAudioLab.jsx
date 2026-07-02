@@ -8,11 +8,11 @@
 // voice engine (speechFallback.js) instead of a pre-rendered audio file. Zero API
 // key, zero cost, zero backend: the same $0 philosophy as the rest of this module.
 //
-// Lessons 3-10 only ship objectives/vocabulary in the source JSON — their
-// dialogue_flow is generated at play time by pimsleurAudioEngine.js, following the
-// exact same three principles (Graduated Interval Recall, Anticipation,
-// Back-Chaining) the curriculum declares, so the full 10-lesson arc plays without
-// gaps.
+// All 10 lessons ship a fully hand-authored dialogue_flow. If a future lesson
+// ever ships without one, pimsleurAudioEngine.js generates a script from just
+// its vocabulary, following the same three principles (Graduated Interval
+// Recall, Anticipation, Back-Chaining) the curriculum declares — so the lesson
+// still plays instead of going silent.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
@@ -279,9 +279,6 @@ export default function PimsleurAudioLab() {
       <div className="lr-audio-lesson">
         <div className="lr-audio-lesson-title">{lesson.title}</div>
         <div className="lr-audio-lesson-desc">{lesson.description}</div>
-        <ul className="lr-audio-objectives">
-          {lesson.objectives.map((o, i) => <li key={i}>{o}</li>)}
-        </ul>
       </div>
 
       <LessonPlayer
