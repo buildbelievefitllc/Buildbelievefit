@@ -133,10 +133,19 @@ export default function SovereignBriefingCard({ overrideActive = false, override
     : null;
   const bioUrl = bioMatch?.url || null;
 
-  // On mount, precedence: (1) squad intercept → override clip; (2) biometric route →
-  // nearest matrix clip from live telemetry; (3) graduated → bespoke daily briefing
-  // (fast RPC; absent → 'idle' for on-tap generation). State is set ONLY inside
-  // callbacks/microtasks (never synchronously) — clear of react-hooks/set-state-in-effect.
+  // The live score as an integer, or null with no check-in data yet today. Feeds
+  // BOTH the cache-key (so a mid-day score change never collides with an earlier
+  // score's session-cached URL) and the RPC's stale-cache guard.
+  const liveScore = (!intercept && readiness?.hasData && Number.isFinite(Number(readiness.score)))
+    ? Math.round(Number(readiness.score)) : null;
+
+  // On mount (and whenever the live score changes), precedence: (1) squad intercept
+  // → override clip; (2) biometric route → nearest matrix clip from live telemetry;
+  // (3) graduated + a check-in exists today → bespoke daily briefing (fast RPC;
+  // absent/stale → 'idle' for on-tap generation). No check-in yet → the card stays
+  // unmounted (see the render gate below) rather than offering a briefing with
+  // nothing to report on. State is set ONLY inside callbacks/microtasks (never
+  // synchronously) — clear of react-hooks/set-state-in-effect.
   useEffect(() => {
     let cancelled = false;
     if (intercept) {
@@ -147,15 +156,16 @@ export default function SovereignBriefingCard({ overrideActive = false, override
       queueMicrotask(() => { if (!cancelled) { setUrl(bioUrl); setCreatedAt(null); setPhase('ready'); setErr(null); } });
       return () => { cancelled = true; };
     }
-    if (!isGraduated) return undefined;
-    const key = `${lang}|${utcDay()}`;
+    if (!isGraduated || liveScore === null) return undefined;
+    const key = `${lang}|${utcDay()}|${liveScore}`;
     const hit = _sovCache.get(key);
     if (hit) {
       // Defer to a microtask so the first paint isn't a synchronous setState.
       queueMicrotask(() => { if (!cancelled) { setUrl(hit.url); setCreatedAt(hit.createdAt); setPhase('ready'); } });
       return () => { cancelled = true; };
     }
-    fetchCachedSovereignBriefing({ locale: lang })
+    queueMicrotask(() => { if (!cancelled) setPhase('loading'); });
+    fetchCachedSovereignBriefing({ locale: lang, currentScore: liveScore })
       .then((res) => {
         if (cancelled) return;
         if (res?.url) { _sovCache.set(key, res); setUrl(res.url); setCreatedAt(res.createdAt); setPhase('ready'); }
@@ -163,10 +173,15 @@ export default function SovereignBriefingCard({ overrideActive = false, override
       })
       .catch(() => { if (!cancelled) { setUrl(null); setCreatedAt(null); setPhase('idle'); } });
     return () => { cancelled = true; };
-  }, [intercept, interceptUrl, bioUrl, isGraduated, lang]);
+  }, [intercept, interceptUrl, bioUrl, isGraduated, lang, liveScore]);
 
-  // Render for a graduated athlete OR whenever a squad intercept is active.
+  // Render for a graduated athlete OR whenever a squad intercept is active — AND,
+  // for the personalized (non-intercept) case, only once today's check-in exists.
+  // "Composed fresh from this morning's check-in" has nothing to compose from
+  // before that check-in happens, so the card stays off the page rather than
+  // offering a stale/empty briefing pre-check-in.
   if (!isGraduated && !intercept) return null;
+  if (!intercept && !bioUrl && !readiness?.hasData) return null;
 
   // Every time the briefing plays: if there's a live check-in score, lead with
   // the EXACT number in Coach Akeem's real voice (bbf-readiness-score-voice —

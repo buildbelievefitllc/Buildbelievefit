@@ -35,8 +35,10 @@ import { useHealthConnectSync } from '../../lib/healthConnectSync.js';
 import { useBiometricLedger } from '../../lib/useDailyReadiness.js';
 import { runVitalsPipeline, runManualVitalsPipeline, useVitalsSyncStatus } from '../../lib/vitalsPipeline.js';
 import { saveManualBaseline, manualSubjective, useManualBaselineToday } from '../../lib/manualBaseline.js';
+import { useProgramDay } from '../../lib/useProgramDay.js';
 import MindsetIntercept from './MindsetIntercept.jsx';
 import RecoveryPrescriptionCard from './RecoveryPrescriptionCard.jsx';
+import SovereignBriefingCard from './SovereignBriefingCard.jsx';
 import { SequenceNext } from './SovereignSequence.jsx';
 import './sovereignHub.css';
 
@@ -106,13 +108,16 @@ function ReadinessDial({ score }) {
   );
 }
 
-export default function SovereignClientHub({ refreshKey = 0, onSequence }) {
+export default function SovereignClientHub({ refreshKey = 0, onSequence, prescribedLoad = null }) {
   const { t } = useLang();
   const { user } = useAuth();
   const uid = user?.username || user?.id || '';
   // Account-specific warm copy (gated by uid; null for everyone else).
   const personal = personalFor(uid);
   const { available: bridgeUp, syncing, sync } = useHealthConnectSync();
+  // Squad schedule / Loop Breaker override state — feeds the Sovereign Briefing's
+  // squad-intercept routing below (relocated here from the Hub tab).
+  const program = useProgramDay();
 
   // ── Governor + platform (persisted; lazy init keeps reads out of render churn) ──
   const [governor, setGovernor] = useState(() => readPref(GOVERNOR_KEY, ['manual', 'auto'], 'manual'));
@@ -562,6 +567,19 @@ export default function SovereignClientHub({ refreshKey = 0, onSequence }) {
           <div className="sch-await-title">{t('sch-awaiting-title')}</div>
           <p className="sch-body">{t('sch-awaiting-body')}</p>
         </div>
+      ) : null}
+
+      {/* ── SOVEREIGN AUDIO — relocated from the Hub tab (CEO order): the briefing now
+          "pops up" here, right after today's readiness verdict exists (a fresh save
+          OR today's stored ledger), instead of sitting always-playable ahead of the
+          check-in. The card self-gates on having real data (see SovereignBriefingCard),
+          so this is a belt-and-suspenders `view` check for correct visual placement. ── */}
+      {view ? (
+        <SovereignBriefingCard
+          overrideActive={program.isOverride}
+          overrideRef={program.briefScriptReference}
+          programLoad={prescribedLoad}
+        />
       ) : null}
 
       {/* ── TODAY'S PRESCRIPTION — the actionable recovery protocol, sitting directly

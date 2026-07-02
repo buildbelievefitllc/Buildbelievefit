@@ -106,10 +106,19 @@ export async function fetchReadinessScoreClip({ score, locale }) {
 // generation timestamp drives the tile's "freshly generated" stamp), or NULL when it
 // hasn't been pre-generated yet (no check-in today) so the caller can fall back to
 // on-demand fetchSovereignBriefing. No Claude/ElevenLabs round-trip.
-export async function fetchCachedSovereignBriefing({ locale }) {
+//
+// SCORE-AWARE (FRONT 3.5.2): `currentScore` is the live readiness score the caller
+// already has on hand (useDailyReadiness). The RPC compares it against the score
+// the cached narrative was actually generated from and reports found=false on a
+// mismatch — a stale cache (e.g. an earlier check-in today) reads as "not
+// generated yet" instead of returning audio that contradicts the on-screen number,
+// and the caller's existing on-demand fallback regenerates it fresh.
+export async function fetchCachedSovereignBriefing({ locale, currentScore = null }) {
   const token = getStoredVaultToken();
   if (!token) return null;
-  const { data, error } = await supabase.rpc('bbf_get_sovereign_briefing', { p_session_token: token, p_locale: locale });
+  const { data, error } = await supabase.rpc('bbf_get_sovereign_briefing', {
+    p_session_token: token, p_locale: locale, p_current_score: currentScore,
+  });
   if (error) throw new Error(error.message || 'sovereign_cache_failed');
   if (!data?.ok) throw new Error(data?.error || 'sovereign_cache_failed');
   if (!data.found || !data.audio_b64) return null; // not pre-generated yet → caller falls back

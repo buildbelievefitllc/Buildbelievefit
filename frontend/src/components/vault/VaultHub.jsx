@@ -25,7 +25,6 @@ import WeeklyBriefCard from './WeeklyBriefCard.jsx';
 import SovereignReadinessDashboard from './SovereignReadinessDashboard.jsx';
 import { SovereignSequenceAnchor } from './SovereignSequence.jsx';
 import CalibrationProgress from './CalibrationProgress.jsx';
-import SovereignBriefingCard from './SovereignBriefingCard.jsx';
 import LoopBreakerBadge from './LoopBreakerBadge.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import { useProgramDay } from '../../lib/useProgramDay.js';
@@ -43,7 +42,7 @@ function fmtStat(v) {
   return v !== null && v !== undefined && v !== '' ? Number(v).toLocaleString() : '—';
 }
 
-export default function VaultHub({ profile, isLoading, error, onSequence, prescribedLoad = null }) {
+export default function VaultHub({ profile, isLoading, error, onSequence }) {
   const { t, lang } = useLang();
   // Biokinetic Forecast — collapsible drawer on the LANDING Client Hub (the tab the
   // athlete sees on login). Default COLLAPSED so the Hub stays clean until opened.
@@ -66,10 +65,9 @@ export default function VaultHub({ profile, isLoading, error, onSequence, prescr
           permanent Sovereign Athlete badge at graduation). Renders nothing for an
           undatable / no-anchor session. Top of fold on the landing Hub. */}
       <CalibrationProgress />
-      {/* SOVEREIGN AUDIO — the Day-30 graduation briefing in Akeem's cloned voice.
-          On an active squad intercept (program.isOverride) it plays the override's
-          manifest asset instead of the bespoke briefing. */}
-      <SovereignBriefingCard overrideActive={program.isOverride} overrideRef={program.briefScriptReference} programLoad={prescribedLoad} />
+      {/* SOVEREIGN AUDIO relocated to the Check-In tab (SovereignClientHub) — it now
+          appears once TODAY'S check-in exists instead of sitting here, always
+          playable, ahead of the Sequence CTA below. See that file for the mount. */}
       {/* THE SOVEREIGN SEQUENCE — adult-only guided hand-off anchor, above the
           fold. Renders ONLY when the Vault shell passes onSequence (so it never
           appears on the Youth Sports Hub or the admin Command Center). */}

@@ -112,16 +112,41 @@ function tierEntitled(tier: unknown, role: unknown, uid: unknown, trial: unknown
   return (FEATURE_ACCESS[feature] || []).includes(group);
 }
 
-// ── Cache (bbf_sovereign_audio · one row per athlete/day/locale) ─────────────────
-async function readCache(url: string, key: string, userId: string, date: string, locale: string): Promise<{ audio_b64: string; mime: string } | null> {
+// Today's CURRENT readiness_score (single row — bbf_daily_protocols is one row
+// per athlete/day). Distinct from gatherContext's 14-day trend average: this is
+// the exact number the cache must agree with before serving a "hit".
+async function fetchTodayScore(url: string, key: string, userId: string, date: string): Promise<number | null> {
   try {
     const r = await fetch(
-      `${url}/rest/v1/bbf_sovereign_audio?user_id=eq.${encodeURIComponent(userId)}&briefing_date=eq.${date}&locale=eq.${locale}&status=eq.ready&select=audio_b64,mime&limit=1`,
+      `${url}/rest/v1/bbf_daily_protocols?athlete_id=eq.${encodeURIComponent(userId)}&date=eq.${date}&select=readiness_score&limit=1`,
+      { headers: pgHeaders(key) },
+    );
+    if (!r.ok) return null;
+    const rows: any[] = await r.json().catch(() => []);
+    return rows[0] ? num(rows[0].readiness_score) : null;
+  } catch { return null; }
+}
+
+// ── Cache (bbf_sovereign_audio · one row per athlete/day/locale) ─────────────────
+// STALE CACHE GUARD: a cached row is only served when its stored readiness_score
+// agrees with `currentScore` — mirrors bbf_get_sovereign_briefing's SQL check
+// (20260702120000) so the tripwire's idempotency skip and this on-demand read
+// never disagree with what the frontend will independently decide. A row from
+// before this column existed (readiness_score null) is trusted as-is rather than
+// force-missed; a null currentScore (couldn't resolve today's score) does the same.
+async function readCache(url: string, key: string, userId: string, date: string, locale: string, currentScore: number | null): Promise<{ audio_b64: string; mime: string } | null> {
+  try {
+    const r = await fetch(
+      `${url}/rest/v1/bbf_sovereign_audio?user_id=eq.${encodeURIComponent(userId)}&briefing_date=eq.${date}&locale=eq.${locale}&status=eq.ready&select=audio_b64,mime,readiness_score&limit=1`,
       { headers: pgHeaders(key) },
     );
     if (!r.ok) return null;
     const rows = await r.json().catch(() => null);
-    return (Array.isArray(rows) && rows.length && rows[0].audio_b64) ? rows[0] : null;
+    const row = (Array.isArray(rows) && rows.length) ? rows[0] : null;
+    if (!row || !row.audio_b64) return null;
+    const cachedScore = num(row.readiness_score);
+    if (currentScore !== null && cachedScore !== null && currentScore !== cachedScore) return null;
+    return row;
   } catch { return null; }
 }
 async function writeCache(url: string, key: string, row: Record<string, unknown>): Promise<void> {
@@ -211,6 +236,9 @@ async function composeBriefing(apiKey: string, locale: string, ctx: Record<strin
     `${LOCALE_NAME[locale]}, second person, 120-150 words. This is a milestone they EARNED, not one handed ` +
     `to them. Open by naming the graduation; weave in their calibration journey and recovery trend from the ` +
     `telemetry; close on a grounded, forward-driving line. Convert any numeric rating into spoken words. ` +
+    `If the telemetry includes today_score, that is the athlete's EXACT readiness score for TODAY — if you ` +
+    `cite a specific number, cite this one precisely (spoken as words, e.g. "eighty-eight out of one ` +
+    `hundred"), never the multi-day average. ` +
     `Natural human speech only — NO markdown, NO lists, NO preamble, NO quotes, NO emojis.${colloquial}\n\n` +
     `${vocalStateDirective('architect')}`;
   const user = `Athlete telemetry (speak it naturally in ${LOCALE_NAME[locale]}):\n${JSON.stringify(ctx).slice(0, 1400)}\n\nRecord the Sovereign Briefing now.`;
@@ -254,14 +282,17 @@ async function synthesize(apiKey: string, voiceId: string, text: string): Promis
 // on-demand cache-miss fallback. Returns the audio buffer so the caller can also stream it.
 async function generateAndCache(opts: {
   url: string; key: string; anthropic?: string; eleven?: string;
-  userId: string; uid: string | null; locale: string; calDay: number | null;
+  userId: string; uid: string | null; locale: string; calDay: number | null; todayScore: number | null;
 }): Promise<{ ok: boolean; buf?: ArrayBuffer; chars?: number; skipped?: string }> {
-  const { url, key, anthropic, eleven, userId, uid, locale, calDay } = opts;
+  const { url, key, anthropic, eleven, userId, uid, locale, calDay, todayScore } = opts;
   // Metering — respect the monthly ceiling BEFORE any paid API work.
   const pre = await callRpc(url, key, 'bbf_voice_session_precheck', { p_user_id: userId });
   if (!pre || pre.ok !== true) return { ok: false, skipped: String(pre?.reason || 'not_entitled') };
 
   const ctx = await gatherContext(url, key, userId, calDay);
+  // The EXACT score for today, distinct from gatherContext's 14-day trend
+  // average — this is what the score-accuracy fix in the system prompt anchors to.
+  if (todayScore !== null) ctx.today_score = todayScore;
   let text = anthropic ? (await composeBriefing(anthropic, locale, ctx)) : null;
   if (!text) text = fallbackBriefing(locale, calDay);
   const spoken = formatForState(text, 'architect');
@@ -273,6 +304,7 @@ async function generateAndCache(opts: {
   await writeCache(url, key, {
     user_id: userId, briefing_date: utcToday(), locale, audio_b64: bytesToB64(new Uint8Array(tts.buf)),
     mime: 'audio/mpeg', chars: spoken.length, voice_id: AKEEM_VOICE_ID, status: 'ready',
+    readiness_score: todayScore,
   });
   if (uid) await callRpc(url, key, 'bbf_voice_session_commit', { p_uid: uid, p_tokens: spoken.length });
   return { ok: true, buf: tts.buf, chars: spoken.length };
@@ -326,13 +358,17 @@ serve(async (req: Request) => {
     if (!tierEntitled(row.subscription_tier, row.role, row.uid, row.trial_expires_at, 'voice_coach')) {
       return jsonResponse({ ok: true, skipped: 'not_entitled' });
     }
-    // IDEMPOTENCY — at most one generation per athlete/day/locale (unit economics).
-    if (await readCache(SUPABASE_URL, SERVICE_KEY, athleteId, today, locale)) {
+    // IDEMPOTENCY — at most one generation per athlete/day/locale/SCORE (unit
+    // economics + accuracy): a cache hit for a score that no longer matches
+    // today's current readiness is treated as a miss, so a later check-in that
+    // moves the score re-triggers a fresh narrative instead of skipping forever.
+    const todayScore = await fetchTodayScore(SUPABASE_URL, SERVICE_KEY, athleteId, today);
+    if (await readCache(SUPABASE_URL, SERVICE_KEY, athleteId, today, locale, todayScore)) {
       return jsonResponse({ ok: true, skipped: 'already_cached', locale });
     }
     const res = await generateAndCache({
       url: SUPABASE_URL, key: SERVICE_KEY, anthropic: ANTHROPIC_API_KEY, eleven: ELEVENLABS_API_KEY,
-      userId: athleteId, uid: row.uid ?? null, locale, calDay: grad.day,
+      userId: athleteId, uid: row.uid ?? null, locale, calDay: grad.day, todayScore,
     });
     console.log(`[bbf-sovereign-briefing] tripwire athlete=${athleteId} locale=${locale} ${res.ok ? `cached chars=${res.chars}` : `skipped=${res.skipped}`}`);
     return jsonResponse({ ok: res.ok, mode: 'tripwire', locale, ...(res.ok ? { cached: true, chars: res.chars } : { skipped: res.skipped }) });
@@ -351,19 +387,23 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'not_graduated', detail: 'The Sovereign Briefing unlocks at Day 30 — finish your calibration first.', day: cal.day ?? null }, 403);
   }
 
-  // CACHE-READ FIRST — the pre-computed blob from the morning check-in → instant, free.
-  const cached = await readCache(SUPABASE_URL, SERVICE_KEY, userId, today, locale);
+  // CACHE-READ FIRST — the pre-computed blob from the morning check-in → instant,
+  // free. Score-aware: a cached row generated from a since-superseded score is
+  // treated as a miss below, same as the tripwire's idempotency check.
+  const todayScore = await fetchTodayScore(SUPABASE_URL, SERVICE_KEY, userId, today);
+  const cached = await readCache(SUPABASE_URL, SERVICE_KEY, userId, today, locale, todayScore);
   if (cached) {
     console.log(`[bbf-sovereign-briefing] on-demand HIT uid=${uid} locale=${locale}`);
     return audioResponse(b64ToArrayBuffer(cached.audio_b64), locale, 'hit');
   }
 
-  // Cache miss (no check-in yet today, or a locale the tripwire didn't pre-generate)
-  // → compose live, cache it, meter it, and stream it back (graceful fallback).
+  // Cache miss (no check-in yet today, a locale the tripwire didn't pre-generate,
+  // or a stale score superseded by a later check-in) → compose live, cache it,
+  // meter it, and stream it back (graceful fallback).
   if (!ELEVENLABS_API_KEY) return jsonResponse({ error: 'tts_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
   const res = await generateAndCache({
     url: SUPABASE_URL, key: SERVICE_KEY, anthropic: ANTHROPIC_API_KEY, eleven: ELEVENLABS_API_KEY,
-    userId, uid, locale, calDay: num(cal.day),
+    userId, uid, locale, calDay: num(cal.day), todayScore,
   });
   if (!res.ok || !res.buf) {
     const reason = res.skipped || 'tts_failed';

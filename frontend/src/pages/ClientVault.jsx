@@ -254,10 +254,11 @@ export default function ClientVault() {
                   isLoading={profileLoading}
                   error={profileError}
                   onSequence={onNavigate}
-                  prescribedLoad={prescribedLoad}
                 />
               )}
-              {activeTab === 'checkin' && <SovereignClientHub refreshKey={checkInRefresh} onSequence={onNavigate} />}
+              {activeTab === 'checkin' && (
+                <SovereignClientHub refreshKey={checkInRefresh} onSequence={onNavigate} prescribedLoad={prescribedLoad} />
+              )}
               {activeTab === 'program' && <Program plans={plans} profile={profile} onSequence={onNavigate} />}
               {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
               {activeTab === 'cardio' && <SmartCardio />}
