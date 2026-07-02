@@ -934,10 +934,51 @@
 .lr-chat-bubble .lr-speak { align-self: center; }
 .lr-chat-send { flex: none; padding: .8rem 1.4rem; font-size: .95rem; }
 
+/* ── Pimsleur Audio Lab (Task 7) ───────────────────────────────────────────── */
+.lr-audio-unsupported {
+  font-family: var(--bd); font-size: .9rem; color: #ff8b8b;
+  background: rgba(239, 68, 68, .1); border: 1px solid rgba(239, 68, 68, .4);
+  border-radius: 8px; padding: .7rem 1rem; margin-bottom: 1rem;
+}
+.lr-audio-term { font-family: var(--bd); font-size: 1rem; font-weight: 700; color: var(--purl); }
+.lr-audio-lesson { margin-bottom: 1.2rem; }
+.lr-audio-lesson-title { font-family: var(--hb); font-size: 1.3rem; letter-spacing: 1px; color: var(--wht); }
+.lr-audio-lesson-desc { font-family: var(--bd); font-size: .92rem; line-height: 1.5; color: #999; margin: .3rem 0 .6rem; }
+.lr-audio-objectives { margin: 0; padding-left: 1.2rem; font-family: var(--bd); font-size: .88rem; color: #bbb; line-height: 1.6; }
+
+.lr-audio-player { background: #0d0d0d; border: 1px solid #222; border-radius: 12px; padding: 1.3rem; margin-bottom: 1.4rem; }
+.lr-audio-progress { height: 6px; background: #161616; border-radius: 999px; overflow: hidden; margin-bottom: 1.2rem; }
+.lr-audio-progress-fill { height: 100%; background: linear-gradient(90deg, var(--pur), var(--purl)); border-radius: 999px; transition: width .3s ease; }
+
+.lr-audio-line { display: flex; align-items: flex-start; gap: .7rem; min-height: 4.5rem; }
+.lr-audio-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-top: .35rem; flex: none; }
+.lr-audio-dot--narrator { background: #888; }
+.lr-audio-dot--male { background: var(--purl); }
+.lr-audio-dot--female { background: var(--yel); }
+.lr-audio-line-speaker { font-family: var(--bd); font-size: .68rem; letter-spacing: 2px; text-transform: uppercase; color: #777; }
+.lr-audio-line-text { font-family: var(--bd); font-size: 1.25rem; font-weight: 600; color: var(--wht); margin-top: .15rem; }
+.lr-audio-idle { min-height: 4.5rem; display: flex; align-items: center; color: #888; font-size: 1rem !important; font-weight: 400 !important; }
+
+.lr-audio-pause { min-height: 4.5rem; text-align: center; }
+.lr-audio-pause-title {
+  font-family: var(--hb); font-size: 1.5rem; letter-spacing: 2px; color: var(--yel);
+  animation: lr-audio-pulse 1s ease-in-out infinite;
+}
+.lr-audio-pause-hint { font-family: var(--bd); font-size: .85rem; font-style: italic; color: #888; margin-top: .4rem; }
+@keyframes lr-audio-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
+.lr-audio-done { min-height: 4.5rem; text-align: center; }
+.lr-audio-done-title { font-family: var(--hb); font-size: 1.4rem; letter-spacing: 2px; color: var(--grn, #22c55e); margin-bottom: .8rem; }
+
+.lr-audio-controls { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1.2rem; }
+.lr-audio-controls .lr-game-btn { flex: 1; min-width: 90px; padding: .7rem 1rem; font-size: .85rem; letter-spacing: 1.5px; }
+.lr-audio-controls .lr-game-btn:disabled { opacity: .4; cursor: default; transform: none; filter: none; }
+
 @media (max-width: 680px) {
   .lr-game-options { grid-template-columns: 1fr; }
   .lr-game-prompt-term { font-size: 1.4rem; }
   .lr-cc-pick { grid-template-columns: 1fr; }
   .lr-cc-text { font-size: 1.1rem; }
   .lr-chat-bubble { max-width: 92%; }
+  .lr-audio-controls .lr-game-btn { min-width: 44%; }
 }

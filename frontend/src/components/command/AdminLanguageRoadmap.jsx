@@ -4,12 +4,11 @@
 //
 // A React port of the standalone "90-Day Language Mastery Protocol" prototype
 // (legacy bbf-language-protocol.jsx): the CEO's personal Spanish + Brazilian
-// Portuguese curriculum. Five sub-tabs, faithful to the ground truth:
-//   1. Vocab Matrix    — Spanish fitness vocabulary (4 categories) + coach scripts.
-//   2. Rio Ready       — 50 PT survival phrases + a Pimsleur ear-training schedule.
-//   3. God-Mode Drills — copy-paste roleplay triggers for live ES/PT correction.
-//   4. Intentions      — bilingual cardio intention statements (175 lb goal).
-//   5. 90-Day Roadmap  — four-phase periodized study plan + success benchmarks.
+// Portuguese curriculum. Ten sub-tabs (see the TABS array at the bottom of this
+// file for the authoritative, current list) spanning vocab drills, ear-training
+// games, the Pimsleur-style audio series, live roleplay, and the periodized
+// 90-day study plan — all client-side, all $0 (on-device TTS/STT, no backend
+// token spend).
 //
 // All copy/translations are static ground-truth, transcribed VERBATIM from the
 // prototype — the 175 lb targets and ES/PT translations are intentionally left
@@ -31,6 +30,7 @@ import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../li
 import { useSpeechEvaluator, comparePhrases } from '../../lib/useSpeechEvaluator.js';
 import { loadLanguageProgress, saveLanguageScore, recordVocabAttempt } from '../../lib/languageProgressApi.js';
 import languageVideoLibrary from '../../data/languageVideoLibrary.json';
+import PimsleurAudioLab from './PimsleurAudioLab.jsx';
 import './languageRoadmap.css';
 
 // ─── DATA (extracted verbatim from legacy bbf-language-protocol.jsx) ──────────
@@ -1936,6 +1936,7 @@ const TABS = [
   { id: 'voice', label: '🎙️ Voice Studio', Panel: TabVoiceStudio },
   { id: 'immersion', label: '🌎 Immersion', Panel: TabImmersion },
   { id: 'pt', label: '🇧🇷 Rio Ready', Panel: TabPortuguese },
+  { id: 'pimsleur', label: '🎧 Pimsleur Audio', Panel: PimsleurAudioLab },
   { id: 'roleplay', label: '⚡ God-Mode Drills', Panel: TabRoleplay },
   { id: 'intentions', label: '🎯 Intentions', Panel: TabIntentions },
   { id: 'roadmap', label: '📋 90-Day Roadmap', Panel: TabRoadmap },

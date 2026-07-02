@@ -1,0 +1,226 @@
+{
+    "curriculum_title": "BBF Lab 90-Day Language Mastery: 10-Lesson Pimsleur-Style Portuguese Audio Series",
+    "methodology": {
+        "principles": [
+            "Graduated Interval Recall (spaced repetition of target vocabulary over interval increments)",
+            "Principle of Anticipation (systematic pauses requiring active student recall prior to native correction)",
+            "Back-Chaining Pronunciation (deconstructing syllables from the end of a word to isolate accent contours)"
+        ],
+        "target_voices": {
+            "narrator": "en-US-GuyNeural",
+            "female_native": "pt-BR-FranciscaNeural",
+            "male_native": "pt-BR-AntonioNeural"
+        }
+    },
+    "lessons": [
+        {
+            "lesson_number": 1,
+            "title": "First Encounters & Standard Greetings",
+            "description": "Master basic greetings, introductions, and country of origin identification in Brazilian Portuguese.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Greet someone in the morning",
+                "State your name and ask for someone else's name",
+                "Inquire about nationality and state your own"
+            ],
+            "vocabulary": [
+                { "english": "Hello", "spanish": "Hola", "portuguese": "Olá" },
+                { "english": "Good morning", "spanish": "Buenos días", "portuguese": "Bom dia" },
+                { "english": "What is your name?", "spanish": "¿Cómo te llamas?", "portuguese": "Qual é o seu nome?" },
+                { "english": "My name is Akeem", "spanish": "Me llamo Akeem", "portuguese": "Meu nome é Akeem" },
+                { "english": "Are you American?", "spanish": "¿Eres americano?", "portuguese": "Você é americano?" },
+                { "english": "Yes, I am American", "spanish": "Sí, soy americano", "portuguese": "Sim, eu sou americano" },
+                { "english": "No", "spanish": "No", "portuguese": "Não" }
+            ],
+            "dialogue_flow": [
+                { "speaker": "narrator", "text": "Welcome to the BBF Lab 90-Day Language Mastery Series. Today, we will learn how to greet someone and introduce yourself in Brazilian Portuguese. Let's start with 'Good morning'. Listen only." },
+                { "speaker": "pt_native_male", "text": "Bom dia." },
+                { "speaker": "narrator", "text": "Now, let's break it down from the end. Repeat after the native speaker." },
+                { "speaker": "pt_native_male", "text": "dia" },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "pt_native_male", "text": "dia" },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "pt_native_male", "text": "dia" },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "pt_native_male", "text": "bom" },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "pt_native_male", "text": "Bom dia." },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "pt_native_male", "text": "Bom dia." },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "narrator", "text": "How do you say: Good morning?" },
+                { "speaker": "silent_pause", "duration_seconds": 4 },
+                { "speaker": "pt_native_male", "text": "Bom dia." },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "narrator", "text": "Say 'Hello'." },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "pt_native_female", "text": "Olá." },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "pt_native_female", "text": "Olá." },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "narrator", "text": "Now, ask the person for their name. 'What is your name?'" },
+                { "speaker": "silent_pause", "duration_seconds": 4 },
+                { "speaker": "pt_native_female", "text": "Qual é o seu nome?" },
+                { "speaker": "silent_pause", "duration_seconds": 3 },
+                { "speaker": "narrator", "text": "Say 'My name is Akeem'." },
+                { "speaker": "silent_pause", "duration_seconds": 4 },
+                { "speaker": "pt_native_male", "text": "Meu nome é Akeem." },
+                { "speaker": "silent_pause", "duration_seconds": 3 }
+            ]
+        },
+        {
+            "lesson_number": 2,
+            "title": "Simple Connections & Gym Greetings",
+            "description": "Establish basic gym interactions, ask training partners how they are, and learn key locational phrases.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Ask how someone is doing in an athletic environment",
+                "Locate basic gym features (restrooms, water fountain)",
+                "Identify local fitness coaching staff"
+            ],
+            "vocabulary": [
+                { "english": "How are you?", "spanish": "¿Cómo estás?", "portuguese": "Tudo bem?" },
+                { "english": "I'm good, and you?", "spanish": "Estoy bien, ¿y tú?", "portuguese": "Tudo bem, e você?" },
+                { "english": "Where is the water?", "spanish": "¿Dónde está el agua?", "portuguese": "Onde fica a água?" },
+                { "english": "Over there", "spanish": "Por allí", "portuguese": "Ali" },
+                { "english": "Let's train?", "spanish": "¿Entrenamos?", "portuguese": "Vamos treinar?" }
+            ]
+        },
+        {
+            "lesson_number": 3,
+            "title": "Finding Your Way",
+            "description": "Master navigation, blocks, directions (left, right, straight), and street addresses in Rio or São Paulo.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Ask for street directions",
+                "Navigate left, right, and straight ahead",
+                "Understand block-based routing explanations"
+            ],
+            "vocabulary": [
+                { "english": "Where is the street...?", "spanish": "¿Dónde está la calle...?", "portuguese": "Onde fica a rua...?" },
+                { "english": "Go straight", "spanish": "Sigue recto", "portuguese": "Siga reto" },
+                { "english": "Turn left", "spanish": "Gira a la izquierda", "portuguese": "Vire à esquerda" },
+                { "english": "Turn right", "spanish": "Gira a la derecha", "portuguese": "Vire à direita" },
+                { "english": "Block", "spanish": "Cuadra", "portuguese": "Quarteirão / Quadra" }
+            ]
+        },
+        {
+            "lesson_number": 4,
+            "title": "Fueling Up — Café & Shakes",
+            "description": "Order coffee, standard drinks, understand protein supplementation, and navigate ordering in a café or juice bar.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Order coffee and water under polite local protocols",
+                "Inquire about whey protein or nutritional additions",
+                "Politely request a receipt and pay"
+            ],
+            "vocabulary": [
+                { "english": "A coffee, please", "spanish": "Un café, por favor", "portuguese": "Um café, por favor" },
+                { "english": "Water", "spanish": "Agua", "portuguese": "Água" },
+                { "english": "With protein", "spanish": "Con proteína", "portuguese": "Com proteína" },
+                { "english": "How much is it?", "spanish": "¿Cuánto cuesta?", "portuguese": "Quanto custa?" },
+                { "english": "Thank you", "spanish": "Gracias", "portuguese": "Obrigado" }
+            ]
+        },
+        {
+            "lesson_number": 5,
+            "title": "Shopping & Market Haggling",
+            "description": "Master basic market negotiations, numbers 1-10, currency units, and financial transactions.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Negotiate prices at local open markets",
+                "Recognize and speak currency figures (Reais)",
+                "Count and identify items from 1 to 10"
+            ],
+            "vocabulary": [
+                { "english": "One", "spanish": "Uno", "portuguese": "Um" },
+                { "english": "Two", "spanish": "Dos", "portuguese": "Dois" },
+                { "english": "Five Reais", "spanish": "Cinco pesos", "portuguese": "Cinco reais" },
+                { "english": "Ten", "spanish": "Diez", "portuguese": "Dez" },
+                { "english": "It is too expensive", "spanish": "Es demasiado caro", "portuguese": "Está muito caro" }
+            ]
+        },
+        {
+            "lesson_number": 6,
+            "title": "Telling Time & Daily Routines",
+            "description": "Understand times of day, state schedules, monitor the intermittent fasting window, and say numbers up to 30.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Ask for and tell the time of day",
+                "Coordinate fitness schedules with training partners",
+                "Refer to intermittent fasting times"
+            ],
+            "vocabulary": [
+                { "english": "What time is it?", "spanish": "¿Qué hora es?", "portuguese": "Que horas são?" },
+                { "english": "It is eight o'clock", "spanish": "Son las ocho", "portuguese": "São oito horas" },
+                { "english": "Fast / Fasting", "spanish": "Ayuno", "portuguese": "Jejum" },
+                { "english": "Schedule", "spanish": "Horário", "portuguese": "Horário" }
+            ]
+        },
+        {
+            "lesson_number": 7,
+            "title": "Gym Directions & Muscle Anatomy",
+            "description": "Describe muscle groups, identify anatomical targets, and express physical sensations or injury/muscle pain areas.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Identify primary anatomy muscle groups",
+                "Communicate physical strain or target points to a client",
+                "Express location of muscle pain"
+            ],
+            "vocabulary": [
+                { "english": "Chest", "spanish": "Pecho", "portuguese": "Peito" },
+                { "english": "Legs", "spanish": "Piernas", "portuguese": "Pernas" },
+                { "english": "Back", "spanish": "Espalda", "portuguese": "Costas" },
+                { "english": "It hurts", "spanish": "Me duele", "portuguese": "Dói / Está doendo" }
+            ]
+        },
+        {
+            "lesson_number": 8,
+            "title": "Organizing the Workout",
+            "description": "Learn weight increments, barbell metrics, and active training commands such as push, pull, and lift.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Command weight additions or setups",
+                "Instruct standard movements (push, pull, press)",
+                "Describe barbell loading weights in kilograms"
+            ],
+            "vocabulary": [
+                { "english": "Push", "spanish": "Empuja", "portuguese": "Empurre" },
+                { "english": "Pull", "spanish": "Jala", "portuguese": "Puxe" },
+                { "english": "More weight", "spanish": "Más peso", "portuguese": "Mais peso" },
+                { "english": "Barbell", "spanish": "Barra", "portuguese": "Barra" }
+            ]
+        },
+        {
+            "lesson_number": 9,
+            "title": "Social Connections & Post-Workout Chat",
+            "description": "Engage in friendly post-workout conversations, check in on progression targets, and arrange subsequent sessions.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Validate a training partner's output",
+                "Suggest future session times",
+                "Discuss post-workout plans"
+            ],
+            "vocabulary": [
+                { "english": "Great workout!", "spanish": "¡Buen entrenamiento!", "portuguese": "Ótimo treino!" },
+                { "english": "Tomorrow", "spanish": "Mañana", "portuguese": "Amanhã" },
+                { "english": "See you later", "spanish": "Hasta luego", "portuguese": "Até mais / Até logo" }
+            ]
+        },
+        {
+            "lesson_number": 10,
+            "title": "Street & Cultural Integration",
+            "description": "Consolidate navigational, nutritional, and physical coaching dialogs for complete immersive capability.",
+            "duration_minutes": 15,
+            "objectives": [
+                "Transition fluidly from greetings to direction-giving",
+                "Execute complex restaurant transactions with native confidence",
+                "Pitch athletic partnerships in natural Portuguese"
+            ],
+            "vocabulary": [
+                { "english": "I speak Portuguese", "spanish": "Hablo portugués", "portuguese": "Eu falo português" },
+                { "english": "Let's go together", "spanish": "Vamos juntos", "portuguese": "Vamos juntos" }
+            ]
+        }
+    ]
+}
