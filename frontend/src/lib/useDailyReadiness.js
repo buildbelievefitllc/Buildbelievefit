@@ -50,7 +50,10 @@ function num(x) {
 }
 
 // Local calendar date as 'YYYY-MM-DD' (en-CA renders ISO order in local time).
-function localToday() {
+// Exported for consumers that need a strict SAME-DAY check (not the 1-day grace
+// window `hasData` allows below) — e.g. the Sovereign Briefing card, which must
+// stay hidden until TODAY's check-in exists, not merely "within the last day."
+export function localToday() {
   return new Date().toLocaleDateString('en-CA');
 }
 

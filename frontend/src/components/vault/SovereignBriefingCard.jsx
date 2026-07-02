@@ -14,10 +14,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useCalibration } from '../../lib/useCalibration.js';
-import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
+import { useDailyReadiness, localToday } from '../../lib/useDailyReadiness.js';
 import { fetchSovereignBriefing, fetchCachedSovereignBriefing, fetchReadinessScoreClip } from '../../lib/forecastApi.js';
 import { manifestUrlById } from '../../lib/sovereignManifest.js';
 import { nearestScenario, telemetryFromReadiness } from '../../lib/biometricRouter.js';
+// Owns the vh-sov-brief--pop entrance keyframes (see that file) so this
+// component's motion doesn't silently depend on whichever parent happens to
+// import sovereignHub.css.
+import './sovereignHub.css';
 
 // Session blob cache (locale|UTC-day → object URL) so re-mounting the Hub doesn't
 // re-download today's ~1MB briefing. Session-lived; one URL per locale/day.
@@ -124,19 +128,28 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   const interceptUrl = overrideActive ? manifestUrlById(overrideRef) : null;
   const intercept = !!interceptUrl;
 
+  // STRICT same-day check-in gate (CEO order): readiness.hasData alone is NOT
+  // enough here — it carries a 1-day grace window (useDailyReadiness honors a
+  // stored protocol up to 1 day old, by design, so volume-lock features don't
+  // suddenly blank out on a missed morning check-in). This card's whole premise
+  // is "composed fresh from THIS MORNING's check-in" — an athlete who checked in
+  // yesterday but hasn't yet today must NOT see it. hasData + an exact date match
+  // against local today is the real gate everywhere below.
+  const hasTodayCheckIn = !!(readiness?.hasData && readiness.date === localToday());
+
   // BIOMETRIC ROUTER (Phase 3): with NO override, a graduated athlete who has live
-  // check-in telemetry is routed to the nearest matrix clip for their CNS/Sleep/Stress
-  // state, filtered to their language. No telemetry (no check-in today) → null, and the
-  // bespoke briefing below remains the graceful fallback.
-  const bioMatch = (!intercept && isGraduated && readiness?.hasData)
+  // check-in telemetry TODAY is routed to the nearest matrix clip for their
+  // CNS/Sleep/Stress state, filtered to their language. No check-in today → null,
+  // and the bespoke briefing below remains the graceful fallback.
+  const bioMatch = (!intercept && isGraduated && hasTodayCheckIn)
     ? nearestScenario({ lang, ...telemetryFromReadiness(readiness, programLoad) })
     : null;
   const bioUrl = bioMatch?.url || null;
 
-  // The live score as an integer, or null with no check-in data yet today. Feeds
-  // BOTH the cache-key (so a mid-day score change never collides with an earlier
-  // score's session-cached URL) and the RPC's stale-cache guard.
-  const liveScore = (!intercept && readiness?.hasData && Number.isFinite(Number(readiness.score)))
+  // The live score as an integer, or null with no check-in TODAY. Feeds BOTH the
+  // cache-key (so a mid-day score change never collides with an earlier score's
+  // session-cached URL) and the RPC's stale-cache guard.
+  const liveScore = (!intercept && hasTodayCheckIn && Number.isFinite(Number(readiness.score)))
     ? Math.round(Number(readiness.score)) : null;
 
   // On mount (and whenever the live score changes), precedence: (1) squad intercept
@@ -176,12 +189,13 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   }, [intercept, interceptUrl, bioUrl, isGraduated, lang, liveScore]);
 
   // Render for a graduated athlete OR whenever a squad intercept is active — AND,
-  // for the personalized (non-intercept) case, only once today's check-in exists.
-  // "Composed fresh from this morning's check-in" has nothing to compose from
-  // before that check-in happens, so the card stays off the page rather than
-  // offering a stale/empty briefing pre-check-in.
+  // for the personalized (non-intercept) case, only once TODAY's check-in exists
+  // (hasTodayCheckIn — see the strict same-day gate above, not the looser
+  // hasData). "Composed fresh from this morning's check-in" has nothing to
+  // compose from before that check-in happens, so the card stays off the page
+  // rather than offering a stale/empty briefing pre-check-in.
   if (!isGraduated && !intercept) return null;
-  if (!intercept && !bioUrl && !readiness?.hasData) return null;
+  if (!intercept && !bioUrl && !hasTodayCheckIn) return null;
 
   // Every time the briefing plays: if there's a live check-in score, lead with
   // the EXACT number in Coach Akeem's real voice (bbf-readiness-score-voice —
@@ -190,7 +204,7 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   // just falls through to the briefing itself. Skipped for a squad intercept
   // (a CEO-authored override clip unrelated to today's individual score).
   async function play() {
-    const hasScore = !intercept && readiness?.hasData && Number.isFinite(Number(readiness.score));
+    const hasScore = !intercept && hasTodayCheckIn && Number.isFinite(Number(readiness.score));
     if (hasScore) {
       try {
         const clipUrl = await scoreClipUrl(Math.round(Number(readiness.score)), lang);
@@ -233,7 +247,7 @@ export default function SovereignBriefingCard({ overrideActive = false, override
                              tr.generate; // idle | error
 
   return (
-    <section className="vh-sov-brief" data-testid="sovereign-briefing" data-phase={phase} data-intercept={intercept ? '1' : '0'} style={WRAP}>
+    <section className="vh-sov-brief vh-sov-brief--pop" data-testid="sovereign-briefing" data-phase={phase} data-intercept={intercept ? '1' : '0'} style={WRAP}>
       <div style={GLOW} aria-hidden="true" />
       <div style={{ position: 'relative' }}>
         {intercept ? (
@@ -247,7 +261,7 @@ export default function SovereignBriefingCard({ overrideActive = false, override
         {/* Visible confirmation of the EXACT score the audio is about to lead with —
             the same number the Sovereign Readiness dial shows, so the card never
             visually disagrees with what plays. */}
-        {!intercept && readiness?.hasData && Number.isFinite(Number(readiness.score)) ? (
+        {!intercept && hasTodayCheckIn && Number.isFinite(Number(readiness.score)) ? (
           <div style={READINESS} data-testid="sovereign-briefing-readiness">
             {tr.readinessLabel}: <strong>{Math.round(Number(readiness.score))}</strong>/100
           </div>
