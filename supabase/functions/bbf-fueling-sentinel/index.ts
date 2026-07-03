@@ -75,6 +75,10 @@ serve(async (req: Request) => {
     }
     if (!profileId) return jsonResponse({ ok: false, error: 'athlete_unresolved', input: inputId }, 404);
 
+    // C-1/H-4 · serialize overlapping runs for this athlete before the EWMA
+    // fingerprint read-modify-write + nutrition_phase_state supersede/insert.
+    await supabase.rpc('bbf_try_athlete_lock', { p_athlete: profileId });
+
     const { data: bm } = await supabase.from('athlete_body_metrics').select('body_mass_g, body_fat_pct').eq('athlete_id', profileId).lte('measured_on', day).order('measured_on', { ascending: false }).limit(1).maybeSingle();
     const bodyMassG = Math.round(num(bm?.body_mass_g) ?? 0);
     if (!bodyMassG) return jsonResponse({ ok: false, error: 'missing_body_mass', note: 'no athlete_body_metrics row' }, 200);

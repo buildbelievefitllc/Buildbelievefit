@@ -180,18 +180,29 @@ serve(async (req: Request) => {
     // ═══ STEP 1 · IDENTITY & METRICS ═══════════════════════════════════════
     let profileId: string | null = null;
     if (runStep('metrics')) {
-      // find-or-create athlete_profiles (no UNIQUE on user_id → existence check)
+      // find-or-create athlete_profiles (user_id is UNIQUE — athlete_profiles_user_id_key;
+      // a racing insert is absorbed by the H-3 upsert below, never a thrown violation).
       const { data: prof } = await supabase.from('athlete_profiles').select('id').eq('user_id', userId).order('created_at', { ascending: true }).limit(1).maybeSingle();
       if (prof?.id) {
         profileId = String(prof.id);
       } else {
         const birthDate = birthYear ? `${birthYear}-01-01` : `${new Date().getUTCFullYear() - 30}-01-01`;
-        const { data: newProf, error: profErr } = await supabase.from('athlete_profiles').insert({
+        // H-3 · idempotent create — upsert(ignoreDuplicates) so a concurrent run's
+        // losing INSERT does NOT throw a unique-violation (was: partial cold-start).
+        // NOTE: corrected from Fable's §7 snippet, which destructured `{data:prof}`
+        // off the RETURNED ROW on the insert-succeeds path (row has no `.data`) →
+        // would null profileId for every fresh athlete. `up` IS the row here.
+        const { data: up } = await supabase.from('athlete_profiles').upsert({
           user_id: userId, full_name: (user.name as string) || (intake?.email as string) || 'BBF Athlete',
           birth_date: birthDate, sport: sport || 'general', preferred_language: locale,
-        }).select('id').maybeSingle();
-        if (profErr) throw new Error(`profile:${profErr.message}`);
-        profileId = newProf?.id ? String(newProf.id) : null;
+        }, { onConflict: 'user_id', ignoreDuplicates: true }).select('id').maybeSingle();
+        let profRow = up as { id?: string } | null;
+        if (!profRow?.id) {
+          // conflict suppressed the returned row → the concurrent winner's row exists.
+          const { data: existing } = await supabase.from('athlete_profiles').select('id').eq('user_id', userId).maybeSingle();
+          profRow = existing as { id?: string } | null;
+        }
+        profileId = profRow?.id ? String(profRow.id) : null;
       }
       if (profileId) {
         // athlete_body_metrics upsert (UNIQUE athlete_id, measured_on). Integer grams.
@@ -209,6 +220,10 @@ serve(async (req: Request) => {
       const { data: prof } = await supabase.from('athlete_profiles').select('id').eq('user_id', userId).limit(1).maybeSingle();
       profileId = prof?.id ? String(prof.id) : null;
     }
+
+    // C-1/H-2 · serialize concurrent orchestrator invocations (webhook gate · heal ·
+    // sweeper) per athlete so the day-1 cascade can't double-seed (advisory lock).
+    if (profileId) await supabase.rpc('bbf_try_athlete_lock', { p_athlete: profileId });
 
     const leanMassG = Math.round(bodyMassG * (1 - (bodyFatPct ?? 20) / 100)); // gram-pure
 

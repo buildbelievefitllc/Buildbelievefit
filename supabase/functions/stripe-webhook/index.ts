@@ -69,7 +69,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
 };
 
-function generatePin() { return String(100000 + Math.floor(Math.random()*900000)); }
+// S-5b · CSPRNG PIN + weak-pattern rejection (was non-CSPRNG Math.random()).
+function generatePin() {
+  const WEAK = /^(\d)\1{5}$|^(?:012345|123456|234567|345678|456789|567890|987654|876543|765432|654321|543210)$|^(19|20)\d{4}$/;
+  const buf = new Uint32Array(1); let pin;
+  do { crypto.getRandomValues(buf); pin = String(100000 + (buf[0] % 900000)); } while (WEAK.test(pin));
+  return pin;
+}
 function jsonResponse(body, status=200) { return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }); }
 function escapeHtml(input) { return String(input).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 // Normalize any locale hint → one of BBF's three. Mirrors _shared/locale.ts

@@ -56,6 +56,10 @@ serve(async (req: Request) => {
     }
     if (!profileId || !userId) return jsonResponse({ ok: false, error: 'athlete_unresolved', input: inputId }, 404);
 
+    // C-1/H-1 · serialize overlapping runs (hot-path floor-sync vs nightly cron) for
+    // this athlete before the workload read-modify-write + prehab_queue write.
+    await supabase.rpc('bbf_try_athlete_lock', { p_athlete: profileId });
+
     // ── Body mass (grams) ──
     let bodyMassG = 0;
     const { data: bm } = await supabase.from('athlete_body_metrics').select('body_mass_g').eq('athlete_id', profileId).lte('measured_on', day).order('measured_on', { ascending: false }).limit(1).maybeSingle();

@@ -171,13 +171,13 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST')    return jsonResponse({ error: 'method_not_allowed' }, 405);
 
-  const expectedToken = Deno.env.get('BBF_COACH_AGENT_TOKEN');
-  if (expectedToken) {
-    const sent = req.headers.get('x-bbf-admin-token') || '';
-    if (sent !== expectedToken) {
-      console.warn('[bbf-agentic-linguist] rejected: bad/missing X-BBF-Admin-Token');
-      return jsonResponse({ error: 'unauthorized' }, 401);
-    }
+  // S-4 · FAIL CLOSED: an unset secret must DENY, not skip the check (the old
+  // `if (expectedToken)` ran unauthenticated when the env var was missing).
+  const expectedToken = Deno.env.get('BBF_COACH_AGENT_TOKEN') ?? '';
+  const sent = req.headers.get('x-bbf-admin-token') ?? '';
+  if (!expectedToken || sent !== expectedToken) {
+    console.warn('[bbf-agentic-linguist] rejected: unset secret or bad/missing X-BBF-Admin-Token (fail-closed)');
+    return jsonResponse({ error: 'unauthorized' }, 401);
   }
 
   let payload: any;

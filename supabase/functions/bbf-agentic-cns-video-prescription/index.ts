@@ -14,6 +14,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.4';
 import { videoLibrary } from './videoLibrary.ts';
+import { requireEntitlement } from '../_shared/entitlement-gate.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -92,10 +93,14 @@ serve(async (req: Request) => {
   try {
     const body = await req.json();
 
-    // Validate required fields
-    if (!body.user_id) {
-      return jsonResponse({ error: 'missing_user_id' }, 400);
-    }
+    // S-3 · authenticate + derive identity SERVER-SIDE from the vault token; NEVER
+    // trust body.user_id. Gate on 'mindset' (the Champion's Mindset entitlement).
+    const supabaseUrl = process.env.SUPABASE_URL ?? '';
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+    const vaultToken = body.vault_token ?? req.headers.get('x-bbf-vault-token');
+    const gate = await requireEntitlement({ supabaseUrl, serviceKey, vaultToken, feature: 'mindset' });
+    if (!gate.ok) return jsonResponse({ error: gate.denial.error }, gate.denial.status);
+    const userId = gate.ctx.user_id;            // use THIS everywhere; never body.user_id
 
     const language = (body.language || 'en').toLowerCase();
     if (!['en', 'es', 'pt'].includes(language)) {
@@ -122,7 +127,7 @@ serve(async (req: Request) => {
     }
 
     // Select video
-    const { video, index } = selectVideo(cnsState, language, body.user_id);
+    const { video, index } = selectVideo(cnsState, language, userId);
 
     // Optional: log to database for analytics
     if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -132,7 +137,7 @@ serve(async (req: Request) => {
           process.env.SUPABASE_SERVICE_ROLE_KEY
         );
         await supabase.from('bbf_video_prescriptions').insert({
-          user_id: body.user_id,
+          user_id: userId,
           cns_state: cnsState,
           video_id: video.id,
           source: body.source,

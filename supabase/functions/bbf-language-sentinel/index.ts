@@ -45,6 +45,10 @@ async function processProfile(supabase: SB, profile: Record<string, unknown>, ga
   const athleteId = String(profile.athlete_id);
   const language = String(profile.language);
 
+  // C-1/H-4 · serialize overlapping nightly passes for this athlete before the
+  // SRS decay read-modify-write (box_level / priority_boost / due_at).
+  await supabase.rpc('bbf_try_athlete_lock', { p_athlete: athleteId });
+
   // ── SRS decay passes (N1–N3) over the athlete's vocab ──
   const { data: vocab } = await supabase.from('bbf_vocab_mastery')
     .select('id,term,box_level,priority_boost,last_reviewed,source').eq('athlete_id', athleteId).eq('language', language);
