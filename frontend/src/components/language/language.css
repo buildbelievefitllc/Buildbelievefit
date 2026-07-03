@@ -4,6 +4,18 @@
    Gold (--yel/#f5c800), Bebas headers (--hb), Barlow body (--bd), matte black as
    SURFACE only. Reuses the global tokens from index.css. */
 
+/* ═══ Command Center panel (LanguageMasteryPanel) ═══ */
+.lm-panel { display: flex; flex-direction: column; gap: 1.2rem; }
+.lm-target-toggle { display: inline-flex; gap: .4rem; }
+.lm-target-chip {
+  font-family: var(--hb); font-size: .9rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold-soft); background: rgba(9, 6, 14, .5); border: 1px solid var(--panel-edge);
+  border-radius: 999px; padding: .35rem 1.1rem; cursor: pointer;
+}
+.lm-target-chip.is-active { color: var(--blk); background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: var(--yel); }
+.lm-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 1.2rem; align-items: start; }
+@media (max-width: 820px) { .lm-grid { grid-template-columns: 1fr; } }
+
 /* ═══ VOCAB GYM · flashcard ═══ */
 .lg-shell { display: flex; flex-direction: column; align-items: center; gap: .8rem; padding: 1rem 0; }
 .lg-status { font-family: var(--bd); font-size: 1.05rem; color: #c9bfe0; text-align: center; max-width: 420px; }

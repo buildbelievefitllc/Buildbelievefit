@@ -30,6 +30,8 @@ import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx
 import ContentEngine from '../components/command/ContentEngine.jsx';
 import SovereignStudio from '../components/command/SovereignStudio.jsx';
 import SovereignStudioV4 from '../components/SovereignStudioV4/index.jsx';
+import StudioBatchPanel from '../components/studio/StudioBatchPanel.jsx';
+import LanguageMasteryPanel from '../components/language/LanguageMasteryPanel.jsx';
 import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import SportsPortal from '../components/sports/SportsPortal.jsx';
@@ -72,6 +74,9 @@ const TABS = [
   // CEO-only Language Mastery Protocol. Static content (no token gate); the whole
   // /command route is AdminGuard-gated, so this tab never renders for an athlete.
   { id: 'language', labelKey: 'cmd-tab-language', Panel: AdminLanguageRoadmap },
+  // Phase 3.2 — Language Mastery Lab: the Vocab Gym SRS drill (vault-token) + the
+  // Immersion chat (admin-token). CEO-only via the AdminGuard /command route.
+  { id: 'language-lab', labelKey: 'cmd-tab-language-lab', Panel: LanguageMasteryPanel },
   // Content Engine — operator-editable marketing CTA cards (the calibration deck); the
   // public landing reads these live. Admin-only via the AdminGuard /command route.
   { id: 'content', labelKey: 'cmd-tab-content', Panel: ContentEngine },
@@ -82,6 +87,9 @@ const TABS = [
   // Sovereign Studio V4 — Fresh React rebuild for all-in-one content: CTA cards,
   // Phone mockups, Video Engine with reel overlay skins. Replaces the v3 monolith.
   { id: 'studio-v4', labelKey: 'cmd-tab-studio-v4', Panel: SovereignStudioV4 },
+  // Phase 3.3 — Content Studio V4 Batch Compiler: preset + gram_override → compiled
+  // z-ordered timelines. Admin-token gated (X-BBF-Admin-Token) under the AdminGuard.
+  { id: 'studio-batch', labelKey: 'cmd-tab-studio-batch', Panel: StudioBatchPanel },
   // The Coach Lab — BBF Lab Continuous Knowledge Ecosystem (Research Vault live;
   // Kinesiology Lab · Coach's Arena · Broadcast Hub on the build path). Admin-only.
   { id: 'coach-lab', labelKey: 'cmd-tab-coach-lab', Panel: CoachLab },

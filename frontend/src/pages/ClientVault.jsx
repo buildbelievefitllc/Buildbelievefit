@@ -33,6 +33,7 @@ import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js
 import { useAutoVitalsSync } from '../lib/vitalsPipeline.js';
 import VaultHeader from '../components/vault/VaultHeader.jsx';
 import VaultHub from '../components/vault/VaultHub.jsx';
+import DashboardHub from '../components/hub/DashboardHub.jsx';
 import Program from '../components/vault/Program.jsx';
 import Nutrition from '../components/vault/Nutrition.jsx';
 import Settings from '../components/vault/Settings.jsx';
@@ -249,12 +250,19 @@ export default function ClientVault() {
                 Day 15, the Library/Generator → Day 30) shows the CalibrationLock pane. */}
             <CalibrationGate tabId={activeTab} featureLabelKey={activeMeta?.labelKey}>
               {activeTab === 'hub' && (
-                <VaultHub
-                  profile={profile}
-                  isLoading={profileLoading}
-                  error={profileError}
-                  onSequence={onNavigate}
-                />
+                <>
+                  {/* Phase 3.1 — the Day-1 Hub "Today's Protocol" cards. Mounts with
+                      the default landing tab, so its hydration hook (useHubHydration)
+                      fires the moment the athlete authenticates. Sits above the
+                      existing Performance Index dossier — additive, never a replacement. */}
+                  <DashboardHub />
+                  <VaultHub
+                    profile={profile}
+                    isLoading={profileLoading}
+                    error={profileError}
+                    onSequence={onNavigate}
+                  />
+                </>
               )}
               {activeTab === 'checkin' && (
                 <SovereignClientHub refreshKey={checkInRefresh} onSequence={onNavigate} prescribedLoad={prescribedLoad} />

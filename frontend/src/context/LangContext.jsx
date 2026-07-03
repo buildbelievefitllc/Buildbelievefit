@@ -650,6 +650,9 @@ const DICT = {
   // noun feel; ES/PT localize lightly.
   'cmd-tab-studio': { en: 'Sovereign Studio', es: 'Estudio Soberano', pt: 'Estúdio Soberano' },
   'cmd-tab-studio-v4': { en: 'Studio V4', es: 'Studio V4', pt: 'Studio V4' },
+  // Phase 3.5 — new Command Center surfaces (Language Mastery Lab · Studio Batch Compiler).
+  'cmd-tab-language-lab': { en: 'Language Lab', es: 'Lab de Idiomas', pt: 'Lab de Idiomas' },
+  'cmd-tab-studio-batch': { en: 'Studio Batch', es: 'Lote de Studio', pt: 'Lote de Studio' },
   // Content Studio launcher (admin sidebar) — opens the standalone
   // /bbf-studio.html "Sovereign Studio" content tool in a new tab.
   'cmd-studio': { en: 'Content Studio', es: 'Estudio de Contenido', pt: 'Estúdio de Conteúdo' },
