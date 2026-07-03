@@ -5,11 +5,13 @@
 -- router · sovereign stitch router · onboarding sweeper) had NO schedule registered
 -- — deployed functions that would never run. This registers the pg_cron jobs.
 --
--- AUTH: the established house pattern (bbf-resend-welcome-sweep / bbf-sentinel-daily):
--- pg_net sends 'x-cron-secret' from the 'app.bbf_cron_secret' GUC, which each
--- function matches against its CRON_SECRET env. Both sides are already configured
--- in prod (the existing sentinel + resend crons run on them). If the GUC were unset
--- the header is empty and every function 401s — a defensive no-op, never a breach.
+-- AUTH: the PROVEN working prod pattern (bbf-card-distributor_drip): pg_net sends
+-- 'X-BBF-Admin-Token' read directly from Supabase Vault
+-- (vault.decrypted_secrets → 'BBF_COACH_AGENT_TOKEN'). Every recompute function is
+-- dual-auth (X-BBF-Admin-Token === BBF_COACH_AGENT_TOKEN OR X-Cron-Secret ===
+-- CRON_SECRET), so the admin path authenticates them all. This deliberately avoids
+-- the 'app.*cron_secret' GUCs, which are UNSET in prod (verified) — every GUC-based
+-- cron 401s. Vault holds the token, so this needs no manual secret provisioning.
 --
 -- FAN-OUT: workload/fueling/cardio/stitch are per-athlete engines (missing_athlete
 -- on an empty body), so their jobs SELECT over athlete_profiles and fire one
@@ -48,7 +50,7 @@ SELECT cron.schedule(
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-workload-sentinel',
     headers := jsonb_build_object('Content-Type','application/json',
-                 'x-cron-secret', current_setting('app.bbf_cron_secret', true)),
+                 'X-BBF-Admin-Token', (select decrypted_secret from vault.decrypted_secrets where name = 'BBF_COACH_AGENT_TOKEN')),
     body    := jsonb_build_object('athlete_id', p.id::text)
   ) FROM public.athlete_profiles p;
   $job$
@@ -62,7 +64,7 @@ SELECT cron.schedule(
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-fueling-sentinel',
     headers := jsonb_build_object('Content-Type','application/json',
-                 'x-cron-secret', current_setting('app.bbf_cron_secret', true)),
+                 'X-BBF-Admin-Token', (select decrypted_secret from vault.decrypted_secrets where name = 'BBF_COACH_AGENT_TOKEN')),
     body    := jsonb_build_object('athlete_id', p.id::text, 'pass', 'nightly')
   ) FROM public.athlete_profiles p;
   $job$
@@ -76,7 +78,7 @@ SELECT cron.schedule(
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-smart-cardio-router',
     headers := jsonb_build_object('Content-Type','application/json',
-                 'x-cron-secret', current_setting('app.bbf_cron_secret', true)),
+                 'X-BBF-Admin-Token', (select decrypted_secret from vault.decrypted_secrets where name = 'BBF_COACH_AGENT_TOKEN')),
     body    := jsonb_build_object('athlete_id', p.id::text)
   ) FROM public.athlete_profiles p;
   $job$
@@ -90,7 +92,7 @@ SELECT cron.schedule(
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-language-sentinel',
     headers := jsonb_build_object('Content-Type','application/json',
-                 'x-cron-secret', current_setting('app.bbf_cron_secret', true)),
+                 'X-BBF-Admin-Token', (select decrypted_secret from vault.decrypted_secrets where name = 'BBF_COACH_AGENT_TOKEN')),
     body    := '{}'::jsonb
   );
   $job$
@@ -104,7 +106,7 @@ SELECT cron.schedule(
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-sovereign-stitch-router',
     headers := jsonb_build_object('Content-Type','application/json',
-                 'x-cron-secret', current_setting('app.bbf_cron_secret', true)),
+                 'X-BBF-Admin-Token', (select decrypted_secret from vault.decrypted_secrets where name = 'BBF_COACH_AGENT_TOKEN')),
     body    := jsonb_build_object('athlete_id', p.id::text)
   ) FROM public.athlete_profiles p;
   $job$
@@ -118,7 +120,7 @@ SELECT cron.schedule(
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-onboarding-sweeper',
     headers := jsonb_build_object('Content-Type','application/json',
-                 'x-cron-secret', current_setting('app.bbf_cron_secret', true)),
+                 'X-BBF-Admin-Token', (select decrypted_secret from vault.decrypted_secrets where name = 'BBF_COACH_AGENT_TOKEN')),
     body    := '{}'::jsonb
   );
   $job$
