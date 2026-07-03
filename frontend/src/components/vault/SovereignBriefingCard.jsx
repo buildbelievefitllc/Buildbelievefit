@@ -22,6 +22,13 @@ import { nearestScenario, telemetryFromReadiness } from '../../lib/biometricRout
 // component's motion doesn't silently depend on whichever parent happens to
 // import sovereignHub.css.
 import './sovereignHub.css';
+// UNIFIED BRIEFING PLAYER (architectural reconciliation): the Hub's redundant
+// AudioBriefCard is gone; its polished runtime-metric chrome is transplanted HERE,
+// wired to THIS card's working cached-briefing source — the runtime reads off the
+// actually-loaded audio's metadata, never a phantom playlist row. hub.css supplies
+// the shared metric styles (flat, unscoped classes).
+import { formatDuration } from '../hub/hubStrings.js';
+import '../hub/hub.css';
 
 // Session blob cache (locale|UTC-day → object URL) so re-mounting the Hub doesn't
 // re-download today's ~1MB briefing. Session-lived; one URL per locale/day.
@@ -69,6 +76,7 @@ const SB_STR = {
     playToday: '▶ Play Today’s Briefing', generate: '▶ Generate Briefing',
     loadingToday: 'Loading today’s briefing…', generating: 'Composing your briefing…', replay: '↻ Replay',
     freshAt: (t) => `Freshly generated today at ${t}`,
+    runtime: 'Runtime', readyChip: 'Ready',
     upsell: 'Upgrade to unlock your Sovereign Briefing in Akeem’s voice.',
     quota: 'Monthly voice limit reached — resets next month.',
     session: 'Your session expired — sign in again.',
@@ -82,6 +90,7 @@ const SB_STR = {
     playToday: '▶ Reproducir el de Hoy', generate: '▶ Generar Informe',
     loadingToday: 'Cargando el informe de hoy…', generating: 'Componiendo tu informe…', replay: '↻ Repetir',
     freshAt: (t) => `Generado hoy a las ${t}`,
+    runtime: 'Duración', readyChip: 'Lista',
     upsell: 'Mejora tu plan para desbloquear tu Informe Soberano en la voz de Akeem.',
     quota: 'Límite de voz mensual alcanzado — se reinicia el próximo mes.',
     session: 'Tu sesión expiró — inicia sesión de nuevo.',
@@ -95,6 +104,7 @@ const SB_STR = {
     playToday: '▶ Tocar o de Hoje', generate: '▶ Gerar Briefing',
     loadingToday: 'Carregando o briefing de hoje…', generating: 'Compondo seu briefing…', replay: '↻ Repetir',
     freshAt: (t) => `Gerado hoje às ${t}`,
+    runtime: 'Duração', readyChip: 'Pronto',
     upsell: 'Faça upgrade para desbloquear seu Briefing Soberano na voz do Akeem.',
     quota: 'Limite mensal de voz atingido — reinicia no próximo mês.',
     session: 'Sua sessão expirou — entre novamente.',
@@ -118,6 +128,9 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   const [createdAt, setCreatedAt] = useState(null); // generation timestamp (UTC ISO)
   const [phase, setPhase] = useState('loading'); // loading | ready | idle | generating | error
   const [err, setErr] = useState(null);
+  // Transplanted Hub-card runtime metric: the REAL duration read off the loaded
+  // audio's metadata (the working source of truth) — never a phantom playlist row.
+  const [audioMs, setAudioMs] = useState(0);
   const audioRef = useRef(null);
   const scoreAudioRef = useRef(null); // dedicated element for the exact-score intro clip
 
@@ -278,8 +291,43 @@ export default function SovereignBriefingCard({ overrideActive = false, override
             {label}
           </button>
         </div>
+        {/* Transplanted Hub-brief chrome (unified player): the ready row + runtime
+            metric, fed by the LOADED audio's real metadata. Compact — one tight
+            block under the play action, keeping the check-in card contained. */}
+        {url && phase === 'ready' ? (
+          <div style={{ marginTop: '.7rem' }} data-testid="sovereign-briefing-meta">
+            <div className="hub-brief-ready">
+              <span className="hub-brief-mark" aria-hidden="true">▶</span>
+              <span>{tr.title}</span>
+              <span className="hub-card-tier" data-testid="sovereign-briefing-ready-chip">{tr.readyChip}</span>
+            </div>
+            <div className="hub-metric-grid hub-metric-grid--two">
+              <div className="hub-metric">
+                <span className="hub-metric-label">{tr.runtime}</span>
+                <span className="hub-metric-value" data-testid="sovereign-briefing-runtime">
+                  {audioMs > 0 ? formatDuration(audioMs) : '—'}
+                </span>
+              </div>
+              <div className="hub-metric">
+                <span className="hub-metric-label">{tr.readinessLabel}</span>
+                <span className="hub-metric-value">
+                  {!intercept && hasTodayCheckIn && Number.isFinite(Number(readiness?.score))
+                    ? `${Math.round(Number(readiness.score))}/100` : '—'}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : null}
         {url ? (
-          <audio ref={audioRef} src={url} controls preload="auto" style={{ width: '100%', marginTop: '.7rem' }} data-testid="sovereign-briefing-audio" />
+          <audio
+            ref={audioRef}
+            src={url}
+            controls
+            preload="auto"
+            onLoadedMetadata={(e) => setAudioMs(Math.round((Number(e.currentTarget.duration) || 0) * 1000))}
+            style={{ width: '100%', marginTop: '.7rem' }}
+            data-testid="sovereign-briefing-audio"
+          />
         ) : null}
         {/* Hidden — the exact-score intro clip chains through here before audioRef plays. */}
         <audio ref={scoreAudioRef} preload="none" style={{ display: 'none' }} data-testid="sovereign-briefing-score-audio" />

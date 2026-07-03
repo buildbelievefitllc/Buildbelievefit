@@ -452,19 +452,22 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         <div className="hint-v4">Your own music/audio — overrides the generated voiceover and bakes into the export.</div>
       </div>
 
-      {/* ── Audio Mix — duck the music under the voice so it never overpowers it ── */}
+      {/* ── Audio Mix — exact music-volume control (0–100%), bound live to the reel
+          preview's audio element so the track never overpowers a voiceover. ── */}
       <div className="ctl-group-v4">
-        <label className="ctl-label-v4">🎚 Audio Mix</label>
-        <label className={`post-toggle-v4 ${reelData.audioDuck ? 'on' : ''}`} data-testid="reel-audio-duck">
-          <input
-            type="checkbox"
-            checked={!!reelData.audioDuck}
-            onChange={(e) => handleReelChange('audioDuck', e.target.checked)}
-          /> Duck music under voice
-        </label>
-        <div className="hint-v4">
-          On → the reel track plays at a balanced level so a voiceover stays clear; off → full volume.
-        </div>
+        <label className="ctl-label-v4">🎚 Music Volume — {reelData.musicVolume ?? 80}%</label>
+        <input
+          type="range"
+          className="range-v4"
+          min="0"
+          max="100"
+          step="1"
+          value={reelData.musicVolume ?? 80}
+          onChange={(e) => handleReelChange('musicVolume', Number(e.target.value))}
+          aria-label="Music volume"
+          data-testid="reel-music-volume"
+        />
+        <div className="hint-v4">Exact mix control — 0% mutes the track, 100% is full volume. Applies live to the preview player.</div>
       </div>
 
       <div className="ctl-group-v4">

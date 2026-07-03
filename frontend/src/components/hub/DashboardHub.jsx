@@ -2,9 +2,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 3.1 — the Day-1 Hub layout orchestrator (Onboarding blueprint §2.2 + §3.3).
 //
-// Consumes useHubHydration once and lays out the four top surfaces:
+// Consumes useHubHydration once and lays out the three top surfaces:
 //   Nutrition · Cardio  → full Degradation-Contract cards (NutritionCard/CardioCard)
-//   Prehab · Audio Brief → compact status cards (below), same degrade-not-blank rule
+//   Prehab              → compact status card (below), same degrade-not-blank rule
+//
+// SOVEREIGN AUDIO LIVES IN THE CHECK-IN FLOW ONLY (architectural reconciliation):
+// the Hub previously carried a redundant AudioBriefCard bound to the (empty)
+// sovereign_brief_playlists slice, permanently stuck on "Calibrating" while the
+// Check-In surface played the real cached briefing from a different source. The
+// Hub card is REMOVED — the single unified briefing player is SovereignBriefingCard
+// inside the check-in flow (SovereignClientHub), wired to the working cached source.
 //
 // NO EMPTY DASHBOARDS: even before the first read resolves — and even if the RPC
 // is unreachable — every card paints its Layer-2 baseline (chip-flagged), so the
@@ -15,10 +22,9 @@
 // binds identity via the vault token — nothing is hardcoded in English here.
 
 import { useHubHydration } from './useHubHydration.js';
-import { useHubStr, formatDuration, formatNumber } from './hubStrings.js';
+import { useHubStr } from './hubStrings.js';
 import NutritionCard from './NutritionCard.jsx';
 import CardioCard from './CardioCard.jsx';
-import CalibratingChip from './CalibratingChip.jsx';
 import './hub.css';
 
 // ── Prehab — compact queue card. Empty queue is the HEALTHY "all clear" state ──
@@ -53,56 +59,6 @@ function PrehabCard({ data }) {
   );
 }
 
-// ── Audio Brief — compact runtime card. Missing brief → calibrating, not blank ──
-// Unified state condition (defect: Hub said "Calibrating" while the Check-In briefing
-// was playable): the badge drops the moment the payload carries a PLAYABLE brief — a
-// stitched playlist with real fragments, a positive runtime, or a ready status — not a
-// strict dependency on `data` being merely present (which left an empty stub reading as
-// ready) nor on a historical daily row. A truly absent/empty-stub brief still calibrates.
-export function AudioBriefCard({ data }) {
-  const { hs, lang } = useHubStr();
-  const fragments = Number(data?.fragment_count) || 0;
-  const durationMs = Number(data?.total_duration_ms) || 0;
-  const status = String(data?.status || '').toLowerCase();
-  const briefReady = !!data && (fragments > 0 || durationMs > 0
-    || ['ready', 'complete', 'stitched', 'cached', 'done'].includes(status));
-  const calibrating = !briefReady;
-  const toneLabel = data?.tone ? (hs.tone[data.tone] || data.tone) : null;
-
-  return (
-    <section className={`hub-card hub-card--brief${calibrating ? ' is-calibrating' : ''}`} aria-label={hs.briefTitle}>
-      <header className="hub-card-head">
-        <span className="hub-card-kicker">{hs.briefKicker}</span>
-        <div className="hub-card-headline">
-          <h3 className="hub-card-title">{hs.briefTitle}</h3>
-          {calibrating ? <CalibratingChip /> : (toneLabel ? <span className="hub-card-tier">{toneLabel}</span> : null)}
-        </div>
-      </header>
-
-      {calibrating ? (
-        <div className="hub-clear">{hs.briefCalibrating}</div>
-      ) : (
-        <>
-          <div className="hub-brief-ready">
-            <span className="hub-brief-mark" aria-hidden="true">▶</span>
-            <span>{hs.briefReady}</span>
-          </div>
-          <div className="hub-metric-grid hub-metric-grid--two">
-            <div className="hub-metric">
-              <span className="hub-metric-label">{hs.briefRuntime}</span>
-              <span className="hub-metric-value">{formatDuration(data.total_duration_ms)}</span>
-            </div>
-            <div className="hub-metric">
-              <span className="hub-metric-label">{hs.briefFragments}</span>
-              <span className="hub-metric-value">{formatNumber(data.fragment_count, lang)}</span>
-            </div>
-          </div>
-        </>
-      )}
-    </section>
-  );
-}
-
 export default function DashboardHub() {
   const { loading, hydration } = useHubHydration();
   const { hs } = useHubStr();
@@ -112,7 +68,6 @@ export default function DashboardHub() {
   const nutrition = hydration?.nutrition_today ?? null;
   const cardio = hydration?.cardio_today ?? null;
   const prehab = hydration?.prehab_card ?? null;
-  const brief = hydration?.brief_playlist ?? null;
   const defaults = hydration?.defaults ?? null;
 
   // The banner shows whenever the account is in a degraded state OR a load-time
@@ -133,7 +88,6 @@ export default function DashboardHub() {
         <NutritionCard data={nutrition} defaults={defaults} />
         <CardioCard data={cardio} defaults={defaults} />
         <PrehabCard data={prehab} />
-        <AudioBriefCard data={brief} />
       </div>
     </div>
   );

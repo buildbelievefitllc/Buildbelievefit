@@ -72,7 +72,7 @@ export default function SovereignStudioV4() {
     musicFile: null,        // custom music/audio upload → drives the reel audio track (voUrl)
     textLayout: 'bottom',   // overlay text placement toggle (bottom | center | top)
     logoScale: 1,           // asset size handle — scales the corner logo badge
-    audioDuck: true,        // audio-mix toggle — duck music under the voice so it never overpowers
+    musicVolume: 80,        // audio-mix slider (0–100%) → ReelPreviewEngine audio.volume
     // FRONT 5 · Sovereign Voiceover (lazy-cached bbf-studio-voiceover)
     voTopic: '',            // Exercise / topic that keys the cache
     vibe: 'the_architect',  // voice character → script tone + ElevenLabs physics

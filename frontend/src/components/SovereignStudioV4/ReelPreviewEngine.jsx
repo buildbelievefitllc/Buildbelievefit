@@ -90,13 +90,15 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
     };
   }, [reelData.voUrl]);
 
-  // Audio-mix toggle: when ducking is ON the reel track plays at a reduced level so a
-  // voiceover on top stays intelligible (music never overpowers the voice); OFF = full.
+  // Audio-mix slider: reelData.musicVolume (0–100%) binds DIRECTLY to the audio
+  // element's volume property, giving exact control over the track level so music
+  // never overpowers a voiceover. Re-applied when a new source mounts the element.
   useEffect(() => {
     const audio = voRef.current;
     if (!audio) return;
-    audio.volume = reelData.audioDuck ? 0.4 : 1;
-  }, [reelData.audioDuck, reelData.voUrl]);
+    const v = Number(reelData.musicVolume);
+    audio.volume = Number.isFinite(v) ? Math.min(Math.max(v / 100, 0), 1) : 1;
+  }, [reelData.musicVolume, reelData.voUrl]);
 
   const toggleVoiceover = () => {
     const audio = voRef.current;

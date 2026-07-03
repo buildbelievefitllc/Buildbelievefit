@@ -557,13 +557,19 @@ function CardioConfigurator({ onLogged }) {
       // not fail the already-logged cardio session.
       try {
         const kcal = Math.round(Number(crp?.kcal) || 0);
-        if (kcal > 0) {
-          await addActiveCalories(manualToday(), kcal);
-          try {
-            window.dispatchEvent(new CustomEvent(PROTOCOL_UPDATED_EVENT, { detail: { date: manualToday() } }));
-          } catch { /* no window (SSR) — non-fatal */ }
-        }
+        if (kcal > 0) await addActiveCalories(manualToday(), kcal);
       } catch { /* non-fatal — the cardio session is already logged */ }
+      // ── EXPLICIT STATE INVALIDATION (architectural reconciliation) ──
+      // The 200 from logCardio IS the invalidation point. This dispatch was
+      // previously buried inside the kcal>0/addActiveCalories branch above — a
+      // zero-kcal protocol or a failed calorie push meant the sync fired into a
+      // black hole and the parent Hub never refreshed. It now broadcasts
+      // UNCONDITIONALLY on success: useHubHydration + useDailyReadiness subscribe
+      // to PROTOCOL_UPDATED_EVENT and hard-refetch, so the Hub's Cardio block
+      // reflects the logged session instantly — no reload, no manual refresh.
+      try {
+        window.dispatchEvent(new CustomEvent(PROTOCOL_UPDATED_EVENT, { detail: { date: manualToday(), source: 'cardio_sync' } }));
+      } catch { /* no window (SSR) — non-fatal */ }
       setLogMsg({ kind: 'ok', text: tr.synced });
       setPlan(null);   // clear the active protocol (Phase 3)
       onLogged?.();    // reflect the completed session in the History queue

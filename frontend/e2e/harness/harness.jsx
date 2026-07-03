@@ -10,8 +10,9 @@ import { LangProvider } from '../../src/context/LangContext.jsx';
 import AuthContext from '../../src/context/AuthContext.jsx';
 import NutritionCard from '../../src/components/hub/NutritionCard.jsx';
 import CardioCard from '../../src/components/hub/CardioCard.jsx';
-import DashboardHub, { AudioBriefCard } from '../../src/components/hub/DashboardHub.jsx';
+import DashboardHub from '../../src/components/hub/DashboardHub.jsx';
 import CoachAudioButton from '../../src/components/vault/CoachAudioButton.jsx';
+import SovereignBriefingCard from '../../src/components/vault/SovereignBriefingCard.jsx';
 import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
 
@@ -52,8 +53,19 @@ function pick() {
       return <NutritionCard data={props.data ?? null} defaults={props.defaults ?? null} />;
     case 'cardio':
       return <CardioCard data={props.data ?? null} defaults={props.defaults ?? null} />;
-    case 'audio-brief':
-      return <AudioBriefCard data={props.data ?? null} />;
+    case 'sovereign-briefing': {
+      // Unified check-in briefing player, driven through the REAL intercept path:
+      // manifestUrlById passes a full http(s) URL through verbatim, so the spec can
+      // point the working source at a route-intercepted fixture clip.
+      const refUrl = props.overrideRefPath
+        ? new URL(props.overrideRefPath, window.location.origin).href
+        : props.overrideRef || null;
+      return (
+        <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>
+          <SovereignBriefingCard overrideActive={!!refUrl} overrideRef={refUrl} />
+        </AuthMock>
+      );
+    }
     case 'dashboard-hub':
       return (
         <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>

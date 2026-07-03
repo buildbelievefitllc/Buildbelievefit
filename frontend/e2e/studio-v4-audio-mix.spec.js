@@ -1,26 +1,40 @@
-// e2e/studio-v4-audio-mix.spec.js — Round-2 Defect 4: Studio V4 audio-mix toggle.
-// Locks: the reel (Video Engine) sidebar exposes the audio-mix / ducking toggle, it is
-// state-bound (defaults on), and toggling flips its state.
+// e2e/studio-v4-audio-mix.spec.js — Mandate 4: the Studio V4 music-volume slider.
+// Locks: the reel sidebar exposes a 0–100% range slider (the boolean duck checkbox is
+// gone), and its state binds DIRECTLY to the preview audio element's volume property.
 
 import { test, expect } from '@playwright/test';
+import { silentWav } from './helpers/wav.js';
 
 const HARNESS = '/e2e/harness/index.html';
 
-async function openReel(page) {
-  await page.goto(`${HARNESS}?c=studio-v4`);
-  await expect(page.getByTestId('harness-root')).toBeVisible();
-  await page.getByRole('tab', { name: /VIDEO ENGINE/i }).click();
-}
+test.describe('Mandate 4 — Studio V4 volume slider', () => {
+  test('slider replaces the checkbox and drives audio.volume exactly', async ({ page }) => {
+    await page.goto(`${HARNESS}?c=studio-v4`);
+    await expect(page.getByTestId('harness-root')).toBeVisible();
+    await page.getByRole('tab', { name: /VIDEO ENGINE/i }).click();
 
-test.describe('Defect 4 — Studio V4 audio-mix toggle', () => {
-  test('audio-mix toggle is present, defaults on, and is state-bound', async ({ page }) => {
-    await openReel(page);
-    const toggle = page.getByTestId('reel-audio-duck');
-    await expect(toggle).toBeVisible();
-    const box = toggle.locator('input[type="checkbox"]');
-    await expect(box).toBeChecked(); // ducking defaults ON so music never overpowers voice
-    await box.uncheck();
-    await expect(box).not.toBeChecked();
-    await expect(toggle).not.toHaveClass(/\bon\b/);
+    // The old boolean checkbox is gone; the range slider is present, default 80%.
+    await expect(page.getByTestId('reel-audio-duck')).toHaveCount(0);
+    const slider = page.getByTestId('reel-music-volume');
+    await expect(slider).toBeVisible();
+    await expect(slider).toHaveAttribute('type', 'range');
+    await expect(slider).toHaveValue('80');
+
+    // Load a custom track → the preview audio element mounts with the slider's level.
+    await page.getByTestId('reel-music-input').setInputFiles({
+      name: 'track.wav', mimeType: 'audio/wav', buffer: silentWav(1000),
+    });
+    const volume = () => page.evaluate(() => {
+      const a = document.querySelector('.stage-reel-v4 audio');
+      return a ? a.volume : null;
+    });
+    await expect.poll(volume).toBe(0.8);
+
+    // Dragging the slider re-binds the element volume exactly (0.3, then mute).
+    await slider.fill('30');
+    await expect(slider).toHaveValue('30');
+    await expect.poll(volume).toBe(0.3);
+    await slider.fill('0');
+    await expect.poll(volume).toBe(0);
   });
 });
