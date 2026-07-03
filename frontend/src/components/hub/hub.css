@@ -1,0 +1,148 @@
+/* src/components/hub/hub.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Phase 3.1 — Day-1 Hub styling. Brand-locked (§2): BBF Purple (--pur/#6a0dad) →
+   Gold (--yel/#f5c800), Bebas headers (--hb), Barlow body (--bd). Matte black is a
+   SURFACE only (--blk) — never a load-bearing header/CTA. Reuses the global tokens
+   from index.css (--pur/--purd/--yel/--gold-soft/--line/--panel-*). */
+
+.hub { display: block; }
+
+/* ── header ── */
+.hub-head { margin-bottom: 1rem; }
+.hub-kicker {
+  display: block; font-family: var(--hb); font-size: .82rem; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--gold-soft);
+}
+.hub-title {
+  font-family: var(--display); font-size: 1.9rem; line-height: 1.02; margin: .1rem 0 0;
+  color: #fff; text-transform: uppercase; letter-spacing: .5px;
+}
+
+/* ── degraded / calibrating banner ── */
+.hub-degraded-note {
+  font-family: var(--bd); font-size: .95rem; color: var(--gold-soft);
+  background: linear-gradient(90deg, rgba(106, 13, 173, .18), rgba(245, 200, 0, .07));
+  border: 1px solid var(--panel-edge); border-left: 3px solid var(--yel);
+  border-radius: 10px; padding: .6rem .85rem; margin-bottom: 1rem;
+}
+
+/* ── responsive card grid ── */
+.hub-grid {
+  display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* ── card shell ── */
+.hub-card {
+  background: var(--panel-grad, linear-gradient(168deg, rgba(26, 11, 46, .52), rgba(9, 6, 14, .94)));
+  border: 1px solid var(--panel-edge, rgba(106, 13, 173, .26));
+  border-radius: 16px; padding: 1.1rem 1.05rem; position: relative; overflow: hidden;
+}
+.hub-card::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: linear-gradient(90deg, var(--pur), var(--yel)); opacity: .9;
+}
+.hub-card.is-calibrating { border-color: var(--panel-edge-hot, rgba(245, 200, 0, .4)); }
+
+.hub-card-head { margin-bottom: .85rem; }
+.hub-card-kicker {
+  display: block; font-family: var(--hb); font-size: .72rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold-soft); opacity: .85;
+}
+.hub-card-headline { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.hub-card-title {
+  font-family: var(--hb); font-size: 1.28rem; letter-spacing: .6px; margin: .1rem 0 0;
+  color: #fff; text-transform: uppercase;
+}
+.hub-card-tier {
+  font-family: var(--bd); font-weight: 700; font-size: .72rem; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--blk);
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border-radius: 999px; padding: .2rem .6rem; white-space: nowrap;
+}
+
+/* recovery-state tint on the cardio tier chip */
+.hub-recovery.is-clear   { background: linear-gradient(135deg, #7CFFB2, #3ddc84); }
+.hub-recovery.is-caution { background: linear-gradient(135deg, var(--yel), #ffb547); }
+.hub-recovery.is-danger  { background: linear-gradient(135deg, #ff8a8a, var(--red)); color: #fff; }
+.hub-recovery.is-unknown { background: linear-gradient(135deg, var(--purd), var(--pur)); color: #fff; }
+
+/* ── hero figure (nutrition energy · cardio modality) ── */
+.hub-hero-figure { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 1rem; }
+.hub-hero-value { font-family: var(--display); font-size: 2.5rem; line-height: 1; color: var(--yel); }
+.hub-hero-unit { font-family: var(--hb); font-size: .9rem; letter-spacing: 1.5px; color: var(--gold-soft); text-transform: uppercase; }
+.hub-hero-label { font-family: var(--bd); font-size: .8rem; letter-spacing: .5px; color: #c9bfe0; text-transform: uppercase; margin-top: .15rem; }
+
+.hub-hero-figure--split { flex-direction: row; align-items: center; justify-content: space-between; gap: 1rem; }
+.hub-hero-split { display: flex; flex-direction: column; }
+.hub-hero-figure--split .hub-hero-value { font-family: var(--hb); font-size: 1.7rem; letter-spacing: 1px; }
+.hub-hero-rail { display: flex; flex-direction: column; gap: .3rem; min-width: 42%; }
+.hub-rail-line { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; border-bottom: 1px solid var(--line); padding-bottom: .2rem; }
+.hub-rail-k { font-family: var(--bd); font-size: .74rem; letter-spacing: .5px; text-transform: uppercase; color: #9c92b5; }
+.hub-rail-v { font-family: var(--display); font-size: 1rem; color: #fff; }
+
+/* ── metric grid (macros · gram outputs) ── */
+.hub-metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem; }
+.hub-metric-grid--two { grid-template-columns: repeat(2, 1fr); }
+.hub-card--cardio .hub-metric-grid { grid-template-columns: repeat(2, 1fr); }
+.hub-metric {
+  background: rgba(8, 8, 8, .45); border: 1px solid var(--line); border-top: 2px solid var(--pur);
+  border-radius: 10px; padding: .5rem .55rem; display: flex; flex-direction: column; gap: .15rem;
+}
+.hub-metric-label { font-family: var(--bd); font-size: .68rem; letter-spacing: .5px; text-transform: uppercase; color: #9c92b5; }
+.hub-metric-value { font-family: var(--display); font-size: 1.12rem; color: #fff; }
+
+/* ── card footer ── */
+.hub-card-foot { display: flex; align-items: baseline; justify-content: space-between; margin-top: .85rem; padding-top: .6rem; border-top: 1px solid var(--line); }
+.hub-foot-key { font-family: var(--bd); font-size: .74rem; letter-spacing: .5px; text-transform: uppercase; color: #9c92b5; }
+.hub-foot-val { font-family: var(--hb); font-size: .95rem; letter-spacing: .5px; color: var(--gold-soft); text-transform: uppercase; }
+
+/* ── prehab list / clear state ── */
+.hub-clear { font-family: var(--bd); font-size: .95rem; color: #b7f7cf; padding: .5rem 0 .2rem; }
+.hub-prehab-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+.hub-prehab-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-bottom: 1px solid var(--line); padding-bottom: .35rem; }
+.hub-prehab-joint { font-family: var(--bd); font-weight: 600; font-size: .95rem; color: #fff; }
+.hub-prehab-pri { font-family: var(--bd); font-weight: 700; font-size: .68rem; letter-spacing: 1px; text-transform: uppercase; border-radius: 999px; padding: .15rem .55rem; }
+.hub-prehab-pri.is-mandatory { background: rgba(239, 68, 68, .18); color: #ff8a8a; border: 1px solid rgba(239, 68, 68, .5); }
+.hub-prehab-pri.is-strong    { background: rgba(245, 200, 0, .16); color: var(--yel); border: 1px solid rgba(245, 200, 0, .45); }
+.hub-prehab-pri.is-advisory  { background: rgba(106, 13, 173, .2); color: #c9a6ff; border: 1px solid var(--panel-edge); }
+
+/* ── audio brief ── */
+.hub-brief-ready { display: flex; align-items: center; gap: .5rem; font-family: var(--bd); font-size: .98rem; color: #fff; margin-bottom: .75rem; }
+.hub-brief-mark {
+  display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem;
+  border-radius: 50%; background: linear-gradient(135deg, var(--pur), var(--yel)); color: var(--blk); font-size: .7rem;
+}
+
+/* ── the Calibrating chip (§3.3 — the one tell of a degraded card) ── */
+.hub-cal-chip {
+  display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap;
+  font-family: var(--hb); font-size: .72rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold-soft); padding: .2rem .6rem .2rem .5rem; border-radius: 999px;
+  background: rgba(9, 6, 14, .55);
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(rgba(9, 6, 14, .85), rgba(9, 6, 14, .85)),
+    linear-gradient(135deg, var(--pur), var(--yel));
+  background-origin: border-box; background-clip: padding-box, border-box;
+}
+.hub-cal-dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--yel); animation: hub-cal-pulse 1.3s ease-in-out infinite; }
+.hub-cal-label { animation: hub-cal-fade 1.3s ease-in-out infinite; }
+
+@keyframes hub-cal-pulse {
+  0%, 100% { transform: scale(.7); opacity: .55; box-shadow: 0 0 0 0 rgba(245, 200, 0, .5); }
+  50%      { transform: scale(1);  opacity: 1;   box-shadow: 0 0 0 4px rgba(245, 200, 0, 0); }
+}
+@keyframes hub-cal-fade { 0%, 100% { opacity: .7; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-cal-dot, .hub-cal-label { animation: none; }
+}
+
+/* ── loading posture (still paints baselines under a soft veil) ── */
+.hub.is-loading .hub-grid { opacity: .82; transition: opacity .2s ease; }
+
+@media (max-width: 560px) {
+  .hub-title { font-size: 1.6rem; }
+  .hub-metric-grid, .hub-card--cardio .hub-metric-grid { grid-template-columns: repeat(2, 1fr); }
+}
