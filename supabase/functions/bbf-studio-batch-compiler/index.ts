@@ -16,7 +16,8 @@
 // IDEMPOTENCY: client-minted UUID PK + ON CONFLICT (id) DO NOTHING — a dropped
 // connection re-send never duplicates a job.
 // AUTH: admin session OR shared secret. GRAM STANDARD: bindings are integer grams.
-// POST { jobs: [{ id, kind?, preset_id?, overlay?, locale?, audience?, target_athlete_id?, device_class?, lane? }] }
+// POST { jobs: [{ id, kind?, preset_id?, overlay?, locale?, audience?, target_athlete_id?,
+//                 device_class?, lane?, gram_override?: { "<binding.source>": <int grams> } }] }
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
@@ -121,6 +122,19 @@ serve(async (req: Request) => {
       if (audience === 'directed' && profileId) { bindingValues = await resolveRealBindings(profileId, userId, sources); bindingDemo = false; }
       else { for (const s of sources) bindingValues[s] = DEMO_BINDINGS[s] ?? null; bindingDemo = true; }
 
+      // ── gram_override (§V4 benchmark override) — admin forces a binding source to a
+      // specific INTEGER-gram value (e.g. a 150000 g tonnage benchmark). Shape:
+      // { "<source>": <int grams> }. Applied AFTER real/demo resolution so it wins;
+      // non-integer / negative values are ignored (defense-in-depth over the UI gate).
+      let bindingOverride = false;
+      const ov = job.gram_override;
+      if (ov && typeof ov === 'object') {
+        for (const [s, v] of Object.entries(ov as Record<string, unknown>)) {
+          const g = num(v);
+          if (g != null && Number.isInteger(g) && g >= 0) { bindingValues[s] = g; bindingOverride = true; }
+        }
+      }
+
       // ── assemble the timeline + ladder ──
       const timeline = assembleTimeline(overlay, locale, bindingValues, bindingDemo);
       const ladder = resolveLadder(job.device_class as string | undefined, ladderCfg);
@@ -128,7 +142,7 @@ serve(async (req: Request) => {
 
       // ── register the mirror row (client-minted UUID · ON CONFLICT DO NOTHING) ──
       jobRows.push({ id, kind, lane, ladder, status: 'queued', progress_pct: 0, created_by: auth.userId, updated_at: new Date().toISOString() });
-      results.push({ id, status: 'compiled', kind, locale, audience, binding_demo: bindingDemo, ladder, lane, timeline });
+      results.push({ id, status: 'compiled', kind, locale, audience, binding_demo: bindingDemo, binding_override: bindingOverride, ladder, lane, timeline });
     } catch (e) {
       results.push({ id, status: 'error', reason: e instanceof Error ? e.message : String(e) });
     }

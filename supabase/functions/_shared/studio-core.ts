@@ -12,6 +12,11 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 export type Locale = 'en' | 'es' | 'pt';
+
+const DEFAULT_CLIP_MS = 15000; // §V4 default reel length when the overlay declares none
+function num(v: unknown): number | null { const n = Number(v); return Number.isFinite(n) ? n : null; }
+function clampInt(v: number, lo: number, hi: number): number { return Math.max(lo, Math.min(hi, Math.round(v))); }
+
 export interface TextContent { en?: string; es?: string; pt?: string; [k: string]: string | undefined; }
 export interface OverlayLayer {
   id: string; type: string; z?: number; visible?: boolean; locked?: boolean;
@@ -20,7 +25,7 @@ export interface OverlayLayer {
   [k: string]: unknown;
 }
 export interface OverlayState {
-  canvas_basis?: { w: number; h: number }; locale?: string;
+  canvas_basis?: { w: number; h: number }; locale?: string; clip_ms?: number;
   layers?: OverlayLayer[]; global_grade?: Record<string, unknown>; preset_id?: string | null;
 }
 
@@ -51,6 +56,7 @@ export function formatBinding(value: number | null, format: string | undefined, 
 
 export interface ResolvedLayer {
   id: string; type: string; z: number; visible: boolean; locked: boolean;
+  start_ms: number; end_ms: number; duration_ms: number;  // temporal window [start,end) in ms
   text: string | null;                 // resolved localized text (text layers)
   label: string | null;                // resolved localized label (stat_badge)
   value: string | null;                // formatted gram value (stat_badge)
@@ -58,7 +64,7 @@ export interface ResolvedLayer {
   style: Record<string, unknown>;      // pos/font/fill/stroke/… passed through verbatim
 }
 export interface CompiledTimeline {
-  locale: Locale; canvas_basis: { w: number; h: number };
+  locale: Locale; canvas_basis: { w: number; h: number }; clip_ms: number;
   layers: ResolvedLayer[]; global_grade: Record<string, unknown>;
   binding_snapshot: Record<string, number | null>; binding_demo: boolean;
 }
@@ -72,6 +78,9 @@ export function assembleTimeline(
   overlay: OverlayState, locale: Locale,
   bindingValues: Record<string, number | null>, bindingDemo: boolean,
 ): CompiledTimeline {
+  // Clip length (ms) — the timeline's temporal basis. Overlay-declared, else the
+  // §V4 default reel length. Every layer's [start_ms,end_ms) window is clamped to it.
+  const clipMs = Math.max(1, Math.round(num(overlay.clip_ms) ?? DEFAULT_CLIP_MS));
   const layers = [...(overlay.layers ?? [])]
     .filter((l) => l.visible !== false)
     .sort((a, b) => (a.z ?? 0) - (b.z ?? 0))
@@ -81,8 +90,15 @@ export function assembleTimeline(
       const isText = l.type === 'text';
       const isStat = l.type === 'stat_badge';
       const src = isStat && l.binding ? l.binding.source : null;
+      // Temporal window: start_ms (default 0); end from end_ms | start+duration_ms |
+      // clip end. Clamped to [0, clipMs] with end > start. Integer ms.
+      const start = clampInt(num(l.start_ms) ?? 0, 0, clipMs);
+      const dur = num(l.duration_ms);
+      const endRaw = num(l.end_ms) ?? (dur != null ? start + dur : clipMs);
+      const end = clampInt(endRaw, start + 1, clipMs);
       return {
         id: l.id, type: l.type, z: l.z ?? 0, visible: l.visible !== false, locked: l.locked === true,
+        start_ms: start, end_ms: end, duration_ms: end - start,
         text: isText ? resolveText(l.content, locale) : null,
         label: isStat ? resolveText(l.label, locale) : null,
         value: isStat && src ? formatBinding(bindingValues[src] ?? null, l.binding?.format, locale) : null,
@@ -91,7 +107,7 @@ export function assembleTimeline(
       };
     });
   return {
-    locale, canvas_basis: overlay.canvas_basis ?? { w: 1080, h: 1920 },
+    locale, canvas_basis: overlay.canvas_basis ?? { w: 1080, h: 1920 }, clip_ms: clipMs,
     layers, global_grade: overlay.global_grade ?? {},
     binding_snapshot: bindingValues, binding_demo: bindingDemo,
   };
