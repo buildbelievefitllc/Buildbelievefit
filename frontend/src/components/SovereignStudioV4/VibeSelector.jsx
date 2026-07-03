@@ -452,6 +452,21 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         <div className="hint-v4">Your own music/audio — overrides the generated voiceover and bakes into the export.</div>
       </div>
 
+      {/* ── Audio Mix — duck the music under the voice so it never overpowers it ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🎚 Audio Mix</label>
+        <label className={`post-toggle-v4 ${reelData.audioDuck ? 'on' : ''}`} data-testid="reel-audio-duck">
+          <input
+            type="checkbox"
+            checked={!!reelData.audioDuck}
+            onChange={(e) => handleReelChange('audioDuck', e.target.checked)}
+          /> Duck music under voice
+        </label>
+        <div className="hint-v4">
+          On → the reel track plays at a balanced level so a voiceover stays clear; off → full volume.
+        </div>
+      </div>
+
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">🎨 Overlay Style</label>
         <select

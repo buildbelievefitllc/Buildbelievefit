@@ -54,9 +54,19 @@ function PrehabCard({ data }) {
 }
 
 // ── Audio Brief — compact runtime card. Missing brief → calibrating, not blank ──
-function AudioBriefCard({ data }) {
+// Unified state condition (defect: Hub said "Calibrating" while the Check-In briefing
+// was playable): the badge drops the moment the payload carries a PLAYABLE brief — a
+// stitched playlist with real fragments, a positive runtime, or a ready status — not a
+// strict dependency on `data` being merely present (which left an empty stub reading as
+// ready) nor on a historical daily row. A truly absent/empty-stub brief still calibrates.
+export function AudioBriefCard({ data }) {
   const { hs, lang } = useHubStr();
-  const calibrating = !data;
+  const fragments = Number(data?.fragment_count) || 0;
+  const durationMs = Number(data?.total_duration_ms) || 0;
+  const status = String(data?.status || '').toLowerCase();
+  const briefReady = !!data && (fragments > 0 || durationMs > 0
+    || ['ready', 'complete', 'stitched', 'cached', 'done'].includes(status));
+  const calibrating = !briefReady;
   const toneLabel = data?.tone ? (hs.tone[data.tone] || data.tone) : null;
 
   return (

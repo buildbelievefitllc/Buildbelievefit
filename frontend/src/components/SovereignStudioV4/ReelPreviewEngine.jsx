@@ -90,6 +90,14 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
     };
   }, [reelData.voUrl]);
 
+  // Audio-mix toggle: when ducking is ON the reel track plays at a reduced level so a
+  // voiceover on top stays intelligible (music never overpowers the voice); OFF = full.
+  useEffect(() => {
+    const audio = voRef.current;
+    if (!audio) return;
+    audio.volume = reelData.audioDuck ? 0.4 : 1;
+  }, [reelData.audioDuck, reelData.voUrl]);
+
   const toggleVoiceover = () => {
     const audio = voRef.current;
     if (!audio) return;

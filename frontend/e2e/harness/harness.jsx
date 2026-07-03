@@ -10,6 +10,7 @@ import { LangProvider } from '../../src/context/LangContext.jsx';
 import AuthContext from '../../src/context/AuthContext.jsx';
 import NutritionCard from '../../src/components/hub/NutritionCard.jsx';
 import CardioCard from '../../src/components/hub/CardioCard.jsx';
+import DashboardHub, { AudioBriefCard } from '../../src/components/hub/DashboardHub.jsx';
 import CoachAudioButton from '../../src/components/vault/CoachAudioButton.jsx';
 import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
@@ -51,6 +52,14 @@ function pick() {
       return <NutritionCard data={props.data ?? null} defaults={props.defaults ?? null} />;
     case 'cardio':
       return <CardioCard data={props.data ?? null} defaults={props.defaults ?? null} />;
+    case 'audio-brief':
+      return <AudioBriefCard data={props.data ?? null} />;
+    case 'dashboard-hub':
+      return (
+        <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>
+          <DashboardHub />
+        </AuthMock>
+      );
     case 'coach-audio':
       return (
         <CoachAudioButton

@@ -53,6 +53,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
+import { PROTOCOL_UPDATED_EVENT } from '../../lib/useDailyReadiness.js';
+import { SESSION_COMPLETE_EVENT } from '../../lib/sessionFeedbackApi.js';
 
 /**
  * Pure fetch → resolved view-model. Performs NO setState of its own (so the mount
@@ -105,6 +107,20 @@ export function useHubHydration() {
     alive.current = true;
     fetchHydration(uid).then((next) => { if (alive.current) setState(next); });
     return () => { alive.current = false; };
+  }, [uid]);
+
+  // LIVE RELAY (defect: a Smart Cardio "Complete & Sync" fired the backend write but
+  // the Hub never refreshed): re-hydrate whenever a sibling surface broadcasts a
+  // protocol/session change (the SAME window events SmartCardio already dispatches),
+  // so a logged cardio session threads into the Hub immediately — no manual reload.
+  useEffect(() => {
+    const refresh = () => { fetchHydration(uid).then((next) => { if (alive.current) setState(next); }); };
+    window.addEventListener(PROTOCOL_UPDATED_EVENT, refresh);
+    window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
+    return () => {
+      window.removeEventListener(PROTOCOL_UPDATED_EVENT, refresh);
+      window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
+    };
   }, [uid]);
 
   return { ...state, reload };

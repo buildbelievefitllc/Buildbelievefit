@@ -26,7 +26,13 @@ export default function CardioCard({ data, defaults }) {
   // so it must not wear the chip just because today's live row (`data`) is absent.
   const targets = data || defaults?.cardio || null;
   const calibrating = !targets;
-  const c = targets || LAYER2_DEFAULTS.cardio;
+  // Field-level baseline coalesce (defect: blank "— kcal" / "—" duration): start from
+  // the config baseline (or the client floor) and overlay ONLY the live prescription's
+  // non-null fields — so a live row that hasn't filled its numerics yet still renders
+  // the baseline targets from the payload instead of blanks.
+  const base = { ...LAYER2_DEFAULTS.cardio, ...(defaults?.cardio || {}) };
+  const c = { ...base };
+  if (data) for (const [k, v] of Object.entries(data)) if (v != null) c[k] = v;
 
   const recoveryKey = c.recovery_state && hs.recovery[c.recovery_state] ? c.recovery_state : 'unknown';
   const recoveryLabel = hs.recovery[recoveryKey];
