@@ -15,12 +15,13 @@
 -- on an empty body), so their jobs SELECT over athlete_profiles and fire one
 -- net.http_post per athlete. language-sentinel + onboarding-sweeper accept {}.
 --
--- NIGHTLY ORDER (UTC) follows the data-dependency chain:
---   02:10 workload  (floor ledger → rollups/ACWR/prehab)
---   02:40 fueling   (reads athlete_workload_daily → nightly Sovereign pass)
---   03:00 cardio    (reads recovery/workload state → tomorrow's prescription)
---   03:10 language  (independent SRS/trend/gates sweep)
---   03:30 stitch    (reads cardio + brief context → daily playlists)
+-- NIGHTLY ORDER (UTC) follows the data-dependency chain (compressed cadence,
+-- reconciled to the live production schedule):
+--   01:00 workload  (floor ledger → rollups/ACWR/prehab)
+--   01:30 fueling   (reads athlete_workload_daily → nightly Sovereign pass)
+--   02:00 language  (independent SRS/trend/gates sweep)
+--   02:15 cardio    (reads recovery/workload state → tomorrow's prescription)
+--   02:45 stitch    (reads cardio + brief context → daily playlists)
 --   */10  sweeper   (heals stuck onboarding pipelines)
 -- Idempotent: unschedule-if-exists, then schedule.
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -39,10 +40,10 @@ BEGIN
   END LOOP;
 END $$;
 
--- 02:10 UTC · workload rollups (per-athlete fan-out)
+-- 01:00 UTC · workload rollups (per-athlete fan-out)
 SELECT cron.schedule(
   'bbf-workload-sentinel-nightly',
-  '10 2 * * *',
+  '0 1 * * *',
   $job$
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-workload-sentinel',
@@ -53,10 +54,10 @@ SELECT cron.schedule(
   $job$
 );
 
--- 02:40 UTC · fueling nightly Sovereign pass (per-athlete; ledger-gated in-function)
+-- 01:30 UTC · fueling nightly Sovereign pass (per-athlete; ledger-gated in-function)
 SELECT cron.schedule(
   'bbf-fueling-sentinel-nightly',
-  '40 2 * * *',
+  '30 1 * * *',
   $job$
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-fueling-sentinel',
@@ -67,10 +68,10 @@ SELECT cron.schedule(
   $job$
 );
 
--- 03:00 UTC · smart cardio router (per-athlete)
+-- 02:15 UTC · smart cardio router (per-athlete; after fueling)
 SELECT cron.schedule(
   'bbf-smart-cardio-router-nightly',
-  '0 3 * * *',
+  '15 2 * * *',
   $job$
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-smart-cardio-router',
@@ -81,10 +82,10 @@ SELECT cron.schedule(
   $job$
 );
 
--- 03:10 UTC · language sentinel (whole-fleet sweep; ledger-gated per profile)
+-- 02:00 UTC · language sentinel (whole-fleet sweep; ledger-gated per profile)
 SELECT cron.schedule(
   'bbf-language-sentinel-nightly',
-  '10 3 * * *',
+  '0 2 * * *',
   $job$
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-language-sentinel',
@@ -95,10 +96,10 @@ SELECT cron.schedule(
   $job$
 );
 
--- 03:30 UTC · sovereign stitch router (per-athlete daily playlist)
+-- 02:45 UTC · sovereign stitch router (per-athlete daily playlist; after cardio)
 SELECT cron.schedule(
   'bbf-sovereign-stitch-router-morning',
-  '30 3 * * *',
+  '45 2 * * *',
   $job$
   SELECT net.http_post(
     url     := 'https://ihclbceghxpuawymlvgi.supabase.co/functions/v1/bbf-sovereign-stitch-router',
