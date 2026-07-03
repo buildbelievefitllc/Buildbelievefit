@@ -33,68 +33,14 @@ import {
   readConfigJson, onboardingGateCheck, languageEntitled,
   type SupabaseClient,
 } from '../_shared/onboarding-core.ts';
+import {
+  FUEL_FALLBACK, CLAMP_FALLBACK, type FuelCfg, type ClampCfg,
+  resolveProfileKey, foundationTargets,
+} from '../_shared/fueling-core.ts';
 
-// ── Fueling · Tier-1 Foundation targets (blueprint fuel §1.2 + §2, gram-native) ──
-interface FuelCfg {
-  rmr_base: number; rmr_lean_coeff: number;
-  af: { twice_daily: number; days_ge_6: number; default: number };
-  profiles: Record<string, { carb_coeff: number; protein_coeff: number; fat_floor_pct: number }>;
-}
-interface ClampCfg {
-  C1_energy_floor_rmr_mult: number; C2_red_s_kcal_per_g_ffm: number;
-  C3_protein_coeff_min: number; C3_protein_coeff_max: number;
-  C4_carb_coeff_min: number; C4_carb_coeff_max: number; C5_fat_floor_pct_min: number;
-}
-const FUEL_FALLBACK: FuelCfg = {
-  rmr_base: 500, rmr_lean_coeff: 0.022, af: { twice_daily: 2.0, days_ge_6: 1.725, default: 1.55 },
-  profiles: { general: { carb_coeff: 0.0040, protein_coeff: 0.0018, fat_floor_pct: 0.20 } },
-};
-const CLAMP_FALLBACK: ClampCfg = {
-  C1_energy_floor_rmr_mult: 1.10, C2_red_s_kcal_per_g_ffm: 0.030,
-  C3_protein_coeff_min: 0.0014, C3_protein_coeff_max: 0.0026,
-  C4_carb_coeff_min: 0.0020, C4_carb_coeff_max: 0.0120, C5_fat_floor_pct_min: 0.20,
-};
-
-function resolveProfileKey(sport: string | null, sessionMinutes: number | null): string {
-  const s = String(sport ?? '').trim().toLowerCase();
-  const gly = ['soccer', 'basketball', 'volleyball', 'tennis', 'mma', 'boxing', 'softball'];
-  if (!s || s === 'general') return 'general';
-  if (gly.includes(s)) {
-    const m = sessionMinutes ?? 60;
-    if (m >= 240) return 'glycolytic_4h';
-    if (m >= 60) return 'glycolytic_1_3h';
-    return 'glycolytic_60';
-  }
-  return 'atp_pc';
-}
-
-// Returns integer-gram macro targets with the safety clamps applied (protein law →
-// fat floor → carbs absorb remainder). All outputs are integers.
-function computeFoundation(fuel: FuelCfg, clamp: ClampCfg, args: {
-  bodyMassG: number; leanMassG: number; trainingDaysWk: number | null; twiceDaily: boolean; profileKey: string;
-}) {
-  const profile = fuel.profiles[args.profileKey] || fuel.profiles.general || FUEL_FALLBACK.profiles.general;
-  const rmr = Math.round(fuel.rmr_base + fuel.rmr_lean_coeff * args.leanMassG);
-  const af = args.twiceDaily ? fuel.af.twice_daily : (args.trainingDaysWk ?? 0) >= 6 ? fuel.af.days_ge_6 : fuel.af.default;
-  let tdee = Math.round(rmr * af);
-  // Clamps C1 (energy floor) + C2 (RED-S floor) raise energy; never below.
-  tdee = Math.max(tdee, Math.round(clamp.C1_energy_floor_rmr_mult * rmr), Math.ceil(clamp.C2_red_s_kcal_per_g_ffm * args.leanMassG));
-  // Protein law (banded), carbs from coeff (banded), fat floor, carbs absorb remainder.
-  const proteinCoeff = Math.min(Math.max(profile.protein_coeff, clamp.C3_protein_coeff_min), clamp.C3_protein_coeff_max);
-  const carbCoeff = Math.min(Math.max(profile.carb_coeff, clamp.C4_carb_coeff_min), clamp.C4_carb_coeff_max);
-  const proteinG = Math.round(proteinCoeff * args.bodyMassG);
-  let carbsG = Math.round(carbCoeff * args.bodyMassG);
-  const fatFloorPct = Math.max(profile.fat_floor_pct, clamp.C5_fat_floor_pct_min);
-  const fatKcal = Math.max(fatFloorPct * tdee, tdee - 4 * proteinG - 4 * carbsG);
-  const fatG = Math.round(fatKcal / 9);
-  // If the fat floor bound, carbs absorb the remaining energy (deterministic).
-  const carbKcal = tdee - 4 * proteinG - Math.round(fatKcal);
-  if (carbKcal >= 0) carbsG = Math.round(carbKcal / 4);
-  return {
-    rmr, af, tdee_kcal: tdee, protein_g: proteinG, carbs_g: Math.max(0, carbsG), fat_g: Math.max(0, fatG),
-    coefficients: { carb_coeff: carbCoeff, protein_coeff: proteinCoeff, af, profile: args.profileKey, rmr_base: fuel.rmr_base },
-  };
-}
+// Tier-1 Foundation math (RMR/TDEE/macros + the RED-S/energy clamps) is centralized
+// in _shared/fueling-core.ts — the single clamp engine bbf-fueling-sentinel also uses,
+// so the RED-S floor can never drift between the cold-start seed and the live engine.
 
 // ── Cardio · baseline gram outputs (blueprint cardio §0.1 · §2.3) ────────────
 interface MetCfg { met: Record<string, number>; gram_met_kcal: number; k_sweat: Record<string, number>; rehydration_mult: number; }
@@ -272,12 +218,12 @@ serve(async (req: Request) => {
         const fuel = (await readConfigJson<FuelCfg>(supabase, 'fueling_coefficients_v1')) ?? FUEL_FALLBACK;
         const clamp = (await readConfigJson<ClampCfg>(supabase, 'fueling_safety_clamps_v1')) ?? CLAMP_FALLBACK;
         const profileKey = resolveProfileKey(sport, sessionMinutes);
-        const f = computeFoundation(fuel, clamp, { bodyMassG, leanMassG, trainingDaysWk, twiceDaily: false, profileKey });
-        const trace = { source: 'cold_start', inputs: { bodyMassG, leanMassG, trainingDaysWk, sessionMinutes, profileKey }, clamps_applied: true };
+        const f = foundationTargets(fuel, clamp, { bodyMassG, leanMassG, trainingDaysWk, twiceDaily: false, profileKey, atpPc: profileKey === 'atp_pc' });
+        const trace = { source: 'cold_start', inputs: { bodyMassG, leanMassG, trainingDaysWk, sessionMinutes, profileKey }, clamps_fired: f.clamps_fired };
         const rows = Array.from({ length: 28 }, (_v, i) => ({
           athlete_id: profileId, day: addDaysUTC(day, i), tier: 'foundation',
           tdee_kcal: f.tdee_kcal, protein_g: f.protein_g, carbs_g: f.carbs_g, fat_g: f.fat_g,
-          creatine_g: null, coefficients: f.coefficients, day_type: 'standard',
+          creatine_g: f.creatine_g, coefficients: f.coefficients, day_type: 'standard',
           timing_plan: null, computation_trace: trace,
         }));
         const { error: nErr } = await supabase.from('athlete_nutrition_targets_daily').upsert(rows, { onConflict: 'athlete_id,day' });
