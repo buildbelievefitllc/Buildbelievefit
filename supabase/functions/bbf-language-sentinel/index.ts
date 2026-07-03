@@ -45,9 +45,17 @@ async function processProfile(supabase: SB, profile: Record<string, unknown>, ga
   const athleteId = String(profile.athlete_id);
   const language = String(profile.language);
 
-  // C-1/H-4 · serialize overlapping nightly passes for this athlete before the
-  // SRS decay read-modify-write (box_level / priority_boost / due_at).
-  await supabase.rpc('bbf_try_athlete_lock', { p_athlete: athleteId });
+  // CRON IDEMPOTENCY LEDGER — the SRS decay passes (N2 mastery-decay, N3 boost-decay
+  // ×0.9, M-2) are NON-idempotent read-modify-writes, so this per-(athlete,language)
+  // night must run EXACTLY ONCE. Claim (job:lang, athlete, today); if an overlapping
+  // run already claimed it, skip. Language is in the job key so es + pt both process.
+  const { data: claim } = await supabase.from('bbf_cron_ledger')
+    .upsert({ job_name: `bbf-language-sentinel:${language}`, target_id: athleteId, target_date: today },
+      { onConflict: 'job_name,target_id,target_date', ignoreDuplicates: true })
+    .select('target_id');
+  if (!claim || (claim as unknown[]).length === 0) {
+    return { athlete_id: athleteId, language, skipped: 'already_claimed' };
+  }
 
   // ── SRS decay passes (N1–N3) over the athlete's vocab ──
   const { data: vocab } = await supabase.from('bbf_vocab_mastery')

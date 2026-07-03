@@ -221,10 +221,10 @@ serve(async (req: Request) => {
       profileId = prof?.id ? String(prof.id) : null;
     }
 
-    // C-1/H-2 · serialize concurrent orchestrator invocations (webhook gate · heal ·
-    // sweeper) per athlete so the day-1 cascade can't double-seed (advisory lock).
-    if (profileId) await supabase.rpc('bbf_try_athlete_lock', { p_athlete: profileId });
-
+    // H-2 · no cron-ledger claim here: the cold-start cascade is DELIBERATELY
+    // re-runnable (webhook gate · sweeper heal), and its steps are idempotent
+    // (upserts + existence-checks now backed by uq_cardio_rx_active / uq_injury_intake /
+    // uq_prehab_active from Wave A — a concurrent race is caught per-step, not a dup).
     const leanMassG = Math.round(bodyMassG * (1 - (bodyFatPct ?? 20) / 100)); // gram-pure
 
     // ═══ STEP 2 · FUELING SENTINEL — TIER 1 FOUNDATION (28-day horizon) ════

@@ -75,10 +75,6 @@ serve(async (req: Request) => {
     }
     if (!profileId) return jsonResponse({ ok: false, error: 'athlete_unresolved', input: inputId }, 404);
 
-    // C-1/H-4 · serialize overlapping runs for this athlete before the EWMA
-    // fingerprint read-modify-write + nutrition_phase_state supersede/insert.
-    await supabase.rpc('bbf_try_athlete_lock', { p_athlete: profileId });
-
     const { data: bm } = await supabase.from('athlete_body_metrics').select('body_mass_g, body_fat_pct').eq('athlete_id', profileId).lte('measured_on', day).order('measured_on', { ascending: false }).limit(1).maybeSingle();
     const bodyMassG = Math.round(num(bm?.body_mass_g) ?? 0);
     if (!bodyMassG) return jsonResponse({ ok: false, error: 'missing_body_mass', note: 'no athlete_body_metrics row' }, 200);
@@ -128,6 +124,19 @@ serve(async (req: Request) => {
     }
 
     // ═══ NIGHTLY · SOVEREIGN (Tier 3 · fingerprint → phase → carb ramp → 7-day) ═
+    // C-1/H-4 · CRON IDEMPOTENCY LEDGER — the non-idempotent nightly writes (the EWMA
+    // volume-fingerprint read-modify-write + the nutrition_phase_state supersede/insert)
+    // must run EXACTLY ONCE per athlete per day. Claim (job, athlete, day); if a
+    // concurrent/overlapping run already claimed it, skip (its DO-NOTHING returns no
+    // row). tier1/tier2 are pure idempotent upserts and are deliberately NOT gated.
+    const { data: claim } = await supabase.from('bbf_cron_ledger')
+      .upsert({ job_name: 'bbf-fueling-sentinel-nightly', target_id: profileId, target_date: day },
+        { onConflict: 'job_name,target_id,target_date', ignoreDuplicates: true })
+      .select('target_id');
+    if (!claim || (claim as unknown[]).length === 0) {
+      return jsonResponse({ ok: true, pass: 'nightly', athlete_id: profileId, skipped: 'already_claimed', day }, 200);
+    }
+
     // 1) weekday fingerprint update (on today's own weekday) from the floor ledger
     const todayWeekday = new Date(`${day}T00:00:00Z`).getUTCDay();
     const { data: totalHist } = await supabase.from('athlete_workload_daily')
@@ -174,13 +183,18 @@ serve(async (req: Request) => {
     // persist phase state (supersede the prior active row → one live phase)
     if (t0 || phase) {
       await supabase.from('nutrition_phase_state').update({ status: 'superseded' }).eq('athlete_id', profileId).eq('status', 'active');
-      await supabase.from('nutrition_phase_state').insert({
+      const { error: npsErr } = await supabase.from('nutrition_phase_state').insert({
         athlete_id: profileId, phase, detected_on: day,
         carb_window_start: t0 ? new Date(new Date(`${t0}T00:00:00Z`).getTime() - 48 * 3600000).toISOString() : null,
         carb_window_end: t0 ? `${t0}T00:00:00Z` : null,
         window_source: windowSource, confidence: t0 ? 0.6 : null,
         signals: { f_mean: round3(fMean), phase, t0, source: windowSource }, status: 'active',
       });
+      // H-4 · fail-soft: the ledger gates the common case, but if a run ever races the
+      // uq_nutrition_phase_active (partial, status='active') slot, 23505 is a benign
+      // no-op — never a 500 with the schedule half-written. (Partial index → PostgREST
+      // can't arbiter it via onConflict, so we swallow the code app-side.)
+      if (npsErr && npsErr.code !== '23505') throw new Error(`phase_state:${npsErr.message}`);
     }
 
     // 5) upcoming cardio (next 7d) — a prescribed HIIT/Tempo day is an extra heavy signal

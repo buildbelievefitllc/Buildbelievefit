@@ -55,10 +55,10 @@ serve(async (req: Request) => {
       if (byUser?.id) { profileId = String(byUser.id); userId = byUser.user_id ? String(byUser.user_id) : inputId; }
     }
     if (!profileId || !userId) return jsonResponse({ ok: false, error: 'athlete_unresolved', input: inputId }, 404);
-
-    // C-1/H-1 · serialize overlapping runs (hot-path floor-sync vs nightly cron) for
-    // this athlete before the workload read-modify-write + prehab_queue write.
-    await supabase.rpc('bbf_try_athlete_lock', { p_athlete: profileId });
+    // NOTE (C-1 pivot): no cron-ledger claim here — this sentinel is BOTH hot-path
+    // (floor-sync) and nightly, and its rollups are idempotent upserts, so it MUST be
+    // free to re-run intra-day. The one non-idempotent race (duplicate prehab_queue
+    // rows, H-1) is fixed fail-soft at the insert below via uq_prehab_active.
 
     // ── Body mass (grams) ──
     let bodyMassG = 0;
@@ -192,12 +192,17 @@ serve(async (req: Request) => {
       const existing = existingByJoint.get(s.joint);
       if (existing && existing.priority === s.priority) continue; // no change → low churn
       if (existing) await supabase.from('prehab_queue').update({ status: 'superseded' }).eq('id', existing.id);
-      await supabase.from('prehab_queue').insert({
+      const { error: pqErr } = await supabase.from('prehab_queue').insert({
         athlete_id: profileId, scheduled_for: scheduledFor, joint_zone: s.joint, priority: s.priority, risk_score: s.R,
         trigger_reason: { acwr: acwrByVector, spike: spikeByVector, history: historyFactor(injByJoint.get(s.joint) ?? [], day), readiness: readinessScore, monotony: monoFlagByVector, weights_version: 'v1' },
         protocol: { source: 'predictive', joint: s.joint, drills: [] }, status: 'queued',
       });
-      queued++;
+      // H-1 · fail-soft: a concurrent run (hot-path vs nightly) may have queued this
+      // joint first; uq_prehab_active (partial, status in queued/served) raises 23505 —
+      // benign no-op, never a 500. (Partial index → swallow the code app-side rather
+      // than an onConflict PostgREST can't target.)
+      if (pqErr && pqErr.code !== '23505') throw new Error(`prehab:${pqErr.message}`);
+      if (!pqErr) queued++;
     }
 
     // ══ §3 · RECOVERY DEBT → PREP VARIANT + SHADOW ═════════════════════════
