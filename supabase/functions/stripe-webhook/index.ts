@@ -283,6 +283,13 @@ serve(async (req) => {
   }
   const newlyProvisioned = txn?.new_user === true;
 
+  // ─── ACK STRIPE NOW · PROVISION IN THE BACKGROUND (EdgeRuntime.waitUntil) ───
+  // Fulfillment is committed — the only fact Stripe needs. We ACK 2xx immediately and
+  // run the cold-start cascade + gated dispatch in the BACKGROUND so the webhook can
+  // NEVER time out while provisioning (a timeout would make Stripe retry into the
+  // replay path and skip dispatch). Every post-commit step below is best-effort,
+  // idempotent, and queue-recoverable (blueprint §0.2.3 / §1.3.4).
+  const postCommit = (async () => {
   // ─── Closed-loop conversion capture (Brief 5 · best-effort, non-blocking) ───
   // Tags the conversion to a marketing avatar (Stripe metadata.avatar, else a
   // tier heuristic) for the monetization engine. Wrapped so a capture failure
@@ -430,5 +437,18 @@ serve(async (req) => {
     });
   }
 
-  return jsonResponse({ ok: true, event_id: event.id, session_id: session.id, username, tier, new_user: newlyProvisioned, welcome_email: welcomeEmailOk, cold_start_state: coldStartState, dispatch_gated: dispatchGated }, 200);
+    console.log(`[stripe-webhook] post-commit complete · user=${username} new=${newlyProvisioned} cold_start=${coldStartState} dispatched=${welcomeEmailOk} gated=${dispatchGated}`);
+  })();
+
+  // Hand the post-commit work to the runtime and ACK Stripe immediately, so
+  // provisioning never blocks (or times out) the webhook response. EdgeRuntime.
+  // waitUntil keeps the worker alive until the background promise settles.
+  const bg = postCommit.catch((e) => console.error('[stripe-webhook] background task error:', e?.message ?? e));
+  try {
+    // @ts-ignore EdgeRuntime is a Supabase Edge runtime global (absent from the DOM lib)
+    EdgeRuntime.waitUntil(bg);
+  } catch (_e) {
+    await bg; // defensive fallback for a runtime without waitUntil (never in prod)
+  }
+  return jsonResponse({ ok: true, event_id: event.id, session_id: session.id, username, tier, new_user: newlyProvisioned, provisioning: 'background' }, 200);
 });
