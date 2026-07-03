@@ -128,6 +128,60 @@ async function recordWelcomeFailure(supabase, { email, username, tier, locale, s
   }
 }
 
+// ─── Onboarding DISPATCH GATE (blueprint §3.2) ───────────────────────────────
+// After fulfillment commits, warm the Hub via bbf-cold-start-orchestrator and gate
+// the credential email on its verdict:
+//   cold_start_ready              → dispatch now
+//   cold_start_degraded           → ONE heal cycle (idempotent re-run), then dispatch
+//                                   REGARDLESS — Layer-2 config defaults carry the UI,
+//                                   so a paid user with a PIN always has a populated
+//                                   (fallback) dashboard.
+//   orchestrator failure/unknown  → the gate FAILED ENTIRELY: return dispatch:false so
+//                                   the caller enqueues a recoverable welcome_send_failed
+//                                   row for bbf-resend-welcome instead of sending now.
+// NEVER throws — fulfillment already committed; this only decides dispatch-vs-enqueue.
+async function runColdStartGate(supabaseUrl, params) {
+  const ADMIN_TOKEN = Deno.env.get('BBF_COACH_AGENT_TOKEN') || '';
+  const CRON_SECRET = Deno.env.get('CRON_SECRET') || '';
+  if (!ADMIN_TOKEN && !CRON_SECRET) {
+    console.error('[stripe-webhook] CRITICAL: neither BBF_COACH_AGENT_TOKEN nor CRON_SECRET is set — the dispatch gate is un-invokable; deferring dispatch to the retry worker.');
+    return { state: 'gate_unconfigured', dispatch: false, reason: 'no_secret' };
+  }
+  const url = `${supabaseUrl}/functions/v1/bbf-cold-start-orchestrator`;
+  const headers = { 'Content-Type': 'application/json' };
+  if (ADMIN_TOKEN) headers['x-bbf-admin-token'] = ADMIN_TOKEN; else headers['x-cron-secret'] = CRON_SECRET;
+  const invoke = async (source) => {
+    const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ ...params, source }) });
+    const resBody = await r.json().catch(() => null);
+    return { httpOk: r.ok, status: r.status, body: resBody };
+  };
+  try {
+    const first = await invoke('stripe_webhook');
+    if (!first.httpOk || !first.body?.ok) {
+      console.error(`[stripe-webhook] cold-start gate failed entirely (status=${first.status}); enqueueing for the retry worker.`);
+      return { state: first.body?.state ?? 'gate_failed', dispatch: false, reason: `orchestrator_${first.status}` };
+    }
+    if (first.body.state === 'cold_start_ready') {
+      return { state: 'cold_start_ready', dispatch: true };
+    }
+    if (first.body.state === 'cold_start_degraded') {
+      // ONE heal cycle first (idempotent cascade re-run), then dispatch regardless.
+      let healed = 'cold_start_degraded';
+      try {
+        const second = await invoke('stripe_webhook_heal');
+        if (second.httpOk && second.body?.state) healed = second.body.state;
+      } catch (_e) { /* heal is best-effort; the sweeper will retry every 10 min */ }
+      console.warn(`[stripe-webhook] cold-start degraded → post-heal=${healed}; dispatching regardless (Layer-2 defaults carry the UI).`);
+      return { state: healed, dispatch: true, degraded: true };
+    }
+    // Any other/unknown state → treat as a hard gate failure (do not dispatch).
+    return { state: first.body.state ?? 'unknown', dispatch: false, reason: 'unknown_state' };
+  } catch (e) {
+    console.error('[stripe-webhook] cold-start gate threw; enqueueing for the retry worker:', e.message);
+    return { state: 'gate_error', dispatch: false, reason: e.message };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return jsonResponse({ ok: false, error: 'method_not_allowed' }, 405);
@@ -251,6 +305,25 @@ serve(async (req) => {
     console.error('[stripe-webhook] conversion capture threw (non-fatal):', err.message);
   }
 
+  // ─── DISPATCH GATE (Onboarding State Machine · blueprint §3.2) ───
+  // The credential email carries the PIN and must NOT precede a warm Hub ("No Empty
+  // Dashboards", §0.3). For a brand-new buyer we run the cold-start cascade + gate
+  // FIRST; only a ready/degraded verdict authorizes the send. A gate that fails
+  // entirely defers to the retry worker (enqueued below — no dispatch now). The
+  // atomic fulfillment already committed above, so this can never 5xx the webhook.
+  // Existing-user "updated" emails carry no credentials, so they are never gated.
+  let coldStartState = 'not_run';
+  let dispatchGated = false;
+  if (newlyProvisioned) {
+    const gate = await runColdStartGate(SUPABASE_URL, {
+      user_id: txn?.user_id ?? null, checkout_session_id: session.id, email, tier,
+    });
+    coldStartState = gate.state;
+    dispatchGated = !gate.dispatch;
+    console.log(`[stripe-webhook] dispatch gate → state=${coldStartState} dispatch=${gate.dispatch} reason=${gate.reason ?? 'n/a'}`);
+  }
+  const shouldDispatch = !dispatchGated; // non-new "updated" emails always dispatch
+
   // ─── Welcome / update email (Brevo; non-fatal — fulfillment already committed) ───
   const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
   const BREVO_FROM_EMAIL = Deno.env.get('BREVO_FROM_EMAIL') || 'buildbelievefitllc@buildbelievefit.fitness';
@@ -262,7 +335,7 @@ serve(async (req) => {
   let welcomeEmailOk = false;
   let emailLocale = 'en';
 
-  if (BREVO_API_KEY) {
+  if (shouldDispatch && BREVO_API_KEY) {
     try {
       // ── Trilingual template selection ──
       // Source of truth is the athlete's bbf_users.preferred_locale; Stripe
@@ -335,22 +408,27 @@ serve(async (req) => {
         console.log(`[stripe-webhook] welcome email sent · mode=${payload.templateId ? 'template:' + payload.templateId : 'inline'} · locale=${lang} · new_user=${newlyProvisioned}`);
       }
     } catch (err) { console.error('[stripe-webhook] Brevo fetch threw:', err.message); }
+  } else if (dispatchGated) {
+    console.warn(`[stripe-webhook] welcome dispatch WITHHELD by cold-start gate (state=${coldStartState}); enqueueing for the retry worker.`);
   } else {
     console.warn('[stripe-webhook] BREVO_API_KEY not set; welcome email skipped');
   }
 
   // SAFETY NET (Phase 2 · flight-recorder + recovery) — if a brand-new buyer's
-  // welcome did NOT go out (Brevo non-2xx / threw / key missing), persist a
-  // recoverable failure so bbf-resend-welcome can reissue a fresh PIN and resend.
-  // Best-effort, AFTER the atomic fulfillment commit → it can never affect
-  // tiering/provisioning. We only guard NEW users (an existing-user "updated"
-  // email carries no credentials, so a miss there is non-critical).
+  // welcome did NOT go out — because the dispatch gate WITHHELD it (cold start not
+  // ready) OR Brevo failed/was unconfigured — persist a recoverable welcome_send_failed
+  // row so bbf-resend-welcome re-issues a fresh PIN and delivers once the cascade is
+  // warm (the sweeper heals it in parallel). Best-effort, AFTER the atomic fulfillment
+  // commit → it can never affect tiering/provisioning. NEW users only (an "updated"
+  // email carries no credentials). This is the ONE enqueue point (no double-record).
   if (!welcomeEmailOk && newlyProvisioned) {
+    const reason = dispatchGated
+      ? `cold_start_gate:${coldStartState}`
+      : (BREVO_API_KEY ? 'brevo_send_failed' : 'brevo_key_missing');
     await recordWelcomeFailure(supabase, {
-      email, username, tier, locale: emailLocale, sessionId: session.id, newUser: newlyProvisioned,
-      reason: BREVO_API_KEY ? 'brevo_send_failed' : 'brevo_key_missing',
+      email, username, tier, locale: emailLocale, sessionId: session.id, newUser: newlyProvisioned, reason,
     });
   }
 
-  return jsonResponse({ ok: true, event_id: event.id, session_id: session.id, username, tier, new_user: newlyProvisioned, welcome_email: welcomeEmailOk }, 200);
+  return jsonResponse({ ok: true, event_id: event.id, session_id: session.id, username, tier, new_user: newlyProvisioned, welcome_email: welcomeEmailOk, cold_start_state: coldStartState, dispatch_gated: dispatchGated }, 200);
 });
