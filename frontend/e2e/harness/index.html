@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BBF Component Harness (dev/test only)</title>
+    <style>body { margin: 0; background: #090909; }</style>
+  </head>
+  <body>
+    <!-- Dev/test-only mount surface for Playwright integration specs. NOT referenced by
+         the production index.html, so `vite build` never bundles it into the shipped app. -->
+    <div id="root"></div>
+    <script type="module" src="./harness.jsx"></script>
+  </body>
+</html>

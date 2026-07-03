@@ -379,6 +379,79 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         />
       </div>
 
+      {/* ── Asset size handle — scales the corner logo badge live in the preview ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🔧 Logo Size — {Math.round((reelData.logoScale ?? 1) * 100)}%</label>
+        <input
+          type="range"
+          className="range-v4"
+          min="0.5"
+          max="2"
+          step="0.05"
+          value={reelData.logoScale ?? 1}
+          onChange={(e) => handleReelChange('logoScale', Number(e.target.value))}
+          aria-label="Logo size"
+          data-testid="reel-logo-size"
+        />
+        <div className="hint-v4">Scales the corner logo badge on the reel canvas (50%–200%).</div>
+      </div>
+
+      {/* ── Overlay text layout toggle — where the hook block sits on the canvas ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">Overlay Text Layout</label>
+        <div className="seg-v4" data-testid="reel-text-layout">
+          {[['bottom', 'BOTTOM'], ['center', 'CENTER'], ['top', 'TOP']].map(([val, label]) => (
+            <button
+              key={val}
+              type="button"
+              className={(reelData.textLayout || 'bottom') === val ? 'active' : ''}
+              onClick={() => handleReelChange('textLayout', val)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="hint-v4">Anchors the hook + sub-line block on the reel canvas.</div>
+      </div>
+
+      {/* ── Custom Music upload — drops your own track into the reel audio (baked into
+          the exported MP4 via the same voUrl path the voiceover uses). ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🎵 Custom Music / Audio (MP3 / WAV)</label>
+        <label className="upload-btn-v4" htmlFor="reel-music-input">UPLOAD MUSIC</label>
+        <input
+          id="reel-music-input"
+          type="file"
+          accept="audio/*"
+          data-testid="reel-music-input"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            if (reelData.musicFile?.url) URL.revokeObjectURL(reelData.musicFile.url);
+            const url = URL.createObjectURL(file);
+            handleReelChange('musicFile', { file, url });
+            handleReelChange('voUrl', url);      // feed the reel <audio> + the export track
+            handleReelChange('voTopic', file.name);
+            setVoNote({ ok: true, text: `Loaded custom track “${file.name}” — it bakes into the exported reel.` });
+          }}
+          style={{ display: 'none' }}
+        />
+        {reelData.musicFile?.url && (
+          <button
+            type="button"
+            className="ph-clear-v4"
+            onClick={() => {
+              if (reelData.musicFile?.url) URL.revokeObjectURL(reelData.musicFile.url);
+              handleReelChange('musicFile', null);
+              handleReelChange('voUrl', null);
+            }}
+          >
+            ✕ Remove custom track
+          </button>
+        )}
+        <div className="hint-v4">Your own music/audio — overrides the generated voiceover and bakes into the export.</div>
+      </div>
+
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">🎨 Overlay Style</label>
         <select

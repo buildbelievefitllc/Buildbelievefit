@@ -98,10 +98,11 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
   };
 
   const overlayClass = OVERLAY_CLASS[reelData.overlayStyle] || 'ovl-scrim';
+  const layoutClass = `txt-${reelData.textLayout || 'bottom'}`; // overlay text-placement toggle
   const pct = duration ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={`stage-reel-v4 ${overlayClass}`} ref={stageRef}>
+    <div className={`stage-reel-v4 ${overlayClass} ${layoutClass}`} ref={stageRef}>
       {reelData.videoFile?.url ? (
         <video ref={videoRef} src={reelData.videoFile.url} className="reel-video-v4" playsInline crossOrigin="anonymous" />
       ) : (
@@ -133,7 +134,7 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
       {reelData.voUrl && <audio ref={voRef} src={reelData.voUrl} preload="auto" />}
 
       {reelData.logoImage?.url && (
-        <div className="reel-logo-v4">
+        <div className="reel-logo-v4" style={{ transform: `scale(${reelData.logoScale ?? 1})`, transformOrigin: 'top right' }}>
           <img src={reelData.logoImage.url} alt="Logo" />
         </div>
       )}

@@ -9,12 +9,19 @@
 // Command Center admin token is hydrated).
 
 import { useStudioBatch } from './useStudioBatch.js';
+import { useAuth } from '../../context/AuthContext.jsx';
 import PresetSelector from './PresetSelector.jsx';
 import StudioTimelineVisualizer from './StudioTimelineVisualizer.jsx';
 import './studio.css';
 
 export default function StudioBatchPanel() {
-  const { compiling, results, authed, compile } = useStudioBatch();
+  // Gate on the FOUNDER/ADMIN ROLE claim from the session (isAdmin) — not solely on a
+  // typed admin token. The /command route is already AdminGuard-gated, so an athlete
+  // never reaches this panel; a logged-in admin/founder must see the compile utilities
+  // unlocked even before manually hydrating an admin token. (The compile POST still
+  // attaches X-BBF-Admin-Token when present and the compiler re-gates server-side.)
+  const { isAdmin } = useAuth();
+  const { compiling, results, authed, compile } = useStudioBatch({ isAdmin });
   return (
     <div className="st-batch-panel">
       <PresetSelector onCompile={compile} compiling={compiling} authed={authed} />

@@ -1,0 +1,83 @@
+// e2e/harness/harness.jsx
+// ─────────────────────────────────────────────────────────────────────────────
+// Dev/test-only harness that mounts a single real component (chosen via ?c=) inside
+// the real providers, so Playwright integration specs exercise the ACTUAL production
+// code paths for the four go-live UI fixes — not reimplementations. This file lives
+// outside the production index.html graph and is never shipped by `vite build`.
+
+import { createRoot } from 'react-dom/client';
+import { LangProvider } from '../../src/context/LangContext.jsx';
+import AuthContext from '../../src/context/AuthContext.jsx';
+import NutritionCard from '../../src/components/hub/NutritionCard.jsx';
+import CardioCard from '../../src/components/hub/CardioCard.jsx';
+import CoachAudioButton from '../../src/components/vault/CoachAudioButton.jsx';
+import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
+import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
+
+const props = (typeof window !== 'undefined' && window.__HARNESS_PROPS__) || {};
+const which = new URLSearchParams(window.location.search).get('c') || '';
+
+// Controlled auth context — lets a spec assert that the FOUNDER/ADMIN role (isAdmin)
+// unlocks the Studio Batch compile utilities (defect 3), independent of any token.
+function AuthMock({ value, children }) {
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// A tiny real, decodable silent WAV object-URL — stands in for the resolved bucket /
+// ElevenLabs clip so the audio element genuinely reaches `canplay` (defect 2).
+function silentWavUrl(ms = 150) {
+  const rate = 8000;
+  const n = Math.floor((rate * ms) / 1000);
+  const buf = new ArrayBuffer(44 + n * 2);
+  const dv = new DataView(buf);
+  const wr = (o, s) => { for (let i = 0; i < s.length; i += 1) dv.setUint8(o + i, s.charCodeAt(i)); };
+  wr(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); wr(8, 'WAVE'); wr(12, 'fmt ');
+  dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, rate, true); dv.setUint32(28, rate * 2, true);
+  dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); wr(36, 'data'); dv.setUint32(40, n * 2, true);
+  return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+}
+
+// Simulate the async source/auth handshake: resolve the clip URL only AFTER a delay,
+// so a naive player that binds+plays synchronously would race and fail on first tap.
+const delayedAudioRequest = () => new Promise((resolve) => {
+  // 3s clip → the "is-playing" state stays observable long enough for the assertion.
+  setTimeout(() => resolve(silentWavUrl(3000)), Number(props.delayMs) || 300);
+});
+
+function pick() {
+  switch (which) {
+    case 'nutrition':
+      return <NutritionCard data={props.data ?? null} defaults={props.defaults ?? null} />;
+    case 'cardio':
+      return <CardioCard data={props.data ?? null} defaults={props.defaults ?? null} />;
+    case 'coach-audio':
+      return (
+        <CoachAudioButton
+          audioRequest={delayedAudioRequest}
+          fallbackText="brace and drive"
+          idleLabel="Play Coach Audio"
+        />
+      );
+    case 'studio-batch':
+      return (
+        <AuthMock value={{ isAdmin: !!props.isAdmin, user: props.user ?? null }}>
+          <StudioBatchPanel />
+        </AuthMock>
+      );
+    case 'studio-v4':
+      return (
+        <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' } }}>
+          <SovereignStudioV4 />
+        </AuthMock>
+      );
+    default:
+      return <div data-testid="harness-unknown">unknown component: {which}</div>;
+  }
+}
+
+createRoot(document.getElementById('root')).render(
+  <LangProvider>
+    <div data-testid="harness-root" style={{ padding: 24 }}>{pick()}</div>
+  </LangProvider>,
+);

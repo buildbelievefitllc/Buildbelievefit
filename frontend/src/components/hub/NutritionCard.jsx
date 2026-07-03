@@ -22,8 +22,14 @@ export default function NutritionCard({ data, defaults }) {
   const { hs, lang } = useHubStr();
 
   // Resolution order (§3.3): live row → server config default → client Layer-2 floor.
-  const calibrating = !data;
-  const n = data || defaults?.nutrition || LAYER2_DEFAULTS.nutrition;
+  // Calibrating ONLY when the hydration payload carries no targets at all (neither a
+  // live daily row NOR the config-backed tier default). A fully-hydrated profile whose
+  // daily row hasn't been cut yet still ships real tier defaults — that is the normal
+  // default state, not a calibration placeholder, so it must NOT wear the chip even
+  // though `data` (the historical daily row) is empty.
+  const targets = data || defaults?.nutrition || null;
+  const calibrating = !targets;
+  const n = targets || LAYER2_DEFAULTS.nutrition;
 
   const tierLabel = hs.tier[n.tier] || n.tier;
   const dayTypeLabel = hs.dayTypes[n.day_type] || n.day_type;

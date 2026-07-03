@@ -14,6 +14,39 @@ import { fetchCoachAudio } from '../../lib/forecastApi.js';
 import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
 import './coachAudio.css';
 
+// Lifecycle gate for the media element (defect: "Coach audio unavailable" on the
+// FIRST tap, works after a pause/play toggle). A freshly-resolved source URL (an
+// ElevenLabs objectURL or a Supabase Storage bucket URL still finishing its auth
+// handshake) is not decodable the instant we assign `src` — calling play()
+// immediately raced the resolve and reported "unavailable". This waits for the
+// element to actually be playable (canplay/loadeddata), then plays, retrying ONCE
+// across the readiness handshake before surrendering. Returns true once playback
+// starts, false only after the retry also fails.
+async function playWhenReady(node) {
+  const waitReady = () => new Promise((resolve) => {
+    if (node.readyState >= 2 /* HAVE_CURRENT_DATA */) { resolve(); return; }
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      node.removeEventListener('loadeddata', done);
+      node.removeEventListener('canplay', done);
+      node.removeEventListener('error', done);
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(done, 4000); // never hang — try to play anyway
+    node.addEventListener('loadeddata', done, { once: true });
+    node.addEventListener('canplay', done, { once: true });
+    node.addEventListener('error', done, { once: true });
+  });
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await waitReady();
+    try { await node.play(); return true; } catch { /* re-wait + retry once */ }
+  }
+  return false;
+}
+
 const STR = {
   en: {
     play: 'Play Coach Audio', cueing: 'Cueing Coach…', pause: 'Pause', replay: 'Replay Cue',
@@ -41,6 +74,7 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
   const tr = STR[lang] || STR.en;
   const audioRef = useRef(null);
   const stockRef = useRef(null); // active stock-voice controller (failure fallback)
+  const busyRef = useRef(false); // true while WE own the load/play handshake (guards onError)
   const loadedLangRef = useRef(null); // locale the cached clip was synthesized for
   const [url, setUrl] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -71,6 +105,7 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
     // Unlock speechSynthesis INSIDE the click gesture (iOS) before the async hop —
     // cheap no-op when the premium path succeeds.
     warmUpSpeech();
+    busyRef.current = true;
     setBusy(true);
     setErr(false);
     setStock(false);
@@ -90,8 +125,11 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
       // guarantees the element has the source before play().
       const node = audioRef.current;
       if (node) {
-        try { node.src = u; } catch { /* noop */ }
-        await node.play().catch(() => setErr(true));
+        // Assign src + force (re)load, THEN play only once the element is ready —
+        // the lifecycle gate that makes the first tap work (see playWhenReady).
+        try { node.src = u; node.load(); } catch { /* noop */ }
+        const ok = await playWhenReady(node);
+        if (!ok) setErr(true);
       } else {
         setErr(true);
       }
@@ -113,6 +151,7 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
         setErr(true);
       }
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   }
@@ -145,7 +184,7 @@ export default function CoachAudioButton({ exerciseName, targetReps, formCues, e
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
-        onError={() => { if (url) setErr(true); }}
+        onError={() => { if (url && !busyRef.current) setErr(true); }}
         preload="none"
       />
     </div>

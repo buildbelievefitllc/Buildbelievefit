@@ -69,6 +69,9 @@ export default function SovereignStudioV4() {
     backgroundColor: '#08060a',
     logoImage: null,
     videoFile: null,
+    musicFile: null,        // custom music/audio upload → drives the reel audio track (voUrl)
+    textLayout: 'bottom',   // overlay text placement toggle (bottom | center | top)
+    logoScale: 1,           // asset size handle — scales the corner logo badge
     // FRONT 5 · Sovereign Voiceover (lazy-cached bbf-studio-voiceover)
     voTopic: '',            // Exercise / topic that keys the cache
     vibe: 'the_architect',  // voice character → script tone + ElevenLabs physics
@@ -85,13 +88,15 @@ export default function SovereignStudioV4() {
       video: reelData.videoFile?.url || null,
       logo: reelData.logoImage?.url || null,
       phone: phoneData.backgroundImage?.url || null,
+      music: reelData.musicFile?.url || null,
     };
-  }, [reelData.videoFile?.url, reelData.logoImage?.url, phoneData.backgroundImage?.url]);
+  }, [reelData.videoFile?.url, reelData.logoImage?.url, reelData.musicFile?.url, phoneData.backgroundImage?.url]);
   useEffect(() => () => {
-    const { video, logo, phone } = blobUrlsRef.current;
+    const { video, logo, phone, music } = blobUrlsRef.current;
     if (video) URL.revokeObjectURL(video);
     if (logo) URL.revokeObjectURL(logo);
     if (phone) URL.revokeObjectURL(phone);
+    if (music) URL.revokeObjectURL(music);
   }, []);
 
   const handleModeChange = (newMode) => {

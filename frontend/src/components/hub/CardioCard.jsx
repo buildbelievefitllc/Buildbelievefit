@@ -20,8 +20,13 @@ import './hub.css';
 export default function CardioCard({ data, defaults }) {
   const { hs, lang } = useHubStr();
 
-  const calibrating = !data;
-  const c = data || defaults?.cardio || LAYER2_DEFAULTS.cardio;
+  // Calibrating ONLY when the payload has no prescription targets at all — neither a
+  // live prescription NOR the config-backed Zone-2 default. A hydrated profile with a
+  // standing tier default is the normal default state, not a calibration placeholder,
+  // so it must not wear the chip just because today's live row (`data`) is absent.
+  const targets = data || defaults?.cardio || null;
+  const calibrating = !targets;
+  const c = targets || LAYER2_DEFAULTS.cardio;
 
   const recoveryKey = c.recovery_state && hs.recovery[c.recovery_state] ? c.recovery_state : 'unknown';
   const recoveryLabel = hs.recovery[recoveryKey];

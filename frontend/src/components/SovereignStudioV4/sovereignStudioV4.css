@@ -93,6 +93,8 @@
   padding: 9px 5px; cursor: pointer; transition: all 0.15s;
 }
 .seg-v4 button.active { background: var(--pur); color: var(--wht); border-color: var(--pur); }
+/* Asset-size handle (VibeSelector → reelData.logoScale) — full-width brand-tinted range. */
+.range-v4 { width: 100%; accent-color: var(--pur); cursor: pointer; margin: 6px 0 2px; }
 
 .spin-btn-v4 {
   display: block; width: 100%; text-align: center; border-radius: 8px;
@@ -364,6 +366,10 @@
   margin-top: 24px; padding: 12px 28px; border-radius: 50px; border: 3px solid var(--yel);
   background: rgba(8, 6, 10, 0.55); color: var(--yel); }
 .reel-bottom-v4 { position: absolute; left: 70px; right: 70px; bottom: 120px; z-index: 4; }
+/* Overlay text-layout toggle (VibeSelector → reelData.textLayout) — anchors the hook
+   block. Authored in 1080-design space; StageScaler shrinks it 1:1 with the export. */
+.stage-reel-v4.txt-center .reel-bottom-v4 { top: 50%; bottom: auto; transform: translateY(-50%); }
+.stage-reel-v4.txt-top .reel-bottom-v4 { top: 160px; bottom: auto; }
 .reel-hl-v4 { font-family: var(--hb); font-size: 138px; line-height: 0.94; color: var(--wht);
   white-space: pre-line; text-shadow: 0 6px 30px rgba(0, 0, 0, 0.7); text-transform: uppercase; }
 .reel-sub-v4 { font-weight: 700; font-size: 40px; color: rgba(255, 255, 255, 0.82); margin-top: 22px; text-shadow: 0 3px 14px rgba(0, 0, 0, 0.7); }

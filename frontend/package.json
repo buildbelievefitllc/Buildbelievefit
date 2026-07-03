@@ -8,6 +8,7 @@
     "build": "vite build",
     "bump-sw": "node scripts/bump-sw-cache.mjs",
     "lint": "eslint .",
+    "test:e2e": "playwright test",
     "preview": "vite preview"
   },
   "dependencies": {

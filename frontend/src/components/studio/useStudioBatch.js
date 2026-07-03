@@ -53,11 +53,16 @@ async function postBatch(jobs) {
  * @returns {{ compiling:boolean, error:string|null, results:CompiledJob[], mirrored:number, authed:boolean,
  *            compile:(specs:StudioJobSpec|StudioJobSpec[])=>Promise<Object>, reset:()=>void }}
  */
-export function useStudioBatch() {
+export function useStudioBatch({ isAdmin = false } = {}) {
   const [state, setState] = useState({ compiling: false, error: null, results: [], mirrored: 0 });
 
+  // Authorized when the session carries the founder/admin role OR a token is hydrated.
+  // The founder/admin role alone unlocks the compile utilities (the compiler re-gates
+  // server-side); a raw token still works for injected/legacy sessions.
+  const authed = isAdmin || hasAdminToken();
+
   const compile = useCallback(async (specs) => {
-    if (!hasAdminToken()) { setState((s) => ({ ...s, error: 'unauthorized' })); return { ok: false, error: 'unauthorized' }; }
+    if (!(isAdmin || hasAdminToken())) { setState((s) => ({ ...s, error: 'unauthorized' })); return { ok: false, error: 'unauthorized' }; }
     const list = (Array.isArray(specs) ? specs : [specs]).filter(Boolean);
     if (!list.length) { setState((s) => ({ ...s, error: 'no_jobs' })); return { ok: false, error: 'no_jobs' }; }
 
@@ -84,9 +89,9 @@ export function useStudioBatch() {
     const jobsOut = Array.isArray(res.data.jobs) ? res.data.jobs : [];
     setState({ compiling: false, error: null, results: jobsOut, mirrored: Number(res.data.mirrored) || 0 });
     return { ok: true, jobs: jobsOut, mirrored: Number(res.data.mirrored) || 0 };
-  }, []);
+  }, [isAdmin]);
 
   const reset = useCallback(() => setState({ compiling: false, error: null, results: [], mirrored: 0 }), []);
 
-  return { ...state, compile, reset, authed: hasAdminToken() };
+  return { ...state, compile, reset, authed };
 }
