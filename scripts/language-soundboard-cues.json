@@ -1,0 +1,2227 @@
+[
+  {
+    "key": "RDMP-c686203accfb22a0788b",
+    "lang": "es",
+    "text": "músculo"
+  },
+  {
+    "key": "RDMP-1b7a8de2072aa3d96d59",
+    "lang": "es",
+    "text": "bíceps"
+  },
+  {
+    "key": "RDMP-db36b85965d5be31b0f8",
+    "lang": "es",
+    "text": "tríceps"
+  },
+  {
+    "key": "RDMP-eec46b963f4f330fdfa3",
+    "lang": "es",
+    "text": "cuádriceps"
+  },
+  {
+    "key": "RDMP-a65eb7f29a64d08d9cd2",
+    "lang": "es",
+    "text": "isquiotibiales"
+  },
+  {
+    "key": "RDMP-a411b6c9d05d3a65c01c",
+    "lang": "es",
+    "text": "glúteos"
+  },
+  {
+    "key": "RDMP-1b8ade27a3e6171b39c0",
+    "lang": "es",
+    "text": "pectorales"
+  },
+  {
+    "key": "RDMP-7d4fcd34cac9eb078f8f",
+    "lang": "es",
+    "text": "deltoides"
+  },
+  {
+    "key": "RDMP-cdfcc8ed667b14ea1406",
+    "lang": "es",
+    "text": "espalda"
+  },
+  {
+    "key": "RDMP-604a72a76a33c99eea7f",
+    "lang": "es",
+    "text": "abdominales"
+  },
+  {
+    "key": "RDMP-9be154ef00952b7c5274",
+    "lang": "es",
+    "text": "pantorrilla"
+  },
+  {
+    "key": "RDMP-0926e1698424910fc95a",
+    "lang": "es",
+    "text": "antebrazo"
+  },
+  {
+    "key": "RDMP-f329749b92ad7b63683b",
+    "lang": "es",
+    "text": "columna vertebral"
+  },
+  {
+    "key": "RDMP-3fb0e17616582d2d5cbe",
+    "lang": "es",
+    "text": "articulación"
+  },
+  {
+    "key": "RDMP-a7b680273e064f9bfe02",
+    "lang": "es",
+    "text": "tendón"
+  },
+  {
+    "key": "RDMP-eaad13a73ba260e50cde",
+    "lang": "es",
+    "text": "ligamento"
+  },
+  {
+    "key": "RDMP-971daa7c5ec034ad4e9b",
+    "lang": "es",
+    "text": "núcleo"
+  },
+  {
+    "key": "RDMP-833aca1869d09b69aee7",
+    "lang": "es",
+    "text": "postura"
+  },
+  {
+    "key": "RDMP-1df0264dc6d0f4d0c6b1",
+    "lang": "es",
+    "text": "rango de movimiento"
+  },
+  {
+    "key": "RDMP-e73cd7a9b6efc59588d5",
+    "lang": "es",
+    "text": "conexión mente-músculo"
+  },
+  {
+    "key": "RDMP-7561b73025258aff91a2",
+    "lang": "es",
+    "text": "macronutrientes"
+  },
+  {
+    "key": "RDMP-53cbced7fa14cc9f6709",
+    "lang": "es",
+    "text": "proteína"
+  },
+  {
+    "key": "RDMP-3a707b339c0e556a174c",
+    "lang": "es",
+    "text": "carbohidratos"
+  },
+  {
+    "key": "RDMP-037e585f69377e3eb164",
+    "lang": "es",
+    "text": "grasas saludables"
+  },
+  {
+    "key": "RDMP-9c11a3e6fe1f6b210784",
+    "lang": "es",
+    "text": "calorías"
+  },
+  {
+    "key": "RDMP-ad0b78f683b1bdeebebe",
+    "lang": "es",
+    "text": "déficit calórico"
+  },
+  {
+    "key": "RDMP-4570c09dbba46fdc511e",
+    "lang": "es",
+    "text": "superávit calórico"
+  },
+  {
+    "key": "RDMP-d9efbea56cf3bcff247e",
+    "lang": "es",
+    "text": "ayuno intermitente"
+  },
+  {
+    "key": "RDMP-bc27919ca8a68ac0ef58",
+    "lang": "es",
+    "text": "ventana de alimentación"
+  },
+  {
+    "key": "RDMP-328ddc0de49891c93c46",
+    "lang": "es",
+    "text": "hidratación"
+  },
+  {
+    "key": "RDMP-5014a4c94c743c034669",
+    "lang": "es",
+    "text": "suplemento"
+  },
+  {
+    "key": "RDMP-9544bb4b33c6ef0b3eb5",
+    "lang": "es",
+    "text": "creatina"
+  },
+  {
+    "key": "RDMP-3a98fda299625899821e",
+    "lang": "es",
+    "text": "proteína de suero"
+  },
+  {
+    "key": "RDMP-385e31535ae0071cb427",
+    "lang": "es",
+    "text": "aminoácidos"
+  },
+  {
+    "key": "RDMP-6c245e21f30ba840574a",
+    "lang": "es",
+    "text": "metabolismo"
+  },
+  {
+    "key": "RDMP-9dc97c89746adc1a41ba",
+    "lang": "es",
+    "text": "composición corporal"
+  },
+  {
+    "key": "RDMP-0f914249b24118f18f70",
+    "lang": "es",
+    "text": "grasa corporal"
+  },
+  {
+    "key": "RDMP-a5431097b957b8f2f204",
+    "lang": "es",
+    "text": "masa muscular"
+  },
+  {
+    "key": "RDMP-83b5aa9840e505223b00",
+    "lang": "es",
+    "text": "masa magra"
+  },
+  {
+    "key": "RDMP-6688c7e401bf13c29c3b",
+    "lang": "es",
+    "text": "nutrición perientrenamiento"
+  },
+  {
+    "key": "RDMP-6211ee0087a7619ec25e",
+    "lang": "es",
+    "text": "sobrecarga progresiva"
+  },
+  {
+    "key": "RDMP-b9d2de4632bc38ae208e",
+    "lang": "es",
+    "text": "volumen de entrenamiento"
+  },
+  {
+    "key": "RDMP-d8e8e7ec61629fe28f28",
+    "lang": "es",
+    "text": "intensidad"
+  },
+  {
+    "key": "RDMP-20e0a99904a631d0aa91",
+    "lang": "es",
+    "text": "frecuencia"
+  },
+  {
+    "key": "RDMP-4da98af33410536f9485",
+    "lang": "es",
+    "text": "repetición"
+  },
+  {
+    "key": "RDMP-0d9073b6ffb050288cad",
+    "lang": "es",
+    "text": "serie"
+  },
+  {
+    "key": "RDMP-742cac8d92e89c7ae8a2",
+    "lang": "es",
+    "text": "fallo muscular"
+  },
+  {
+    "key": "RDMP-1a3e2b74be5ec3abc414",
+    "lang": "es",
+    "text": "técnica"
+  },
+  {
+    "key": "RDMP-2a339f9511918127d926",
+    "lang": "es",
+    "text": "calentamiento"
+  },
+  {
+    "key": "RDMP-6f43752bf38a569e8b51",
+    "lang": "es",
+    "text": "enfriamiento"
+  },
+  {
+    "key": "RDMP-a8b2a7980889f658bd26",
+    "lang": "es",
+    "text": "hipertrofia"
+  },
+  {
+    "key": "RDMP-7723c2eeb39a80007287",
+    "lang": "es",
+    "text": "resistencia"
+  },
+  {
+    "key": "RDMP-e9fb0557af1d5fb9fe16",
+    "lang": "es",
+    "text": "fuerza"
+  },
+  {
+    "key": "RDMP-f5f173b38431553762a9",
+    "lang": "es",
+    "text": "cardio"
+  },
+  {
+    "key": "RDMP-b236b8fcec97df23b044",
+    "lang": "es",
+    "text": "división de entrenamiento"
+  },
+  {
+    "key": "RDMP-3c598fc190738dc2bb52",
+    "lang": "es",
+    "text": "descanso activo"
+  },
+  {
+    "key": "RDMP-952b13c450279d78427f",
+    "lang": "es",
+    "text": "sobreentrenamiento"
+  },
+  {
+    "key": "RDMP-d5b4e087f3a74c547d47",
+    "lang": "es",
+    "text": "periodización"
+  },
+  {
+    "key": "RDMP-20958a7f2f6094239e6d",
+    "lang": "es",
+    "text": "tiempo bajo tensión"
+  },
+  {
+    "key": "RDMP-b9b5d74c9372dc346cd4",
+    "lang": "es",
+    "text": "velocidad de ejecución"
+  },
+  {
+    "key": "RDMP-b0be59dd156c2b6c1898",
+    "lang": "es",
+    "text": "¡Tú puedes!"
+  },
+  {
+    "key": "RDMP-8c17d42f831e596104a0",
+    "lang": "es",
+    "text": "¡Más peso!"
+  },
+  {
+    "key": "RDMP-05af17b7894e60130990",
+    "lang": "es",
+    "text": "¡Aprieta!"
+  },
+  {
+    "key": "RDMP-90fbd6ea6d3189aad51f",
+    "lang": "es",
+    "text": "Controla el movimiento"
+  },
+  {
+    "key": "RDMP-5bca5f8f79030a98b978",
+    "lang": "es",
+    "text": "Respira"
+  },
+  {
+    "key": "RDMP-acbc723c6a7281787fff",
+    "lang": "es",
+    "text": "Mantén la postura"
+  },
+  {
+    "key": "RDMP-170f73c41549316491df",
+    "lang": "es",
+    "text": "Empuja"
+  },
+  {
+    "key": "RDMP-d36540dc6d4193fe2f48",
+    "lang": "es",
+    "text": "Jala"
+  },
+  {
+    "key": "RDMP-17935c9e6bd7a23171e0",
+    "lang": "es",
+    "text": "Última repetición"
+  },
+  {
+    "key": "RDMP-e02305e74721e3b4bdb7",
+    "lang": "es",
+    "text": "¡Descansa!"
+  },
+  {
+    "key": "RDMP-f142544054ab125686b7",
+    "lang": "es",
+    "text": "Concéntrate"
+  },
+  {
+    "key": "RDMP-44e82e147b982008a9a2",
+    "lang": "es",
+    "text": "Siente el músculo"
+  },
+  {
+    "key": "RDMP-e18a597257f357b13d6f",
+    "lang": "es",
+    "text": "Más profundo"
+  },
+  {
+    "key": "RDMP-f075c6d03f9df36549bb",
+    "lang": "es",
+    "text": "Velocidad controlada"
+  },
+  {
+    "key": "RDMP-b3fcdd39330d6d486c25",
+    "lang": "es",
+    "text": "¡Excelente trabajo!"
+  },
+  {
+    "key": "RDMP-661fe739359cfd43ea88",
+    "lang": "es",
+    "text": "Vamos a superar tus límites"
+  },
+  {
+    "key": "RDMP-3ae810d57045cae46eab",
+    "lang": "es",
+    "text": "Confía en el proceso"
+  },
+  {
+    "key": "RDMP-2f2c9b3c8690fab36da1",
+    "lang": "es",
+    "text": "Disciplina es libertad"
+  },
+  {
+    "key": "RDMP-6c6cf138a83b04b78f4b",
+    "lang": "es",
+    "text": "Construye, cree, logra"
+  },
+  {
+    "key": "RDMP-2bec334256c741239bf7",
+    "lang": "es",
+    "text": "El dolor es temporal"
+  },
+  {
+    "key": "RDMP-233453a621f39d88de0e",
+    "lang": "es",
+    "text": "Hoy vamos a hablar de tu protocolo de ayuno."
+  },
+  {
+    "key": "RDMP-b77e6850f87c6fb92f28",
+    "lang": "es",
+    "text": "El ayuno 16/8 significa que no comes durante 16 horas y tienes una ventana de alimentación de 8 horas."
+  },
+  {
+    "key": "RDMP-afb0cac6d53e5ac88c77",
+    "lang": "es",
+    "text": "Por ejemplo, si tu última comida es a las 8 de la noche, no comes hasta el mediodía del día siguiente."
+  },
+  {
+    "key": "RDMP-6f43438336c68c160f79",
+    "lang": "es",
+    "text": "Durante el ayuno, puedes tomar agua, café negro, y té sin azúcar."
+  },
+  {
+    "key": "RDMP-a69f5c007266d658490d",
+    "lang": "es",
+    "text": "Este método mejora la sensibilidad a la insulina y te ayuda a reducir la grasa corporal."
+  },
+  {
+    "key": "RDMP-fecd2b96f4a0711d6d94",
+    "lang": "es",
+    "text": "¿Tienes preguntas sobre cómo empezar?"
+  },
+  {
+    "key": "RDMP-3b0a0fb6d888231e891b",
+    "lang": "es",
+    "text": "Tu programa de entrenamiento es una división de cinco días."
+  },
+  {
+    "key": "RDMP-79c6e52f197f8933e1ea",
+    "lang": "es",
+    "text": "El lunes trabajamos el pecho y los tríceps."
+  },
+  {
+    "key": "RDMP-a043639461bf8df601f5",
+    "lang": "es",
+    "text": "El martes es para la espalda y los bíceps."
+  },
+  {
+    "key": "RDMP-3d1402eabafbb6b95e3d",
+    "lang": "es",
+    "text": "El miércoles entrenamos los hombros y el núcleo."
+  },
+  {
+    "key": "RDMP-4734d31b91e52ec71b78",
+    "lang": "es",
+    "text": "El jueves nos enfocamos en los glúteos y los isquiotibiales."
+  },
+  {
+    "key": "RDMP-6bf7197e50a1611c7c2b",
+    "lang": "es",
+    "text": "El viernes es el día de cuádriceps y pantorrillas."
+  },
+  {
+    "key": "RDMP-e56dd5924aee651dddb5",
+    "lang": "es",
+    "text": "El sábado y el domingo son días de descanso activo o cardio ligero."
+  },
+  {
+    "key": "RDMP-7450573002a44d9c76d0",
+    "lang": "es",
+    "text": "Cada semana aumentamos el peso o las repeticiones — eso es la sobrecarga progresiva."
+  },
+  {
+    "key": "RDMP-992b82b2fc96f5909780",
+    "lang": "es",
+    "text": "¿Cómo te sientes hoy? ¿Tienes energía para entrenar?"
+  },
+  {
+    "key": "RDMP-107c6f647897d72f1215",
+    "lang": "es",
+    "text": "Recuerda: la consistencia es más importante que la perfección."
+  },
+  {
+    "key": "RDMP-bbe64e6ce8d9869fc729",
+    "lang": "es",
+    "text": "Hoy vamos a trabajar en la conexión mente-músculo."
+  },
+  {
+    "key": "RDMP-9883bfeb53277499a9b5",
+    "lang": "es",
+    "text": "Cada repetición debe ser intencional — siente el músculo trabajar."
+  },
+  {
+    "key": "RDMP-e0e1cf04d9e5fb083bed",
+    "lang": "es",
+    "text": "Tu objetivo es llegar a 175 libras de masa muscular limpia. Estamos construyendo ese físico."
+  },
+  {
+    "key": "RDMP-495fd0960bd4cbe39529",
+    "lang": "es",
+    "text": "¡Tú puedes! Construye, cree, logra."
+  },
+  {
+    "key": "RDMP-866f10570cf8da9c8ae1",
+    "lang": "pt",
+    "text": "Olá! Tudo bem?"
+  },
+  {
+    "key": "RDMP-e779b1b09a2d1909764d",
+    "lang": "pt",
+    "text": "Tudo bem, obrigado!"
+  },
+  {
+    "key": "RDMP-4efd95f9ddd54263b538",
+    "lang": "pt",
+    "text": "Como você se chama?"
+  },
+  {
+    "key": "RDMP-65bba7d571645c08240c",
+    "lang": "pt",
+    "text": "Me chamo Akeem."
+  },
+  {
+    "key": "RDMP-c43b5171e775e8afba8d",
+    "lang": "pt",
+    "text": "Prazer em te conhecer!"
+  },
+  {
+    "key": "RDMP-1cf63ee8cea764b0c47e",
+    "lang": "pt",
+    "text": "Você fala inglês?"
+  },
+  {
+    "key": "RDMP-11f8ed38e7ebabe61312",
+    "lang": "pt",
+    "text": "Falo pouco português."
+  },
+  {
+    "key": "RDMP-6d0f84d93509d5e88ecd",
+    "lang": "pt",
+    "text": "Pode falar mais devagar?"
+  },
+  {
+    "key": "RDMP-0d321b372abd980ff1e7",
+    "lang": "pt",
+    "text": "Não entendi. Pode repetir?"
+  },
+  {
+    "key": "RDMP-5d228f48080fcb97c6a7",
+    "lang": "pt",
+    "text": "Onde fica o metrô?"
+  },
+  {
+    "key": "RDMP-81252f101619f135a506",
+    "lang": "pt",
+    "text": "Onde fica o aeroporto?"
+  },
+  {
+    "key": "RDMP-c1616e8fe0475c1574d6",
+    "lang": "pt",
+    "text": "Preciso de um táxi."
+  },
+  {
+    "key": "RDMP-56eb4cde87f5d628809e",
+    "lang": "pt",
+    "text": "Chame um Uber, por favor."
+  },
+  {
+    "key": "RDMP-4baaddae096209bafc6d",
+    "lang": "pt",
+    "text": "Onde fica o hotel?"
+  },
+  {
+    "key": "RDMP-9b8e51d703c1abe3bb3a",
+    "lang": "pt",
+    "text": "Qual é o endereço?"
+  },
+  {
+    "key": "RDMP-76f343c6bf4babb351cd",
+    "lang": "pt",
+    "text": "Estou perdido(a)."
+  },
+  {
+    "key": "RDMP-e48894308edc0ab89785",
+    "lang": "pt",
+    "text": "Me leva para aqui, por favor."
+  },
+  {
+    "key": "RDMP-2b3364e807702637d16d",
+    "lang": "pt",
+    "text": "Quanto custa?"
+  },
+  {
+    "key": "RDMP-cac27cfbe55118e4227e",
+    "lang": "pt",
+    "text": "Aceita cartão?"
+  },
+  {
+    "key": "RDMP-762e43a9517bfc1e855e",
+    "lang": "pt",
+    "text": "Quero um açaí, por favor."
+  },
+  {
+    "key": "RDMP-286e2fd22da16c7940cb",
+    "lang": "pt",
+    "text": "Com granola e banana."
+  },
+  {
+    "key": "RDMP-efa78b33f33af13fc073",
+    "lang": "pt",
+    "text": "Quero churrasco misto."
+  },
+  {
+    "key": "RDMP-291ec8aa022fcbdcb9be",
+    "lang": "pt",
+    "text": "Sem glúten, por favor."
+  },
+  {
+    "key": "RDMP-9b2fe265d478382c80f3",
+    "lang": "pt",
+    "text": "Mais proteína, menos carboidrato."
+  },
+  {
+    "key": "RDMP-2c976b932295421d4758",
+    "lang": "pt",
+    "text": "Água, por favor."
+  },
+  {
+    "key": "RDMP-1e2cddca31e52068dfed",
+    "lang": "pt",
+    "text": "A conta, por favor."
+  },
+  {
+    "key": "RDMP-f4e2482ad42bb9dc184b",
+    "lang": "pt",
+    "text": "Está delicioso!"
+  },
+  {
+    "key": "RDMP-779b140e526abc3d10f5",
+    "lang": "pt",
+    "text": "Quero um suco de maracujá."
+  },
+  {
+    "key": "RDMP-07a86e966740b1235991",
+    "lang": "pt",
+    "text": "Tem opção sem açúcar?"
+  },
+  {
+    "key": "RDMP-9b9d9983d0ebcf7282fc",
+    "lang": "pt",
+    "text": "Onde fica a academia?"
+  },
+  {
+    "key": "RDMP-fe9a541306f4c46900cb",
+    "lang": "pt",
+    "text": "Você treina aqui todo dia?"
+  },
+  {
+    "key": "RDMP-cd7f8b69fbda369382bb",
+    "lang": "pt",
+    "text": "Posso treinar com você?"
+  },
+  {
+    "key": "RDMP-df8da77ac138344681e8",
+    "lang": "pt",
+    "text": "Qual músculo você está treinando hoje?"
+  },
+  {
+    "key": "RDMP-97aafa61448e8e9774a3",
+    "lang": "pt",
+    "text": "Você pode me ajudar com a técnica?"
+  },
+  {
+    "key": "RDMP-d5fbb1f406462e7f61eb",
+    "lang": "pt",
+    "text": "Quanto tempo você treina?"
+  },
+  {
+    "key": "RDMP-811fffd92455a51a7beb",
+    "lang": "pt",
+    "text": "Que suplementos você toma?"
+  },
+  {
+    "key": "RDMP-226d8075e49aa5ba156c",
+    "lang": "pt",
+    "text": "Você é personal trainer?"
+  },
+  {
+    "key": "RDMP-4c3fd30400f01dad63ab",
+    "lang": "pt",
+    "text": "Sou personal trainer nos Estados Unidos."
+  },
+  {
+    "key": "RDMP-d536c936d77c6bd84827",
+    "lang": "pt",
+    "text": "Posso fazer uma série aqui?"
+  },
+  {
+    "key": "RDMP-e451212cdd04bb0a585d",
+    "lang": "pt",
+    "text": "Vamos treinar juntos!"
+  },
+  {
+    "key": "RDMP-b1bc713c793a8916ec94",
+    "lang": "pt",
+    "text": "Você quer sair depois do treino?"
+  },
+  {
+    "key": "RDMP-e299db4ed9ded5190285",
+    "lang": "pt",
+    "text": "Qual é seu Instagram?"
+  },
+  {
+    "key": "RDMP-5f7dbb9cf3b812c12802",
+    "lang": "pt",
+    "text": "Me adiciona no Instagram!"
+  },
+  {
+    "key": "RDMP-b14a8f5cac87199f3690",
+    "lang": "pt",
+    "text": "Você mora aqui em São Paulo?"
+  },
+  {
+    "key": "RDMP-52dde123a00f4a39c6db",
+    "lang": "pt",
+    "text": "Qual é o melhor restaurante aqui?"
+  },
+  {
+    "key": "RDMP-9ccc79e888f01afa7674",
+    "lang": "pt",
+    "text": "Qual é a melhor praia perto daqui?"
+  },
+  {
+    "key": "RDMP-0f75f5cae4e92e8653ed",
+    "lang": "pt",
+    "text": "Obrigado por tudo!"
+  },
+  {
+    "key": "RDMP-42aed7509ab5a89380ef",
+    "lang": "pt",
+    "text": "Foi um prazer!"
+  },
+  {
+    "key": "RDMP-14e1fe80e338fbfdb93c",
+    "lang": "pt",
+    "text": "Até logo! / Tchau!"
+  },
+  {
+    "key": "RDMP-dcf087dff5bc3238c2b3",
+    "lang": "pt",
+    "text": "Volto em breve."
+  },
+  {
+    "key": "RDMP-68a45edcb3e3ff290b4a",
+    "lang": "es",
+    "text": "Soy disciplinado. Mi cuerpo obedece mi mente. Cada cardio me acerca a 175 libras de poder."
+  },
+  {
+    "key": "RDMP-e22a79e926b99017e9e1",
+    "lang": "pt",
+    "text": "Sou disciplinado. Meu corpo obedece à minha mente. Cada cardio me aproxima de 175 libras de poder."
+  },
+  {
+    "key": "RDMP-bd2d8cf830734ebdb541",
+    "lang": "es",
+    "text": "Corto con precisión quirúrgica. El déficit es mi herramienta. Cada libra perdida revela mi mejor versión."
+  },
+  {
+    "key": "RDMP-e9f46fc29144c9ec8842",
+    "lang": "pt",
+    "text": "Corto com precisão cirúrgica. O déficit é minha ferramenta. Cada quilo perdido revela minha melhor versão."
+  },
+  {
+    "key": "RDMP-ee21fa5ad73b3f64d54b",
+    "lang": "es",
+    "text": "No paro. No me rindo. Soy un atleta de élite construyendo su legado en cada sesión de cardio."
+  },
+  {
+    "key": "RDMP-6ec7efd4df8e93023f41",
+    "lang": "pt",
+    "text": "Não paro. Não desisto. Sou um atleta de elite construindo meu legado a cada sessão de cardio."
+  },
+  {
+    "key": "RDMP-f61758358b096af9a923",
+    "lang": "es",
+    "text": "175 libras son mías. Mi masa muscular crece. Mi grasa disminuye. Soy el arquetipo del entrenador."
+  },
+  {
+    "key": "RDMP-fd73495f3a3030c99dd2",
+    "lang": "pt",
+    "text": "175 libras são minhas. Minha massa muscular cresce. Minha gordura diminui. Sou o arquétipo do treinador."
+  },
+  {
+    "key": "RDMP-46060b3fee19521f08bb",
+    "lang": "es",
+    "text": "Hablo dos idiomas del poder. Sirvo a más clientes. Expando Build Believe Fit sin fronteras."
+  },
+  {
+    "key": "RDMP-927f810110a69f615bfb",
+    "lang": "pt",
+    "text": "Falo dois idiomas do poder. Sirvo mais clientes. Expando a Build Believe Fit sem fronteiras."
+  },
+  {
+    "key": "RDMP-feb717d978029dfab07e",
+    "lang": "es",
+    "text": "Soy Build Believe Fit. Construyo. Creo. Logro. En 175 libras, con dos idiomas y sin límites."
+  },
+  {
+    "key": "RDMP-eb5733a2a5ab81315d33",
+    "lang": "pt",
+    "text": "Sou a Build Believe Fit. Construo. Acredito. Conquisto. Com 175 libras, dois idiomas e sem limites."
+  },
+  {
+    "key": "RDMP-290502683b30782f8cc2",
+    "lang": "es",
+    "text": "Buenas tardes, ¿qué desea ordenar?"
+  },
+  {
+    "key": "RDMP-b02db6d60f86b6e17658",
+    "lang": "es",
+    "text": "Quiero tacos al pastor y un agua, por favor"
+  },
+  {
+    "key": "RDMP-a00eb36794177c9804d6",
+    "lang": "es",
+    "text": "¿Algo más?"
+  },
+  {
+    "key": "RDMP-b970b885f5c69140a172",
+    "lang": "es",
+    "text": "No, gracias. Nada más."
+  },
+  {
+    "key": "RDMP-4b8377a26c75f805dba2",
+    "lang": "es",
+    "text": "¿Para comer aquí o para llevar?"
+  },
+  {
+    "key": "RDMP-078628ba654f43393db9",
+    "lang": "es",
+    "text": "Para llevar, por favor"
+  },
+  {
+    "key": "RDMP-4be5c3cc05032b29562d",
+    "lang": "es",
+    "text": "Son cien pesos."
+  },
+  {
+    "key": "RDMP-8b26c46db82db1168bc3",
+    "lang": "es",
+    "text": "¿Aceptan tarjeta?"
+  },
+  {
+    "key": "RDMP-cdd24d1956299dee1e3b",
+    "lang": "pt",
+    "text": "Oi! Posso ajudar?"
+  },
+  {
+    "key": "RDMP-c109789086a8b156d9e7",
+    "lang": "pt",
+    "text": "Como eu chego em Copacabana?"
+  },
+  {
+    "key": "RDMP-f3f9fc79a350086afb56",
+    "lang": "pt",
+    "text": "É longe daqui a pé."
+  },
+  {
+    "key": "RDMP-557d017670c53011c34e",
+    "lang": "pt",
+    "text": "Tem ônibus?"
+  },
+  {
+    "key": "RDMP-0714c58ade4c6236bb7e",
+    "lang": "pt",
+    "text": "Pega o 583 ali na esquina."
+  },
+  {
+    "key": "RDMP-e9d2f92c58fd389dc02f",
+    "lang": "pt",
+    "text": "Quanto custa a passagem?"
+  },
+  {
+    "key": "RDMP-c64fb7c5abb8832ca9cc",
+    "lang": "pt",
+    "text": "Cinco reais. Boa viagem!"
+  },
+  {
+    "key": "RDMP-b90ce6e7f1c6db9c8573",
+    "lang": "pt",
+    "text": "Muito obrigado!"
+  },
+  {
+    "key": "RDMP-4191e9dfb0a1cc830695",
+    "lang": "es",
+    "text": "¡Pásele! ¿Le gusta este tapete?"
+  },
+  {
+    "key": "RDMP-0b7db997d8dadc30a84b",
+    "lang": "es",
+    "text": "¿Cuánto cuesta?"
+  },
+  {
+    "key": "RDMP-a5b9f2cc394349331e56",
+    "lang": "es",
+    "text": "Quinientos pesos, joven."
+  },
+  {
+    "key": "RDMP-0c4988dd6cf029b454df",
+    "lang": "es",
+    "text": "Está un poco caro."
+  },
+  {
+    "key": "RDMP-726384c9df463f041633",
+    "lang": "es",
+    "text": "¿Cuánto me ofrece?"
+  },
+  {
+    "key": "RDMP-0fe3ac8b876cb9b45c8b",
+    "lang": "es",
+    "text": "Le doy trescientos."
+  },
+  {
+    "key": "RDMP-cfbb8548920816aef2f6",
+    "lang": "es",
+    "text": "Cuatrocientos y es suyo."
+  },
+  {
+    "key": "RDMP-14b6ea42aedb74602724",
+    "lang": "es",
+    "text": "Está bien, me lo llevo."
+  },
+  {
+    "key": "RDMP-428a5204b406a1e2e6ce",
+    "lang": "es",
+    "text": "Hola, ¿cómo estás?"
+  },
+  {
+    "key": "RDMP-b14c2650b590e4ca4bd4",
+    "lang": "es",
+    "text": "Me alegro. ¿De dónde eres?"
+  },
+  {
+    "key": "RDMP-f4a8403f7d7c29ac8ddd",
+    "lang": "es",
+    "text": "Qué bueno. ¿Y a qué te dedicas?"
+  },
+  {
+    "key": "RDMP-a33faffe2c6c9a5f994a",
+    "lang": "es",
+    "text": "Ah, ¡qué bien! ¿Qué te trae por aquí?"
+  },
+  {
+    "key": "RDMP-a7ebdf89402d3d7685a9",
+    "lang": "es",
+    "text": "Genial. ¿Hace cuánto que viajas?"
+  },
+  {
+    "key": "RDMP-7c5ba677b69ae01f8bc6",
+    "lang": "es",
+    "text": "Interesante. ¿Te gusta tu trabajo?"
+  },
+  {
+    "key": "RDMP-d2fb9c3aabf208f4ee6b",
+    "lang": "es",
+    "text": "¡Qué bueno! Suena emocionante."
+  },
+  {
+    "key": "RDMP-c8001cad1805b94b2671",
+    "lang": "es",
+    "text": "¡Hola! ¿Qué tal tu día?"
+  },
+  {
+    "key": "RDMP-2dd3d59359fb6b0351b5",
+    "lang": "es",
+    "text": "Buenas. ¿Cómo va todo?"
+  },
+  {
+    "key": "RDMP-2cbafc20756b4fb1af73",
+    "lang": "es",
+    "text": "¡De nada! Un placer."
+  },
+  {
+    "key": "RDMP-561adbb88338dda5919a",
+    "lang": "es",
+    "text": "Con gusto."
+  },
+  {
+    "key": "RDMP-26cef7774d0f82cc80ff",
+    "lang": "es",
+    "text": "Mmm, no te entendí bien. ¿Puedes repetir?"
+  },
+  {
+    "key": "RDMP-c640cd352489fb2173dd",
+    "lang": "es",
+    "text": "Perdona, ¿cómo dijiste?"
+  },
+  {
+    "key": "RDMP-130cd2c4fefc5370931e",
+    "lang": "pt",
+    "text": "Bom dia! O que vai querer?"
+  },
+  {
+    "key": "RDMP-56632f1d73de3b6b3032",
+    "lang": "pt",
+    "text": "Saiu! Mais alguma coisa?"
+  },
+  {
+    "key": "RDMP-b0d3e4ca7c74c29e2f32",
+    "lang": "pt",
+    "text": "Pode deixar. Algo mais?"
+  },
+  {
+    "key": "RDMP-ee115a478f35baeabac0",
+    "lang": "pt",
+    "text": "São oito reais."
+  },
+  {
+    "key": "RDMP-1729f82e10f9360402be",
+    "lang": "pt",
+    "text": "Fica dez reais no total."
+  },
+  {
+    "key": "RDMP-ecc7457bcb0a74a7ef91",
+    "lang": "pt",
+    "text": "Beleza! Já trago."
+  },
+  {
+    "key": "RDMP-137b5eb8558a999989cd",
+    "lang": "pt",
+    "text": "Perfeito, um instante."
+  },
+  {
+    "key": "RDMP-1e1891cd20f4b3aa0830",
+    "lang": "pt",
+    "text": "Imagina! Bom apetite."
+  },
+  {
+    "key": "RDMP-4111a8c41bf239023ded",
+    "lang": "pt",
+    "text": "De nada, volte sempre!"
+  },
+  {
+    "key": "RDMP-ea02bbc23b7dcaf17cd3",
+    "lang": "pt",
+    "text": "Oi! Tudo bem? O que vai querer?"
+  },
+  {
+    "key": "RDMP-7cfc8fb024b028ba2375",
+    "lang": "pt",
+    "text": "Olá! Pois não?"
+  },
+  {
+    "key": "RDMP-96538a7f223bb2955703",
+    "lang": "pt",
+    "text": "Desculpa, não entendi. Pode repetir?"
+  },
+  {
+    "key": "RDMP-8df450db28189994c9f5",
+    "lang": "pt",
+    "text": "Como assim? Fala de novo."
+  },
+  {
+    "key": "RDMP-c363219adfb9728d5778",
+    "lang": "es",
+    "text": "¡Pásele! ¿Qué busca hoy?"
+  },
+  {
+    "key": "RDMP-40384f58ed337c757840",
+    "lang": "es",
+    "text": "Le dejo en doscientos."
+  },
+  {
+    "key": "RDMP-2f10bfb4b58edea454ca",
+    "lang": "es",
+    "text": "Para usted, ciento ochenta."
+  },
+  {
+    "key": "RDMP-4087aeb9fb7b52c98b20",
+    "lang": "es",
+    "text": "Ándele, ¿cuánto le pongo?"
+  },
+  {
+    "key": "RDMP-fabfefc5c798aec8ada6",
+    "lang": "es",
+    "text": "Mmm... que sean ciento veinte."
+  },
+  {
+    "key": "RDMP-50ed4a754b71099904fc",
+    "lang": "es",
+    "text": "Está bien, ¡trato hecho!"
+  },
+  {
+    "key": "RDMP-1bf95865f1811d288fa8",
+    "lang": "es",
+    "text": "¡Excelente elección! Gracias."
+  },
+  {
+    "key": "RDMP-a6ff9797d31553e48e34",
+    "lang": "es",
+    "text": "¡Va! Que lo disfrute."
+  },
+  {
+    "key": "RDMP-d40de273c2c23533f042",
+    "lang": "es",
+    "text": "¡Buenas! Pásele, pásele."
+  },
+  {
+    "key": "RDMP-667c7a9cc5211fd18cd7",
+    "lang": "es",
+    "text": "¡Hola! ¿Le muestro algo?"
+  },
+  {
+    "key": "RDMP-d9f61227501bc664e1f9",
+    "lang": "es",
+    "text": "No le entendí, joven. ¿Mande?"
+  },
+  {
+    "key": "RDMP-a9fae1f4f9d46f9aa7e6",
+    "lang": "es",
+    "text": "¿Cómo dice?"
+  },
+  {
+    "key": "RDMP-fe94ab384e96da6b2a16",
+    "lang": "pt",
+    "text": "Olá"
+  },
+  {
+    "key": "RDMP-cc6a47947c5467e5484b",
+    "lang": "pt",
+    "text": "Bom dia"
+  },
+  {
+    "key": "RDMP-23301ad4d9591349395c",
+    "lang": "pt",
+    "text": "Você é americano?"
+  },
+  {
+    "key": "RDMP-e5e9a3a7407649fd525d",
+    "lang": "pt",
+    "text": "Sim"
+  },
+  {
+    "key": "RDMP-0f22a0a503112bfb26c5",
+    "lang": "pt",
+    "text": "Não"
+  },
+  {
+    "key": "RDMP-99ddca1519e7303c9cf5",
+    "lang": "pt",
+    "text": "Eu sou o Akeem"
+  },
+  {
+    "key": "RDMP-f36e94a9613e08de493a",
+    "lang": "pt",
+    "text": "Meu nome é Akeem"
+  },
+  {
+    "key": "RDMP-48bc4da6a71610ceebc0",
+    "lang": "pt",
+    "text": "Qual é o seu nome?"
+  },
+  {
+    "key": "RDMP-342e9d687dc2b47768bd",
+    "lang": "pt",
+    "text": "Tudo bem?"
+  },
+  {
+    "key": "RDMP-f975905cdb1f0dc5356f",
+    "lang": "pt",
+    "text": "Tudo bem, e você?"
+  },
+  {
+    "key": "RDMP-e17ed8f5467dad8416b5",
+    "lang": "pt",
+    "text": "Onde fica a água?"
+  },
+  {
+    "key": "RDMP-5132e3fc190d9c78ee8e",
+    "lang": "pt",
+    "text": "Ali"
+  },
+  {
+    "key": "RDMP-f6e79f369e89c70c59a8",
+    "lang": "pt",
+    "text": "Vamos treinar?"
+  },
+  {
+    "key": "RDMP-4c64a24be871e2ef2035",
+    "lang": "pt",
+    "text": "Onde fica a rua...?"
+  },
+  {
+    "key": "RDMP-6b38d9f5727c2d28cd98",
+    "lang": "pt",
+    "text": "Siga reto"
+  },
+  {
+    "key": "RDMP-a373242d5b3c79926933",
+    "lang": "pt",
+    "text": "Vire à esquerda"
+  },
+  {
+    "key": "RDMP-d328c70e87d30cc0c459",
+    "lang": "pt",
+    "text": "Vire à direita"
+  },
+  {
+    "key": "RDMP-7a487a3f0441b5fbf294",
+    "lang": "pt",
+    "text": "Quarteirão"
+  },
+  {
+    "key": "RDMP-307e9863b1d0f2152bc6",
+    "lang": "pt",
+    "text": "Um café, por favor"
+  },
+  {
+    "key": "RDMP-1a8c3e019a0fd41d9f73",
+    "lang": "pt",
+    "text": "Água"
+  },
+  {
+    "key": "RDMP-8a5e1789a254ea45b43a",
+    "lang": "pt",
+    "text": "Com proteína"
+  },
+  {
+    "key": "RDMP-44e7fa3f3dfd04be53ee",
+    "lang": "pt",
+    "text": "Obrigado"
+  },
+  {
+    "key": "RDMP-d1dcdf11b779ee965a6b",
+    "lang": "pt",
+    "text": "Um"
+  },
+  {
+    "key": "RDMP-07ec6251908c342a440e",
+    "lang": "pt",
+    "text": "Dois"
+  },
+  {
+    "key": "RDMP-bb9729740592a877f7b5",
+    "lang": "pt",
+    "text": "Cinco reais"
+  },
+  {
+    "key": "RDMP-bba96e6cea41bb517499",
+    "lang": "pt",
+    "text": "Dez"
+  },
+  {
+    "key": "RDMP-87b8c8ae43319d310e2d",
+    "lang": "pt",
+    "text": "Está muito caro"
+  },
+  {
+    "key": "RDMP-b411fc1259b722f6638d",
+    "lang": "pt",
+    "text": "Que horas são?"
+  },
+  {
+    "key": "RDMP-1d0bb5cdf80235fcfcfb",
+    "lang": "pt",
+    "text": "São oito horas"
+  },
+  {
+    "key": "RDMP-67636e99b9f61c2b483e",
+    "lang": "pt",
+    "text": "Jejum"
+  },
+  {
+    "key": "RDMP-e771369c60dedd931a61",
+    "lang": "pt",
+    "text": "Horário"
+  },
+  {
+    "key": "RDMP-a6c9e811791653c534e4",
+    "lang": "pt",
+    "text": "Peito"
+  },
+  {
+    "key": "RDMP-1f726f5f59b17aa9a7fd",
+    "lang": "pt",
+    "text": "Pernas"
+  },
+  {
+    "key": "RDMP-030c03b40c2a414ace02",
+    "lang": "pt",
+    "text": "Costas"
+  },
+  {
+    "key": "RDMP-7625b19b62d0341efbee",
+    "lang": "pt",
+    "text": "Está doendo"
+  },
+  {
+    "key": "RDMP-87b342183a8b6cab8c4b",
+    "lang": "pt",
+    "text": "Empurre"
+  },
+  {
+    "key": "RDMP-64ed0a7877744ff99b7b",
+    "lang": "pt",
+    "text": "Puxe"
+  },
+  {
+    "key": "RDMP-adbd0022ad70d95dcd21",
+    "lang": "pt",
+    "text": "Mais peso"
+  },
+  {
+    "key": "RDMP-d6f3216a45d444edcb5f",
+    "lang": "pt",
+    "text": "Barra"
+  },
+  {
+    "key": "RDMP-1da427356f626545085a",
+    "lang": "pt",
+    "text": "Ótimo treino!"
+  },
+  {
+    "key": "RDMP-14fec3269c916ec262fb",
+    "lang": "pt",
+    "text": "Amanhã"
+  },
+  {
+    "key": "RDMP-c5f6dd606dd652d81e0c",
+    "lang": "pt",
+    "text": "Até logo"
+  },
+  {
+    "key": "RDMP-6c0b3bec4c330d125b6d",
+    "lang": "pt",
+    "text": "Eu falo português"
+  },
+  {
+    "key": "RDMP-1c42f2a66077b322e507",
+    "lang": "pt",
+    "text": "Vamos juntos"
+  },
+  {
+    "key": "RDMP-92e59ae276e3b266deab",
+    "lang": "en",
+    "text": "Welcome to Session 1 of the BBF Lab Portuguese Audio Series. Today we learn how to greet someone and exchange names. Listen to this conversation in Portuguese."
+  },
+  {
+    "key": "RDMP-0e172b03d21623dc37dd",
+    "lang": "pt",
+    "text": "Olá! Bom dia."
+  },
+  {
+    "key": "RDMP-389ef990ee4453459485",
+    "lang": "pt",
+    "text": "Bom dia! Qual é o seu nome?"
+  },
+  {
+    "key": "RDMP-26aefaf1dcccea6455d2",
+    "lang": "pt",
+    "text": "Meu nome é Francisca. E você?"
+  },
+  {
+    "key": "RDMP-64ca9434bc1eac54af6a",
+    "lang": "pt",
+    "text": "Eu sou o Antonio. Você é americana?"
+  },
+  {
+    "key": "RDMP-8fd99a8f1e1199bf44c5",
+    "lang": "pt",
+    "text": "Sim, eu sou americana. E você?"
+  },
+  {
+    "key": "RDMP-a32e46431760fedd2a16",
+    "lang": "pt",
+    "text": "Não, eu sou brasileiro."
+  },
+  {
+    "key": "RDMP-4a08b650bdfc0d2282db",
+    "lang": "en",
+    "text": "Let's begin by learning 'Good morning'. Listen closely."
+  },
+  {
+    "key": "RDMP-06de5fda0b08751c77a2",
+    "lang": "pt",
+    "text": "Bom dia."
+  },
+  {
+    "key": "RDMP-26f862d6a74b4bca10bf",
+    "lang": "en",
+    "text": "Now, let's practice the word 'dia'. Repeat after the speaker, keeping the sound clean."
+  },
+  {
+    "key": "RDMP-ff8fd9ccce426e978718",
+    "lang": "pt",
+    "text": "dia"
+  },
+  {
+    "key": "RDMP-fc3f2e07e2060338a5d8",
+    "lang": "en",
+    "text": "Now, say 'good', which is 'bom'. Listen and repeat."
+  },
+  {
+    "key": "RDMP-ca6d164e27b9957cb485",
+    "lang": "pt",
+    "text": "bom"
+  },
+  {
+    "key": "RDMP-3ffd472a87e278f30158",
+    "lang": "en",
+    "text": "Now try to put them together. Say: Good morning."
+  },
+  {
+    "key": "RDMP-ed6474b07b188b940d9b",
+    "lang": "en",
+    "text": "Now let's learn how to say 'Hello'. Listen and repeat."
+  },
+  {
+    "key": "RDMP-1d70d11dad80b13fc151",
+    "lang": "pt",
+    "text": "Olá."
+  },
+  {
+    "key": "RDMP-c47af13ed071d0058a0a",
+    "lang": "en",
+    "text": "How do you say: Good morning?"
+  },
+  {
+    "key": "RDMP-651a3a01b9526f7fb3df",
+    "lang": "en",
+    "text": "How do you say: Hello?"
+  },
+  {
+    "key": "RDMP-3a80b0b76c2505936966",
+    "lang": "en",
+    "text": "Excellent. Now let's learn the question 'What is your name?'. Listen first."
+  },
+  {
+    "key": "RDMP-0637958e1e62c6403b04",
+    "lang": "en",
+    "text": "Let's break down 'nome' (name). Repeat."
+  },
+  {
+    "key": "RDMP-2f7f8a8f5879a12e559c",
+    "lang": "pt",
+    "text": "nome"
+  },
+  {
+    "key": "RDMP-d82574413303ded9d3d1",
+    "lang": "en",
+    "text": "Now 'seu nome' (your name). Repeat."
+  },
+  {
+    "key": "RDMP-420701d5ba9762c556f9",
+    "lang": "pt",
+    "text": "seu nome"
+  },
+  {
+    "key": "RDMP-443428d551e643da7f8d",
+    "lang": "en",
+    "text": "Now 'Qual é o seu nome?' (What is your name?). Repeat."
+  },
+  {
+    "key": "RDMP-a6592ddf22dec5a5b36f",
+    "lang": "en",
+    "text": "To say 'My name is...', you say 'Meu nome é...'. Listen and repeat."
+  },
+  {
+    "key": "RDMP-1a3cb02f8b8a66338b87",
+    "lang": "pt",
+    "text": "Meu nome é..."
+  },
+  {
+    "key": "RDMP-bce81095ed8a1880488e",
+    "lang": "pt",
+    "text": "Meu nome é Akeem."
+  },
+  {
+    "key": "RDMP-28c64c620dc8dc4c4dab",
+    "lang": "en",
+    "text": "How do you say: My name is Akeem?"
+  },
+  {
+    "key": "RDMP-bd063c9f0283a4d6191e",
+    "lang": "en",
+    "text": "Ask someone: What is your name?"
+  },
+  {
+    "key": "RDMP-321ab9d5048f176d96a8",
+    "lang": "en",
+    "text": "Now say: Hello, good morning."
+  },
+  {
+    "key": "RDMP-9e07e6b9ec958b724fc8",
+    "lang": "pt",
+    "text": "Olá, bom dia."
+  },
+  {
+    "key": "RDMP-f15e6ec08ca5747115d3",
+    "lang": "en",
+    "text": "Let's learn nationality. To ask 'Are you American?', you say 'Você é americano?' if speaking to a male, or 'Você é americana?' if speaking to a female. Let's try 'americano'. Repeat."
+  },
+  {
+    "key": "RDMP-73bf9d9c94cd8cc9f247",
+    "lang": "pt",
+    "text": "Você é americana?"
+  },
+  {
+    "key": "RDMP-b095c25c2d960b4b116a",
+    "lang": "en",
+    "text": "Say 'Yes', which is 'Sim'."
+  },
+  {
+    "key": "RDMP-6a33e6593453139dba17",
+    "lang": "pt",
+    "text": "Sim."
+  },
+  {
+    "key": "RDMP-2c66bf73a34d0e14ab4e",
+    "lang": "en",
+    "text": "Say 'Yes, I am American'."
+  },
+  {
+    "key": "RDMP-45cf75592044f7803dfb",
+    "lang": "pt",
+    "text": "Sim, eu sou americano."
+  },
+  {
+    "key": "RDMP-1e4fb63782dd16073272",
+    "lang": "en",
+    "text": "To say 'No', you say 'Não'. Listen and repeat."
+  },
+  {
+    "key": "RDMP-e2509687ed30ddc72c4f",
+    "lang": "pt",
+    "text": "Não."
+  },
+  {
+    "key": "RDMP-68b8d38fce980d3564c0",
+    "lang": "en",
+    "text": "Say: No, I am not American."
+  },
+  {
+    "key": "RDMP-f18616369039646d148a",
+    "lang": "pt",
+    "text": "Não, eu não sou americano."
+  },
+  {
+    "key": "RDMP-a4a3590aa0a3268dfc8e",
+    "lang": "en",
+    "text": "Excellent! That concludes Lesson 1. Review this session until you can speak without hesitation."
+  },
+  {
+    "key": "RDMP-034c9d0e0f5bddbcc68a",
+    "lang": "en",
+    "text": "Welcome to Lesson 2. Today, we step onto the gym floor and learn how to check in with our training partners. Listen to this conversation."
+  },
+  {
+    "key": "RDMP-add408d40494730f06a2",
+    "lang": "pt",
+    "text": "Tudo ótimo. Onde fica a água?"
+  },
+  {
+    "key": "RDMP-f207cb219ea6927a9c28",
+    "lang": "pt",
+    "text": "Fica ali. Vamos treinar?"
+  },
+  {
+    "key": "RDMP-35a9b412533b67fd63a1",
+    "lang": "pt",
+    "text": "Vamos! Com certeza."
+  },
+  {
+    "key": "RDMP-daf36010321f51026bf4",
+    "lang": "en",
+    "text": "Let's learn how to ask 'How are you?' in a friendly, local way. Listen to 'Tudo bem?'."
+  },
+  {
+    "key": "RDMP-3f1b4a265c79bb197d84",
+    "lang": "en",
+    "text": "To reply 'I'm good, and you?', you say 'Tudo bem, e você?'. Let's practice 'e você?' (and you?)."
+  },
+  {
+    "key": "RDMP-3802d358ef27facf550e",
+    "lang": "pt",
+    "text": "e você?"
+  },
+  {
+    "key": "RDMP-5a3a1f594350aec5ff5d",
+    "lang": "en",
+    "text": "How do you say: I'm good, and you?"
+  },
+  {
+    "key": "RDMP-64f27ce7d0640cc0d863",
+    "lang": "en",
+    "text": "How do you ask: How are you?"
+  },
+  {
+    "key": "RDMP-3ab47a3ae11465b8808a",
+    "lang": "en",
+    "text": "Now, let's learn how to ask where the water is located. Listen to 'Onde fica a água?'."
+  },
+  {
+    "key": "RDMP-0ec303acc251cfa3412f",
+    "lang": "en",
+    "text": "Let's break it down. Say 'água' (water)."
+  },
+  {
+    "key": "RDMP-df7f91918072f68bc223",
+    "lang": "pt",
+    "text": "água"
+  },
+  {
+    "key": "RDMP-31fea157836075b439c6",
+    "lang": "en",
+    "text": "Say 'fica' (is located)."
+  },
+  {
+    "key": "RDMP-91991f939e49d28139b5",
+    "lang": "pt",
+    "text": "fica"
+  },
+  {
+    "key": "RDMP-3fc6b276806020a1f8e4",
+    "lang": "en",
+    "text": "Say 'Onde fica' (Where is...)."
+  },
+  {
+    "key": "RDMP-38060fe09b16a3b9843c",
+    "lang": "pt",
+    "text": "Onde fica"
+  },
+  {
+    "key": "RDMP-e965266bced365c87c88",
+    "lang": "en",
+    "text": "Put it all together: Where is the water?"
+  },
+  {
+    "key": "RDMP-a8b7bab4b60ed35d8033",
+    "lang": "en",
+    "text": "The answer is 'Ali' (Over there). Listen and repeat."
+  },
+  {
+    "key": "RDMP-f82d08efde348f93bf24",
+    "lang": "pt",
+    "text": "Ali."
+  },
+  {
+    "key": "RDMP-4d6153100a990c32aab9",
+    "lang": "en",
+    "text": "How do you say: Over there?"
+  },
+  {
+    "key": "RDMP-7052b3ec5297e05457d4",
+    "lang": "en",
+    "text": "How do you ask: Where is the water?"
+  },
+  {
+    "key": "RDMP-3423157f5838010bdecd",
+    "lang": "en",
+    "text": "Now, let's ask our partner if they want to train. 'Let's train?' in Portuguese is 'Vamos treinar?'. Listen and repeat."
+  },
+  {
+    "key": "RDMP-e1107df6061d8bef5246",
+    "lang": "en",
+    "text": "Respond with an excited: Let's go! (Vamos!)."
+  },
+  {
+    "key": "RDMP-b20f3b8494cd8d83c931",
+    "lang": "pt",
+    "text": "Vamos!"
+  },
+  {
+    "key": "RDMP-e51caf0d3cb824ab12d4",
+    "lang": "en",
+    "text": "Say: Let's train!"
+  },
+  {
+    "key": "RDMP-85ae491737672983ef06",
+    "lang": "en",
+    "text": "Excellent! Review this workout connection sequence."
+  },
+  {
+    "key": "RDMP-e45cfa2f1008c16c2a96",
+    "lang": "en",
+    "text": "Welcome to Lesson 3. Today we learn how to navigate the local streets to find the gym. Listen to this conversation."
+  },
+  {
+    "key": "RDMP-afb58b06c5caa22563dd",
+    "lang": "pt",
+    "text": "Por favor, onde fica a academia?"
+  },
+  {
+    "key": "RDMP-704a4890104edfe94a8d",
+    "lang": "pt",
+    "text": "Siga reto por dois quarteirões."
+  },
+  {
+    "key": "RDMP-692bee66eb5a87c56b9b",
+    "lang": "pt",
+    "text": "E depois?"
+  },
+  {
+    "key": "RDMP-e5e169e84016354f0cf9",
+    "lang": "pt",
+    "text": "Vire à esquerda na rua Copacabana."
+  },
+  {
+    "key": "RDMP-3feb5d4735a7c4820558",
+    "lang": "en",
+    "text": "Let's learn 'Go straight' (Siga reto). Repeat after the native speaker."
+  },
+  {
+    "key": "RDMP-ea69079a4a1de5f33551",
+    "lang": "pt",
+    "text": "Siga reto."
+  },
+  {
+    "key": "RDMP-10374aec294cbcf328b3",
+    "lang": "en",
+    "text": "Now, let's learn how to turn left. Say 'Vire à esquerda'."
+  },
+  {
+    "key": "RDMP-308dafc17fb6d1c32cd8",
+    "lang": "pt",
+    "text": "Vire à esquerda."
+  },
+  {
+    "key": "RDMP-c91f1ac5fa3dfff414ed",
+    "lang": "en",
+    "text": "Now, let's learn how to turn right. Say 'Vire à direita'."
+  },
+  {
+    "key": "RDMP-5aac55155a7b40a7579c",
+    "lang": "pt",
+    "text": "Vire à direita."
+  },
+  {
+    "key": "RDMP-52e644e4d264429dfcb5",
+    "lang": "en",
+    "text": "Say: Go straight, and then turn left."
+  },
+  {
+    "key": "RDMP-f74879ed87e623483265",
+    "lang": "pt",
+    "text": "Siga reto, e depois vire à esquerda."
+  },
+  {
+    "key": "RDMP-f8cd9981c9e081c636d6",
+    "lang": "en",
+    "text": "How do you say: Turn right?"
+  },
+  {
+    "key": "RDMP-057dab5632072f048edf",
+    "lang": "en",
+    "text": "Excellent navigation practice. Keep reviewing these directions."
+  },
+  {
+    "key": "RDMP-131d7f7f326f896c0c26",
+    "lang": "en",
+    "text": "Welcome to Lesson 4. Today we are fueling up our bodies. We will learn how to order at a café or local juice bar. Listen to this interaction."
+  },
+  {
+    "key": "RDMP-9cd893b9adf73861ba7f",
+    "lang": "pt",
+    "text": "Bom dia. Um café e uma água, por favor."
+  },
+  {
+    "key": "RDMP-01f2e37320396678ab99",
+    "lang": "pt",
+    "text": "Com açúcar ou adoçante?"
+  },
+  {
+    "key": "RDMP-8edad3f78ef225e534c5",
+    "lang": "pt",
+    "text": "Sem açúcar, por favor. E um shake com proteína."
+  },
+  {
+    "key": "RDMP-bb955a75289dba2e14be",
+    "lang": "pt",
+    "text": "Perfeito. São dezoito reais."
+  },
+  {
+    "key": "RDMP-1cd777c9cc990e09ef2a",
+    "lang": "pt",
+    "text": "Aqui está. Obrigado!"
+  },
+  {
+    "key": "RDMP-dbf1720b0301a1c214cb",
+    "lang": "en",
+    "text": "Let's order coffee. Say 'A coffee, please'."
+  },
+  {
+    "key": "RDMP-aabff8457d64495de3fc",
+    "lang": "pt",
+    "text": "Um café, por favor."
+  },
+  {
+    "key": "RDMP-b8d4df3cd9956fac390b",
+    "lang": "en",
+    "text": "Now, let's learn how to say 'With protein'. Listen and repeat."
+  },
+  {
+    "key": "RDMP-59e948465ece90dc86e8",
+    "lang": "pt",
+    "text": "Com proteína."
+  },
+  {
+    "key": "RDMP-dbf10b472ff4ce63d6be",
+    "lang": "en",
+    "text": "Say: A water and a protein shake, please."
+  },
+  {
+    "key": "RDMP-367f995fae5dff865bbc",
+    "lang": "pt",
+    "text": "Uma água e um shake com proteína, por favor."
+  },
+  {
+    "key": "RDMP-3f956f16a00cda5c86e4",
+    "lang": "en",
+    "text": "Now ask: How much is it?"
+  },
+  {
+    "key": "RDMP-67f6aec7206d06e870ea",
+    "lang": "en",
+    "text": "Respond with: Thank you (if you are male, say obrigado; if female, say obrigada)."
+  },
+  {
+    "key": "RDMP-5b92d31462bfcc0c1492",
+    "lang": "pt",
+    "text": "Obrigado."
+  },
+  {
+    "key": "RDMP-eaf6dbda825946d00438",
+    "lang": "pt",
+    "text": "Obrigada."
+  },
+  {
+    "key": "RDMP-160c8efe7fb3828bc3f8",
+    "lang": "en",
+    "text": "Welcome to Lesson 5. Today we learn how to handle open-market negotiations and understand numbers up to ten. Listen only."
+  },
+  {
+    "key": "RDMP-ca20cf5012732c0d4c7f",
+    "lang": "pt",
+    "text": "Quanto custa essa banana?"
+  },
+  {
+    "key": "RDMP-de3a53edc1059d52f19b",
+    "lang": "pt",
+    "text": "Custa dez reais."
+  },
+  {
+    "key": "RDMP-fe3afb9a6783427e8939",
+    "lang": "pt",
+    "text": "Nossa! Está muito caro. Faz por cinco reais?"
+  },
+  {
+    "key": "RDMP-a89d1e2dc715a92226cf",
+    "lang": "pt",
+    "text": "Tudo bem, faça dois por sete reais."
+  },
+  {
+    "key": "RDMP-b095d95c16c89a172a4c",
+    "lang": "pt",
+    "text": "Perfeito. Vou levar dois."
+  },
+  {
+    "key": "RDMP-d3ce7a54fee180b02d00",
+    "lang": "en",
+    "text": "Let's practice the objection 'It is too expensive'. Listen and repeat."
+  },
+  {
+    "key": "RDMP-b2afd13a8668b9ee39db",
+    "lang": "pt",
+    "text": "Está muito caro."
+  },
+  {
+    "key": "RDMP-7defba1045ed91bdf590",
+    "lang": "en",
+    "text": "Now let's count. Say 'One, Two' (Um, Dois)."
+  },
+  {
+    "key": "RDMP-3128c642a975717b0f14",
+    "lang": "pt",
+    "text": "Um, dois."
+  },
+  {
+    "key": "RDMP-7332ed443332c450d489",
+    "lang": "en",
+    "text": "Say 'Five reais' (Cinco reais)."
+  },
+  {
+    "key": "RDMP-a4ed83caafd96c54dbcc",
+    "lang": "pt",
+    "text": "Cinco reais."
+  },
+  {
+    "key": "RDMP-2c5dfcd4a7a1166f6bc6",
+    "lang": "en",
+    "text": "Say 'Ten' (Dez)."
+  },
+  {
+    "key": "RDMP-1014a6d1e87238456140",
+    "lang": "pt",
+    "text": "Dez."
+  },
+  {
+    "key": "RDMP-02cd3a773db1633b6c11",
+    "lang": "en",
+    "text": "Now negotiate: Can you make it for five reais?"
+  },
+  {
+    "key": "RDMP-e996c75adc31e0752b1e",
+    "lang": "pt",
+    "text": "Faz por cinco reais?"
+  },
+  {
+    "key": "RDMP-07187f4c845529d94c31",
+    "lang": "en",
+    "text": "Welcome to Lesson 6. Today we align our routines and master asking for the time, coordinate fasting schedules, and practice numbers up to thirty."
+  },
+  {
+    "key": "RDMP-6d522a3e393bce0a3890",
+    "lang": "pt",
+    "text": "Que horas são agora?"
+  },
+  {
+    "key": "RDMP-c18a20ae45a61cc88310",
+    "lang": "pt",
+    "text": "São oito horas da manhã. Por quê?"
+  },
+  {
+    "key": "RDMP-edce5f2455b038448731",
+    "lang": "pt",
+    "text": "Preciso quebrar o meu jejum às nove horas."
+  },
+  {
+    "key": "RDMP-42259a6e3daa0d736563",
+    "lang": "pt",
+    "text": "Perfeito. Nosso treino é às dez."
+  },
+  {
+    "key": "RDMP-61625c05d8fa87a42c10",
+    "lang": "en",
+    "text": "Let's ask: What time is it? Listen and repeat."
+  },
+  {
+    "key": "RDMP-189b16fa5d476fe9284e",
+    "lang": "en",
+    "text": "Say 'It is eight o'clock' (São oito horas)."
+  },
+  {
+    "key": "RDMP-482aa217d9ceb5a601f0",
+    "lang": "pt",
+    "text": "São oito horas."
+  },
+  {
+    "key": "RDMP-75073da120c2330d50c6",
+    "lang": "en",
+    "text": "Now learn 'Fasting' (Jejum). Repeat."
+  },
+  {
+    "key": "RDMP-51a9593ec325b705f6da",
+    "lang": "pt",
+    "text": "Jejum."
+  },
+  {
+    "key": "RDMP-63c0bc58be224bf38340",
+    "lang": "en",
+    "text": "Say 'Intermittent Fasting' (Jejum intermitente)."
+  },
+  {
+    "key": "RDMP-b740e11b28296b9a25f6",
+    "lang": "pt",
+    "text": "Jejum intermitente."
+  },
+  {
+    "key": "RDMP-bfba4332f6fe99e190f4",
+    "lang": "en",
+    "text": "Welcome to Lesson 7. Today we map out body anatomy and discuss physical strain or injury target points. Listen only."
+  },
+  {
+    "key": "RDMP-c346e2362749a9cd4dc7",
+    "lang": "pt",
+    "text": "O que nós vamos treinar hoje?"
+  },
+  {
+    "key": "RDMP-51e2a6e7b77c5c26ad12",
+    "lang": "pt",
+    "text": "Hoje é treino de pernas e peito."
+  },
+  {
+    "key": "RDMP-49bd57404548322b28b8",
+    "lang": "pt",
+    "text": "Perfeito, minhas costas estão doendo um pouco."
+  },
+  {
+    "key": "RDMP-d38892d1e64b7a4c3e79",
+    "lang": "pt",
+    "text": "Sem problemas. Vamos focar nos membros inferiores."
+  },
+  {
+    "key": "RDMP-4eb015d297bf2d63a70c",
+    "lang": "en",
+    "text": "Let's learn the word for 'Chest' (Peito). Repeat."
+  },
+  {
+    "key": "RDMP-b1eda9df45bde115f0b0",
+    "lang": "pt",
+    "text": "Peito."
+  },
+  {
+    "key": "RDMP-1704f56ae82a3e3a2360",
+    "lang": "en",
+    "text": "Say 'Legs' (Pernas)."
+  },
+  {
+    "key": "RDMP-2225bb9a46da3b1cc79c",
+    "lang": "pt",
+    "text": "Pernas."
+  },
+  {
+    "key": "RDMP-c8784b6411ec92f8600d",
+    "lang": "en",
+    "text": "Say 'Back' (Costas)."
+  },
+  {
+    "key": "RDMP-40e7357f7d59303324b6",
+    "lang": "pt",
+    "text": "Costas."
+  },
+  {
+    "key": "RDMP-273baee847b8934e780f",
+    "lang": "en",
+    "text": "To say 'It hurts' or 'It is aching', you say 'Está doendo'. Repeat."
+  },
+  {
+    "key": "RDMP-cbd51b94aff99c348527",
+    "lang": "pt",
+    "text": "Está doendo."
+  },
+  {
+    "key": "RDMP-004b8c1f7dfbfdeffdfc",
+    "lang": "en",
+    "text": "Say: My back hurts."
+  },
+  {
+    "key": "RDMP-15e3ad2ce2376912df27",
+    "lang": "pt",
+    "text": "Minhas costas estão doendo."
+  },
+  {
+    "key": "RDMP-86312a029a70206690b6",
+    "lang": "en",
+    "text": "Welcome to Lesson 8. Today we learn how to command training structures, adjust plate setups, and instruct movements. Listen only."
+  },
+  {
+    "key": "RDMP-7aee0511d745dd31911d",
+    "lang": "pt",
+    "text": "Coloque mais peso na barra, por favor."
+  },
+  {
+    "key": "RDMP-029da903bf2ba46361d5",
+    "lang": "pt",
+    "text": "Quantos quilos?"
+  },
+  {
+    "key": "RDMP-842abe44e7cd1c70a827",
+    "lang": "pt",
+    "text": "Mais dez quilos de cada lado. Agora, empurre forte!"
+  },
+  {
+    "key": "RDMP-98f672237586aba8093c",
+    "lang": "pt",
+    "text": "Consegui! Próxima série vamos puxar."
+  },
+  {
+    "key": "RDMP-8a721606311473ee2623",
+    "lang": "en",
+    "text": "Let's practice 'Push' (Empurre). Repeat."
+  },
+  {
+    "key": "RDMP-c84d3a19d5a385c952f7",
+    "lang": "pt",
+    "text": "Empurre."
+  },
+  {
+    "key": "RDMP-6cc82ec5bba38cf41d05",
+    "lang": "en",
+    "text": "Now say 'Pull' (Puxe)."
+  },
+  {
+    "key": "RDMP-bfe7bbfdbe75686d1c08",
+    "lang": "pt",
+    "text": "Puxe."
+  },
+  {
+    "key": "RDMP-bbd501414b6acea17887",
+    "lang": "en",
+    "text": "Say 'More weight' (Mais peso)."
+  },
+  {
+    "key": "RDMP-1473ca370f547bc98090",
+    "lang": "pt",
+    "text": "Mais peso."
+  },
+  {
+    "key": "RDMP-1f495e50e01f8a8b82fe",
+    "lang": "en",
+    "text": "Say: Put more weight on the barbell."
+  },
+  {
+    "key": "RDMP-817905730f2caca3082c",
+    "lang": "pt",
+    "text": "Coloque mais peso na barra."
+  },
+  {
+    "key": "RDMP-ecd3c49aef6e849529f4",
+    "lang": "en",
+    "text": "Welcome to Lesson 9. Today we learn how to build solid connections after our workouts, congratulate partners, and arrange the next schedule. Listen only."
+  },
+  {
+    "key": "RDMP-0e5dd3ebcc498ec9c795",
+    "lang": "pt",
+    "text": "Ufa! Ótimo treino hoje!"
+  },
+  {
+    "key": "RDMP-af41d3171d476cddae4f",
+    "lang": "pt",
+    "text": "Com certeza, você treinou muito bem. Nos vemos amanhã?"
+  },
+  {
+    "key": "RDMP-8e325b0e764bea87eb88",
+    "lang": "pt",
+    "text": "Sim, amanhã no mesmo horário. Até logo!"
+  },
+  {
+    "key": "RDMP-3d912efd8013e4f5d9af",
+    "lang": "pt",
+    "text": "Perfeito. Até amanhã!"
+  },
+  {
+    "key": "RDMP-c25ca3b22eb44ee76632",
+    "lang": "en",
+    "text": "Let's say 'Great workout!' (Ótimo treino!). Repeat."
+  },
+  {
+    "key": "RDMP-12877d993e5cad697779",
+    "lang": "en",
+    "text": "Say 'Tomorrow' (Amanhã)."
+  },
+  {
+    "key": "RDMP-988ad9f3266e503b7af7",
+    "lang": "pt",
+    "text": "Amanhã."
+  },
+  {
+    "key": "RDMP-31394200dfd4fc782081",
+    "lang": "en",
+    "text": "Say 'See you later' (Até logo)."
+  },
+  {
+    "key": "RDMP-762c18e33d29571909ed",
+    "lang": "pt",
+    "text": "Até logo."
+  },
+  {
+    "key": "RDMP-45d2334c71714bebb40e",
+    "lang": "en",
+    "text": "Say: See you tomorrow!"
+  },
+  {
+    "key": "RDMP-32a40069fbe94c4fbfd6",
+    "lang": "pt",
+    "text": "Até amanhã!"
+  },
+  {
+    "key": "RDMP-bd076fd9e6701816abe4",
+    "lang": "en",
+    "text": "Welcome to our final Lesson 10. Today we integrate greetings, directions, food ordering, and fitness protocols into unified cultural confidence. Listen only."
+  },
+  {
+    "key": "RDMP-f157fbb0b8dcdee1d1fb",
+    "lang": "pt",
+    "text": "Olá! Agora eu falo português brasileiro!"
+  },
+  {
+    "key": "RDMP-3811b2857469f0591d18",
+    "lang": "pt",
+    "text": "Que maravilha! Vamos juntos comemorar na churrascaria?"
+  },
+  {
+    "key": "RDMP-7a6c9926b3425e53a05b",
+    "lang": "pt",
+    "text": "Vamos juntos! Eu pago o café."
+  },
+  {
+    "key": "RDMP-ba96af0df1e4f48bc53d",
+    "lang": "pt",
+    "text": "Excelente, você é um ótimo parceiro de treino!"
+  },
+  {
+    "key": "RDMP-ab64dafa86ebbc3ec6a0",
+    "lang": "en",
+    "text": "Let's declare your accomplishment. Say 'I speak Portuguese' (Eu falo português)."
+  },
+  {
+    "key": "RDMP-960b54ea3a7ae993d008",
+    "lang": "pt",
+    "text": "Eu falo português."
+  },
+  {
+    "key": "RDMP-1cfc33888cbf4a317685",
+    "lang": "en",
+    "text": "Say 'Let's go together' (Vamos juntos)."
+  },
+  {
+    "key": "RDMP-e556e9bff72c2f0b344d",
+    "lang": "pt",
+    "text": "Vamos juntos."
+  },
+  {
+    "key": "RDMP-7f9a07b440938d091a4f",
+    "lang": "en",
+    "text": "Congratulations on completing the BBF Lab 90-Day Mastery Portuguese Series. Keep refining, training, and manifesting your goals!"
+  }
+]

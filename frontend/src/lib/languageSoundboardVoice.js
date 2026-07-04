@@ -1,16 +1,55 @@
 // src/lib/languageSoundboardVoice.js
 // ─────────────────────────────────────────────────────────────────────────────
-// Language Mastery soundboard — ElevenLabs client (Coach Akeem's cloned voice,
-// eleven_multilingual_v2). Fronts bbf-language-soundboard-tts, which caches every
-// synthesized cue by hash(lang|text) server-side so a repeat vocab/phrase/lesson
-// play never re-bills ElevenLabs. speakWithBrowser (speechFallback.js) remains the
-// $0 fallback the function's own header comment already documents — speakSmart
-// below is the one call site every soundboard button should use.
+// Language Mastery soundboard — Coach Akeem's ElevenLabs voice clone, baked STATIC
+// (scripts/build-language-soundboard-cues.mjs + bbf-bake-language-soundboard →
+// the public `language-fragments` bucket, mirroring the coach-static architecture).
+// Every fixed cue was synthesized ONCE; speakBaked plays that static clip straight
+// from the bucket's CDN — ZERO recurring ElevenLabs spend for existing content.
+//
+// Three-tier fallback, each tier only reached if the one before it is unavailable:
+//   1. speakStatic — the pre-baked clip (fragment_key = hash(lang|text), see staticKeyFor)
+//   2. speakSmart   → speakWithEleven — a live, cached synth via bbf-language-soundboard-tts
+//                      (covers any NEW cue added after the last bake)
+//   3. speakWithBrowser (speechFallback.js) — the free on-device voice, last resort
+//
+// speakBaked is the one call site every soundboard button/lesson step should use.
 
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { speakWithBrowser } from './speechFallback.js';
 
 const MAX_LEN = 800; // mirrors the edge function's own clamp
+
+// Content-hash fragment key — MUST match scripts/build-language-soundboard-cues.mjs's
+// keyFor() exactly (sha256(lang|text), no version segment) so any call site resolves
+// the right static clip from just (lang, text), with no shared manifest to keep in
+// sync. Changing this derivation orphans every already-baked clip — don't.
+async function staticKeyFor(lang, text) {
+  const bytes = new TextEncoder().encode(`${lang}|${String(text ?? '').trim()}`);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const hex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  return `RDMP-${hex.slice(0, 20)}`;
+}
+
+function staticFragmentUrl(key) {
+  const base = String(FUNCTIONS_BASE || '').replace(/\/functions\/v1$/, '/storage/v1/object/public');
+  return `${base}/language-fragments/${key}.mp3`;
+}
+
+// Try the pre-baked static clip. Rejects (never baked, or the bucket is unreachable)
+// so the caller falls through to the live/cached tier — the HEAD check keeps a
+// missing clip from ever surfacing as a broken <audio> element.
+async function speakStatic({ text, lang, onEnd, onError }) {
+  const key = await staticKeyFor(lang, text);
+  const url = staticFragmentUrl(key);
+  const head = await fetch(url, { method: 'HEAD' });
+  if (!head.ok) throw new Error('not_baked');
+
+  const audio = new Audio(url);
+  audio.onended = () => onEnd?.();
+  audio.onerror = () => onError?.(new Error('Static clip playback failed.'));
+  await audio.play();
+  return { stop: () => { try { audio.pause(); } catch { /* noop */ } } };
+}
 
 // A zero-length, valid 8kHz/8-bit/mono WAV — silent, ~44 bytes, no network. Playing
 // it SYNCHRONOUSLY inside the click gesture unlocks HTMLMediaElement autoplay on
@@ -83,5 +122,15 @@ export async function speakSmart({ text, lang = 'es', voiceGender, rate, pitch, 
     return await speakWithEleven({ text, lang, onEnd, onError });
   } catch {
     return speakWithBrowser({ text, lang, voiceGender, rate, pitch, onEnd, onError });
+  }
+}
+
+// The soundboard's one true entry point: static baked clip → live cached synth →
+// free browser voice. Same call shape as speakWithBrowser/speakSmart throughout.
+export async function speakBaked({ text, lang = 'es', voiceGender, rate, pitch, onEnd, onError } = {}) {
+  try {
+    return await speakStatic({ text, lang, onEnd, onError });
+  } catch {
+    return speakSmart({ text, lang, voiceGender, rate, pitch, onEnd, onError });
   }
 }

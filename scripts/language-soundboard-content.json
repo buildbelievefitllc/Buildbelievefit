@@ -1,0 +1,1070 @@
+{
+  "vocabData": {
+    "ANATOMY": [
+      {
+        "es": "músculo",
+        "en": "muscle"
+      },
+      {
+        "es": "bíceps",
+        "en": "biceps"
+      },
+      {
+        "es": "tríceps",
+        "en": "triceps"
+      },
+      {
+        "es": "cuádriceps",
+        "en": "quadriceps"
+      },
+      {
+        "es": "isquiotibiales",
+        "en": "hamstrings"
+      },
+      {
+        "es": "glúteos",
+        "en": "glutes"
+      },
+      {
+        "es": "pectorales",
+        "en": "pectorals / chest"
+      },
+      {
+        "es": "deltoides",
+        "en": "deltoids / shoulders"
+      },
+      {
+        "es": "espalda",
+        "en": "back"
+      },
+      {
+        "es": "abdominales",
+        "en": "abs/core"
+      },
+      {
+        "es": "pantorrilla",
+        "en": "calf"
+      },
+      {
+        "es": "antebrazo",
+        "en": "forearm"
+      },
+      {
+        "es": "columna vertebral",
+        "en": "spine"
+      },
+      {
+        "es": "articulación",
+        "en": "joint"
+      },
+      {
+        "es": "tendón",
+        "en": "tendon"
+      },
+      {
+        "es": "ligamento",
+        "en": "ligament"
+      },
+      {
+        "es": "núcleo",
+        "en": "core"
+      },
+      {
+        "es": "postura",
+        "en": "posture"
+      },
+      {
+        "es": "rango de movimiento",
+        "en": "range of motion"
+      },
+      {
+        "es": "conexión mente-músculo",
+        "en": "mind-muscle connection"
+      }
+    ],
+    "NUTRITION": [
+      {
+        "es": "macronutrientes",
+        "en": "macros"
+      },
+      {
+        "es": "proteína",
+        "en": "protein"
+      },
+      {
+        "es": "carbohidratos",
+        "en": "carbohydrates"
+      },
+      {
+        "es": "grasas saludables",
+        "en": "healthy fats"
+      },
+      {
+        "es": "calorías",
+        "en": "calories"
+      },
+      {
+        "es": "déficit calórico",
+        "en": "caloric deficit"
+      },
+      {
+        "es": "superávit calórico",
+        "en": "caloric surplus"
+      },
+      {
+        "es": "ayuno intermitente",
+        "en": "intermittent fasting"
+      },
+      {
+        "es": "ventana de alimentación",
+        "en": "eating window"
+      },
+      {
+        "es": "hidratación",
+        "en": "hydration"
+      },
+      {
+        "es": "suplemento",
+        "en": "supplement"
+      },
+      {
+        "es": "creatina",
+        "en": "creatine"
+      },
+      {
+        "es": "proteína de suero",
+        "en": "whey protein"
+      },
+      {
+        "es": "aminoácidos",
+        "en": "amino acids"
+      },
+      {
+        "es": "metabolismo",
+        "en": "metabolism"
+      },
+      {
+        "es": "composición corporal",
+        "en": "body composition"
+      },
+      {
+        "es": "grasa corporal",
+        "en": "body fat"
+      },
+      {
+        "es": "masa muscular",
+        "en": "muscle mass"
+      },
+      {
+        "es": "masa magra",
+        "en": "lean mass"
+      },
+      {
+        "es": "nutrición perientrenamiento",
+        "en": "peri-workout nutrition"
+      }
+    ],
+    "TRAINING": [
+      {
+        "es": "sobrecarga progresiva",
+        "en": "progressive overload"
+      },
+      {
+        "es": "volumen de entrenamiento",
+        "en": "training volume"
+      },
+      {
+        "es": "intensidad",
+        "en": "intensity"
+      },
+      {
+        "es": "frecuencia",
+        "en": "frequency"
+      },
+      {
+        "es": "repetición",
+        "en": "rep"
+      },
+      {
+        "es": "serie",
+        "en": "set"
+      },
+      {
+        "es": "fallo muscular",
+        "en": "muscular failure"
+      },
+      {
+        "es": "técnica",
+        "en": "technique / form"
+      },
+      {
+        "es": "calentamiento",
+        "en": "warm-up"
+      },
+      {
+        "es": "enfriamiento",
+        "en": "cool-down"
+      },
+      {
+        "es": "hipertrofia",
+        "en": "hypertrophy"
+      },
+      {
+        "es": "resistencia",
+        "en": "endurance"
+      },
+      {
+        "es": "fuerza",
+        "en": "strength"
+      },
+      {
+        "es": "cardio",
+        "en": "cardio"
+      },
+      {
+        "es": "división de entrenamiento",
+        "en": "training split"
+      },
+      {
+        "es": "descanso activo",
+        "en": "active recovery"
+      },
+      {
+        "es": "sobreentrenamiento",
+        "en": "overtraining"
+      },
+      {
+        "es": "periodización",
+        "en": "periodization"
+      },
+      {
+        "es": "tiempo bajo tensión",
+        "en": "time under tension"
+      },
+      {
+        "es": "velocidad de ejecución",
+        "en": "rep tempo"
+      }
+    ],
+    "MOTIVATION & CUES": [
+      {
+        "es": "¡Tú puedes!",
+        "en": "You can do it!"
+      },
+      {
+        "es": "¡Más peso!",
+        "en": "More weight!"
+      },
+      {
+        "es": "¡Aprieta!",
+        "en": "Squeeze!"
+      },
+      {
+        "es": "Controla el movimiento",
+        "en": "Control the movement"
+      },
+      {
+        "es": "Respira",
+        "en": "Breathe"
+      },
+      {
+        "es": "Mantén la postura",
+        "en": "Hold your form"
+      },
+      {
+        "es": "Empuja",
+        "en": "Push"
+      },
+      {
+        "es": "Jala",
+        "en": "Pull"
+      },
+      {
+        "es": "Última repetición",
+        "en": "Last rep"
+      },
+      {
+        "es": "¡Descansa!",
+        "en": "Rest!"
+      },
+      {
+        "es": "Concéntrate",
+        "en": "Focus"
+      },
+      {
+        "es": "Siente el músculo",
+        "en": "Feel the muscle"
+      },
+      {
+        "es": "Más profundo",
+        "en": "Go deeper"
+      },
+      {
+        "es": "Velocidad controlada",
+        "en": "Controlled speed"
+      },
+      {
+        "es": "¡Excelente trabajo!",
+        "en": "Excellent work!"
+      },
+      {
+        "es": "Vamos a superar tus límites",
+        "en": "We're pushing your limits"
+      },
+      {
+        "es": "Confía en el proceso",
+        "en": "Trust the process"
+      },
+      {
+        "es": "Disciplina es libertad",
+        "en": "Discipline is freedom"
+      },
+      {
+        "es": "Construye, cree, logra",
+        "en": "Build, believe, achieve"
+      },
+      {
+        "es": "El dolor es temporal",
+        "en": "Pain is temporary"
+      }
+    ]
+  },
+  "scripts": [
+    {
+      "title": "SCRIPT 1 — Explaining 16/8 Fasting",
+      "label": "Explica el Ayuno 16/8",
+      "lines": [
+        {
+          "es": "Hoy vamos a hablar de tu protocolo de ayuno.",
+          "en": "Today we're going to talk about your fasting protocol."
+        },
+        {
+          "es": "El ayuno 16/8 significa que no comes durante 16 horas y tienes una ventana de alimentación de 8 horas.",
+          "en": "16/8 fasting means you don't eat for 16 hours and have an 8-hour eating window."
+        },
+        {
+          "es": "Por ejemplo, si tu última comida es a las 8 de la noche, no comes hasta el mediodía del día siguiente.",
+          "en": "For example, if your last meal is at 8 PM, you don't eat until noon the next day."
+        },
+        {
+          "es": "Durante el ayuno, puedes tomar agua, café negro, y té sin azúcar.",
+          "en": "During the fast, you can have water, black coffee, and unsweetened tea."
+        },
+        {
+          "es": "Este método mejora la sensibilidad a la insulina y te ayuda a reducir la grasa corporal.",
+          "en": "This method improves insulin sensitivity and helps you reduce body fat."
+        },
+        {
+          "es": "¿Tienes preguntas sobre cómo empezar?",
+          "en": "Do you have questions about how to start?"
+        }
+      ]
+    },
+    {
+      "title": "SCRIPT 2 — The 5-Day Strength Split",
+      "label": "Explica la División de 5 Días",
+      "lines": [
+        {
+          "es": "Tu programa de entrenamiento es una división de cinco días.",
+          "en": "Your training program is a five-day split."
+        },
+        {
+          "es": "El lunes trabajamos el pecho y los tríceps.",
+          "en": "Monday we work chest and triceps."
+        },
+        {
+          "es": "El martes es para la espalda y los bíceps.",
+          "en": "Tuesday is for back and biceps."
+        },
+        {
+          "es": "El miércoles entrenamos los hombros y el núcleo.",
+          "en": "Wednesday we train shoulders and core."
+        },
+        {
+          "es": "El jueves nos enfocamos en los glúteos y los isquiotibiales.",
+          "en": "Thursday we focus on glutes and hamstrings."
+        },
+        {
+          "es": "El viernes es el día de cuádriceps y pantorrillas.",
+          "en": "Friday is quadriceps and calves day."
+        },
+        {
+          "es": "El sábado y el domingo son días de descanso activo o cardio ligero.",
+          "en": "Saturday and Sunday are active recovery or light cardio days."
+        },
+        {
+          "es": "Cada semana aumentamos el peso o las repeticiones — eso es la sobrecarga progresiva.",
+          "en": "Every week we increase the weight or reps — that's progressive overload."
+        }
+      ]
+    },
+    {
+      "title": "SCRIPT 3 — Motivation & Check-In",
+      "label": "Motivación y Revisión",
+      "lines": [
+        {
+          "es": "¿Cómo te sientes hoy? ¿Tienes energía para entrenar?",
+          "en": "How are you feeling today? Do you have energy to train?"
+        },
+        {
+          "es": "Recuerda: la consistencia es más importante que la perfección.",
+          "en": "Remember: consistency is more important than perfection."
+        },
+        {
+          "es": "Hoy vamos a trabajar en la conexión mente-músculo.",
+          "en": "Today we're going to work on the mind-muscle connection."
+        },
+        {
+          "es": "Cada repetición debe ser intencional — siente el músculo trabajar.",
+          "en": "Every rep must be intentional — feel the muscle working."
+        },
+        {
+          "es": "Tu objetivo es llegar a 175 libras de masa muscular limpia. Estamos construyendo ese físico.",
+          "en": "Your goal is to reach 175 lbs of clean muscle mass. We are building that physique."
+        },
+        {
+          "es": "¡Tú puedes! Construye, cree, logra.",
+          "en": "You can do it! Build, believe, achieve."
+        }
+      ]
+    }
+  ],
+  "ptPhrases": [
+    {
+      "n": 1,
+      "pt": "Olá! Tudo bem?",
+      "en": "Hi! All good / How are you?",
+      "cat": "social"
+    },
+    {
+      "n": 2,
+      "pt": "Tudo bem, obrigado!",
+      "en": "All good, thanks!",
+      "cat": "social"
+    },
+    {
+      "n": 3,
+      "pt": "Como você se chama?",
+      "en": "What's your name?",
+      "cat": "social"
+    },
+    {
+      "n": 4,
+      "pt": "Me chamo Akeem.",
+      "en": "My name is Akeem.",
+      "cat": "social"
+    },
+    {
+      "n": 5,
+      "pt": "Prazer em te conhecer!",
+      "en": "Nice to meet you!",
+      "cat": "social"
+    },
+    {
+      "n": 6,
+      "pt": "Você fala inglês?",
+      "en": "Do you speak English?",
+      "cat": "social"
+    },
+    {
+      "n": 7,
+      "pt": "Falo pouco português.",
+      "en": "I speak a little Portuguese.",
+      "cat": "social"
+    },
+    {
+      "n": 8,
+      "pt": "Pode falar mais devagar?",
+      "en": "Can you speak more slowly?",
+      "cat": "social"
+    },
+    {
+      "n": 9,
+      "pt": "Não entendi. Pode repetir?",
+      "en": "I didn't understand. Can you repeat?",
+      "cat": "social"
+    },
+    {
+      "n": 10,
+      "pt": "Onde fica o metrô?",
+      "en": "Where is the subway?",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 11,
+      "pt": "Onde fica o aeroporto?",
+      "en": "Where is the airport?",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 12,
+      "pt": "Preciso de um táxi.",
+      "en": "I need a taxi.",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 13,
+      "pt": "Chame um Uber, por favor.",
+      "en": "Please call an Uber.",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 14,
+      "pt": "Onde fica o hotel?",
+      "en": "Where is the hotel?",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 15,
+      "pt": "Qual é o endereço?",
+      "en": "What is the address?",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 16,
+      "pt": "Estou perdido(a).",
+      "en": "I'm lost.",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 17,
+      "pt": "Me leva para aqui, por favor.",
+      "en": "Take me here, please. [show map]",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 18,
+      "pt": "Quanto custa?",
+      "en": "How much does it cost?",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 19,
+      "pt": "Aceita cartão?",
+      "en": "Do you accept card?",
+      "cat": "airport/nav"
+    },
+    {
+      "n": 20,
+      "pt": "Quero um açaí, por favor.",
+      "en": "I'd like an açaí, please.",
+      "cat": "food"
+    },
+    {
+      "n": 21,
+      "pt": "Com granola e banana.",
+      "en": "With granola and banana.",
+      "cat": "food"
+    },
+    {
+      "n": 22,
+      "pt": "Quero churrasco misto.",
+      "en": "I'd like a mixed churrasco.",
+      "cat": "food"
+    },
+    {
+      "n": 23,
+      "pt": "Sem glúten, por favor.",
+      "en": "Gluten-free, please.",
+      "cat": "food"
+    },
+    {
+      "n": 24,
+      "pt": "Mais proteína, menos carboidrato.",
+      "en": "More protein, less carb.",
+      "cat": "food"
+    },
+    {
+      "n": 25,
+      "pt": "Água, por favor.",
+      "en": "Water, please.",
+      "cat": "food"
+    },
+    {
+      "n": 26,
+      "pt": "A conta, por favor.",
+      "en": "The bill, please.",
+      "cat": "food"
+    },
+    {
+      "n": 27,
+      "pt": "Está delicioso!",
+      "en": "It's delicious!",
+      "cat": "food"
+    },
+    {
+      "n": 28,
+      "pt": "Quero um suco de maracujá.",
+      "en": "I'd like a passion fruit juice.",
+      "cat": "food"
+    },
+    {
+      "n": 29,
+      "pt": "Tem opção sem açúcar?",
+      "en": "Is there a sugar-free option?",
+      "cat": "food"
+    },
+    {
+      "n": 30,
+      "pt": "Onde fica a academia?",
+      "en": "Where is the gym?",
+      "cat": "gym"
+    },
+    {
+      "n": 31,
+      "pt": "Você treina aqui todo dia?",
+      "en": "Do you train here every day?",
+      "cat": "gym"
+    },
+    {
+      "n": 32,
+      "pt": "Posso treinar com você?",
+      "en": "Can I train with you?",
+      "cat": "gym"
+    },
+    {
+      "n": 33,
+      "pt": "Qual músculo você está treinando hoje?",
+      "en": "Which muscle are you training today?",
+      "cat": "gym"
+    },
+    {
+      "n": 34,
+      "pt": "Você pode me ajudar com a técnica?",
+      "en": "Can you help me with my form?",
+      "cat": "gym"
+    },
+    {
+      "n": 35,
+      "pt": "Quanto tempo você treina?",
+      "en": "How long have you been training?",
+      "cat": "gym"
+    },
+    {
+      "n": 36,
+      "pt": "Que suplementos você toma?",
+      "en": "What supplements do you take?",
+      "cat": "gym"
+    },
+    {
+      "n": 37,
+      "pt": "Você é personal trainer?",
+      "en": "Are you a personal trainer?",
+      "cat": "gym"
+    },
+    {
+      "n": 38,
+      "pt": "Sou personal trainer nos Estados Unidos.",
+      "en": "I'm a personal trainer from the US.",
+      "cat": "gym"
+    },
+    {
+      "n": 39,
+      "pt": "Posso fazer uma série aqui?",
+      "en": "Can I use this [equipment]?",
+      "cat": "gym"
+    },
+    {
+      "n": 40,
+      "pt": "Vamos treinar juntos!",
+      "en": "Let's train together!",
+      "cat": "gym"
+    },
+    {
+      "n": 41,
+      "pt": "Você quer sair depois do treino?",
+      "en": "Do you want to hang out after the workout?",
+      "cat": "social+"
+    },
+    {
+      "n": 42,
+      "pt": "Qual é seu Instagram?",
+      "en": "What's your Instagram?",
+      "cat": "social+"
+    },
+    {
+      "n": 43,
+      "pt": "Me adiciona no Instagram!",
+      "en": "Add me on Instagram!",
+      "cat": "social+"
+    },
+    {
+      "n": 44,
+      "pt": "Você mora aqui em São Paulo?",
+      "en": "Do you live here in São Paulo?",
+      "cat": "social+"
+    },
+    {
+      "n": 45,
+      "pt": "Qual é o melhor restaurante aqui?",
+      "en": "What's the best restaurant here?",
+      "cat": "social+"
+    },
+    {
+      "n": 46,
+      "pt": "Qual é a melhor praia perto daqui?",
+      "en": "What's the best beach near here?",
+      "cat": "social+"
+    },
+    {
+      "n": 47,
+      "pt": "Obrigado por tudo!",
+      "en": "Thank you for everything!",
+      "cat": "social+"
+    },
+    {
+      "n": 48,
+      "pt": "Foi um prazer!",
+      "en": "It was a pleasure!",
+      "cat": "social+"
+    },
+    {
+      "n": 49,
+      "pt": "Até logo! / Tchau!",
+      "en": "See you! / Bye!",
+      "cat": "social+"
+    },
+    {
+      "n": 50,
+      "pt": "Volto em breve.",
+      "en": "I'll be back soon.",
+      "cat": "social+"
+    }
+  ],
+  "intentions": [
+    {
+      "week": "WEEKS 1–2",
+      "theme": "I AM DISCIPLINED",
+      "es": "Soy disciplinado. Mi cuerpo obedece mi mente. Cada cardio me acerca a 175 libras de poder.",
+      "pt": "Sou disciplinado. Meu corpo obedece à minha mente. Cada cardio me aproxima de 175 libras de poder."
+    },
+    {
+      "week": "WEEKS 3–4",
+      "theme": "I AM CUTTING CLEAN",
+      "es": "Corto con precisión quirúrgica. El déficit es mi herramienta. Cada libra perdida revela mi mejor versión.",
+      "pt": "Corto com precisão cirúrgica. O déficit é minha ferramenta. Cada quilo perdido revela minha melhor versão."
+    },
+    {
+      "week": "WEEKS 5–6",
+      "theme": "I AM RELENTLESS",
+      "es": "No paro. No me rindo. Soy un atleta de élite construyendo su legado en cada sesión de cardio.",
+      "pt": "Não paro. Não desisto. Sou um atleta de elite construindo meu legado a cada sessão de cardio."
+    },
+    {
+      "week": "WEEKS 7–8",
+      "theme": "175 IS MINE",
+      "es": "175 libras son mías. Mi masa muscular crece. Mi grasa disminuye. Soy el arquetipo del entrenador.",
+      "pt": "175 libras são minhas. Minha massa muscular cresce. Minha gordura diminui. Sou o arquétipo do treinador."
+    },
+    {
+      "week": "WEEKS 9–10",
+      "theme": "I SPEAK POWER",
+      "es": "Hablo dos idiomas del poder. Sirvo a más clientes. Expando Build Believe Fit sin fronteras.",
+      "pt": "Falo dois idiomas do poder. Sirvo mais clientes. Expando a Build Believe Fit sem fronteiras."
+    },
+    {
+      "week": "WEEKS 11–12",
+      "theme": "I AM THE BRAND",
+      "es": "Soy Build Believe Fit. Construyo. Creo. Logro. En 175 libras, con dos idiomas y sin límites.",
+      "pt": "Sou a Build Believe Fit. Construo. Acredito. Conquisto. Com 175 libras, dois idiomas e sem limites."
+    }
+  ],
+  "CULTURAL_SCENARIOS": [
+    {
+      "id": "restaurant-es",
+      "lang": "es",
+      "title": "Ordering at a Taquería",
+      "setting": "🌮 Mexico City",
+      "turns": [
+        {
+          "text": "Buenas tardes, ¿qué desea ordenar?",
+          "cue": "Ask for tacos al pastor and a water",
+          "expected": "Quiero tacos al pastor y un agua, por favor",
+          "alts": [
+            "Me trae tacos al pastor y un agua",
+            "Tacos al pastor y un agua por favor"
+          ]
+        },
+        {
+          "text": "¿Algo más?",
+          "cue": "Say no thanks, nothing else",
+          "expected": "No, gracias. Nada más.",
+          "alts": [
+            "Nada más gracias",
+            "No, está bien"
+          ]
+        },
+        {
+          "text": "¿Para comer aquí o para llevar?",
+          "cue": "Say to-go, please",
+          "expected": "Para llevar, por favor",
+          "alts": [
+            "Para llevar",
+            "Para llevar gracias"
+          ]
+        },
+        {
+          "text": "Son cien pesos.",
+          "cue": "Ask if they accept card",
+          "expected": "¿Aceptan tarjeta?",
+          "alts": [
+            "¿Puedo pagar con tarjeta?",
+            "¿Toman tarjeta?"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "directions-pt",
+      "lang": "pt",
+      "title": "Asking Directions",
+      "setting": "🏖️ Rio de Janeiro",
+      "turns": [
+        {
+          "text": "Oi! Posso ajudar?",
+          "cue": "Ask how to get to Copacabana",
+          "expected": "Como eu chego em Copacabana?",
+          "alts": [
+            "Como chego à Copacabana?",
+            "Onde fica Copacabana?"
+          ]
+        },
+        {
+          "text": "É longe daqui a pé.",
+          "cue": "Ask if there is a bus",
+          "expected": "Tem ônibus?",
+          "alts": [
+            "Tem algum ônibus?",
+            "Qual ônibus eu pego?"
+          ]
+        },
+        {
+          "text": "Pega o 583 ali na esquina.",
+          "cue": "Ask how much the fare costs",
+          "expected": "Quanto custa a passagem?",
+          "alts": [
+            "Quanto é a passagem?",
+            "Quanto custa?"
+          ]
+        },
+        {
+          "text": "Cinco reais. Boa viagem!",
+          "cue": "Thank them a lot",
+          "expected": "Muito obrigado!",
+          "alts": [
+            "Obrigado!",
+            "Valeu, obrigado!"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "market-es",
+      "lang": "es",
+      "title": "Negotiating at the Market",
+      "setting": "🧶 Oaxaca",
+      "turns": [
+        {
+          "text": "¡Pásele! ¿Le gusta este tapete?",
+          "cue": "Ask how much it costs",
+          "expected": "¿Cuánto cuesta?",
+          "alts": [
+            "¿Cuánto vale?",
+            "¿Qué precio tiene?"
+          ]
+        },
+        {
+          "text": "Quinientos pesos, joven.",
+          "cue": "Say it is a bit expensive",
+          "expected": "Está un poco caro.",
+          "alts": [
+            "Es un poco caro",
+            "Está caro"
+          ]
+        },
+        {
+          "text": "¿Cuánto me ofrece?",
+          "cue": "Offer three hundred",
+          "expected": "Le doy trescientos.",
+          "alts": [
+            "Trescientos",
+            "Le ofrezco trescientos"
+          ]
+        },
+        {
+          "text": "Cuatrocientos y es suyo.",
+          "cue": "Agree and say you will take it",
+          "expected": "Está bien, me lo llevo.",
+          "alts": [
+            "Me lo llevo",
+            "De acuerdo, me lo llevo"
+          ]
+        }
+      ]
+    }
+  ],
+  "CONVERSATIONS": [
+    {
+      "id": "casual-chat-es",
+      "lang": "es",
+      "title": "Casual Chat",
+      "setting": "☕ Coffee shop",
+      "opener": "Hola, ¿cómo estás?",
+      "turnLimit": 8,
+      "intents": [
+        {
+          "name": "how_are",
+          "patterns": {},
+          "responses": [
+            "Me alegro. ¿De dónde eres?",
+            "Qué bueno. ¿Y a qué te dedicas?"
+          ]
+        },
+        {
+          "name": "origin",
+          "patterns": {},
+          "responses": [
+            "Ah, ¡qué bien! ¿Qué te trae por aquí?",
+            "Genial. ¿Hace cuánto que viajas?"
+          ]
+        },
+        {
+          "name": "job",
+          "patterns": {},
+          "responses": [
+            "Interesante. ¿Te gusta tu trabajo?",
+            "¡Qué bueno! Suena emocionante."
+          ]
+        },
+        {
+          "name": "greeting",
+          "patterns": {},
+          "responses": [
+            "¡Hola! ¿Qué tal tu día?",
+            "Buenas. ¿Cómo va todo?"
+          ]
+        },
+        {
+          "name": "thanks",
+          "patterns": {},
+          "responses": [
+            "¡De nada! Un placer.",
+            "Con gusto."
+          ]
+        }
+      ],
+      "fallback": [
+        "Mmm, no te entendí bien. ¿Puedes repetir?",
+        "Perdona, ¿cómo dijiste?"
+      ]
+    },
+    {
+      "id": "cafe-pt",
+      "lang": "pt",
+      "title": "Café Order",
+      "setting": "🥐 Padaria",
+      "opener": "Bom dia! O que vai querer?",
+      "turnLimit": 8,
+      "intents": [
+        {
+          "name": "order",
+          "patterns": {},
+          "responses": [
+            "Saiu! Mais alguma coisa?",
+            "Pode deixar. Algo mais?"
+          ]
+        },
+        {
+          "name": "price",
+          "patterns": {},
+          "responses": [
+            "São oito reais.",
+            "Fica dez reais no total."
+          ]
+        },
+        {
+          "name": "no_more",
+          "patterns": {},
+          "responses": [
+            "Beleza! Já trago.",
+            "Perfeito, um instante."
+          ]
+        },
+        {
+          "name": "thanks",
+          "patterns": {},
+          "responses": [
+            "Imagina! Bom apetite.",
+            "De nada, volte sempre!"
+          ]
+        },
+        {
+          "name": "greeting",
+          "patterns": {},
+          "responses": [
+            "Oi! Tudo bem? O que vai querer?",
+            "Olá! Pois não?"
+          ]
+        }
+      ],
+      "fallback": [
+        "Desculpa, não entendi. Pode repetir?",
+        "Como assim? Fala de novo."
+      ]
+    },
+    {
+      "id": "market-haggle-es",
+      "lang": "es",
+      "title": "Market Haggle",
+      "setting": "🧺 Mercado",
+      "opener": "¡Pásele! ¿Qué busca hoy?",
+      "turnLimit": 8,
+      "intents": [
+        {
+          "name": "ask_price",
+          "patterns": {},
+          "responses": [
+            "Le dejo en doscientos.",
+            "Para usted, ciento ochenta."
+          ]
+        },
+        {
+          "name": "too_much",
+          "patterns": {},
+          "responses": [
+            "¿Cuánto me ofrece?",
+            "Ándele, ¿cuánto le pongo?"
+          ]
+        },
+        {
+          "name": "offer",
+          "patterns": {},
+          "responses": [
+            "Mmm... que sean ciento veinte.",
+            "Está bien, ¡trato hecho!"
+          ]
+        },
+        {
+          "name": "deal",
+          "patterns": {},
+          "responses": [
+            "¡Excelente elección! Gracias.",
+            "¡Va! Que lo disfrute."
+          ]
+        },
+        {
+          "name": "greeting",
+          "patterns": {},
+          "responses": [
+            "¡Buenas! Pásele, pásele.",
+            "¡Hola! ¿Le muestro algo?"
+          ]
+        }
+      ],
+      "fallback": [
+        "No le entendí, joven. ¿Mande?",
+        "¿Cómo dice?"
+      ]
+    }
+  ]
+}

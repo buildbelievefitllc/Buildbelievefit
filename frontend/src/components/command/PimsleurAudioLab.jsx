@@ -4,10 +4,10 @@
 // Reads pimsleurAudioCurriculum.json (10 lessons, Gemini-authored) and plays each
 // lesson's dialogue_flow end-to-end: narrator cues + two distinct native-speaker
 // voices + timed silent "your turn" recall pauses, exactly like a physical
-// Pimsleur cassette — spoken live in Coach Akeem's ElevenLabs voice clone
-// (languageSoundboardVoice.js, server-side cached so a repeat line never re-bills),
-// falling back to the browser's free on-device voice (speechFallback.js) if that
-// path is ever unavailable.
+// Pimsleur cassette — spoken in Coach Akeem's ElevenLabs voice clone, played from
+// the pre-baked static clip library (languageSoundboardVoice.js's speakBaked; see
+// scripts/build-language-soundboard-cues.mjs) with a live-synth-then-browser-voice
+// fallback chain for anything added after the last bake.
 //
 // All 10 lessons ship a fully hand-authored dialogue_flow. If a future lesson
 // ever ships without one, pimsleurAudioEngine.js generates a script from just
@@ -17,7 +17,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { warmUpSpeech } from '../../lib/speechFallback.js';
-import { speakSmart, warmUpAudioPlayback } from '../../lib/languageSoundboardVoice.js';
+import { speakBaked, warmUpAudioPlayback } from '../../lib/languageSoundboardVoice.js';
 import { getLessonFlow, SPEAKER_VOICE, SPEAKER_LABEL } from '../../lib/pimsleurAudioEngine.js';
 import curriculum from '../../data/pimsleurAudioCurriculum.json';
 import './languageRoadmap.css';
@@ -44,7 +44,7 @@ function speakStep(entry, isCancelled, controllerRef) {
   return new Promise((resolve) => {
     if (isCancelled()) { resolve(); return; }
     const voice = SPEAKER_VOICE[entry.speaker] || SPEAKER_VOICE.narrator;
-    speakSmart({
+    speakBaked({
       text: entry.text,
       lang: voice.lang,
       voiceGender: voice.voiceGender,
@@ -160,7 +160,7 @@ function PreviewSpeakBtn({ text, voice }) {
   const speak = () => {
     warmUpSpeech();
     warmUpAudioPlayback();
-    speakSmart({ text, lang: voice.lang, voiceGender: voice.voiceGender, rate: rateFor('pt') }).catch(() => { /* silent */ });
+    speakBaked({ text, lang: voice.lang, voiceGender: voice.voiceGender, rate: rateFor('pt') }).catch(() => { /* silent */ });
   };
   return <button type="button" className="lr-speak" onClick={speak} aria-label={`Listen: ${text}`}>🔊</button>;
 }
