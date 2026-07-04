@@ -4,9 +4,10 @@
 // Reads pimsleurAudioCurriculum.json (10 lessons, Gemini-authored) and plays each
 // lesson's dialogue_flow end-to-end: narrator cues + two distinct native-speaker
 // voices + timed silent "your turn" recall pauses, exactly like a physical
-// Pimsleur cassette — but spoken live by the browser's free, on-device neural
-// voice engine (speechFallback.js) instead of a pre-rendered audio file. Zero API
-// key, zero cost, zero backend: the same $0 philosophy as the rest of this module.
+// Pimsleur cassette — spoken live in Coach Akeem's ElevenLabs voice clone
+// (languageSoundboardVoice.js, server-side cached so a repeat line never re-bills),
+// falling back to the browser's free on-device voice (speechFallback.js) if that
+// path is ever unavailable.
 //
 // All 10 lessons ship a fully hand-authored dialogue_flow. If a future lesson
 // ever ships without one, pimsleurAudioEngine.js generates a script from just
@@ -15,7 +16,8 @@
 // still plays instead of going silent.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
+import { warmUpSpeech } from '../../lib/speechFallback.js';
+import { speakSmart, warmUpAudioPlayback } from '../../lib/languageSoundboardVoice.js';
 import { getLessonFlow, SPEAKER_VOICE, SPEAKER_LABEL } from '../../lib/pimsleurAudioEngine.js';
 import curriculum from '../../data/pimsleurAudioCurriculum.json';
 import './languageRoadmap.css';
@@ -42,7 +44,7 @@ function speakStep(entry, isCancelled, controllerRef) {
   return new Promise((resolve) => {
     if (isCancelled()) { resolve(); return; }
     const voice = SPEAKER_VOICE[entry.speaker] || SPEAKER_VOICE.narrator;
-    speakWithBrowser({
+    speakSmart({
       text: entry.text,
       lang: voice.lang,
       voiceGender: voice.voiceGender,
@@ -126,6 +128,7 @@ function useLessonPlayer(flow, onComplete) {
 
   const play = useCallback(() => {
     warmUpSpeech();
+    warmUpAudioPlayback();
     runIdRef.current += 1;
     runFrom(stepIndex < 0 ? 0 : stepIndex);
   }, [runFrom, stepIndex]);
@@ -154,17 +157,17 @@ function SpeakerDot({ speaker }) {
 }
 
 function PreviewSpeakBtn({ text, voice }) {
-  if (!browserSpeechSupported()) return null;
   const speak = () => {
     warmUpSpeech();
-    speakWithBrowser({ text, lang: voice.lang, voiceGender: voice.voiceGender, rate: rateFor('pt') }).catch(() => { /* silent */ });
+    warmUpAudioPlayback();
+    speakSmart({ text, lang: voice.lang, voiceGender: voice.voiceGender, rate: rateFor('pt') }).catch(() => { /* silent */ });
   };
   return <button type="button" className="lr-speak" onClick={speak} aria-label={`Listen: ${text}`}>🔊</button>;
 }
 
 // Mounted with key={lesson.lesson_number} by the parent so every lesson switch
 // gets a brand-new player instance — see the reset comment on useLessonPlayer.
-function LessonPlayer({ lesson, flow, supported, onComplete, onPrev, onNext, hasPrev, hasNext }) {
+function LessonPlayer({ lesson, flow, onComplete, onPrev, onNext, hasPrev, hasNext }) {
   const { status, stepIndex, pauseRemaining, play, pause, restart } = useLessonPlayer(flow, onComplete);
   const current = stepIndex >= 0 ? flow[stepIndex] : null;
   const isPause = current?.speaker === 'silent_pause';
@@ -202,11 +205,11 @@ function LessonPlayer({ lesson, flow, supported, onComplete, onPrev, onNext, has
       )}
 
       <div className="lr-audio-controls">
-        <button type="button" className="lr-game-btn" onClick={restart} disabled={!supported}>⟲ RESTART</button>
+        <button type="button" className="lr-game-btn" onClick={restart}>⟲ RESTART</button>
         {status === 'playing' ? (
           <button type="button" className="lr-game-btn" onClick={pause}>⏸ PAUSE</button>
         ) : (
-          <button type="button" className="lr-game-btn" onClick={play} disabled={!supported || status === 'done'}>▶ {stepIndex > 0 ? 'RESUME' : 'PLAY'}</button>
+          <button type="button" className="lr-game-btn" onClick={play} disabled={status === 'done'}>▶ {stepIndex > 0 ? 'RESUME' : 'PLAY'}</button>
         )}
         <button type="button" className="lr-game-btn" onClick={onPrev} disabled={!hasPrev}>‹ PREV</button>
         <button type="button" className="lr-game-btn" onClick={onNext} disabled={!hasNext}>NEXT ›</button>
@@ -236,7 +239,6 @@ export default function PimsleurAudioLab() {
     });
   }, [lesson]);
 
-  const supported = browserSpeechSupported();
   const goToLesson = (idx) => setLessonIdx(idx);
 
   return (
@@ -246,8 +248,8 @@ export default function PimsleurAudioLab() {
       <div className="lr-section-desc">
         {curriculum.curriculum_title.replace('BBF Lab 90-Day Language Mastery: ', '')} — a native
         male + female voice drill every phrase with back-chained pronunciation and timed
-        recall pauses, spoken live by your browser's free on-device neural voice. Put in
-        headphones, press play, and answer out loud during every silence.
+        recall pauses, spoken live in Coach Akeem's ElevenLabs voice. Put in headphones,
+        press play, and answer out loud during every silence.
       </div>
 
       <div className="lr-stats">
@@ -255,13 +257,6 @@ export default function PimsleurAudioLab() {
         <div className="lr-stat"><div className="lr-stat-num">{completed.size}</div><div className="lr-stat-label">Completed</div></div>
         <div className="lr-stat"><div className="lr-stat-num">{lesson.duration_minutes}</div><div className="lr-stat-label">Min · This Lesson</div></div>
       </div>
-
-      {!supported ? (
-        <div className="lr-audio-unsupported">
-          This browser has no built-in voice engine. Try Chrome or Edge for the free
-          natural-sounding narrator + native-speaker voices.
-        </div>
-      ) : null}
 
       <div className="lr-chips">
         {LESSONS.map((l, idx) => (
@@ -285,7 +280,6 @@ export default function PimsleurAudioLab() {
         key={lesson.lesson_number}
         lesson={lesson}
         flow={flow}
-        supported={supported}
         onComplete={markComplete}
         onPrev={() => goToLesson(Math.max(lessonIdx - 1, 0))}
         onNext={() => goToLesson(Math.min(lessonIdx + 1, LESSONS.length - 1))}

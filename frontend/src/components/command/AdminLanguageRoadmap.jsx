@@ -26,7 +26,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
+import { warmUpSpeech } from '../../lib/speechFallback.js';
+import { speakSmart, warmUpAudioPlayback } from '../../lib/languageSoundboardVoice.js';
 import { useSpeechEvaluator, comparePhrases } from '../../lib/useSpeechEvaluator.js';
 import { loadLanguageProgress, saveLanguageScore, recordVocabAttempt } from '../../lib/languageProgressApi.js';
 import languageVideoLibrary from '../../data/languageVideoLibrary.json';
@@ -364,16 +365,16 @@ function CopyBtn({ text }) {
   );
 }
 
-// Native browser TTS button — speaks ES/PT terms in the device's stock voice
-// (token-free, the same window.speechSynthesis path speechFallback.js owns). The
-// lang prop is a BBF code ('es' | 'pt'); warmUpSpeech() primes the iOS engine
-// inside the click gesture so the first utterance is never swallowed.
+// Voice button — Coach Akeem's ElevenLabs voice (multilingual, cached server-side so
+// a repeat play never re-bills), falling back to the device's free stock voice
+// (speechFallback.js) if the premium path is ever unavailable. The lang prop is a
+// BBF code ('es' | 'pt'); the warm-up calls prime iOS's speech + audio engines
+// inside the click gesture so the first cue is never swallowed.
 function SpeakBtn({ text, lang = 'es', label = '🔊' }) {
-  const supported = browserSpeechSupported();
-  if (!supported) return null;
   const speak = () => {
     warmUpSpeech();
-    speakWithBrowser({ text, lang }).catch(() => { /* stock voice unavailable — silent */ });
+    warmUpAudioPlayback();
+    speakSmart({ text, lang }).catch(() => { /* both voice paths unavailable — silent */ });
   };
   return (
     <button type="button" className="lr-speak" onClick={speak} aria-label={`Listen: ${text}`}>
@@ -941,11 +942,13 @@ function recordGameResult(mode, score, streak) {
   saveLanguageScore(mode, score, streak); // best-effort; resolves {ok:false} off-session
 }
 
-// Speak an ES term in the free on-device voice (the same speechFallback path SpeakBtn
-// owns); warmUpSpeech primes iOS inside the gesture so the first cue isn't swallowed.
+// Speak an ES term in Coach Akeem's ElevenLabs voice (the same speakSmart path
+// SpeakBtn owns, falling back to the free on-device voice); the warm-up calls prime
+// iOS inside the gesture so the first cue isn't swallowed.
 function speakEs(text) {
   warmUpSpeech();
-  speakWithBrowser({ text, lang: 'es' }).catch(() => { /* stock voice unavailable — silent */ });
+  warmUpAudioPlayback();
+  speakSmart({ text, lang: 'es' }).catch(() => { /* both voice paths unavailable — silent */ });
 }
 
 // ─── LISTENING LAB (ear-training · the soundboard AS a game) ─────────────────
@@ -1741,7 +1744,7 @@ function CulturalContext() {
   const turn = scenario ? scenario.turns[turnIdx] : null;
 
   // Partner speaks each new line; the personal best persists once the scenario ends.
-  useEffect(() => { if (phase === 'playing' && turn) { warmUpSpeech(); speakWithBrowser({ text: turn.text, lang }).catch(() => {}); } }, [turnIdx, phase, scenario]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (phase === 'playing' && turn) { warmUpSpeech(); warmUpAudioPlayback(); speakSmart({ text: turn.text, lang }).catch(() => {}); } }, [turnIdx, phase, scenario]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (phase === 'done' && scenario) recordGameResult('cultural', Math.round((hits / scenario.turns.length) * 100), best); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const begin = (sc) => { setScenario(sc); setTurnIdx(0); setInput(''); setResult(null); setHits(0); setStreak(0); setBest(0); setPhase('playing'); };
@@ -1754,7 +1757,7 @@ function CulturalContext() {
     recordVocabAttempt(turn.expected, ok);
     if (ok) { setHits((h) => h + 1); setStreak((s) => { const ns = s + 1; setBest((b) => Math.max(b, ns)); return ns; }); } else setStreak(0);
     setResult({ ok, score });
-    speakWithBrowser({ text: turn.expected, lang }).catch(() => {}); // native pronunciation
+    speakSmart({ text: turn.expected, lang }).catch(() => {}); // native pronunciation
   };
   const next = () => {
     const ni = turnIdx + 1;
@@ -1842,7 +1845,7 @@ function ConversationEngine() {
 
   const begin = (c) => {
     setConv(c); setMsgs([{ who: 'partner', text: c.opener }]); setInput(''); setTurns(0); setMatched(0); setStreak(0); setBest(0); setPhase('playing');
-    warmUpSpeech(); speakWithBrowser({ text: c.opener, lang: c.lang }).catch(() => {});
+    warmUpSpeech(); warmUpAudioPlayback(); speakSmart({ text: c.opener, lang: c.lang }).catch(() => {});
   };
   const send = () => {
     if (!input.trim() || phase !== 'playing') return;
@@ -1858,7 +1861,7 @@ function ConversationEngine() {
     setInput('');
     setTurns(nTurns);
     if (hit) { setMatched((x) => x + 1); setStreak((s) => { const ns = s + 1; setBest((b) => Math.max(b, ns)); return ns; }); } else setStreak(0);
-    speakWithBrowser({ text: reply, lang }).catch(() => {});
+    speakSmart({ text: reply, lang }).catch(() => {});
     if (nTurns >= conv.turnLimit) setTimeout(() => setPhase('done'), 1000);
   };
 
