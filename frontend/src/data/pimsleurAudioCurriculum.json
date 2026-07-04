@@ -1,5 +1,5 @@
 {
-    "curriculum_title": "BBF Lab 90-Day Language Mastery: 10-Lesson Pimsleur-Style Portuguese Audio Series",
+    "curriculum_title": "BBF Lab 90-Day Language Mastery: 20-Lesson Pimsleur-Style Portuguese Audio Series",
     "methodology_spec": {
         "verbal_pacing": "Pimsleur-style interactive loop (Prompt -> Pause -> Target -> Pause -> Repeat)",
         "pause_standard_seconds": 3.0,
@@ -15,475 +15,3988 @@
             "lesson_number": 1,
             "title": "First Encounters & Standard Greetings",
             "description": "Learn basic introductions, standard greetings, and how to identify your country of origin in Brazilian Portuguese.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "Hello", "portuguese": "Olá" },
-                { "english": "Good morning", "portuguese": "Bom dia" },
-                { "english": "Are you American?", "portuguese": "Você é americano?" },
-                { "english": "Yes", "portuguese": "Sim" },
-                { "english": "No", "portuguese": "Não" },
-                { "english": "I am Akeem", "portuguese": "Eu sou o Akeem" },
-                { "english": "My name is Akeem", "portuguese": "Meu nome é Akeem" },
-                { "english": "What is your name?", "portuguese": "Qual é o seu nome?" }
+                {
+                    "english": "Hello",
+                    "portuguese": "Olá"
+                },
+                {
+                    "english": "Good morning",
+                    "portuguese": "Bom dia"
+                },
+                {
+                    "english": "Are you American?",
+                    "portuguese": "Você é americano?"
+                },
+                {
+                    "english": "Yes",
+                    "portuguese": "Sim"
+                },
+                {
+                    "english": "No",
+                    "portuguese": "Não"
+                },
+                {
+                    "english": "I am Akeem",
+                    "portuguese": "Eu sou o Akeem"
+                },
+                {
+                    "english": "My name is Akeem",
+                    "portuguese": "Meu nome é Akeem"
+                },
+                {
+                    "english": "What is your name?",
+                    "portuguese": "Qual é o seu nome?"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to Session 1 of the BBF Lab Portuguese Audio Series. Today we learn how to greet someone and exchange names. Listen to this conversation in Portuguese." },
-                { "speaker": "pt_native_female", "text": "Olá! Bom dia." },
-                { "speaker": "pt_native_male", "text": "Bom dia! Qual é o seu nome?" },
-                { "speaker": "pt_native_female", "text": "Meu nome é Francisca. E você?" },
-                { "speaker": "pt_native_male", "text": "Eu sou o Antonio. Você é americana?" },
-                { "speaker": "pt_native_female", "text": "Sim, eu sou americana. E você?" },
-                { "speaker": "pt_native_male", "text": "Não, eu sou brasileiro." },
-                { "speaker": "narrator", "text": "Let's begin by learning 'Good morning'. Listen closely." },
-                { "speaker": "pt_native_male", "text": "Bom dia." },
-                { "speaker": "narrator", "text": "Now, let's practice the word 'dia'. Repeat after the speaker, keeping the sound clean." },
-                { "speaker": "pt_native_male", "text": "dia" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_male", "text": "dia" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now, say 'good', which is 'bom'. Listen and repeat." },
-                { "speaker": "pt_native_male", "text": "bom" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_male", "text": "bom" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now try to put them together. Say: Good morning." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Bom dia." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_male", "text": "Bom dia." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now let's learn how to say 'Hello'. Listen and repeat." },
-                { "speaker": "pt_native_female", "text": "Olá." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_female", "text": "Olá." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "How do you say: Good morning?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Bom dia." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "How do you say: Hello?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Olá." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Excellent. Now let's learn the question 'What is your name?'. Listen first." },
-                { "speaker": "pt_native_female", "text": "Qual é o seu nome?" },
-                { "speaker": "narrator", "text": "Let's break down 'nome' (name). Repeat." },
-                { "speaker": "pt_native_female", "text": "nome" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now 'seu nome' (your name). Repeat." },
-                { "speaker": "pt_native_female", "text": "seu nome" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now 'Qual é o seu nome?' (What is your name?). Repeat." },
-                { "speaker": "pt_native_female", "text": "Qual é o seu nome?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Qual é o seu nome?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "To say 'My name is...', you say 'Meu nome é...'. Listen and repeat." },
-                { "speaker": "pt_native_male", "text": "Meu nome é..." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_male", "text": "Meu nome é Akeem." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "How do you say: My name is Akeem?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Meu nome é Akeem." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Ask someone: What is your name?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Qual é o seu nome?" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now say: Hello, good morning." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Olá, bom dia." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Let's learn nationality. To ask 'Are you American?', you say 'Você é americano?' if speaking to a male, or 'Você é americana?' if speaking to a female. Let's try 'americano'. Repeat." },
-                { "speaker": "pt_native_male", "text": "Você é americano?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Você é americana?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Say 'Yes', which is 'Sim'." },
-                { "speaker": "pt_native_male", "text": "Sim." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'Yes, I am American'." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Sim, eu sou americano." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "To say 'No', you say 'Não'. Listen and repeat." },
-                { "speaker": "pt_native_male", "text": "Não." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say: No, I am not American." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Não, eu não sou americano." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Excellent! That concludes Lesson 1. Review this session until you can speak without hesitation." }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Session 1 of the BBF Lab Portuguese Audio Series. Today we learn how to greet someone and exchange names. Listen to this conversation in Portuguese."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Olá! Bom dia."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Bom dia! Qual é o seu nome?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Meu nome é Francisca. E você?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu sou o Antonio. Você é americana?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Sim, eu sou americana. E você?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Não, eu sou brasileiro."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's begin by learning 'Good morning'. Listen closely."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Bom dia."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now, let's practice the word 'dia'. Repeat after the speaker, keeping the sound clean."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "dia"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "dia"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now, say 'good', which is 'bom'. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "bom"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "bom"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now try to put them together. Say: Good morning."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Bom dia."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Bom dia."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's learn how to say 'Hello'. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Olá."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Olá."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you say: Good morning?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Bom dia."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you say: Hello?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Olá."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent. Now let's learn the question 'What is your name?'. Listen first."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Qual é o seu nome?"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's break down 'nome' (name). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "nome"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now 'seu nome' (your name). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "seu nome"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now 'Qual é o seu nome?' (What is your name?). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Qual é o seu nome?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Qual é o seu nome?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "To say 'My name is...', you say 'Meu nome é...'. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Meu nome é..."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Meu nome é Akeem."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you say: My name is Akeem?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Meu nome é Akeem."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Ask someone: What is your name?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Qual é o seu nome?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say: Hello, good morning."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Olá, bom dia."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn nationality. To ask 'Are you American?', you say 'Você é americano?' if speaking to a male, or 'Você é americana?' if speaking to a female. Let's try 'americano'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Você é americano?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Você é americana?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Yes', which is 'Sim'."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sim."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Yes, I am American'."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sim, eu sou americano."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "To say 'No', you say 'Não'. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Não."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: No, I am not American."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Não, eu não sou americano."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's practice speaking and responding actively. Imagine Francisca asks you: Qual é o seu nome? Tell her your name is Akeem."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Meu nome é Akeem."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now ask her if she is American."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Você é americana?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Listen to her response: Sim, eu sou americana. Now say: Hello, good morning Francisca."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Olá, bom dia Francisca."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent! That concludes Lesson 1. Review this session until you can speak without hesitation."
+                }
             ]
         },
         {
             "lesson_number": 2,
             "title": "Simple Connections & Gym Greetings",
             "description": "Establish basic gym interactions, ask training partners how they are, and learn key locational phrases.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "How are you?", "portuguese": "Tudo bem?" },
-                { "english": "I'm good, and you?", "portuguese": "Tudo bem, e você?" },
-                { "english": "Where is the water?", "portuguese": "Onde fica a água?" },
-                { "english": "Over there", "portuguese": "Ali" },
-                { "english": "Let's train?", "portuguese": "Vamos treinar?" }
+                {
+                    "english": "How are you?",
+                    "portuguese": "Tudo bem?"
+                },
+                {
+                    "english": "I'm good, and you?",
+                    "portuguese": "Tudo bem, e você?"
+                },
+                {
+                    "english": "Where is the water?",
+                    "portuguese": "Onde fica a água?"
+                },
+                {
+                    "english": "Over there",
+                    "portuguese": "Ali"
+                },
+                {
+                    "english": "Let's train?",
+                    "portuguese": "Vamos treinar?"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to Lesson 2. Today, we step onto the gym floor and learn how to check in with our training partners. Listen to this conversation." },
-                { "speaker": "pt_native_male", "text": "Olá! Tudo bem?" },
-                { "speaker": "pt_native_female", "text": "Tudo bem, e você?" },
-                { "speaker": "pt_native_male", "text": "Tudo ótimo. Onde fica a água?" },
-                { "speaker": "pt_native_female", "text": "Fica ali. Vamos treinar?" },
-                { "speaker": "pt_native_male", "text": "Vamos! Com certeza." },
-                { "speaker": "narrator", "text": "Let's learn how to ask 'How are you?' in a friendly, local way. Listen to 'Tudo bem?'." },
-                { "speaker": "pt_native_male", "text": "Tudo bem?" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_male", "text": "Tudo bem?" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "To reply 'I'm good, and you?', you say 'Tudo bem, e você?'. Let's practice 'e você?' (and you?)." },
-                { "speaker": "pt_native_female", "text": "e você?" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_female", "text": "Tudo bem, e você?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "How do you say: I'm good, and you?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Tudo bem, e você?" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "How do you ask: How are you?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Tudo bem?" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now, let's learn how to ask where the water is located. Listen to 'Onde fica a água?'." },
-                { "speaker": "pt_native_female", "text": "Onde fica a água?" },
-                { "speaker": "narrator", "text": "Let's break it down. Say 'água' (water)." },
-                { "speaker": "pt_native_female", "text": "água" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'fica' (is located)." },
-                { "speaker": "pt_native_female", "text": "fica" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'Onde fica' (Where is...)." },
-                { "speaker": "pt_native_female", "text": "Onde fica" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Put it all together: Where is the water?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Onde fica a água?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "The answer is 'Ali' (Over there). Listen and repeat." },
-                { "speaker": "pt_native_male", "text": "Ali." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_male", "text": "Ali." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "How do you say: Over there?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Ali." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "How do you ask: Where is the water?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Onde fica a água?" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now, let's ask our partner if they want to train. 'Let's train?' in Portuguese is 'Vamos treinar?'. Listen and repeat." },
-                { "speaker": "pt_native_male", "text": "Vamos treinar?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Vamos treinar?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Respond with an excited: Let's go! (Vamos!)." },
-                { "speaker": "pt_native_female", "text": "Vamos!" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say: Let's train!" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Vamos treinar?" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Excellent! Review this workout connection sequence." }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 2. Today, we step onto the gym floor and learn how to check in with our training partners. Listen to this conversation."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Olá! Tudo bem?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Tudo bem, e você?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Tudo ótimo. Onde fica a água?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Fica ali. Vamos treinar?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Vamos! Com certeza."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn how to ask 'How are you?' in a friendly, local way. Listen to 'Tudo bem?'."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Tudo bem?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Tudo bem?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "To reply 'I'm good, and you?', you say 'Tudo bem, e você?'. Let's practice 'e você?' (and you?)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "e você?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Tudo bem, e você?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you say: I'm good, and you?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Tudo bem, e você?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you ask: How are you?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Tudo bem?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now, let's learn how to ask where the water is located. Listen to 'Onde fica a água?'."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Onde fica a água?"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's break it down. Say 'água' (water)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "água"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'fica' (is located)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "fica"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Onde fica' (Where is...)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Onde fica"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Put it all together: Where is the water?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Onde fica a água?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "The answer is 'Ali' (Over there). Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Ali."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Ali."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you say: Over there?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Ali."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you ask: Where is the water?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Onde fica a água?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now, let's ask our partner if they want to train. 'Let's train?' in Portuguese is 'Vamos treinar?'. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Vamos treinar?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Vamos treinar?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Respond with an excited: Let's go! (Vamos!)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Vamos!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's review Lesson 1. How do you say: Good morning?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Bom dia."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you say: Hello?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Olá."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you say: My name is Akeem?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Meu nome é Akeem."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now tell your training partner: Hello, everything good?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Olá, tudo bem?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Great! Review this workout connection sequence."
+                }
             ]
         },
         {
             "lesson_number": 3,
             "title": "Finding Your Way",
             "description": "Master navigation, blocks, directions (left, right, straight), and street addresses in Rio or São Paulo.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "Where is the street...?", "portuguese": "Onde fica a rua...?" },
-                { "english": "Go straight", "portuguese": "Siga reto" },
-                { "english": "Turn left", "portuguese": "Vire à esquerda" },
-                { "english": "Turn right", "portuguese": "Vire à direita" },
-                { "english": "Block", "portuguese": "Quarteirão" }
+                {
+                    "english": "Where is the street...?",
+                    "portuguese": "Onde fica a rua...?"
+                },
+                {
+                    "english": "Go straight",
+                    "portuguese": "Siga reto"
+                },
+                {
+                    "english": "Turn left",
+                    "portuguese": "Vire à esquerda"
+                },
+                {
+                    "english": "Turn right",
+                    "portuguese": "Vire à direita"
+                },
+                {
+                    "english": "Block",
+                    "portuguese": "Quarteirão"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to Lesson 3. Today we learn how to navigate the local streets to find the gym. Listen to this conversation." },
-                { "speaker": "pt_native_male", "text": "Por favor, onde fica a academia?" },
-                { "speaker": "pt_native_female", "text": "Siga reto por dois quarteirões." },
-                { "speaker": "pt_native_male", "text": "E depois?" },
-                { "speaker": "pt_native_female", "text": "Vire à esquerda na rua Copacabana." },
-                { "speaker": "pt_native_male", "text": "Muito obrigado!" },
-                { "speaker": "narrator", "text": "Let's learn 'Go straight' (Siga reto). Repeat after the native speaker." },
-                { "speaker": "pt_native_female", "text": "Siga reto." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_female", "text": "Siga reto." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now, let's learn how to turn left. Say 'Vire à esquerda'." },
-                { "speaker": "pt_native_male", "text": "Vire à esquerda." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Vire à esquerda." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Now, let's learn how to turn right. Say 'Vire à direita'." },
-                { "speaker": "pt_native_female", "text": "Vire à direita." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Vire à direita." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Say: Go straight, and then turn left." },
-                { "speaker": "silent_pause", "duration_seconds": 5 },
-                { "speaker": "pt_native_male", "text": "Siga reto, e depois vire à esquerda." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "How do you say: Turn right?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Vire à direita." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Excellent navigation practice. Keep reviewing these directions." }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 3. Today we learn how to navigate the local streets to find the gym. Listen to this conversation."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Por favor, onde fica a academia?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Siga reto por dois quarteirões."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "E depois?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Vire à esquerda na rua Copacabana."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Muito obrigado!"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Go straight' (Siga reto). Repeat after the native speaker."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Siga reto."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Siga reto."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now, let's learn how to turn left. Say 'Vire à esquerda'."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Vire à esquerda."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Vire à esquerda."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now, let's learn how to turn right. Say 'Vire à direita'."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Vire à direita."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Vire à direita."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: Go straight, and then turn left."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 5
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Siga reto, e depois vire à esquerda."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you say: Turn right?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Vire à direita."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's practice the word 'block', which is 'quarteirão'. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "quarteirão"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "quarteirão"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you say 'one block'?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "um quarteirão."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say 'two blocks' (dois quarteirões). Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "dois quarteirões."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now ask: Where is the water?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Onde fica a água?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Respond: It is over there."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Fica ali."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say: Go straight for two blocks, then turn left."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 5
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Siga reto por dois quarteirões, e depois vire à esquerda."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent navigation practice. Keep reviewing these directions."
+                }
             ]
         },
         {
             "lesson_number": 4,
             "title": "Fueling Up — Café & Shakes",
             "description": "Order coffee, standard drinks, understand protein supplementation, and navigate ordering in a café or juice bar.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "A coffee, please", "portuguese": "Um café, por favor" },
-                { "english": "Water", "portuguese": "Água" },
-                { "english": "With protein", "portuguese": "Com proteína" },
-                { "english": "How much is it?", "portuguese": "Quanto custa?" },
-                { "english": "Thank you", "portuguese": "Obrigado" }
+                {
+                    "english": "A coffee, please",
+                    "portuguese": "Um café, por favor"
+                },
+                {
+                    "english": "Water",
+                    "portuguese": "Água"
+                },
+                {
+                    "english": "With protein",
+                    "portuguese": "Com proteína"
+                },
+                {
+                    "english": "How much is it?",
+                    "portuguese": "Quanto custa?"
+                },
+                {
+                    "english": "Thank you",
+                    "portuguese": "Obrigado"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to Lesson 4. Today we are fueling up our bodies. We will learn how to order at a café or local juice bar. Listen to this interaction." },
-                { "speaker": "pt_native_male", "text": "Bom dia. Um café e uma água, por favor." },
-                { "speaker": "pt_native_female", "text": "Com açúcar ou adoçante?" },
-                { "speaker": "pt_native_male", "text": "Sem açúcar, por favor. E um shake com proteína." },
-                { "speaker": "pt_native_female", "text": "Perfeito. São dezoito reais." },
-                { "speaker": "pt_native_male", "text": "Aqui está. Obrigado!" },
-                { "speaker": "narrator", "text": "Let's order coffee. Say 'A coffee, please'." },
-                { "speaker": "pt_native_male", "text": "Um café, por favor." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Um café, por favor." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Now, let's learn how to say 'With protein'. Listen and repeat." },
-                { "speaker": "pt_native_female", "text": "Com proteína." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_female", "text": "Com proteína." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say: A water and a protein shake, please." },
-                { "speaker": "silent_pause", "duration_seconds": 5 },
-                { "speaker": "pt_native_male", "text": "Uma água e um shake com proteína, por favor." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Now ask: How much is it?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Quanto custa?" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Respond with: Thank you (if you are male, say obrigado; if female, say obrigada)." },
-                { "speaker": "pt_native_male", "text": "Obrigado." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_female", "text": "Obrigada." },
-                { "speaker": "silent_pause", "duration_seconds": 3 }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 4. Today we are fueling up our bodies. We will learn how to order at a café or local juice bar. Listen to this interaction."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Bom dia. Um café e uma água, por favor."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Com açúcar ou adoçante?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sem açúcar, por favor. E um shake com proteína."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Perfeito. São dezoito reais."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Aqui está. Obrigado!"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's order coffee. Say 'A coffee, please'."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Um café, por favor."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Um café, por favor."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now, let's learn how to say 'With protein'. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Com proteína."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Com proteína."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: A water and a protein shake, please."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 5
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Uma água e um shake com proteína, por favor."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now ask: How much is it?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Quanto custa?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Respond with: Thank you (if you are male, say obrigado; if female, say obrigada)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Obrigado."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Obrigada."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's practice the phrase 'without sugar' which is 'sem açúcar'. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "sem açúcar"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "sem açúcar"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now order: A coffee without sugar, please."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Um café sem açúcar, por favor."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you ask: How are you?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Tudo bem?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Great! Practice ordering your drinks regularly."
+                }
             ]
         },
         {
             "lesson_number": 5,
             "title": "Shopping & Market Haggling",
             "description": "Master basic market negotiations, numbers 1-10, currency units, and financial transactions.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "One", "portuguese": "Um" },
-                { "english": "Two", "portuguese": "Dois" },
-                { "english": "Five Reais", "portuguese": "Cinco reais" },
-                { "english": "Ten", "portuguese": "Dez" },
-                { "english": "It is too expensive", "portuguese": "Está muito caro" }
+                {
+                    "english": "One",
+                    "portuguese": "Um"
+                },
+                {
+                    "english": "Two",
+                    "portuguese": "Dois"
+                },
+                {
+                    "english": "Five Reais",
+                    "portuguese": "Cinco reais"
+                },
+                {
+                    "english": "Ten",
+                    "portuguese": "Dez"
+                },
+                {
+                    "english": "It is too expensive",
+                    "portuguese": "Está muito caro"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to Lesson 5. Today we learn how to handle open-market negotiations and understand numbers up to ten. Listen only." },
-                { "speaker": "pt_native_male", "text": "Quanto custa essa banana?" },
-                { "speaker": "pt_native_female", "text": "Custa dez reais." },
-                { "speaker": "pt_native_male", "text": "Nossa! Está muito caro. Faz por cinco reais?" },
-                { "speaker": "pt_native_female", "text": "Tudo bem, faça dois por sete reais." },
-                { "speaker": "pt_native_male", "text": "Perfeito. Vou levar dois." },
-                { "speaker": "narrator", "text": "Let's practice the objection 'It is too expensive'. Listen and repeat." },
-                { "speaker": "pt_native_male", "text": "Está muito caro." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Está muito caro." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Now let's count. Say 'One, Two' (Um, Dois)." },
-                { "speaker": "pt_native_female", "text": "Um, dois." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'Five reais' (Cinco reais)." },
-                { "speaker": "pt_native_female", "text": "Cinco reais." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'Ten' (Dez)." },
-                { "speaker": "pt_native_male", "text": "Dez." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now negotiate: Can you make it for five reais?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Faz por cinco reais?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 5. Today we learn how to handle open-market negotiations and understand numbers up to ten. Listen only."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Quanto custa essa banana?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Custa dez reais."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Nossa! Está muito caro. Faz por cinco reais?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Tudo bem, faça dois por sete reais."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Perfeito. Vou levar dois."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's practice the objection 'It is too expensive'. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Está muito caro."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Está muito caro."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's count. Say 'One, Two' (Um, Dois)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Um, dois."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Five reais' (Cinco reais)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Cinco reais."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Ten' (Dez)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Dez."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now negotiate: Can you make it for five reais?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Faz por cinco reais?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn the word for 'Reais', which is 'reais'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "reais"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'ten reais'."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "dez reais."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say: No, it is too expensive."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Não, está muito caro."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now ask: How much is it?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Quanto custa?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Great job! Keep negotiating with confidence."
+                }
             ]
         },
         {
             "lesson_number": 6,
             "title": "Telling Time & Daily Routines",
             "description": "Understand times of day, state schedules, monitor the intermittent fasting window, and say numbers up to 30.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "What time is it?", "portuguese": "Que horas são?" },
-                { "english": "It is eight o'clock", "portuguese": "São oito horas" },
-                { "english": "Fast / Fasting", "portuguese": "Jejum" },
-                { "english": "Schedule", "portuguese": "Horário" }
+                {
+                    "english": "What time is it?",
+                    "portuguese": "Que horas são?"
+                },
+                {
+                    "english": "It is eight o'clock",
+                    "portuguese": "São oito horas"
+                },
+                {
+                    "english": "Fast / Fasting",
+                    "portuguese": "Jejum"
+                },
+                {
+                    "english": "Schedule",
+                    "portuguese": "Horário"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to Lesson 6. Today we align our routines and master asking for the time, coordinate fasting schedules, and practice numbers up to thirty." },
-                { "speaker": "pt_native_female", "text": "Que horas são agora?" },
-                { "speaker": "pt_native_male", "text": "São oito horas da manhã. Por quê?" },
-                { "speaker": "pt_native_female", "text": "Preciso quebrar o meu jejum às nove horas." },
-                { "speaker": "pt_native_male", "text": "Perfeito. Nosso treino é às dez." },
-                { "speaker": "narrator", "text": "Let's ask: What time is it? Listen and repeat." },
-                { "speaker": "pt_native_female", "text": "Que horas são?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Que horas são?" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Say 'It is eight o'clock' (São oito horas)." },
-                { "speaker": "pt_native_male", "text": "São oito horas." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Now learn 'Fasting' (Jejum). Repeat." },
-                { "speaker": "pt_native_female", "text": "Jejum." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'Intermittent Fasting' (Jejum intermitente)." },
-                { "speaker": "pt_native_female", "text": "Jejum intermitente." },
-                { "speaker": "silent_pause", "duration_seconds": 4 }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 6. Today we align our routines and master asking for the time, coordinate fasting schedules, and practice numbers up to thirty."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Que horas são agora?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "São oito horas da manhã. Por quê?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Preciso quebrar o meu jejum às nove horas."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Perfeito. Nosso treino é às dez."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's ask: What time is it? Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Que horas são?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Que horas são?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'It is eight o'clock' (São oito horas)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "São oito horas."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now learn 'Fasting' (Jejum). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Jejum."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Intermittent Fasting' (Jejum intermitente)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Jejum intermitente."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's practice 'schedule', which is 'horário'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "horário"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "horário"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say: My schedule. (Meu horário)."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Meu horário."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'at nine o'clock' (às nove horas)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "às nove horas."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now put it together: I need to break my fast at nine o'clock."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 5
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Preciso quebrar o meu jejum às nove horas."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent! Keep managing your time and fasting routines in Portuguese."
+                }
             ]
         },
         {
             "lesson_number": 7,
             "title": "Gym Directions & Muscle Anatomy",
             "description": "Describe muscle groups, identify anatomical targets, and express physical sensations or injury/muscle pain areas.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "Chest", "portuguese": "Peito" },
-                { "english": "Legs", "portuguese": "Pernas" },
-                { "english": "Back", "portuguese": "Costas" },
-                { "english": "It hurts", "portuguese": "Está doendo" }
+                {
+                    "english": "Chest",
+                    "portuguese": "Peito"
+                },
+                {
+                    "english": "Legs",
+                    "portuguese": "Pernas"
+                },
+                {
+                    "english": "Back",
+                    "portuguese": "Costas"
+                },
+                {
+                    "english": "It hurts",
+                    "portuguese": "Está doendo"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to Lesson 7. Today we map out body anatomy and discuss physical strain or injury target points. Listen only." },
-                { "speaker": "pt_native_male", "text": "O que nós vamos treinar hoje?" },
-                { "speaker": "pt_native_female", "text": "Hoje é treino de pernas e peito." },
-                { "speaker": "pt_native_male", "text": "Perfeito, minhas costas estão doendo um pouco." },
-                { "speaker": "pt_native_female", "text": "Sem problemas. Vamos focar nos membros inferiores." },
-                { "speaker": "narrator", "text": "Let's learn the word for 'Chest' (Peito). Repeat." },
-                { "speaker": "pt_native_female", "text": "Peito." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'Legs' (Pernas)." },
-                { "speaker": "pt_native_male", "text": "Pernas." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'Back' (Costas)." },
-                { "speaker": "pt_native_female", "text": "Costas." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "To say 'It hurts' or 'It is aching', you say 'Está doendo'. Repeat." },
-                { "speaker": "pt_native_male", "text": "Está doendo." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "narrator", "text": "Say: My back hurts." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_male", "text": "Minhas costas estão doendo." },
-                { "speaker": "silent_pause", "duration_seconds": 4 }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 7. Today we map out body anatomy and discuss physical strain or injury target points. Listen only."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "O que nós vamos treinar hoje?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Hoje é treino de pernas e peito."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Perfeito, minhas costas estão doendo um pouco."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Sem problemas. Vamos focar nos membros inferiores."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn the word for 'Chest' (Peito). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Peito."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Legs' (Pernas)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Pernas."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Back' (Costas)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Costas."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "To say 'It hurts' or 'It is aching', you say 'Está doendo'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Está doendo."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: My back hurts."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Minhas costas estão doendo."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's learn the word for 'shoulders' (ombros). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "ombros"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "ombros"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: My shoulders hurt."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Meus ombros estão doendo."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you ask: What time is it?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Que horas são?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent body mapping practice today. Keep up the high focus!"
+                }
             ]
         },
         {
             "lesson_number": 8,
             "title": "Organizing the Workout",
             "description": "Learn weight increments, barbell metrics, and active training commands such as push, pull, and lift.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "Push", "portuguese": "Empurre" },
-                { "english": "Pull", "portuguese": "Puxe" },
-                { "english": "More weight", "portuguese": "Mais peso" },
-                { "english": "Barbell", "portuguese": "Barra" }
+                {
+                    "english": "Push",
+                    "portuguese": "Empurre"
+                },
+                {
+                    "english": "Pull",
+                    "portuguese": "Puxe"
+                },
+                {
+                    "english": "More weight",
+                    "portuguese": "Mais peso"
+                },
+                {
+                    "english": "Barbell",
+                    "portuguese": "Barra"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to Lesson 8. Today we learn how to command training structures, adjust plate setups, and instruct movements. Listen only." },
-                { "speaker": "pt_native_female", "text": "Coloque mais peso na barra, por favor." },
-                { "speaker": "pt_native_male", "text": "Quantos quilos?" },
-                { "speaker": "pt_native_female", "text": "Mais dez quilos de cada lado. Agora, empurre forte!" },
-                { "speaker": "pt_native_male", "text": "Consegui! Próxima série vamos puxar." },
-                { "speaker": "narrator", "text": "Let's practice 'Push' (Empurre). Repeat." },
-                { "speaker": "pt_native_female", "text": "Empurre." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Now say 'Pull' (Puxe)." },
-                { "speaker": "pt_native_male", "text": "Puxe." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'More weight' (Mais peso)." },
-                { "speaker": "pt_native_female", "text": "Mais peso." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say: Put more weight on the barbell." },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Coloque mais peso na barra." },
-                { "speaker": "silent_pause", "duration_seconds": 4 }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 8. Today we learn how to command training structures, adjust plate setups, and instruct movements. Listen only."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Coloque mais peso na barra, por favor."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Quantos quilos?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Mais dez quilos de cada lado. Agora, empurre forte!"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Consegui! Próxima série vamos puxar."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's practice 'Push' (Empurre). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Empurre."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say 'Pull' (Puxe)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Puxe."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'More weight' (Mais peso)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Mais peso."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: Put more weight on the barbell."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Coloque mais peso na barra."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's practice the word for 'plates' or 'weights' which is 'anilhas'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "anilhas"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "anilhas"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: Where are the plates? (Onde estão as anilhas?)."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Onde estão as anilhas?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Respond: They are over there."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Estão ali."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Great! Use these active training commands on the gym floor."
+                }
             ]
         },
         {
             "lesson_number": 9,
             "title": "Social Connections & Post-Workout Chat",
             "description": "Engage in friendly post-workout conversations, check in on progression targets, and arrange subsequent sessions.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "Great workout!", "portuguese": "Ótimo treino!" },
-                { "english": "Tomorrow", "portuguese": "Amanhã" },
-                { "english": "See you later", "portuguese": "Até logo" }
+                {
+                    "english": "Great workout!",
+                    "portuguese": "Ótimo treino!"
+                },
+                {
+                    "english": "Tomorrow",
+                    "portuguese": "Amanhã"
+                },
+                {
+                    "english": "See you later",
+                    "portuguese": "Até logo"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to Lesson 9. Today we learn how to build solid connections after our workouts, congratulate partners, and arrange the next schedule. Listen only." },
-                { "speaker": "pt_native_male", "text": "Ufa! Ótimo treino hoje!" },
-                { "speaker": "pt_native_female", "text": "Com certeza, você treinou muito bem. Nos vemos amanhã?" },
-                { "speaker": "pt_native_male", "text": "Sim, amanhã no mesmo horário. Até logo!" },
-                { "speaker": "pt_native_female", "text": "Perfeito. Até amanhã!" },
-                { "speaker": "narrator", "text": "Let's say 'Great workout!' (Ótimo treino!). Repeat." },
-                { "speaker": "pt_native_male", "text": "Ótimo treino!" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_male", "text": "Ótimo treino!" },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'Tomorrow' (Amanhã)." },
-                { "speaker": "pt_native_female", "text": "Amanhã." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'See you later' (Até logo)." },
-                { "speaker": "pt_native_male", "text": "Até logo." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say: See you tomorrow!" },
-                { "speaker": "silent_pause", "duration_seconds": 4 },
-                { "speaker": "pt_native_female", "text": "Até amanhã!" },
-                { "speaker": "silent_pause", "duration_seconds": 3 }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 9. Today we learn how to build solid connections after our workouts, congratulate partners, and arrange the next schedule. Listen only."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Ufa! Ótimo treino hoje!"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Com certeza, você treinou muito bem. Nos vemos amanhã?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sim, amanhã no mesmo horário. Até logo!"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Perfeito. Até amanhã!"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's say 'Great workout!' (Ótimo treino!). Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Ótimo treino!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Ótimo treino!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Tomorrow' (Amanhã)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Amanhã."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'See you later' (Até logo)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Até logo."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: See you tomorrow!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Até amanhã!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's practice 'same time' which is 'mesmo horário'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "mesmo horário"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "mesmo horário"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: Tomorrow at the same time."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Amanhã no mesmo horário."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent! You are building true connections."
+                }
             ]
         },
         {
             "lesson_number": 10,
             "title": "Street & Cultural Integration",
             "description": "Consolidate navigational, nutritional, and physical coaching dialogs for complete immersive capability.",
-            "duration_minutes": 15,
+            "duration_minutes": 30,
             "vocabulary": [
-                { "english": "I speak Portuguese", "portuguese": "Eu falo português" },
-                { "english": "Let's go together", "portuguese": "Vamos juntos" }
+                {
+                    "english": "I speak Portuguese",
+                    "portuguese": "Eu falo português"
+                },
+                {
+                    "english": "Let's go together",
+                    "portuguese": "Vamos juntos"
+                }
             ],
             "dialogue_flow": [
-                { "speaker": "narrator", "text": "Welcome to our final Lesson 10. Today we integrate greetings, directions, food ordering, and fitness protocols into unified cultural confidence. Listen only." },
-                { "speaker": "pt_native_male", "text": "Olá! Agora eu falo português brasileiro!" },
-                { "speaker": "pt_native_female", "text": "Que maravilha! Vamos juntos comemorar na churrascaria?" },
-                { "speaker": "pt_native_male", "text": "Vamos juntos! Eu pago o café." },
-                { "speaker": "pt_native_female", "text": "Excelente, você é um ótimo parceiro de treino!" },
-                { "speaker": "narrator", "text": "Let's declare your accomplishment. Say 'I speak Portuguese' (Eu falo português)." },
-                { "speaker": "pt_native_male", "text": "Eu falo português." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_male", "text": "Eu falo português." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Say 'Let's go together' (Vamos juntos)." },
-                { "speaker": "pt_native_female", "text": "Vamos juntos." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "pt_native_female", "text": "Vamos juntos." },
-                { "speaker": "silent_pause", "duration_seconds": 3 },
-                { "speaker": "narrator", "text": "Congratulations on completing the BBF Lab 90-Day Mastery Portuguese Series. Keep refining, training, and manifesting your goals!" }
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to our final Lesson 10. Today we integrate greetings, directions, food ordering, and fitness protocols into unified cultural confidence. Listen only."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Olá! Agora eu falo português brasileiro!"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Que maravilha! Vamos juntos comemorar na churrascaria?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Vamos juntos! Eu pago o café."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Excelente, você é um ótimo parceiro de treino!"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's declare your accomplishment. Say 'I speak Portuguese' (Eu falo português)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu falo português."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu falo português."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Let's go together' (Vamos juntos)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Vamos juntos."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Vamos juntos."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's practice 'I pay' which is 'Eu pago'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu pago"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu pago"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say: I pay for the coffee."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu pago o café."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Congratulations on completing the first half of the BBF Lab 90-Day Mastery Portuguese Series. Keep refining, training, and manifesting your goals!"
+                }
+            ]
+        },
+        {
+            "lesson_number": 11,
+            "title": "Around the House & Daily Life",
+            "description": "Learn home vocabulary, rooms of the house, household appliances, and discuss family living environments in Portuguese.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "House",
+                    "portuguese": "Casa"
+                },
+                {
+                    "english": "Kitchen",
+                    "portuguese": "Cozinha"
+                },
+                {
+                    "english": "Bedroom",
+                    "portuguese": "Quarto"
+                },
+                {
+                    "english": "Table",
+                    "portuguese": "Mesa"
+                },
+                {
+                    "english": "Fridge",
+                    "portuguese": "Geladeira"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 11. Today we shift our focus to daily life around the house. We will learn names for various rooms and items, and talk about family spaces. Listen to this conversation."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Bem-vindo à minha casa! É muito espaçosa."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Obrigada! Onde fica a cozinha?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "A cozinha fica ali. Temos uma mesa grande e uma geladeira nova."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Excelente! E onde estão os quartos?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Os quartos ficam lá em cima. Eu tenho quatro filhos, então a casa está sempre cheia."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Que legal! Uma família grande!"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn the word for 'House' (Casa). Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "casa"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "casa"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say 'my house' (minha casa)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "minha casa"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Kitchen' (Cozinha). Repeat after the speaker."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "cozinha"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "cozinha"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'in the kitchen' (na cozinha)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "na cozinha"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Bedroom' (Quarto). Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "quarto"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "quarto"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say 'four bedrooms' (quatro quartos)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "quatro quartos"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Fridge' (Geladeira). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "geladeira"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "geladeira"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: The water is in the fridge."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "A água está na geladeira."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's practice telling someone that you have four children. 'Four children' is 'quatro filhos'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "quatro filhos"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "quatro filhos"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: I have four children."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu tenho quatro filhos."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent! Review this house setup and family dialogue."
+                }
+            ]
+        },
+        {
+            "lesson_number": 12,
+            "title": "Ordering Food & Restaurant Dining",
+            "description": "Learn to order customized meals at Italian and Japanese establishments, ask for the bill, and express dining preferences.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "Customized Pizza",
+                    "portuguese": "Pizza customizada"
+                },
+                {
+                    "english": "Teriyaki bowl",
+                    "portuguese": "Tigela de teriyaki"
+                },
+                {
+                    "english": "Beer",
+                    "portuguese": "Cerveja"
+                },
+                {
+                    "english": "Bill",
+                    "portuguese": "A conta"
+                },
+                {
+                    "english": "Please",
+                    "portuguese": "Por favor"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 12. Today we dine out. We will learn how to order customized food like a large pizza or a hot teriyaki bowl, and ask for the bill. Listen to this interaction."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Boa noite! Prontos para pedir?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sim! Eu gostaria de uma pizza grande customizada, por favor."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Perfeito. E para você?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Para mim, uma tigela de teriyaki de carne, com bastante proteína."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Excelente escolha! Algo para beber?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Uma cerveja e uma água, por favor."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Perfeito. Trago em breve."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Obrigado! E depois, a conta por favor."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn how to order a customized pizza. Listen and repeat 'pizza customizada'."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "pizza customizada"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "pizza customizada"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say 'a large customized pizza' (uma pizza grande customizada)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "uma pizza grande customizada"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'teriyaki bowl' (tigela de teriyaki). Repeat after the speaker."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "tigela de teriyaki"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "tigela de teriyaki"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'beef teriyaki bowl' (tigela de teriyaki de carne)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "tigela de teriyaki de carne"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'chicken teriyaki bowl' (tigela de teriyaki de frango)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "tigela de teriyaki de frango"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's learn how to ask for the bill. In Portuguese, we say 'A conta, por favor'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "A conta, por favor."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "A conta, por favor."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Thank you' (Obrigado, if male)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Obrigado."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's review Lesson 11. How do you say: I have four children?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu tenho quatro filhos."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent! You are ready to enjoy a great meal and converse in Portuguese."
+                }
+            ]
+        },
+        {
+            "lesson_number": 13,
+            "title": "Getting Around & Smart Vehicles",
+            "description": "Master navigation inside an electric vehicle, locate a charging station, check charge status, and give street directions.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "Car",
+                    "portuguese": "Carro"
+                },
+                {
+                    "english": "Electric",
+                    "portuguese": "Elétrico"
+                },
+                {
+                    "english": "Charging station",
+                    "portuguese": "Estação de recarga"
+                },
+                {
+                    "english": "To drive",
+                    "portuguese": "Dirigir"
+                },
+                {
+                    "english": "GPS",
+                    "portuguese": "GPS"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 13. Today we jump in the driver's seat of our electric vehicle and learn how to navigate, charge, and manage road trips in Portuguese. Listen only."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Este carro elétrico é sensacional! É muito rápido."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Sim, é fantástico! Onde fica a próxima estação de recarga?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu vou checar no GPS. Fica a dois quarteirões daqui."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Perfeito, precisamos carregar a bateria antes do nosso treino."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sim! Eu adoro dirigir este carro elétrico."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn the word for 'Car' (Carro). Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "carro"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "carro"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say 'electric car' (carro elétrico)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "carro elétrico"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Charging station' (Estação de recarga). Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "estação de recarga"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "estação de recarga"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'Where is the charging station?'."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Onde fica a estação de recarga?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'To drive' (Dirigir). Repeat after the speaker."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "dirigir"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "dirigir"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'I love to drive' (Eu adoro dirigir)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu adoro dirigir"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say: Go straight, and turn right."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Siga reto, e vire à direita."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Review Lesson 12. How do you say: A coffee and a water, please?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Um café e uma água, por favor."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Great! Enjoy driving and charging your vehicle with local confidence."
+                }
+            ]
+        },
+        {
+            "lesson_number": 14,
+            "title": "Family, Schedule & Work-Life Balance",
+            "description": "Discuss daily work shifts, family priorities with four kids, and establish balancing schedules in Portuguese.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "Kids / Children",
+                    "portuguese": "Filhos"
+                },
+                {
+                    "english": "Shift",
+                    "portuguese": "Turno"
+                },
+                {
+                    "english": "Tired",
+                    "portuguese": "Cansado"
+                },
+                {
+                    "english": "Morning",
+                    "portuguese": "Manhã"
+                },
+                {
+                    "english": "Busy",
+                    "portuguese": "Ocupado"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 14. Today we speak about managing family and work schedules, coordinating long work shifts, and organizing busy days with four kids. Listen closely."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Como foi o seu dia hoje?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Foi muito ocupado. Eu trabalhei em um turno de doze horas."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Nossa! Você deve estar cansado."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sim, estou muito cansado, mas agora vou brincar com meus quatro filhos."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Que maravilhoso! Você é muito dedicado à sua família."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Obrigado! Minha família é minha prioridade."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Shift' (Turno). Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "turno"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "turno"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'a twelve-hour shift' (um turno de doze horas)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "um turno de doze horas"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's learn the word for 'Tired' (Cansado). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "cansado"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "cansado"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: I am tired (if you are male, say 'Estou cansado'; if female, say 'Estou cansada')."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Estou cansado."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Estou cansada."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Busy' (Ocupado). Repeat after the speaker."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "ocupado"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "ocupado"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'a busy day' (um dia ocupado)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "um dia ocupado"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: I have four kids and a busy schedule."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 5
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu tenho quatro filhos e um horário ocupado."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "How do you ask: What time is it?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Que horas são?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent practice! Keep up the incredible balance between work and family life."
+                }
+            ]
+        },
+        {
+            "lesson_number": 15,
+            "title": "Hobbies & Card Collecting",
+            "description": "Discuss sports hobbies, sports trading card collecting, analyzing cards' values, and negotiating trades.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "Collection",
+                    "portuguese": "Coleção"
+                },
+                {
+                    "english": "Card",
+                    "portuguese": "Card"
+                },
+                {
+                    "english": "Sports",
+                    "portuguese": "Esportes"
+                },
+                {
+                    "english": "Value",
+                    "portuguese": "Valor"
+                },
+                {
+                    "english": "Rare",
+                    "portuguese": "Raro"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 15. Today we speak about leisure activities, sports, and trading cards. We will learn how to describe card collections and negotiate valuations. Listen only."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Veja esta minha coleção de cards de esportes!"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Nossa, que impressionante! Este card é muito raro?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sim! É um card de futebol americano muito raro e valioso."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Qual é o valor dele no mercado atual?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Vale mais de quinhentos reais! É excelente para colecionadores."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Incrível! Eu adoro este esporte."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn the word for 'Collection' (Coleção). Repeat after the speaker."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "coleção"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "coleção"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say 'my collection' (minha coleção)."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "minha coleção"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Card' (Card, similar to English or 'cartão'). In Brazil, collectors often say 'card'. Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "card"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "card"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'rare card' (card raro)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "card raro"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn the word for 'Value' (Valor). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "valor"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "valor"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Ask: What is the value?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Qual é o valor?"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'It is very rare' (É muito raro)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "É muito raro."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say: My collection is very valuable."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Minha coleção é muito valiosa."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent! Talk about your sports hobbies with pride."
+                }
+            ]
+        },
+        {
+            "lesson_number": 16,
+            "title": "Buying Groceries & Protein Preparation",
+            "description": "Master supermarket terms, choose healthy foods like Greek yogurt and egg whites, and talk about meeting daily macro targets.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "Supermarket",
+                    "portuguese": "Supermercado"
+                },
+                {
+                    "english": "Protein bar",
+                    "portuguese": "Barra de proteína"
+                },
+                {
+                    "english": "Yogurt",
+                    "portuguese": "Iogurte"
+                },
+                {
+                    "english": "Egg whites",
+                    "portuguese": "Claras de ovo"
+                },
+                {
+                    "english": "Calories",
+                    "portuguese": "Calorias"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 16. Today we learn how to shop at a supermarket, select nutrient-dense food, and discuss protein sources and calorie targets in Portuguese. Listen only."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Bom dia! Eu preciso ir ao supermercado hoje comprar mantimentos."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Excelente! O que você precisa comprar?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Preciso de claras de ovo, iogurte grego e algumas barras de proteína."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Perfeito para a sua dieta. Quantas calorias você consome por dia?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Minha meta diária é de duas mil e oitocentas calorias."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Incrível! Vamos comprar tudo o que você precisa."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn the word for 'Supermarket' (Supermercado). Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "supermercado"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "supermercado"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Protein bar' (Barra de proteína). Repeat after the speaker."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "barra de proteína"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "barra de proteína"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Egg whites' (Claras de ovo). Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "claras de ovo"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "claras de ovo"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Calories' (Calorias). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "calorias"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "calorias"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "To state 'Two thousand and eight hundred calories', say: Duas mil e oitocentas calorias. Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "duas mil e oitocentas calorias"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "duas mil e oitocentas calorias"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: My goal is 2800 calories."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Minha meta é duas mil e oitocentas calorias."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say 'Oikos yogurt' in Portuguese (Iogurte Oikos). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "iogurte Oikos"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Great shopping practice today. Focus on your nutritional vocabulary!"
+                }
+            ]
+        },
+        {
+            "lesson_number": 17,
+            "title": "Time Management & Fasting Window",
+            "description": "Coordinate weekly agendas, schedule workout sessions with clients, and manage the intermittent fasting window in Portuguese.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "Calendar",
+                    "portuguese": "Calendário"
+                },
+                {
+                    "english": "Meeting",
+                    "portuguese": "Reunião"
+                },
+                {
+                    "english": "Days of the week",
+                    "portuguese": "Dias da semana"
+                },
+                {
+                    "english": "16/8 Fast",
+                    "portuguese": "Jejum dezesseis por oito"
+                },
+                {
+                    "english": "Hour",
+                    "portuguese": "Hora"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 17. Today we master scheduling, weekly planning, and aligning our intermittent fasting schedule using the 16/8 model. Listen only."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Como está o seu calendário para esta semana?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Está bem cheio! Tenho reuniões de segunda a sexta-feira."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "E qual é o horário do seu jejum intermitente?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu faço o jejum dezesseis por oito. Começo às oito da noite e quebro o jejum ao meio-dia."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Muito bem. E o nosso treino com os clientes?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Está agendado para as duas horas da tarde. Perfeito para a minha rotina."
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Calendar' (Calendário). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "calendário"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "calendário"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Meeting' (Reunião). Repeat after the speaker."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "reunião"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "reunião"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's say '16/8 Fast' (Jejum dezesseis por oito). Listen and repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "jejum dezesseis por oito"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "jejum dezesseis por oito"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: I do a 16/8 fast."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu faço o jejum dezesseis por oito."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now let's practice 'Monday to Friday' (de segunda a sexta-feira). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "de segunda a sexta-feira"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Great schedule coordinating! Keep aligning your daily windows."
+                }
+            ]
+        },
+        {
+            "lesson_number": 18,
+            "title": "Technology & Business Building",
+            "description": "Speak about app development, launching software, writing code, and establishing business milestones in Portuguese.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "Company / Business",
+                    "portuguese": "Empresa"
+                },
+                {
+                    "english": "App",
+                    "portuguese": "Aplicativo"
+                },
+                {
+                    "english": "Developer",
+                    "portuguese": "Desenvolvedor"
+                },
+                {
+                    "english": "Code",
+                    "portuguese": "Código"
+                },
+                {
+                    "english": "Launch",
+                    "portuguese": "Lançamento"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 18. Today we dive into technology and software. We will learn how to discuss app development, writing code, and launching software to production. Listen only."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Estamos prontos para o lançamento do nosso novo aplicativo!"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Que maravilhoso! O código está completely pronto?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sim, os desenvolvedores finalizaram tudo. Está em produção."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Excelente! Qual é o foco principal do aplicativo?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "É um mecanismo inteligente para ajudar na saúde e no treino."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Sensacional! Vai ser um grande sucesso para a sua empresa!"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn the word for 'Company' or 'Business' (Empresa). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "empresa"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "empresa"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'App' (Aplicativo, or 'app'). Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "aplicativo"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "aplicativo"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Code' (Código). Repeat after the speaker."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "código"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "código"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Launch' (Lançamento). Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "lançamento"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "lançamento"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: The code is in production."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "O código está em produção."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: I love software development."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Eu adoro desenvolvimento de software."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Excellent work! Talk about your tech business with local vocabulary."
+                }
+            ]
+        },
+        {
+            "lesson_number": 19,
+            "title": "Training Clients & Verbal Coaching",
+            "description": "Deliver actionable coaching cues, guide training clients, and provide professional training motivation without injury risk.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "Client",
+                    "portuguese": "Cliente"
+                },
+                {
+                    "english": "Coach / Trainer",
+                    "portuguese": "Treinador"
+                },
+                {
+                    "english": "Dumbbell",
+                    "portuguese": "Halter"
+                },
+                {
+                    "english": "Training partner",
+                    "portuguese": "Parceiro de treino"
+                },
+                {
+                    "english": "Focus",
+                    "portuguese": "Foco"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 19. Today we learn how to verbally coach clients and training partners on the gym floor, delivering safe, highly motivating verbal instructions in Portuguese. Listen only."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Olá Ana! Pronta para treinar forte hoje?"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Olá! Sim, sou sua cliente número um. Qual é o plano?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Vamos focar no supino com halteres e depois no leg press."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Perfeito. Nada de agachamento com barra hoje?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Não, hoje o foco é total nas máquinas e halteres. Mantenha o foco!"
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Excelente. Vamos começar a série!"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn the word for 'Client' (Cliente). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "cliente"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "cliente"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Dumbbell' (Halter). Repeat after the speaker."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "halter"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "halter"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's learn 'Focus' (Foco). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "foco"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "foco"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's practice 'Bench press' (Supino). Repeat."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "supino"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "supino"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say to your client: Keep your focus! (Mantenha o foco!)."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Mantenha o foco!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: Excellent workout, Ana!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Ótimo treino, Ana!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Superb coaching! You are delivering real value."
+                }
+            ]
+        },
+        {
+            "lesson_number": 20,
+            "title": "Full Immersive Conversation",
+            "description": "Participate in a fluid, high-level Brazilian Portuguese dialogue blending all aspects of family, business, transport, and nutrition.",
+            "duration_minutes": 30,
+            "vocabulary": [
+                {
+                    "english": "Full integration",
+                    "portuguese": "Integração total"
+                },
+                {
+                    "english": "Celebration",
+                    "portuguese": "Comemoração"
+                },
+                {
+                    "english": "Success",
+                    "portuguese": "Sucesso"
+                },
+                {
+                    "english": "Future",
+                    "portuguese": "Futuro"
+                }
+            ],
+            "dialogue_flow": [
+                {
+                    "speaker": "narrator",
+                    "text": "Welcome to Lesson 20! Today we integrate everything we have learned—family, gym cues, electric vehicles, technology, business, and eating out—into one fluent conversation. Listen closely."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Olá meu amigo! Como estão as coisas com o aplicativo?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Olá! Tudo ótimo! O aplicativo está em produção e já é um grande sucesso da nossa empresa."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Que maravilhoso! E como está a sua rotina com quatro filhos?"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Muito ocupada, mas sempre temos tempo para a família e para treinar forte."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Excelente! Vamos comemorar hoje? Eu adoraria comer uma pizza grande customizada."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Sim! Excelente ideia! But antes, preciso carregar o meu carro elétrico ali na estação de recarga."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Perfeito, nós vamos juntos. Eu pago o café e você paga a pizza!"
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Fechado! Vamos juntos comemorar o sucesso!"
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Let's practice the word for 'Success' (Sucesso). Repeat."
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "sucesso"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "sucesso"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say 'to celebrate' (para comemorar)."
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "para comemorar"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Say: Let's celebrate our success!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_male",
+                    "text": "Vamos comemorar o nosso sucesso!"
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Now say: We go together. (Nós vamos juntos)."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 4
+                },
+                {
+                    "speaker": "pt_native_female",
+                    "text": "Nós vamos juntos."
+                },
+                {
+                    "speaker": "silent_pause",
+                    "duration_seconds": 3
+                },
+                {
+                    "speaker": "narrator",
+                    "text": "Congratulations on completing the entire BBF Lab 20-Lesson Portuguese Audio Series! You have built real conversational competency and integrated it fully. Parabéns!"
+                }
             ]
         }
     ]

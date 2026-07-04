@@ -1,15 +1,15 @@
 // src/components/command/PimsleurAudioLab.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 // Pimsleur-style audio lesson player — Task 7 of the Language Mastery Protocol.
-// Reads pimsleurAudioCurriculum.json (10 lessons, Gemini-authored) and plays each
-// lesson's dialogue_flow end-to-end: narrator cues + two distinct native-speaker
+// Reads pimsleurAudioCurriculum.json (20 lessons) and plays each lesson's
+// dialogue_flow end-to-end: narrator cues + two distinct native-speaker
 // voices + timed silent "your turn" recall pauses, exactly like a physical
 // Pimsleur cassette — spoken in Coach Akeem's ElevenLabs voice clone, played from
 // the pre-baked static clip library (languageSoundboardVoice.js's speakBaked; see
 // scripts/build-language-soundboard-cues.mjs) with a live-synth-then-browser-voice
 // fallback chain for anything added after the last bake.
 //
-// All 10 lessons ship a fully hand-authored dialogue_flow. If a future lesson
+// All 20 lessons ship a fully hand-authored dialogue_flow. If a future lesson
 // ever ships without one, pimsleurAudioEngine.js generates a script from just
 // its vocabulary, following the same three principles (Graduated Interval
 // Recall, Anticipation, Back-Chaining) the curriculum declares — so the lesson
@@ -184,7 +184,7 @@ function LessonPlayer({ lesson, flow, onComplete, onPrev, onNext, hasPrev, hasNe
           {hasNext ? (
             <button type="button" className="lr-game-btn" onClick={onNext}>NEXT LESSON →</button>
           ) : (
-            <div className="lr-audio-lesson-desc">All 10 lessons complete. Restart any lesson to drill it again.</div>
+            <div className="lr-audio-lesson-desc">All {LESSONS.length} lessons complete. Restart any lesson to drill it again.</div>
           )}
         </div>
       ) : isPause ? (
