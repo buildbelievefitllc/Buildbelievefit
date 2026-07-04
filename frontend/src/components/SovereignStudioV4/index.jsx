@@ -69,10 +69,11 @@ export default function SovereignStudioV4() {
     backgroundColor: '#08060a',
     logoImage: null,
     videoFile: null,
-    musicFile: null,        // custom music/audio upload → drives the reel audio track (voUrl)
+    musicFile: null,        // custom music upload → the dedicated MUSIC track element
     textLayout: 'bottom',   // overlay text placement toggle (bottom | center | top)
     logoScale: 1,           // asset size handle — scales the corner logo badge
-    musicVolume: 80,        // audio-mix slider (0–100%) → ReelPreviewEngine audio.volume
+    musicVolume: 80,        // music-track mix (0–100%) → ReelPreviewEngine music element
+    voiceVolume: 100,       // voice-track mix (0–100%) → ReelPreviewEngine voiceover element
     // FRONT 5 · Sovereign Voiceover (lazy-cached bbf-studio-voiceover)
     voTopic: '',            // Exercise / topic that keys the cache
     vibe: 'the_architect',  // voice character → script tone + ElevenLabs physics

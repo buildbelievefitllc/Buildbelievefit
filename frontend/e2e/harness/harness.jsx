@@ -14,6 +14,8 @@ import DashboardHub from '../../src/components/hub/DashboardHub.jsx';
 import CoachAudioButton from '../../src/components/vault/CoachAudioButton.jsx';
 import SovereignBriefingCard from '../../src/components/vault/SovereignBriefingCard.jsx';
 import VocabFlashcard from '../../src/components/language/VocabFlashcard.jsx';
+import LanguageMasteryPanel from '../../src/components/language/LanguageMasteryPanel.jsx';
+import { lockScoreDigits } from '../../src/lib/scoreLock.js';
 import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
 
@@ -69,6 +71,20 @@ function pick() {
     }
     case 'vocab-gym':
       return <VocabFlashcard language={props.language || 'es'} />;
+    case 'language-lab':
+      return (
+        <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' } }}>
+          <LanguageMasteryPanel />
+        </AuthMock>
+      );
+    case 'score-lock':
+      // Runs the REAL client mirror of the briefing engine's score lock and renders
+      // the result, so the spec can assert a single non-contradictory number.
+      return (
+        <pre data-testid="score-lock-output">
+          {lockScoreDigits(String(props.script || ''), Number(props.score))}
+        </pre>
+      );
     case 'dashboard-hub':
       return (
         <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>

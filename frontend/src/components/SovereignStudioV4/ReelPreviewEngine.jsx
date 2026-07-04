@@ -21,8 +21,10 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
   const [currentTime, setCurrentTime] = useState(0);
 
   // FRONT 5 — Sovereign Voiceover playback (the cached/generated MP3 URL handed up
-  // from VibeSelector via reelData.voUrl).
+  // from VibeSelector via reelData.voUrl). musicRef is the SEPARATE backing-track
+  // channel (reelData.musicFile) so voice and music mix independently.
   const voRef = useRef(null);
+  const musicRef = useRef(null);
   const [voPlaying, setVoPlaying] = useState(false);
 
   useEffect(() => {
@@ -90,21 +92,35 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
     };
   }, [reelData.voUrl]);
 
-  // Audio-mix slider: reelData.musicVolume (0–100%) binds DIRECTLY to the audio
-  // element's volume property, giving exact control over the track level so music
-  // never overpowers a voiceover. Re-applied when a new source mounts the element.
+  // Audio-mix sliders — TWO independent channels, each bound DIRECTLY to its own
+  // element's volume property: voiceVolume → the voiceover track, musicVolume → the
+  // backing music track. Re-applied when a new source mounts either element.
   useEffect(() => {
-    const audio = voRef.current;
-    if (!audio) return;
+    const voice = voRef.current;
+    if (!voice) return;
+    const v = Number(reelData.voiceVolume);
+    voice.volume = Number.isFinite(v) ? Math.min(Math.max(v / 100, 0), 1) : 1;
+  }, [reelData.voiceVolume, reelData.voUrl]);
+  useEffect(() => {
+    const music = musicRef.current;
+    if (!music) return;
     const v = Number(reelData.musicVolume);
-    audio.volume = Number.isFinite(v) ? Math.min(Math.max(v / 100, 0), 1) : 1;
-  }, [reelData.musicVolume, reelData.voUrl]);
+    music.volume = Number.isFinite(v) ? Math.min(Math.max(v / 100, 0), 1) : 1;
+  }, [reelData.musicVolume, reelData.musicFile?.url]);
 
+  // One transport: play/pause the voice and the backing track together, in sync.
   const toggleVoiceover = () => {
-    const audio = voRef.current;
-    if (!audio) return;
-    if (audio.paused) audio.play().catch(() => {});
-    else audio.pause();
+    const voice = voRef.current;
+    const music = musicRef.current;
+    const anchor = voice || music;
+    if (!anchor) return;
+    if (anchor.paused) {
+      if (voice) voice.play().catch(() => {});
+      if (music) music.play().catch(() => {});
+    } else {
+      if (voice) voice.pause();
+      if (music) music.pause();
+    }
   };
 
   const overlayClass = OVERLAY_CLASS[reelData.overlayStyle] || 'ovl-scrim';
@@ -133,15 +149,17 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
         {reelData.hook && <div className="reel-hl-v4">{reelData.hook}</div>}
         {reelData.hookSub && <div className="reel-sub-v4">{reelData.hookSub}</div>}
         {(reelData.hook || reelData.hookSub) && <div className="reel-watch-v4">▶ WATCH</div>}
-        {reelData.voUrl && (
-          <button type="button" className="reel-vo-v4" onClick={toggleVoiceover} aria-label={voPlaying ? 'Pause voiceover' : 'Play voiceover'}>
-            {voPlaying ? '❚❚ VOICEOVER' : '🎙 PLAY VOICEOVER'}
+        {(reelData.voUrl || reelData.musicFile?.url) && (
+          <button type="button" className="reel-vo-v4" onClick={toggleVoiceover} aria-label={voPlaying ? 'Pause audio' : 'Play audio'}>
+            {voPlaying ? '❚❚ AUDIO' : '🎙 PLAY AUDIO'}
           </button>
         )}
       </div>
 
-      {/* Hidden VO audio element — the lazy-cached/generated MP3 from the Edge Function */}
-      {reelData.voUrl && <audio ref={voRef} src={reelData.voUrl} preload="auto" />}
+      {/* Hidden dual-track audio engine: the voiceover channel (voUrl) and the
+          backing-music channel (musicFile) — each with its own volume binding. */}
+      {reelData.voUrl && <audio ref={voRef} src={reelData.voUrl} preload="auto" data-testid="reel-audio-voice" />}
+      {reelData.musicFile?.url && <audio ref={musicRef} src={reelData.musicFile.url} preload="auto" loop data-testid="reel-audio-music" />}
 
       {reelData.logoImage?.url && (
         <div className="reel-logo-v4" style={{ transform: `scale(${reelData.logoScale ?? 1})`, transformOrigin: 'top right' }}>

@@ -318,7 +318,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
       {sovereignVaultManifest.length > 0 && (
         <div className="ctl-group-v4">
           <label className="ctl-label-v4">📼 Pre-Rendered Vault ($0 · instant)</label>
-          <select className="select-v4" defaultValue="" onChange={handleVaultSelect}>
+          <select className="select-v4" defaultValue="" onChange={handleVaultSelect} data-testid="reel-vault-select">
             <option value="">— pick a pre-rendered scenario —</option>
             {Object.entries(VAULT_BY_CATEGORY).map(([cat, items]) => (
               <optgroup key={cat} label={cat}>
@@ -429,10 +429,11 @@ export default function VibeSelector({ reelData, handleReelChange }) {
             if (!file) return;
             if (reelData.musicFile?.url) URL.revokeObjectURL(reelData.musicFile.url);
             const url = URL.createObjectURL(file);
+            // Dedicated MUSIC track — no longer clobbers the voiceover (voUrl), so the
+            // AI voice and the backing track are independent channels with their own
+            // volume sliders below.
             handleReelChange('musicFile', { file, url });
-            handleReelChange('voUrl', url);      // feed the reel <audio> + the export track
-            handleReelChange('voTopic', file.name);
-            setVoNote({ ok: true, text: `Loaded custom track “${file.name}” — it bakes into the exported reel.` });
+            setVoNote({ ok: true, text: `Loaded custom track “${file.name}” — balance it against the voice with the mix sliders.` });
           }}
           style={{ display: 'none' }}
         />
@@ -443,17 +444,17 @@ export default function VibeSelector({ reelData, handleReelChange }) {
             onClick={() => {
               if (reelData.musicFile?.url) URL.revokeObjectURL(reelData.musicFile.url);
               handleReelChange('musicFile', null);
-              handleReelChange('voUrl', null);
             }}
           >
             ✕ Remove custom track
           </button>
         )}
-        <div className="hint-v4">Your own music/audio — overrides the generated voiceover and bakes into the export.</div>
+        <div className="hint-v4">Your own backing track — plays under the voiceover; bakes into the export when no voiceover is set.</div>
       </div>
 
-      {/* ── Audio Mix — exact music-volume control (0–100%), bound live to the reel
-          preview's audio element so the track never overpowers a voiceover. ── */}
+      {/* ── Audio Mix — TWO independent channels (0–100% each), bound live to the reel
+          preview's dedicated audio elements so the AI voice and the backing track
+          balance exactly. ── */}
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">🎚 Music Volume — {reelData.musicVolume ?? 80}%</label>
         <input
@@ -467,7 +468,23 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           aria-label="Music volume"
           data-testid="reel-music-volume"
         />
-        <div className="hint-v4">Exact mix control — 0% mutes the track, 100% is full volume. Applies live to the preview player.</div>
+        <div className="hint-v4">The backing-track channel — 0% mutes it, 100% is full volume.</div>
+      </div>
+
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🎙 Voice Volume — {reelData.voiceVolume ?? 100}%</label>
+        <input
+          type="range"
+          className="range-v4"
+          min="0"
+          max="100"
+          step="1"
+          value={reelData.voiceVolume ?? 100}
+          onChange={(e) => handleReelChange('voiceVolume', Number(e.target.value))}
+          aria-label="Voice volume"
+          data-testid="reel-voice-volume"
+        />
+        <div className="hint-v4">The voiceover channel — balance the AI voice against the music so neither overpowers.</div>
       </div>
 
       <div className="ctl-group-v4">

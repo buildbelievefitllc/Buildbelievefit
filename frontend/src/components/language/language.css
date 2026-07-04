@@ -164,3 +164,51 @@
   .im-title { font-size: 1.4rem; }
   .lg-term { font-size: 1.7rem; }
 }
+
+/* ── Mastery mode tabs (Forge · Path · Dojo · Immersion) ─────────────────────── */
+.lm-mode-tabs { display: flex; gap: .4rem; margin: .8rem 0 1rem; border-bottom: 1px solid var(--line, rgba(255,255,255,.12)); overflow-x: auto; }
+.lm-mode-tab { font-family: var(--hb); font-size: .78rem; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(249,245,255,.55); background: none; border: none; border-bottom: 3px solid transparent; padding: .55rem .9rem; cursor: pointer; white-space: nowrap; }
+.lm-mode-tab.is-active { color: #fff; border-bottom-color: var(--yel, #f5c800); }
+.lm-kicker { font-family: var(--hb); font-size: .66rem; letter-spacing: 2px; text-transform: uppercase; color: #f5c800; }
+.lm-title { font-family: var(--hb); font-size: 1.3rem; color: #fff; margin: .25rem 0 .6rem; }
+
+/* ── Vocab Forge additions ────────────────────────────────────────────────────── */
+.lg-clip-btn { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: #f5c800; background: rgba(106,13,173,.28); border: 1px solid rgba(245,200,0,.4); border-radius: 999px; padding: .4rem .9rem; margin: .5rem 0; cursor: pointer; }
+.lg-typed { width: 100%; box-sizing: border-box; margin: .5rem 0 .3rem; padding: .55rem .7rem; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: rgba(9,9,9,.5); color: #fff; font-size: .95rem; }
+.lg-typed.is-gram-bad { border-color: #ff5d5d; }
+.lg-gram-warning { color: #ffb547; font-size: .78rem; margin-bottom: .4rem; }
+.lg-grade-row--forge { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; }
+
+/* ── The Path (drag-and-drop syntax quiz) ────────────────────────────────────── */
+.tp-shell { padding: 1rem 1.1rem; border-radius: 16px; border: 1px solid rgba(106,13,173,.5); background: linear-gradient(135deg, rgba(106,13,173,.22), rgba(9,9,9,.55)); }
+.tp-prompt { color: rgba(244,238,251,.85); font-size: .95rem; margin-bottom: .8rem; }
+.tp-rail { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; min-height: 3.2rem; padding: .6rem; border-radius: 12px; border: 2px dashed rgba(245,200,0,.45); background: rgba(9,9,9,.35); margin-bottom: .8rem; }
+.tp-rail.is-correct { border-color: #4ade80; border-style: solid; }
+.tp-rail.is-wrong { border-color: #ff5d5d; }
+.tp-rail-hint { color: rgba(249,245,255,.4); font-size: .8rem; }
+.tp-tray { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: .9rem; }
+.tp-chip { font-family: var(--hb); font-size: .9rem; letter-spacing: .5px; color: #fff; background: linear-gradient(135deg, #6a0dad, #4a0979); border: 1px solid rgba(245,200,0,.35); border-radius: 999px; padding: .45rem .9rem; cursor: grab; user-select: none; }
+.tp-chip.is-placed { background: rgba(245,200,0,.18); border-color: #f5c800; color: #f5cf60; cursor: default; }
+.tp-actions { display: flex; gap: .5rem; }
+.tp-btn { font-family: var(--hb); font-size: .8rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; color: #0e0a16; background: linear-gradient(90deg, #f5c800, #ffd83a); border: none; border-radius: 999px; padding: .55rem 1.2rem; cursor: pointer; }
+.tp-btn:disabled { opacity: .5; cursor: default; }
+.tp-btn--ghost { background: none; border: 1px solid rgba(255,255,255,.25); color: rgba(249,245,255,.7); }
+.tp-verdict { margin-top: .7rem; font-size: .88rem; }
+.tp-verdict.is-correct { color: #4ade80; }
+.tp-verdict.is-wrong { color: #ff5d5d; }
+.tp-done { color: #4ade80; font-size: .95rem; }
+
+/* ── Audio Dojo (screen-locked Pimsleur stitch player) ───────────────────────── */
+.dojo-shell { padding: 1rem 1.1rem; border-radius: 16px; border: 1px solid rgba(245,200,0,.45); background: linear-gradient(135deg, rgba(106,13,173,.3), rgba(9,9,9,.55)); }
+.dojo-lesson { font-family: var(--hb); color: rgba(244,238,251,.85); letter-spacing: 1px; margin-bottom: .6rem; }
+.dojo-controls { margin: .4rem 0 .6rem; }
+.dojo-btn { font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; color: #0e0a16; background: linear-gradient(90deg, #f5c800, #ffd83a); border: none; border-radius: 999px; padding: .6rem 1.25rem; cursor: pointer; }
+.dojo-btn--stop { background: none; border: 1px solid rgba(255,255,255,.3); color: #fff; }
+.dojo-status { color: rgba(244,238,251,.8); font-size: .85rem; margin: .4rem 0; }
+.dojo-status--calibrating { color: #ffb547; }
+.dojo-status--done { color: #4ade80; }
+.dojo-lock { color: #f5cf60; font-size: .74rem; letter-spacing: .5px; margin: .3rem 0; }
+.dojo-rail { display: flex; gap: .35rem; margin-top: .6rem; }
+.dojo-pip { width: 26px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.15); }
+.dojo-pip.is-done { background: #f5c800; }
+.dojo-pip.is-active { background: #6a0dad; box-shadow: 0 0 8px rgba(106,13,173,.9); }

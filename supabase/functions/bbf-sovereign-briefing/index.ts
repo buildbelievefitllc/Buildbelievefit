@@ -48,6 +48,28 @@ function pgHeaders(key: string): HeadersInit {
 function utcToday(): string { return new Date().toISOString().slice(0, 10); }
 const num = (v: unknown): number | null => { const n = Number(v); return Number.isFinite(n) ? n : null; };
 
+// ── SCORE LOCK (the 77-vs-80 fix, layer 2) ─────────────────────────────────────
+// Deterministic backstop over the generated script: every standalone digit-form
+// integer on the 0-100 scale is rewritten to today's ACTUAL readiness score, so a
+// hallucinated second figure ("primed at an 80") can never reach the athlete's ears.
+// Day/date counters are exempt ("Day 34", "día 34", "dia 34", "30 days/días/dias") —
+// those are calendar numbers, not scores. Mirrored client-side in lib/scoreLock.js.
+function lockScoreDigits(script: string, score: number): string {
+  const s = Math.round(score);
+  return String(script || '').replace(
+    /(\b(?:day|d[ií]a)\s+)?(\b(?:out\s+of|de|sobre|em)\s+)?\b(\d{1,3})\b(\s*(?:days?|d[ií]as?))?(\s*(?:%|percent|por\s+ciento|por\s+cento))?/gi,
+    (full, dayBefore, denomBefore, digits, dayAfter, pctAfter) => {
+      if (dayBefore || dayAfter) return full;              // calendar context — leave it
+      if (pctAfter) return full;                           // effort %, not a score
+      const n = Number(digits);
+      if (denomBefore && n === 100) return full;           // the scale itself ("out of 100"/"de 100")
+      if (!Number.isFinite(n) || n < 0 || n > 100) return full; // not a 0-100 scale figure
+      if (n === s) return full;                            // already the true score
+      return full.replace(digits, String(s));              // any other 0-100 figure → today's score
+    },
+  );
+}
+
 function bytesToB64(bytes: Uint8Array): string {
   const CHUNK = 0x8000; let bin = '';
   for (let i = 0; i < bytes.length; i += CHUNK) bin += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)) as any);
@@ -236,9 +258,12 @@ async function composeBriefing(apiKey: string, locale: string, ctx: Record<strin
     `${LOCALE_NAME[locale]}, second person, 120-150 words. This is a milestone they EARNED, not one handed ` +
     `to them. Open by naming the graduation; weave in their calibration journey and recovery trend from the ` +
     `telemetry; close on a grounded, forward-driving line. Convert any numeric rating into spoken words. ` +
-    `If the telemetry includes today_score, that is the athlete's EXACT readiness score for TODAY — if you ` +
-    `cite a specific number, cite this one precisely (spoken as words, e.g. "eighty-eight out of one ` +
-    `hundred"), never the multi-day average. ` +
+    `If the telemetry includes today_score, that is the athlete's EXACT readiness score for TODAY and the ` +
+    `ONLY number on a 0-100 scale you are permitted to voice — if you cite a specific score, cite this one ` +
+    `precisely (spoken as words, e.g. "eighty-eight out of one hundred"). NEVER voice any other 0-100 ` +
+    `figure (no averages, no CNS or recovery ratings as numbers) — describe every other metric ` +
+    `qualitatively ("trending up", "primed", "well-rested") so the briefing can never contradict the ` +
+    `dashboard. ` +
     `Natural human speech only — NO markdown, NO lists, NO preamble, NO quotes, NO emojis.${colloquial}\n\n` +
     `${vocalStateDirective('architect')}`;
   const user = `Athlete telemetry (speak it naturally in ${LOCALE_NAME[locale]}):\n${JSON.stringify(ctx).slice(0, 1400)}\n\nRecord the Sovereign Briefing now.`;
@@ -290,11 +315,21 @@ async function generateAndCache(opts: {
   if (!pre || pre.ok !== true) return { ok: false, skipped: String(pre?.reason || 'not_entitled') };
 
   const ctx = await gatherContext(url, key, userId, calDay);
-  // The EXACT score for today, distinct from gatherContext's 14-day trend
-  // average — this is what the score-accuracy fix in the system prompt anchors to.
-  if (todayScore !== null) ctx.today_score = todayScore;
+  // ── SINGLE SOURCE OF TRUTH (the 77-vs-80 fix, layer 1) ──
+  // today_score is the ONLY 0-100 number the model may see. The 14-day avg_score
+  // used to ride in the same context block and the model would voice BOTH
+  // ("seventy-seven out of one hundred… primed at an eighty") — a live
+  // contradiction with the dashboard. With today's score known, every other 0-100
+  // numeric is stripped from the context (the trend stays qualitative), and the
+  // generated script passes through the deterministic lockScoreDigits backstop.
+  if (todayScore !== null) {
+    ctx.today_score = todayScore;
+    const trend = ctx.readiness as Record<string, unknown> | undefined;
+    if (trend) ctx.readiness = { trend: trend.trend ?? 'steady', readings: trend.readings ?? null };
+  }
   let text = anthropic ? (await composeBriefing(anthropic, locale, ctx)) : null;
   if (!text) text = fallbackBriefing(locale, calDay);
+  if (todayScore !== null) text = lockScoreDigits(text, todayScore);
   const spoken = formatForState(text, 'architect');
 
   if (!eleven) return { ok: false, skipped: 'tts_unconfigured' };

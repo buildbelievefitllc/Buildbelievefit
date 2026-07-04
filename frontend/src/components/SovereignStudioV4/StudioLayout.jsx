@@ -239,7 +239,8 @@ export default function StudioLayout({
       const foundry = new SovereignFoundry(document.body);
       const result = await foundry.render({
         videoUrl,
-        voUrl: reelData.voUrl || null,
+        // Voice wins the export bake; with no voiceover the backing track carries it.
+        voUrl: reelData.voUrl || reelData.musicFile?.url || null,
         overlay,
         durationCap: target ? 90 : 1200,
         onProgress: (p) => setRecordPct(Math.round(p * 100)),

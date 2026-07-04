@@ -1,29 +1,46 @@
 // src/components/language/VocabFlashcard.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Phase 3.2 — the SRS drill (LANGUAGE_MASTERY §2.2 Leitner). Self-contained: it
-// consumes useVocabGym, walks the daily due queue, and drives the flip.
+// MODE 1 · VOCAB FORGE — the SRS media drill (LANGUAGE_MASTERY §2.2 Leitner +
+// §Mastery Views). Self-contained: consumes useVocabGym, walks the daily due
+// queue, and drives the flip.
 //
-// Self-graded active recall (the schema stores the target-language `term`, not a
-// translation): FRONT shows the term + its Leitner box; the athlete recalls the
-// meaning, taps Flip, and self-grades Correct / Incorrect → bbf_review_vocab_term
-// (box +1 / reset + reschedule). A Flag escalates the term (bbf_flag_vocab_term).
+// The Forge card: FRONT plays the term's pre-baked native clip (Zero-API — the
+// button self-hides while the fragment is unbaked) and shows the Leitner box;
+// the athlete recalls, may TYPE the term from recall (Gram-Standard guarded —
+// a kilo/kg/lb lexeme trips the inline warning), flips, and grades the response
+// on the 1–4 ladder (1 Again · 2 Hard · 3 Good · 4 Easy → SRS miss/hit via
+// bbf_review_vocab_term). Completing the queue appends the session to
+// bbf_language_session_history (module 'vocab_gym') — the Sentinel's ledger.
 //
-// LEITNER DIFFERENTIATION (the visual requirement): a 5-rung ladder makes Box 1
-// (Learning · purple, near-empty) unmistakable from Box 5 (Mastered · gold, full).
-// A priority-boosted card (an immersion miss or a manual flag) wears a gold
-// Priority tag and shows its §4.4 error cluster.
-//
-// TRILINGUAL: every label resolves through useLangUiStr by preferred_locale.
+// LEITNER DIFFERENTIATION: the 5-rung purple→gold ladder; a boosted card wears
+// the Priority tag and its §4.4 error cluster. TRILINGUAL throughout.
 //
 // @param {{ language?: 'es'|'pt' }} props
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useVocabGym } from './useVocabGym.js';
 import { useLangUiStr } from './languageStrings.js';
+import { useLang } from '../../context/LangContext.jsx';
+import { violatesGramStandard } from '../../lib/gramGuard.js';
+import { logLanguageAttempt } from '../../lib/languageLabApi.js';
+import { fragmentUrl } from './useDojoPlayer.js';
 import './language.css';
 
 // Purple (Learning) → Gold (Mastered) ramp across the five Leitner boxes.
 const BOX_ACCENT = { 1: '#6a0dad', 2: '#8b3dc4', 3: '#b98a2e', 4: '#e6bd1f', 5: '#f5c800' };
+
+// ── Forge chrome (self-contained trilingual, house SovereignBriefingCard style) ──
+const FORGE_STR = {
+  en: { clip: '🔊 Native clip', typed: 'Type it from recall (optional)…', gram: 'Gram Standard: mass is written in grams — the {load_g} integer form, never kilo/kg/lb.', g1: '1 · Again', g2: '2 · Hard', g3: '3 · Good', g4: '4 · Easy' },
+  es: { clip: '🔊 Clip nativo', typed: 'Escríbelo de memoria (opcional)…', gram: 'Estándar de Gramos: la masa se escribe en gramos — la forma entera {load_g}, nunca kilo/kg/lb.', g1: '1 · Otra vez', g2: '2 · Difícil', g3: '3 · Bien', g4: '4 · Fácil' },
+  pt: { clip: '🔊 Clipe nativo', typed: 'Digite de memória (opcional)…', gram: 'Padrão de Gramas: a massa é escrita em gramas — a forma inteira {load_g}, nunca quilo/kg/lb.', g1: '1 · De novo', g2: '2 · Difícil', g3: '3 · Bom', g4: '4 · Fácil' },
+};
+
+// Fragment key for a term's pre-baked pronunciation clip (VOC-<slug>).
+function termClipKey(term) {
+  const slug = String(term || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim().replace(/\s+/g, '-');
+  return `VOC-${slug}`;
+}
 
 function LeitnerLadder({ box, ariaLabel }) {
   return (
@@ -45,26 +62,44 @@ function LeitnerLadder({ box, ariaLabel }) {
 
 export default function VocabFlashcard({ language = 'es' }) {
   const { ls, clusters } = useLangUiStr();
+  const { lang } = useLang();
+  const fstr = FORGE_STR[lang] || FORGE_STR.en;
   const { loading, error, queue, reviewTerm, flagTerm, reload } = useVocabGym(language);
 
   const [flipped, setFlipped] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(0);
+  const [hits, setHits] = useState(0);
   const [flaggedTerm, setFlaggedTerm] = useState(null);
+  const [typed, setTyped] = useState('');
+  const [clipDead, setClipDead] = useState(false); // fragment unbaked → hide the button
+  const clipRef = useRef(null);
 
   // The hook removes each reviewed term from the queue, so the active card is
   // always queue[0]. `done` drives the progress denominator (stable across a session).
   const card = queue[0] || null;
   const total = done + queue.length;
+  const gramViolation = violatesGramStandard(typed);
 
-  async function grade(correct) {
+  // 1–4 self-grade (Again/Hard/Good/Easy): 1-2 → SRS miss, 3-4 → SRS hit.
+  async function grade4(n) {
     if (!card || busy) return;
+    const correct = n >= 3;
+    const isLast = queue.length === 1;
     setBusy(true);
     await reviewTerm(card.term, correct); // removes queue[0] on success
     setBusy(false);
     setFlipped(false);
     setFlaggedTerm(null);
+    setTyped('');
+    setClipDead(false);
+    const nextHits = hits + (correct ? 1 : 0);
+    setHits(nextHits);
     setDone((d) => d + 1);
+    if (isLast) {
+      // Queue cleared — append the Forge session to the closed-loop ledger.
+      logLanguageAttempt({ language, module: 'vocab_gym', itemsTotal: done + 1, itemsCorrect: nextHits });
+    }
   }
 
   async function flag() {
@@ -73,6 +108,13 @@ export default function VocabFlashcard({ language = 'es' }) {
     const res = await flagTerm(card.term);
     setBusy(false);
     if (res && res.ok) setFlaggedTerm(card.term);
+  }
+
+  function playClip() {
+    const el = clipRef.current;
+    if (!el || !card) return;
+    el.src = fragmentUrl(termClipKey(card.term));
+    el.play().catch(() => setClipDead(true));
   }
 
   // ── states ──
@@ -109,7 +151,7 @@ export default function VocabFlashcard({ language = 'es' }) {
       <div className={`lg-card${flipped ? ' is-flipped' : ''}`}>
         {/* key on term so each new card starts un-flipped */}
         <div className="lg-card-inner" key={card.term}>
-          {/* ── FRONT — the term + its Leitner box ── */}
+          {/* ── FRONT — the media card: native clip + term + Leitner box ── */}
           <div className="lg-face lg-face--front">
             <div className="lg-card-top">
               <div className="lg-box-badge" style={{ borderColor: BOX_ACCENT[box] }}>
@@ -123,20 +165,42 @@ export default function VocabFlashcard({ language = 'es' }) {
 
             <div className="lg-term">{card.term}</div>
 
+            {!clipDead ? (
+              <button type="button" className="lg-clip-btn" onClick={playClip} data-testid="forge-clip">
+                {fstr.clip}
+              </button>
+            ) : null}
+            {/* hidden clip element — an unbaked fragment silently retires the button */}
+            <audio ref={clipRef} preload="none" style={{ display: 'none' }} onError={() => setClipDead(true)} />
+
             {clusterLabel ? <div className="lg-cluster-tag" title={ls.injectedFrom}>{clusterLabel}</div> : null}
 
             <button type="button" className="lg-flip-btn" onClick={() => setFlipped(true)}>{ls.flip}</button>
             <span className="lg-flip-hint">{ls.tapToFlip}</span>
           </div>
 
-          {/* ── BACK — self-grade the recall ── */}
+          {/* ── BACK — typed recall (Gram-guarded) + the 1–4 grade ladder ── */}
           <div className="lg-face lg-face--back">
             <div className="lg-recall-term">{card.term}</div>
             <div className="lg-recall-prompt">{ls.recallPrompt}</div>
 
-            <div className="lg-grade-row">
-              <button type="button" className="lg-grade lg-grade--miss" disabled={busy} onClick={() => grade(false)}>{ls.incorrect}</button>
-              <button type="button" className="lg-grade lg-grade--hit" disabled={busy} onClick={() => grade(true)}>{ls.correct}</button>
+            <input
+              type="text"
+              className={`lg-typed${gramViolation ? ' is-gram-bad' : ''}`}
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              placeholder={fstr.typed}
+              data-testid="forge-input"
+            />
+            {gramViolation ? (
+              <div className="lg-gram-warning" role="alert" data-testid="gram-violation">{fstr.gram}</div>
+            ) : null}
+
+            <div className="lg-grade-row lg-grade-row--forge">
+              <button type="button" className="lg-grade lg-grade--miss" disabled={busy} onClick={() => grade4(1)} data-testid="forge-grade-1">{fstr.g1}</button>
+              <button type="button" className="lg-grade lg-grade--miss" disabled={busy} onClick={() => grade4(2)}>{fstr.g2}</button>
+              <button type="button" className="lg-grade lg-grade--hit" disabled={busy} onClick={() => grade4(3)}>{fstr.g3}</button>
+              <button type="button" className="lg-grade lg-grade--hit" disabled={busy} onClick={() => grade4(4)} data-testid="forge-grade-4">{fstr.g4}</button>
             </div>
 
             <button type="button" className={`lg-flag-btn${flagged ? ' is-flagged' : ''}`} disabled={busy || flagged} onClick={flag}>
