@@ -50,7 +50,7 @@ test('Hub renders NO audio brief card, even with a populated playlist slice', as
   await expect(page.locator('.hub-card')).toHaveCount(3);
 });
 
-test('Check-In unified player mounts from the working source with transplanted runtime', async ({ page }) => {
+test('Check-In unified player: exactly ONE play action, no legacy player, toggles play/pause', async ({ page }) => {
   await page.route('**/*.supabase.co/**', (route) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: '{}' }));
   // The working audio source — a real decodable clip served at a fixture path.
   await page.route('**/__fixtures__/brief.wav', (route) => route.fulfill({
@@ -66,9 +66,20 @@ test('Check-In unified player mounts from the working source with transplanted r
   await expect(card).toBeVisible();
   await expect(card).toHaveAttribute('data-phase', 'ready');
 
-  // The unified player: audio element bound to the working source…
-  await expect(page.getByTestId('sovereign-briefing-audio')).toHaveCount(1);
-  // …with the transplanted Hub chrome: ready chip + a REAL runtime (from metadata).
+  // ONE unified play action: exactly one button in the card, zero native-controls
+  // players (the legacy visible <audio controls> is gone — hidden engine only).
+  await expect(card.locator('button')).toHaveCount(1);
+  await expect(card.locator('audio[controls]')).toHaveCount(0);
+  await expect(page.getByTestId('sovereign-briefing-audio')).toBeHidden();
+
+  // Transplanted chrome intact: ready chip + REAL runtime from the loaded metadata.
   await expect(page.getByTestId('sovereign-briefing-ready-chip')).toBeVisible();
   await expect(page.getByTestId('sovereign-briefing-runtime')).toHaveText('0:02');
+
+  // The single button is a true transport: play → pause label → play again.
+  const play = page.getByTestId('sovereign-briefing-play');
+  await play.click();
+  await expect(play).toContainText(/Pause/i);
+  await play.click();
+  await expect(play).not.toContainText(/Pause/i);
 });

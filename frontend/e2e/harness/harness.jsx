@@ -13,6 +13,7 @@ import CardioCard from '../../src/components/hub/CardioCard.jsx';
 import DashboardHub from '../../src/components/hub/DashboardHub.jsx';
 import CoachAudioButton from '../../src/components/vault/CoachAudioButton.jsx';
 import SovereignBriefingCard from '../../src/components/vault/SovereignBriefingCard.jsx';
+import VocabFlashcard from '../../src/components/language/VocabFlashcard.jsx';
 import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
 
@@ -66,6 +67,8 @@ function pick() {
         </AuthMock>
       );
     }
+    case 'vocab-gym':
+      return <VocabFlashcard language={props.language || 'es'} />;
     case 'dashboard-hub':
       return (
         <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>

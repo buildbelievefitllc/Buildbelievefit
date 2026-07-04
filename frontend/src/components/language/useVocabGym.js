@@ -43,7 +43,13 @@ async function rpc(fn, args) {
  *            flagTerm:(term:string)=>Promise<Object> }}
  */
 export function useVocabGym(language = 'es') {
-  const lang = language === 'pt' ? 'pt' : 'es';
+  // Normalize ANY Portuguese identifier — 'pt', 'PT-BR', 'pt_BR', 'português',
+  // 'Brazilian Portuguese' — to the canonical 'pt' the SRS tables speak. The old
+  // strict equality (language === 'pt') silently coerced regional codes like
+  // 'pt-BR' to the SPANISH queue, which read as "Queue clear" for Portuguese.
+  const t = String(language || '').trim().toLowerCase();
+  const lang = (t === 'pt' || t.startsWith('pt-') || t.startsWith('pt_') || t.startsWith('port') || t.includes('brazil') || t.includes('brasil') || t === 'br')
+    ? 'pt' : 'es';
   const [state, setState] = useState({ loading: true, error: null, queue: [], dueCount: 0, total: 0 });
   const alive = useRef(true);
 

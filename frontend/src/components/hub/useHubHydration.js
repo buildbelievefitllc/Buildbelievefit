@@ -91,37 +91,66 @@ export function useHubHydration() {
   const uid = user?.username || user?.id || '';
   const [state, setState] = useState({ loading: true, error: null, hydration: null });
   const alive = useRef(true);
+  // The last LOGGED cardio session dispatched by a sibling surface (Smart Cardio's
+  // Complete & Sync payload). It is the freshest truth the client holds: every
+  // snapshot applied below merges it OVER the server slice, so the Hub's Cardio
+  // block prioritizes the newly logged live row over baseline targets — including
+  // across refetches where the server prescription row is still absent/stale.
+  const liveCardioRef = useRef(null);
+
+  const withOverlay = useCallback((next) => {
+    const o = liveCardioRef.current;
+    if (!o) return next;
+    const h = next.hydration;
+    if (!h) return { ...next, hydration: { ok: true, cardio_today: { ...o } } };
+    return { ...next, hydration: { ...h, cardio_today: { ...(h.cardio_today || {}), ...o } } };
+  }, []);
 
   // Explicit user-driven refresh (a real event, not an effect): flip to loading,
   // then apply the resolved snapshot.
   const reload = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }));
     const next = await fetchHydration(uid);
-    if (alive.current) setState(next);
-  }, [uid]);
+    if (alive.current) setState(withOverlay(next));
+  }, [uid, withOverlay]);
 
   // Mount / identity-change fetch. The effect body performs NO synchronous
   // setState — it awaits the pure fetch and applies the result in the deferred
   // continuation, so it can never trigger a cascading render.
   useEffect(() => {
     alive.current = true;
-    fetchHydration(uid).then((next) => { if (alive.current) setState(next); });
+    fetchHydration(uid).then((next) => { if (alive.current) setState(withOverlay(next)); });
     return () => { alive.current = false; };
-  }, [uid]);
+  }, [uid, withOverlay]);
 
-  // LIVE RELAY (defect: a Smart Cardio "Complete & Sync" fired the backend write but
-  // the Hub never refreshed): re-hydrate whenever a sibling surface broadcasts a
-  // protocol/session change (the SAME window events SmartCardio already dispatches),
-  // so a logged cardio session threads into the Hub immediately — no manual reload.
+  // HARD CACHE INVALIDATION (Smart Cardio Complete & Sync): the sibling dispatches
+  // PROTOCOL_UPDATED_EVENT with the logged session in detail.cardio. Two-step apply:
+  //   1. DISPATCH THE PAYLOAD DIRECTLY INTO HUB STATE — the logged values render in
+  //      the same tick, no network round-trip, no page reload.
+  //   2. Hard-refetch the hydration snapshot to reconcile everything else; the
+  //      overlay merge above keeps the logged row winning over a still-stale slice.
   useEffect(() => {
-    const refresh = () => { fetchHydration(uid).then((next) => { if (alive.current) setState(next); }); };
+    const refresh = (e) => {
+      const cardio = e?.detail?.cardio;
+      if (cardio && typeof cardio === 'object') {
+        liveCardioRef.current = { ...(liveCardioRef.current || {}), ...cardio };
+        setState((s) => ({
+          ...s,
+          hydration: {
+            ...(s.hydration || { ok: true }),
+            cardio_today: { ...(s.hydration?.cardio_today || {}), ...liveCardioRef.current },
+          },
+        }));
+      }
+      fetchHydration(uid).then((next) => { if (alive.current) setState(withOverlay(next)); });
+    };
     window.addEventListener(PROTOCOL_UPDATED_EVENT, refresh);
     window.addEventListener(SESSION_COMPLETE_EVENT, refresh);
     return () => {
       window.removeEventListener(PROTOCOL_UPDATED_EVENT, refresh);
       window.removeEventListener(SESSION_COMPLETE_EVENT, refresh);
     };
-  }, [uid]);
+  }, [uid, withOverlay]);
 
   return { ...state, reload };
 }

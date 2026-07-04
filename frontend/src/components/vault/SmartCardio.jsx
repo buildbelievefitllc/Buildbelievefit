@@ -559,16 +559,27 @@ function CardioConfigurator({ onLogged }) {
         const kcal = Math.round(Number(crp?.kcal) || 0);
         if (kcal > 0) await addActiveCalories(manualToday(), kcal);
       } catch { /* non-fatal — the cardio session is already logged */ }
-      // ── EXPLICIT STATE INVALIDATION (architectural reconciliation) ──
-      // The 200 from logCardio IS the invalidation point. This dispatch was
-      // previously buried inside the kcal>0/addActiveCalories branch above — a
-      // zero-kcal protocol or a failed calorie push meant the sync fired into a
-      // black hole and the parent Hub never refreshed. It now broadcasts
-      // UNCONDITIONALLY on success: useHubHydration + useDailyReadiness subscribe
-      // to PROTOCOL_UPDATED_EVENT and hard-refetch, so the Hub's Cardio block
-      // reflects the logged session instantly — no reload, no manual refresh.
+      // ── HARD CACHE INVALIDATION (architectural reconciliation) ──
+      // The 200 from logCardio IS the invalidation point, and the dispatch CARRIES
+      // THE LOGGED SESSION so the parent Hub applies it to state directly (payload
+      // dispatch → instant render) and then hard-refetches to reconcile. This also
+      // covers the case where the Hub's server slice (bbf_cardio_prescription) has
+      // no row for the logged session — logCardio writes the cardio LOG, not the
+      // prescription — so a refetch alone could never surface it: the payload is
+      // the live row, and useHubHydration keeps it winning over baseline targets.
       try {
-        window.dispatchEvent(new CustomEvent(PROTOCOL_UPDATED_EVENT, { detail: { date: manualToday(), source: 'cardio_sync' } }));
+        window.dispatchEvent(new CustomEvent(PROTOCOL_UPDATED_EVENT, {
+          detail: {
+            date: manualToday(),
+            source: 'cardio_sync',
+            cardio: {
+              effective_tier: intensity || zone,
+              duration_min: dur,
+              ee_kcal_est: Math.round(Number(crp?.kcal) || 0) || null,
+              recovery_state: 'clear',
+            },
+          },
+        }));
       } catch { /* no window (SSR) — non-fatal */ }
       setLogMsg({ kind: 'ok', text: tr.synced });
       setPlan(null);   // clear the active protocol (Phase 3)

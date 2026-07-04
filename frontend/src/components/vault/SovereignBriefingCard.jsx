@@ -76,7 +76,7 @@ const SB_STR = {
     playToday: '▶ Play Today’s Briefing', generate: '▶ Generate Briefing',
     loadingToday: 'Loading today’s briefing…', generating: 'Composing your briefing…', replay: '↻ Replay',
     freshAt: (t) => `Freshly generated today at ${t}`,
-    runtime: 'Runtime', readyChip: 'Ready',
+    runtime: 'Runtime', readyChip: 'Ready', pause: '❚❚ Pause',
     upsell: 'Upgrade to unlock your Sovereign Briefing in Akeem’s voice.',
     quota: 'Monthly voice limit reached — resets next month.',
     session: 'Your session expired — sign in again.',
@@ -90,7 +90,7 @@ const SB_STR = {
     playToday: '▶ Reproducir el de Hoy', generate: '▶ Generar Informe',
     loadingToday: 'Cargando el informe de hoy…', generating: 'Componiendo tu informe…', replay: '↻ Repetir',
     freshAt: (t) => `Generado hoy a las ${t}`,
-    runtime: 'Duración', readyChip: 'Lista',
+    runtime: 'Duración', readyChip: 'Lista', pause: '❚❚ Pausar',
     upsell: 'Mejora tu plan para desbloquear tu Informe Soberano en la voz de Akeem.',
     quota: 'Límite de voz mensual alcanzado — se reinicia el próximo mes.',
     session: 'Tu sesión expiró — inicia sesión de nuevo.',
@@ -104,7 +104,7 @@ const SB_STR = {
     playToday: '▶ Tocar o de Hoje', generate: '▶ Gerar Briefing',
     loadingToday: 'Carregando o briefing de hoje…', generating: 'Compondo seu briefing…', replay: '↻ Repetir',
     freshAt: (t) => `Gerado hoje às ${t}`,
-    runtime: 'Duração', readyChip: 'Pronto',
+    runtime: 'Duração', readyChip: 'Pronto', pause: '❚❚ Pausar',
     upsell: 'Faça upgrade para desbloquear seu Briefing Soberano na voz do Akeem.',
     quota: 'Limite mensal de voz atingido — reinicia no próximo mês.',
     session: 'Sua sessão expirou — entre novamente.',
@@ -131,6 +131,11 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   // Transplanted Hub-card runtime metric: the REAL duration read off the loaded
   // audio's metadata (the working source of truth) — never a phantom playlist row.
   const [audioMs, setAudioMs] = useState(0);
+  // ONE PLAY ACTION: the gold primary button is the single transport. The audio
+  // element is a hidden playback engine (no native controls — the legacy visible
+  // player is gone), and `playing` mirrors the element's real state so the button
+  // toggles play/pause without a second affordance.
+  const [playing, setPlaying] = useState(false);
   const audioRef = useRef(null);
   const scoreAudioRef = useRef(null); // dedicated element for the exact-score intro clip
 
@@ -248,13 +253,17 @@ export default function SovereignBriefingCard({ overrideActive = false, override
   // Plain render values (no ref access) + one event-handler that branches on phase
   // — ref reads happen only inside play()/generate(), called on click.
   function onPrimary() {
-    if (phase === 'ready') play();
-    else if (phase === 'idle' || phase === 'error') generate();
+    if (phase === 'ready') {
+      // Single transport: toggle. Pause the live element; otherwise run the full
+      // play chain (score intro → briefing).
+      if (playing) { try { audioRef.current?.pause?.(); } catch { /* noop */ } }
+      else play();
+    } else if (phase === 'idle' || phase === 'error') generate();
     // loading / generating → button is disabled (no-op)
   }
   const disabled = phase === 'loading' || phase === 'generating';
   const label =
-    phase === 'ready'      ? (url ? tr.playToday : tr.generate) :
+    phase === 'ready'      ? (url ? (playing ? tr.pause : tr.playToday) : tr.generate) :
     phase === 'loading'    ? tr.loadingToday :
     phase === 'generating' ? tr.generating :
                              tr.generate; // idle | error
@@ -286,21 +295,20 @@ export default function SovereignBriefingCard({ overrideActive = false, override
             <span aria-hidden="true">◷</span> {tr.freshAt(fmtTime(createdAt, lang))}
           </div>
         ) : null}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '.7rem', flexWrap: 'wrap', marginTop: '.7rem' }}>
+        {/* ONE unified play action: the gold button toggles play/pause; the Ready
+            chip rides the same row — no second player, no duplicate ▶ affordance. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '.7rem', flexWrap: 'wrap', marginTop: '.6rem' }}>
           <button type="button" onClick={onPrimary} disabled={disabled} style={{ ...BTN, opacity: disabled ? 0.7 : 1 }} data-testid="sovereign-briefing-play">
             {label}
           </button>
+          {url && phase === 'ready' ? (
+            <span className="hub-card-tier" data-testid="sovereign-briefing-ready-chip">{tr.readyChip}</span>
+          ) : null}
         </div>
-        {/* Transplanted Hub-brief chrome (unified player): the ready row + runtime
-            metric, fed by the LOADED audio's real metadata. Compact — one tight
-            block under the play action, keeping the check-in card contained. */}
+        {/* Transplanted runtime metrics — fed by the LOADED audio's real metadata.
+            One tight block; no play chrome of its own. */}
         {url && phase === 'ready' ? (
-          <div style={{ marginTop: '.7rem' }} data-testid="sovereign-briefing-meta">
-            <div className="hub-brief-ready">
-              <span className="hub-brief-mark" aria-hidden="true">▶</span>
-              <span>{tr.title}</span>
-              <span className="hub-card-tier" data-testid="sovereign-briefing-ready-chip">{tr.readyChip}</span>
-            </div>
+          <div style={{ marginTop: '.6rem' }} data-testid="sovereign-briefing-meta">
             <div className="hub-metric-grid hub-metric-grid--two">
               <div className="hub-metric">
                 <span className="hub-metric-label">{tr.runtime}</span>
@@ -318,14 +326,18 @@ export default function SovereignBriefingCard({ overrideActive = false, override
             </div>
           </div>
         ) : null}
+        {/* Hidden playback engine — NO native controls (the legacy visible player is
+            gone); the gold button above is the only transport. */}
         {url ? (
           <audio
             ref={audioRef}
             src={url}
-            controls
             preload="auto"
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onEnded={() => setPlaying(false)}
             onLoadedMetadata={(e) => setAudioMs(Math.round((Number(e.currentTarget.duration) || 0) * 1000))}
-            style={{ width: '100%', marginTop: '.7rem' }}
+            style={{ display: 'none' }}
             data-testid="sovereign-briefing-audio"
           />
         ) : null}

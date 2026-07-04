@@ -29,6 +29,40 @@ function payload(cardio) {
   };
 }
 
+test('logged-session payload dispatch overrides baselines instantly — even when the server slice stays stale', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('bbf.session.v1', JSON.stringify({ vaultToken: 'test-vault-token' }));
+  });
+
+  let calls = 0;
+  // The server NEVER returns a live cardio row (cardio_today: null) — the Hub paints
+  // baseline 257. Only the dispatched payload can carry the logged session, so this
+  // proves the payload→state path AND that the overlay survives the reconciling refetch.
+  await page.route('**/rest/v1/rpc/bbf_hub_hydration', async (route) => {
+    if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 204, headers: CORS }); return; }
+    calls += 1;
+    await route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'application/json' }, body: JSON.stringify(payload(null)) });
+  });
+
+  await page.goto(`${HARNESS}?c=dashboard-hub`);
+
+  const energy = page.locator('.hub-card--cardio .hub-metric-value').first();
+  await expect(energy).toContainText('257'); // baseline from defaults.cardio
+
+  // The exact dispatch completeProtocol() fires on a 200 from logCardio — WITH the
+  // logged session in detail.cardio.
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('bbf:protocol-updated', {
+    detail: { source: 'cardio_sync', cardio: { effective_tier: 'HIIT', duration_min: 99, ee_kcal_est: 999, recovery_state: 'clear' } },
+  })));
+
+  await expect(energy).toContainText('999'); // instant — same tick, no network needed
+  // The reconciling refetch resolves (server still has NO live row) — the logged
+  // session must keep winning over the baseline, not get clobbered back to 257.
+  await expect.poll(() => calls).toBeGreaterThanOrEqual(2);
+  await expect(energy).toContainText('999');
+  await expect(page.locator('.hub-card--cardio .hub-rail-v').first()).toContainText('99');
+});
+
 test('Defect 3 — a Smart Cardio sync event re-hydrates the Hub immediately', async ({ page }) => {
   // Seed a vault session token so the hydration hook proceeds to fetch.
   await page.addInitScript(() => {
