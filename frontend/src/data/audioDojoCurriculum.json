@@ -1,0 +1,2070 @@
+{
+    "curriculum_title": "BBF Lab Audio Dojo: Master 10-Lesson Interactive Language Series",
+    "developer_note": "Designed for Akeem Brown and the BBF Lab development team. Formatted for the Dynamic Stitcher backend.",
+    "methodology_spec": {
+        "verbal_pacing": "Pimsleur-style interactive recall loop (English Prompt -> Silence -> Native target -> Silence -> Native Echo)",
+        "default_anticipation_seconds": 4.0,
+        "default_echo_seconds": 2.0,
+        "voices": {
+            "narrator": "en-US-GuyNeural",
+            "pt_female": "pt-BR-FranciscaNeural",
+            "pt_male": "pt-BR-AntonioNeural",
+            "es_female": "es-MX-DaliaNeural",
+            "es_male": "es-MX-JorgeNeural"
+        }
+    },
+    "languages": {
+        "portuguese": [
+            {
+                "lesson_number": 1,
+                "title": "First Encounters & Gym Greetings",
+                "description": "Learn standard daily greetings, exchange names, and check in at a gym or fitness facility in Portuguese.",
+                "focus_areas": [
+                    "Greetings",
+                    "Name Exchange",
+                    "Gym Reception"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Hello",
+                        "target": "Olá",
+                        "pronunciation": "oh-LAH"
+                    },
+                    {
+                        "english": "Good morning",
+                        "target": "Bom dia",
+                        "pronunciation": "bong JEE-ah"
+                    },
+                    {
+                        "english": "How are you?",
+                        "target": "Tudo bem?",
+                        "pronunciation": "TOO-doo bæng?"
+                    },
+                    {
+                        "english": "My name is Akeem",
+                        "target": "Meu nome é Akeem",
+                        "pronunciation": "mew NOH-mee eh Akeem"
+                    },
+                    {
+                        "english": "Nice to meet you",
+                        "target": "Muito prazer",
+                        "pronunciation": "MWEE-too prah-ZEHR"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L1_C1",
+                        "type": "greeting",
+                        "prompt_english": "How do you say 'Hello' to greet someone?",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Olá.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Olá"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L1_C2",
+                        "type": "greeting",
+                        "prompt_english": "Now, greet them with 'Good morning'.",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Bom dia.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "dia",
+                            "Bom dia"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L1_C3",
+                        "type": "introduction",
+                        "prompt_english": "Do you remember how to say 'My name is Akeem'?",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Meu nome é Akeem.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Akeem",
+                            "nome é Akeem",
+                            "Meu nome é Akeem"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L1_C4",
+                        "type": "question",
+                        "prompt_english": "Ask someone 'How are you?' in a friendly, local way.",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Tudo bem?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "bem",
+                            "Tudo bem?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L1_C5",
+                        "type": "rapport",
+                        "prompt_english": "After exchanging names, say 'Nice to meet you'.",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Muito prazer.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "prazer",
+                            "Muito prazer"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L1_C6",
+                        "type": "synthesis",
+                        "prompt_english": "Put it together. Say: 'Hello, good morning! How are you?'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "Olá, bom dia! Tudo bem?",
+                        "echo_seconds": 2.5
+                    }
+                ]
+            },
+            {
+                "lesson_number": 2,
+                "title": "Origins & Fitness Passion",
+                "description": "State your nationality and express your role as a personal trainer and business owner with enthusiasm.",
+                "focus_areas": [
+                    "Nationality",
+                    "Professional Identity",
+                    "Expressing Passions"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Are you American?",
+                        "target": "Você é americano?",
+                        "pronunciation": "voh-SEH eh ah-meh-ree-KAH-noo?"
+                    },
+                    {
+                        "english": "Yes, I am American",
+                        "target": "Sim, eu sou americano",
+                        "pronunciation": "seeng, ew sow ah-meh-ree-KAH-noo"
+                    },
+                    {
+                        "english": "I am a personal trainer",
+                        "target": "Eu sou personal trainer",
+                        "pronunciation": "ew sow pehr-so-NAHL TREH-nehr"
+                    },
+                    {
+                        "english": "I love to train",
+                        "target": "Eu amo treinar",
+                        "pronunciation": "ew AH-moo trey-NAHR"
+                    },
+                    {
+                        "english": "We build and believe",
+                        "target": "Nós construímos e acreditamos",
+                        "pronunciation": "naws cons-tru-EE-mos ee ah-creh-jee-TAH-mos"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L2_C1",
+                        "type": "question",
+                        "prompt_english": "Ask a male contact: 'Are you American?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Você é americano?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "americano",
+                            "é americano",
+                            "Você é americano?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L2_C2",
+                        "type": "response",
+                        "prompt_english": "Respond proudly: 'Yes, I am American.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Sim, eu sou americano.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "americano",
+                            "sou americano",
+                            "Sim, eu sou americano"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L2_C3",
+                        "type": "profession",
+                        "prompt_english": "Tell someone your profession: 'I am a personal trainer.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Eu sou personal trainer.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "trainer",
+                            "personal trainer",
+                            "Eu sou personal trainer"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L2_C4",
+                        "type": "passion",
+                        "prompt_english": "Express your love for the grind: 'I love to train.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Eu amo treinar.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "treinar",
+                            "amo treinar",
+                            "Eu amo treinar"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L2_C5",
+                        "type": "motto",
+                        "prompt_english": "Express the BBF core motto in Portuguese: 'We build and believe.'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "Nós construímos e acreditamos.",
+                        "echo_seconds": 2.5,
+                        "back_chaining": [
+                            "acreditamos",
+                            "construímos e acreditamos",
+                            "Nós construímos e acreditamos"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 3,
+                "title": "Finding Your Way around the Gym",
+                "description": "Master navigation directions and ask for specific locations of key amenities inside and outside a fitness center.",
+                "focus_areas": [
+                    "Directions",
+                    "Where is...?",
+                    "Gym Landmarks"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Where is the water?",
+                        "target": "Onde fica a água?",
+                        "pronunciation": "OHN-jee FEE-cah ah AH-gwah?"
+                    },
+                    {
+                        "english": "Where are the restrooms?",
+                        "target": "Onde ficam os banheiros?",
+                        "pronunciation": "OHN-jee FEE-cang oos bahn-YEY-roos?"
+                    },
+                    {
+                        "english": "Go straight",
+                        "target": "Siga reto",
+                        "pronunciation": "SEE-gah REH-too"
+                    },
+                    {
+                        "english": "Turn left",
+                        "target": "Vire à esquerda",
+                        "pronunciation": "VEE-ree ah es-KEHR-dah"
+                    },
+                    {
+                        "english": "Turn right",
+                        "target": "Vire à direita",
+                        "pronunciation": "VEE-ree ah jee-REY-tah"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L3_C1",
+                        "type": "navigation",
+                        "prompt_english": "How do you ask: 'Where is the water?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Onde fica a água?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "água",
+                            "fica a água",
+                            "Onde fica a água?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L3_C2",
+                        "type": "navigation",
+                        "prompt_english": "Now, ask where the bathrooms are located: 'Where are the restrooms?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Onde ficam os banheiros?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "banheiros",
+                            "ficam os banheiros",
+                            "Onde ficam os banheiros?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L3_C3",
+                        "type": "instruction",
+                        "prompt_english": "Instruct someone to go forward: 'Go straight.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Siga reto.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "reto",
+                            "Siga reto"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L3_C4",
+                        "type": "instruction",
+                        "prompt_english": "Now, tell them to change direction: 'Turn left.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Vire à esquerda.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "esquerda",
+                            "Vire à esquerda"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L3_C5",
+                        "type": "instruction",
+                        "prompt_english": "And how do you say: 'Turn right'?",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Vire à direita.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "direita",
+                            "Vire à direita"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L3_C6",
+                        "type": "synthesis",
+                        "prompt_english": "Combine directions: 'Go straight and then turn right.'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "Siga reto e depois vire à direita.",
+                        "echo_seconds": 2.5
+                    }
+                ]
+            },
+            {
+                "lesson_number": 4,
+                "title": "Fueling Up — Café & Shakes",
+                "description": "Learn to order nutritious items at cafes or juice bars, specifying sugar preferences and asking about the bill.",
+                "focus_areas": [
+                    "Ordering Food",
+                    "Nutritional Customization",
+                    "Prices"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "A coffee, please",
+                        "target": "Um café, por favor",
+                        "pronunciation": "oong cah-FEH, poor fah-VOHR"
+                    },
+                    {
+                        "english": "A protein shake",
+                        "target": "Um shake com proteína",
+                        "pronunciation": "oong sheyk cohng proh-tey-EE-nah"
+                    },
+                    {
+                        "english": "Without sugar, please",
+                        "target": "Sem açúcar, por favor",
+                        "pronunciation": "sæng ah-SOO-car, poor fah-VOHR"
+                    },
+                    {
+                        "english": "How much is it?",
+                        "target": "Quanto custa?",
+                        "pronunciation": "KWAN-too COOS-tah?"
+                    },
+                    {
+                        "english": "The bill, please",
+                        "target": "A conta, por favor",
+                        "pronunciation": "ah COHN-tah, poor fah-VOHR"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L4_C1",
+                        "type": "order",
+                        "prompt_english": "Order your black coffee simply: 'A coffee, please.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Um café, por favor.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "por favor",
+                            "café, por favor",
+                            "Um café, por favor"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L4_C2",
+                        "type": "nutrition",
+                        "prompt_english": "Enforce your nutrition protocol: 'Without sugar, please.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Sem açúcar, por favor.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "açúcar",
+                            "Sem açúcar, por favor"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L4_C3",
+                        "type": "order",
+                        "prompt_english": "Order your post-workout drink: 'A protein shake.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Um shake com proteína.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "proteína",
+                            "com proteína",
+                            "Um shake com proteína"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L4_C4",
+                        "type": "question",
+                        "prompt_english": "Ask for the price: 'How much is it?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Quanto custa?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "custa",
+                            "Quanto custa?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L4_C5",
+                        "type": "payment",
+                        "prompt_english": "Request the bill to conclude: 'The bill, please.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "A conta, por favor.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "conta",
+                            "A conta, por favor"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 5,
+                "title": "Numbers & Market Haggling",
+                "description": "Master numbers 1 to 10 and use strategic conversational objections to handle transactions in local markets.",
+                "focus_areas": [
+                    "Numbers 1-10",
+                    "Market Negotiation",
+                    "Objections"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "One, Two, Three",
+                        "target": "Um, dois, três",
+                        "pronunciation": "oong, doys, treys"
+                    },
+                    {
+                        "english": "Four, Five, Six",
+                        "target": "Quatro, cinco, seis",
+                        "pronunciation": "KWAH-troo, SEENG-coo, says"
+                    },
+                    {
+                        "english": "Seven, Eight, Nine, Ten",
+                        "target": "Sete, oito, nove, dez",
+                        "pronunciation": "SEH-chee, OY-too, NOH-vee, dæz"
+                    },
+                    {
+                        "english": "It is too expensive",
+                        "target": "Está muito caro",
+                        "pronunciation": "es-TAH MWEE-too CAH-roo"
+                    },
+                    {
+                        "english": "Can you do it for five reais?",
+                        "target": "Faz por cinco reais?",
+                        "pronunciation": "faz poor SEENG-coo rey-AYS?"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L5_C1",
+                        "type": "counting",
+                        "prompt_english": "Count from one to three: 'One, two, three.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Um, dois, três.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "três",
+                            "dois, três",
+                            "Um, dois, três"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L5_C2",
+                        "type": "counting",
+                        "prompt_english": "Now count up to six: 'Four, five, six.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Quatro, cinco, seis.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "seis",
+                            "cinco, seis",
+                            "Quatro, cinco, seis"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L5_C3",
+                        "type": "counting",
+                        "prompt_english": "Finish counting up to ten: 'Seven, eight, nine, ten.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Sete, oito, nove, dez.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "dez",
+                            "nove, dez",
+                            "Sete, oito, nove, dez"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L5_C4",
+                        "type": "objection",
+                        "prompt_english": "Object politely to a high price: 'It is too expensive.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Está muito caro.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "caro",
+                            "muito caro",
+                            "Está muito caro"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L5_C5",
+                        "type": "negotiation",
+                        "prompt_english": "Propose a price cut: 'Can you do it for five reais?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Faz por cinco reais?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "reais",
+                            "cinco reais",
+                            "Faz por cinco reais?"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 6,
+                "title": "Time, Schedules & Fasting",
+                "description": "Align your day, ask for the exact time, check training hours, and discuss your fasting status.",
+                "focus_areas": [
+                    "Telling Time",
+                    "Fasting Protocol",
+                    "Workout Scheduling"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "What time is it?",
+                        "target": "Que horas são?",
+                        "pronunciation": "keh OH-rahs sang?"
+                    },
+                    {
+                        "english": "It is eight o'clock",
+                        "target": "São oito horas",
+                        "pronunciation": "sang OY-too OH-rahs"
+                    },
+                    {
+                        "english": "I am fasting",
+                        "target": "Estou em jejum",
+                        "pronunciation": "es-TOW æng jey-JOONG"
+                    },
+                    {
+                        "english": "At what time do we train?",
+                        "target": "A que horas nós treinamos?",
+                        "pronunciation": "ah keh OH-rahs naws trey-NAH-moos?"
+                    },
+                    {
+                        "english": "Our workout is at ten",
+                        "target": "Nosso treino é às dez",
+                        "pronunciation": "NAW-soo TREY-noo eh ahs dæz"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L6_C1",
+                        "type": "time_check",
+                        "prompt_english": "Ask for the current time: 'What time is it?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Que horas são?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "são",
+                            "Que horas são?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L6_C2",
+                        "type": "time_response",
+                        "prompt_english": "Answer: 'It is eight o'clock.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "São oito horas.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "horas",
+                            "oito horas",
+                            "São oito horas"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L6_C3",
+                        "type": "coaching",
+                        "prompt_english": "Tell your client or friend: 'I am fasting.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Estou em jejum.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "jejum",
+                            "em jejum",
+                            "Estou em jejum"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L6_C4",
+                        "type": "scheduling",
+                        "prompt_english": "Coordinate the session: 'At what time do we train?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "A que horas nós treinamos?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "treinamos",
+                            "nós treinamos",
+                            "A que horas nós treinamos?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L6_C5",
+                        "type": "scheduling",
+                        "prompt_english": "Confirm the block: 'Our workout is at ten.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Nosso treino é às dez.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "dez",
+                            "às dez",
+                            "Nosso treino é às dez."
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 7,
+                "title": "Muscle Anatomy & Physical Sensation",
+                "description": "Discuss your physical condition, reference muscle groups (chest, back, legs), and describe aches or training soreness.",
+                "focus_areas": [
+                    "Anatomy Vocabulary",
+                    "Physical Sensations",
+                    "Soreness"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Chest",
+                        "target": "Peito",
+                        "pronunciation": "PEY-too"
+                    },
+                    {
+                        "english": "Legs",
+                        "target": "Pernas",
+                        "pronunciation": "PEHR-nahs"
+                    },
+                    {
+                        "english": "Back",
+                        "target": "Costas",
+                        "pronunciation": "COHS-tahs"
+                    },
+                    {
+                        "english": "It hurts / It is sore",
+                        "target": "Está doendo",
+                        "pronunciation": "es-TAH doo-EHN-doo"
+                    },
+                    {
+                        "english": "My legs are sore",
+                        "target": "Minhas pernas estão doendo",
+                        "pronunciation": "MEEN-yahs PEHR-nahs es-TANG doo-EHN-doo"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L7_C1",
+                        "type": "anatomy",
+                        "prompt_english": "State the focus muscle group: 'Chest.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Peito.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Peito"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L7_C2",
+                        "type": "anatomy",
+                        "prompt_english": "Say the word for: 'Legs.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Pernas.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Pernas"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L7_C3",
+                        "type": "anatomy",
+                        "prompt_english": "Say the word for: 'Back.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Costas.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Costas"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L7_C4",
+                        "type": "sensation",
+                        "prompt_english": "Explain that a muscle is hurting or sore: 'It hurts.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Está doendo.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "doendo",
+                            "Está doendo"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L7_C5",
+                        "type": "coaching",
+                        "prompt_english": "Provide feedback on local fatigue: 'My legs are sore.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Minhas pernas estão doendo.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "doendo",
+                            "estão doendo",
+                            "Minhas pernas estão doendo"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 8,
+                "title": "Organizing the Workout & Load",
+                "description": "Practice training commands such as push and pull, and direct changes to barbell weights and plate setups.",
+                "focus_areas": [
+                    "Training Commands",
+                    "Weight Metrics",
+                    "Lifting Vocabulary"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Push hard",
+                        "target": "Empurre forte",
+                        "pronunciation": "em-POO-ree FOHR-chee"
+                    },
+                    {
+                        "english": "Pull",
+                        "target": "Puxe",
+                        "pronunciation": "POO-shee"
+                    },
+                    {
+                        "english": "Barbell",
+                        "target": "Barra",
+                        "pronunciation": "BAH-hah"
+                    },
+                    {
+                        "english": "More weight",
+                        "target": "Mais peso",
+                        "pronunciation": "MYS PEY-soo"
+                    },
+                    {
+                        "english": "Put more weight on the barbell",
+                        "target": "Coloque mais peso na barra",
+                        "pronunciation": "coh-LOH-kee mys PEY-soo nah BAH-hah"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L8_C1",
+                        "type": "command",
+                        "prompt_english": "Give an active lifting command: 'Push hard!'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Empurre forte!",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "forte",
+                            "Empurre forte"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L8_C2",
+                        "type": "command",
+                        "prompt_english": "Say the command for: 'Pull.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Puxe.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Puxe"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L8_C3",
+                        "type": "equipment",
+                        "prompt_english": "Say the word for 'Barbell'.",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Barra.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Barra"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L8_C4",
+                        "type": "load",
+                        "prompt_english": "Request an increase: 'More weight.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Mais peso.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "peso",
+                            "Mais peso"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L8_C5",
+                        "type": "load_command",
+                        "prompt_english": "Direct your training partner: 'Put more weight on the barbell.'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "Coloque mais peso na barra.",
+                        "echo_seconds": 2.5,
+                        "back_chaining": [
+                            "barra",
+                            "na barra",
+                            "peso na barra",
+                            "Coloque mais peso na barra"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 9,
+                "title": "Post-Workout Connections",
+                "description": "Establish solid relationships, praise training partners, and arrange the next schedule.",
+                "focus_areas": [
+                    "Rapport",
+                    "Scheduling",
+                    "Post-Workout Chat"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Great workout!",
+                        "target": "Ótimo treino!",
+                        "pronunciation": "AW-chee-moo TREY-noo"
+                    },
+                    {
+                        "english": "Tomorrow",
+                        "target": "Amanhã",
+                        "pronunciation": "ah-mahn-YAH"
+                    },
+                    {
+                        "english": "See you later",
+                        "target": "Até logo",
+                        "pronunciation": "ah-TEH LOH-goo"
+                    },
+                    {
+                        "english": "See you tomorrow",
+                        "target": "Até amanhã",
+                        "pronunciation": "ah-TEH ah-mahn-YAH"
+                    },
+                    {
+                        "english": "Same schedule",
+                        "target": "Mesmo horário",
+                        "pronunciation": "MEZ-moo oh-RAH-ree-oo"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L9_C1",
+                        "type": "praise",
+                        "prompt_english": "Congratulate your partner or client: 'Great workout!'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Ótimo treino!",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "treino",
+                            "Ótimo treino"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L9_C2",
+                        "type": "timing",
+                        "prompt_english": "Say the word for: 'Tomorrow.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Amanhã.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Amanhã"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L9_C3",
+                        "type": "valediction",
+                        "prompt_english": "Say a standard 'See you later.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Até logo.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "logo",
+                            "Até logo"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L9_C4",
+                        "type": "valediction",
+                        "prompt_english": "Say specifically: 'See you tomorrow.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Até amanhã.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "amanhã",
+                            "Até amanhã"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L9_C5",
+                        "type": "coordination",
+                        "prompt_english": "Confirm the timing: 'Tomorrow at the same schedule.'",
+                        "anticipation_seconds": 4.5,
+                        "native_target": "Amanhã no mesmo horário.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "horário",
+                            "mesmo horário",
+                            "Amanhã no mesmo horário"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 10,
+                "title": "Slang & Immersive Integration",
+                "description": "Integrate previous conversational, spatial, and training blocks while adopting local, organic Brazilian expressions.",
+                "focus_areas": [
+                    "Synthesis",
+                    "Street Slang",
+                    "Barbecue Invitation"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "I speak Portuguese",
+                        "target": "Eu falo português",
+                        "pronunciation": "ew FAH-loo poor-too-GAYS"
+                    },
+                    {
+                        "english": "Let's go together",
+                        "target": "Vamos juntos",
+                        "pronunciation": "VAH-moos JOONG-toos"
+                    },
+                    {
+                        "english": "Awesome / Cool",
+                        "target": "Que massa!",
+                        "pronunciation": "keh MAH-sah"
+                    },
+                    {
+                        "english": "Barbecue house",
+                        "target": "Churrascaria",
+                        "pronunciation": "shoo-hahs-cah-REE-ah"
+                    },
+                    {
+                        "english": "Let's celebrate!",
+                        "target": "Vamos comemorar!",
+                        "pronunciation": "VAH-moos co-meh-mo-RAHR!"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "PT_L10_C1",
+                        "type": "fluency",
+                        "prompt_english": "Declare your success: 'I speak Portuguese!'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Eu falo português.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "português",
+                            "falo português",
+                            "Eu falo português"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L10_C2",
+                        "type": "collaboration",
+                        "prompt_english": "Suggest collective action: 'Let's go together.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Vamos juntos.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "juntos",
+                            "Vamos juntos"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L10_C3",
+                        "type": "slang",
+                        "prompt_english": "Express casual excitement: 'Awesome!'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Que massa!",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "massa",
+                            "Que massa!"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L10_C4",
+                        "type": "dining",
+                        "prompt_english": "Refer to the famous Brazilian steakhouse: 'Barbecue house.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Churrascaria.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "ria",
+                            "caria",
+                            "churrascaria"
+                        ]
+                    },
+                    {
+                        "challenge_id": "PT_L10_C5",
+                        "type": "celebration",
+                        "prompt_english": "Invite everyone: 'Let's go together to celebrate!'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "Vamos juntos comemorar!",
+                        "echo_seconds": 2.5,
+                        "back_chaining": [
+                            "comemorar",
+                            "juntos comemorar",
+                            "Vamos juntos comemorar!"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "spanish": [
+            {
+                "lesson_number": 1,
+                "title": "First Encounters & Gym Greetings",
+                "description": "Learn standard daily greetings, exchange names, and check in at a gym or fitness facility in Spanish.",
+                "focus_areas": [
+                    "Greetings",
+                    "Name Exchange",
+                    "Gym Reception"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Hello",
+                        "target": "Hola",
+                        "pronunciation": "OH-lah"
+                    },
+                    {
+                        "english": "Good morning",
+                        "target": "Buenos días",
+                        "pronunciation": "BWEH-nos DEE-ahs"
+                    },
+                    {
+                        "english": "How are you?",
+                        "target": "¿Cómo estás?",
+                        "pronunciation": "COH-mo es-TAHS?"
+                    },
+                    {
+                        "english": "My name is Akeem",
+                        "target": "Me llamo Akeem",
+                        "pronunciation": "meh YAH-mo Akeem"
+                    },
+                    {
+                        "english": "Nice to meet you",
+                        "target": "Mucho gusto",
+                        "pronunciation": "MOO-cho GOOS-to"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L1_C1",
+                        "type": "greeting",
+                        "prompt_english": "How do you say 'Hello' to greet someone?",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Hola.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Hola"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L1_C2",
+                        "type": "greeting",
+                        "prompt_english": "Now, greet them with 'Good morning'.",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Buenos días.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "días",
+                            "Buenos días"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L1_C3",
+                        "type": "introduction",
+                        "prompt_english": "Do you remember how to say 'My name is Akeem' in Spanish?",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Me llamo Akeem.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Akeem",
+                            "llamo Akeem",
+                            "Me llamo Akeem"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L1_C4",
+                        "type": "question",
+                        "prompt_english": "Ask someone 'How are you?' in a friendly, conversational way.",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¿Cómo estás?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "estás",
+                            "¿Cómo estás?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L1_C5",
+                        "type": "rapport",
+                        "prompt_english": "After exchanging names, say 'Nice to meet you'.",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Mucho gusto.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "gusto",
+                            "Mucho gusto"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L1_C6",
+                        "type": "synthesis",
+                        "prompt_english": "Put it together. Say: 'Hola, buenos días! ¿Cómo estás?'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "Hola, buenos días! ¿Cómo estás?",
+                        "echo_seconds": 2.5
+                    }
+                ]
+            },
+            {
+                "lesson_number": 2,
+                "title": "Origins & Fitness Passion",
+                "description": "State your nationality and express your role as a personal trainer and business owner with enthusiasm.",
+                "focus_areas": [
+                    "Nationality",
+                    "Professional Identity",
+                    "Expressing Passions"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Are you American?",
+                        "target": "¿Eres americano?",
+                        "pronunciation": "EH-res ah-meh-ree-CAH-no?"
+                    },
+                    {
+                        "english": "Yes, I am American",
+                        "target": "Sí, soy americano",
+                        "pronunciation": "see, soy ah-meh-ree-CAH-no"
+                    },
+                    {
+                        "english": "I am a personal trainer",
+                        "target": "Soy entrenador personal",
+                        "pronunciation": "soy en-treh-nah-DOR pehr-so-NAL"
+                    },
+                    {
+                        "english": "I love to train",
+                        "target": "Me encanta entrenar",
+                        "pronunciation": "meh en-CAHN-tah en-treh-NAR"
+                    },
+                    {
+                        "english": "We build and believe",
+                        "target": "Nosotros construimos y creemos",
+                        "pronunciation": "no-SO-tros cons-truy-EE-mos ee creh-EH-mos"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L2_C1",
+                        "type": "question",
+                        "prompt_english": "Ask a male contact: 'Are you American?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¿Eres americano?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "americano",
+                            "Eres americano?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L2_C2",
+                        "type": "response",
+                        "prompt_english": "Respond proudly: 'Yes, I am American.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Sí, soy americano.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "americano",
+                            "soy americano",
+                            "Sí, soy americano"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L2_C3",
+                        "type": "profession",
+                        "prompt_english": "Tell someone your profession: 'I am a personal trainer.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Soy entrenador personal.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "personal",
+                            "entrenador personal",
+                            "Soy entrenador personal"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L2_C4",
+                        "type": "passion",
+                        "prompt_english": "Express your love for the grind: 'I love to train.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Me encanta entrenar.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "entrenar",
+                            "encanta entrenar",
+                            "Me encanta entrenar"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L2_C5",
+                        "type": "motto",
+                        "prompt_english": "Express the BBF core motto in Spanish: 'We build and believe.'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "Nosotros construimos y creemos.",
+                        "echo_seconds": 2.5,
+                        "back_chaining": [
+                            "creemos",
+                            "construimos y creemos",
+                            "Nosotros construimos y creemos"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 3,
+                "title": "Finding Your Way around the Gym",
+                "description": "Master navigation directions and ask for specific locations of key amenities inside and outside a fitness center.",
+                "focus_areas": [
+                    "Directions",
+                    "Where is...?",
+                    "Gym Landmarks"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Where is the water?",
+                        "target": "¿Dónde está el agua?",
+                        "pronunciation": "DON-deh es-TAH el AH-gwah?"
+                    },
+                    {
+                        "english": "Where are the restrooms?",
+                        "target": "¿Dónde están los baños?",
+                        "pronunciation": "DON-deh es-TAN los BAHNY-os?"
+                    },
+                    {
+                        "english": "Go straight",
+                        "target": "Ve derecho",
+                        "pronunciation": "beh deh-REH-cho"
+                    },
+                    {
+                        "english": "Turn left",
+                        "target": "Gira a la izquierda",
+                        "pronunciation": "HEE-rah ah lah eeth-KYEHR-dah"
+                    },
+                    {
+                        "english": "Turn right",
+                        "target": "Gira a la derecha",
+                        "pronunciation": "HEE-rah ah lah deh-REH-chah"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L3_C1",
+                        "type": "navigation",
+                        "prompt_english": "How do you ask: 'Where is the water?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¿Dónde está el agua?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "agua",
+                            "está el agua",
+                            "¿Dónde está el agua?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L3_C2",
+                        "type": "navigation",
+                        "prompt_english": "Now, ask where the bathrooms are located: 'Where are the restrooms?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¿Dónde están los baños?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "baños",
+                            "están los baños",
+                            "¿Dónde están los baños?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L3_C3",
+                        "type": "instruction",
+                        "prompt_english": "Instruct someone to go forward: 'Go straight.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Ve derecho.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "derecho",
+                            "Ve derecho"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L3_C4",
+                        "type": "instruction",
+                        "prompt_english": "Now, tell them to change direction: 'Turn left.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Gira a la izquierda.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "izquierda",
+                            "a la izquierda",
+                            "Gira a la izquierda"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L3_C5",
+                        "type": "instruction",
+                        "prompt_english": "And how do you say: 'Turn right'?",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Gira a la derecha.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "derecha",
+                            "a la derecha",
+                            "Gira a la derecha"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L3_C6",
+                        "type": "synthesis",
+                        "prompt_english": "Combine directions: 'Go straight and then turn right.'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "Ve derecho y luego gira a la derecha.",
+                        "echo_seconds": 2.5
+                    }
+                ]
+            },
+            {
+                "lesson_number": 4,
+                "title": "Fueling Up — Café & Shakes",
+                "description": "Learn to order nutritious items at cafes or juice bars, specifying sugar preferences and asking about the bill.",
+                "focus_areas": [
+                    "Ordering Food",
+                    "Nutritional Customization",
+                    "Prices"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "A coffee, please",
+                        "target": "Un café, por favor",
+                        "pronunciation": "oon cah-FEH, por fah-VOR"
+                    },
+                    {
+                        "english": "A protein shake",
+                        "target": "Un licuado de proteína",
+                        "pronunciation": "oon lee-CWAH-do deh proh-tey-EE-nah"
+                    },
+                    {
+                        "english": "Without sugar, please",
+                        "target": "Sin azúcar, por favor",
+                        "pronunciation": "seen ah-SOO-car, por fah-VOR"
+                    },
+                    {
+                        "english": "How much is it?",
+                        "target": "¿Cuánto cuesta?",
+                        "pronunciation": "CWAN-to CWS-tah?"
+                    },
+                    {
+                        "english": "The bill, please",
+                        "target": "La cuenta, por favor",
+                        "pronunciation": "lah CWEN-tah, por fah-VOR"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L4_C1",
+                        "type": "order",
+                        "prompt_english": "Order your black coffee simply: 'A coffee, please.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Un café, por favor.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "por favor",
+                            "café, por favor",
+                            "Un café, por favor"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L4_C2",
+                        "type": "nutrition",
+                        "prompt_english": "Enforce your nutrition protocol: 'Without sugar, please.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Sin azúcar, por favor.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "azúcar",
+                            "Sin azúcar, por favor"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L4_C3",
+                        "type": "order",
+                        "prompt_english": "Order your post-workout drink: 'A protein shake.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Un licuado de proteína.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "proteína",
+                            "de proteína",
+                            "Un licuado de proteína"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L4_C4",
+                        "type": "question",
+                        "prompt_english": "Ask for the price: 'How much is it?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¿Cuánto cuesta?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "cuesta",
+                            "¿Cuánto cuesta?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L4_C5",
+                        "type": "payment",
+                        "prompt_english": "Request the bill to conclude: 'The bill, please.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "La cuenta, por favor.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "cuenta",
+                            "La cuenta, por favor"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 5,
+                "title": "Numbers & Market Haggling",
+                "description": "Master numbers 1 to 10 and use strategic conversational objections to handle transactions in local markets.",
+                "focus_areas": [
+                    "Numbers 1-10",
+                    "Market Negotiation",
+                    "Objections"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "One, Two, Three",
+                        "target": "Uno, dos, tres",
+                        "pronunciation": "OO-no, dos, tres"
+                    },
+                    {
+                        "english": "Four, Five, Six",
+                        "target": "Cuatro, cinco, seis",
+                        "pronunciation": "CWAH-tro, SEEN-co, says"
+                    },
+                    {
+                        "english": "Seven, Eight, Nine, Ten",
+                        "target": "Siete, ocho, nueve, diez",
+                        "pronunciation": "SYEH-teh, OH-cho, NWEH-beh, dyeth"
+                    },
+                    {
+                        "english": "It is too expensive",
+                        "target": "Está muy caro",
+                        "pronunciation": "es-TAH muy CAH-ro"
+                    },
+                    {
+                        "english": "Can you do it for five pesos?",
+                        "target": "¿Me lo deja en cinco pesos?",
+                        "pronunciation": "meh lo DEH-hah en SEEN-co PEH-sos?"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L5_C1",
+                        "type": "counting",
+                        "prompt_english": "Count from one to three: 'One, two, three.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Uno, dos, tres.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "tres",
+                            "dos, tres",
+                            "Uno, dos, tres"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L5_C2",
+                        "type": "counting",
+                        "prompt_english": "Now count up to six: 'Four, five, six.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Cuatro, cinco, seis.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "seis",
+                            "cinco, seis",
+                            "Cuatro, cinco, seis"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L5_C3",
+                        "type": "counting",
+                        "prompt_english": "Finish counting up to ten: 'Seven, eight, nine, ten.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Siete, ocho, nueve, diez.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "diez",
+                            "nueve, diez",
+                            "Siete, ocho, nueve, diez"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L5_C4",
+                        "type": "objection",
+                        "prompt_english": "Object politely to a high price: 'It is too expensive.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Está muy caro.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "caro",
+                            "muy caro",
+                            "Está muy caro"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L5_C5",
+                        "type": "negotiation",
+                        "prompt_english": "Propose a price cut: 'Can you do it for five pesos?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¿Me lo deja en cinco pesos?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "pesos",
+                            "cinco pesos",
+                            "¿Me lo deja en cinco pesos?"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 6,
+                "title": "Time, Schedules & Fasting",
+                "description": "Align your day, ask for the exact time, check training hours, and discuss your fasting status.",
+                "focus_areas": [
+                    "Telling Time",
+                    "Fasting Protocol",
+                    "Workout Scheduling"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "What time is it?",
+                        "target": "¿Qué hora es?",
+                        "pronunciation": "keh OH-rah es?"
+                    },
+                    {
+                        "english": "It is eight o'clock",
+                        "target": "Son las ocho",
+                        "pronunciation": "son las OH-cho"
+                    },
+                    {
+                        "english": "I am fasting",
+                        "target": "Estoy en ayunas",
+                        "pronunciation": "es-TOY en ah-YOO-nahs"
+                    },
+                    {
+                        "english": "At what time do we train?",
+                        "target": "¿A qué hora entrenamos?",
+                        "pronunciation": "ah keh OH-rah en-treh-NAH-mos?"
+                    },
+                    {
+                        "english": "Our workout is at ten",
+                        "target": "Nuestro entrenamiento es a las diez",
+                        "pronunciation": "NWES-tro en-treh-nah-MYEN-to es ah las dyeth"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L6_C1",
+                        "type": "time_check",
+                        "prompt_english": "Ask for the current time: 'What time is it?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¿Qué hora es?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "es",
+                            "¿Qué hora es?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L6_C2",
+                        "type": "time_response",
+                        "prompt_english": "Answer: 'It is eight o'clock.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Son las ocho.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "ocho",
+                            "las ocho",
+                            "Son las ocho"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L6_C3",
+                        "type": "coaching",
+                        "prompt_english": "Tell your client or friend: 'I am fasting.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Estoy en ayunas.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "ayunas",
+                            "en ayunas",
+                            "Estoy en ayunas"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L6_C4",
+                        "type": "scheduling",
+                        "prompt_english": "Coordinate the session: 'At what time do we train?'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¿A qué hora entrenamos?",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "entrenamos",
+                            "hora entrenamos",
+                            "¿A qué hora entrenamos?"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L6_C5",
+                        "type": "scheduling",
+                        "prompt_english": "Confirm the block: 'Our workout is at ten.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Nuestro entrenamiento es a las diez.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "diez",
+                            "a las diez",
+                            "Nuestro entrenamiento es a las diez"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 7,
+                "title": "Muscle Anatomy & Physical Sensation",
+                "description": "Discuss your physical condition, reference muscle groups (chest, back, legs), and describe aches or training soreness.",
+                "focus_areas": [
+                    "Anatomy Vocabulary",
+                    "Physical Sensations",
+                    "Soreness"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Chest",
+                        "target": "Pecho",
+                        "pronunciation": "PEH-cho"
+                    },
+                    {
+                        "english": "Legs",
+                        "target": "Piernas",
+                        "pronunciation": "PYER-nahs"
+                    },
+                    {
+                        "english": "Back",
+                        "target": "Espalda",
+                        "pronunciation": "es-PAL-dah"
+                    },
+                    {
+                        "english": "It hurts / It is sore",
+                        "target": "Me duele",
+                        "pronunciation": "meh DWEH-leh"
+                    },
+                    {
+                        "english": "My legs are sore",
+                        "target": "Me duelen las piernas",
+                        "pronunciation": "meh DWEH-len las PYER-nahs"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L7_C1",
+                        "type": "anatomy",
+                        "prompt_english": "State the focus muscle group: 'Chest.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Pecho.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Pecho"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L7_C2",
+                        "type": "anatomy",
+                        "prompt_english": "Say the word for: 'Legs.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Piernas.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Piernas"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L7_C3",
+                        "type": "anatomy",
+                        "prompt_english": "Say the word for: 'Back.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Espalda.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Espalda"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L7_C4",
+                        "type": "sensation",
+                        "prompt_english": "Explain that a muscle is hurting or sore: 'It hurts.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Me duele.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "duele",
+                            "Me duele"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L7_C5",
+                        "type": "coaching",
+                        "prompt_english": "Provide feedback on local fatigue: 'My legs are sore.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Me duelen las piernas.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "piernas",
+                            "las piernas",
+                            "Me duelen las piernas"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 8,
+                "title": "Organizing the Workout & Load",
+                "description": "Practice training commands such as push and pull, and direct changes to barbell weights and plate setups.",
+                "focus_areas": [
+                    "Training Commands",
+                    "Weight Metrics",
+                    "Lifting Vocabulary"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Push hard",
+                        "target": "Empuja fuerte",
+                        "pronunciation": "em-POO-hah FWER-teh"
+                    },
+                    {
+                        "english": "Pull",
+                        "target": "Jala",
+                        "pronunciation": "HAH-lah"
+                    },
+                    {
+                        "english": "Barbell",
+                        "target": "Barra",
+                        "pronunciation": "BAH-rah"
+                    },
+                    {
+                        "english": "More weight",
+                        "target": "Más peso",
+                        "pronunciation": "mas PEH-so"
+                    },
+                    {
+                        "english": "Put more weight on the barbell",
+                        "target": "Ponle más peso a la barra",
+                        "pronunciation": "PON-leh mas PEH-so ah lah BAH-rah"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L8_C1",
+                        "type": "command",
+                        "prompt_english": "Give an active lifting command: 'Push hard!'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Empuja fuerte!",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "fuerte",
+                            "Empuja fuerte"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L8_C2",
+                        "type": "command",
+                        "prompt_english": "Say the command for: 'Pull.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Jala.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Jala"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L8_C3",
+                        "type": "equipment",
+                        "prompt_english": "Say the word for 'Barbell'.",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Barra.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Barra"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L8_C4",
+                        "type": "load",
+                        "prompt_english": "Request an increase: 'More weight.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Más peso.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "peso",
+                            "Más peso"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L8_C5",
+                        "type": "load_command",
+                        "prompt_english": "Direct your training partner: 'Put more weight on the barbell.'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "Ponle más peso a la barra.",
+                        "echo_seconds": 2.5,
+                        "back_chaining": [
+                            "barra",
+                            "a la barra",
+                            "peso a la barra",
+                            "Ponle más peso a la barra"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 9,
+                "title": "Post-Workout Connections",
+                "description": "Establish solid relationships, praise training partners, and arrange the next schedule.",
+                "focus_areas": [
+                    "Rapport",
+                    "Scheduling",
+                    "Post-Workout Chat"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "Great workout!",
+                        "target": "¡Excelente entrenamiento!",
+                        "pronunciation": "ek-seh-LEN-teh en-treh-nah-MYEN-to"
+                    },
+                    {
+                        "english": "Tomorrow",
+                        "target": "Mañana",
+                        "pronunciation": "mah-NYAH-nah"
+                    },
+                    {
+                        "english": "See you later",
+                        "target": "Hasta luego",
+                        "pronunciation": "AHS-tah LWEH-go"
+                    },
+                    {
+                        "english": "See you tomorrow",
+                        "target": "Hasta mañana",
+                        "pronunciation": "AHS-tah mah-NYAH-nah"
+                    },
+                    {
+                        "english": "Same schedule",
+                        "target": "Mismo horario",
+                        "pronunciation": "MEES-mo oh-RAH-ryo"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L9_C1",
+                        "type": "praise",
+                        "prompt_english": "Congratulate your partner or client: 'Great workout!'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¡Excelente entrenamiento!",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "entrenamiento",
+                            "Excelente entrenamiento"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L9_C2",
+                        "type": "timing",
+                        "prompt_english": "Say the word for: 'Tomorrow.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Mañana.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Mañana"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L9_C3",
+                        "type": "valediction",
+                        "prompt_english": "Say a standard 'See you later.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Hasta luego.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "luego",
+                            "Hasta luego"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L9_C4",
+                        "type": "valediction",
+                        "prompt_english": "Say specifically: 'See you tomorrow.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Hasta mañana.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "mañana",
+                            "Hasta mañana"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L9_C5",
+                        "type": "coordination",
+                        "prompt_english": "Confirm the timing: 'Tomorrow at the same schedule.'",
+                        "anticipation_seconds": 4.5,
+                        "native_target": "Mañana a la misma hora.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "hora",
+                            "misma hora",
+                            "Mañana a la misma hora"
+                        ]
+                    }
+                ]
+            },
+            {
+                "lesson_number": 10,
+                "title": "Slang & Immersive Integration",
+                "description": "Integrate previous conversational, spatial, and training blocks while adopting local, organic Spanish expressions.",
+                "focus_areas": [
+                    "Synthesis",
+                    "Street Slang",
+                    "Barbecue Invitation"
+                ],
+                "vocabulary": [
+                    {
+                        "english": "I speak Spanish",
+                        "target": "Hablo español",
+                        "pronunciation": "AH-blo es-pah-NYOL"
+                    },
+                    {
+                        "english": "Let's go together",
+                        "target": "Vamos juntos",
+                        "pronunciation": "BAH-mos HOON-tos"
+                    },
+                    {
+                        "english": "Awesome / Cool",
+                        "target": "¡Qué chido!",
+                        "pronunciation": "keh CHEE-do"
+                    },
+                    {
+                        "english": "Barbecue",
+                        "target": "Asado",
+                        "pronunciation": "ah-SAH-do"
+                    },
+                    {
+                        "english": "Let's celebrate!",
+                        "target": "¡Vamos a celebrar!",
+                        "pronunciation": "BAH-mos ah teh-leh-BRAR"
+                    }
+                ],
+                "challenges": [
+                    {
+                        "challenge_id": "ES_L10_C1",
+                        "type": "fluency",
+                        "prompt_english": "Declare your success: 'I speak Spanish!'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Hablo español.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "español",
+                            "Hablo español"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L10_C2",
+                        "type": "collaboration",
+                        "prompt_english": "Suggest collective action: 'Let's go together.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Vamos juntos.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "juntos",
+                            "Vamos juntos"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L10_C3",
+                        "type": "slang",
+                        "prompt_english": "Express casual excitement: 'Awesome!'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "¡Qué chido!",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "chido",
+                            "¡Qué chido!"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L10_C4",
+                        "type": "dining",
+                        "prompt_english": "Refer to the classic gathering over steak/barbecue: 'Barbecue.'",
+                        "anticipation_seconds": 4.0,
+                        "native_target": "Asado.",
+                        "echo_seconds": 2.0,
+                        "back_chaining": [
+                            "Asado"
+                        ]
+                    },
+                    {
+                        "challenge_id": "ES_L10_C5",
+                        "type": "celebration",
+                        "prompt_english": "Invite everyone: 'Let's go together to celebrate!'",
+                        "anticipation_seconds": 5.0,
+                        "native_target": "¡Vamos juntos a celebrar!",
+                        "echo_seconds": 2.5,
+                        "back_chaining": [
+                            "celebrar",
+                            "a celebrar",
+                            "¡Vamos juntos a celebrar!"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

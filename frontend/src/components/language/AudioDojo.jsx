@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDojoPlayer } from './useDojoPlayer.js';
 import { savePimsleurCheckpoint, getLanguageDashboard, logLanguageAttempt } from '../../lib/languageLabApi.js';
 import { useLang } from '../../context/LangContext.jsx';
+import curriculum from '../../data/audioDojoCurriculum.json';
 import './language.css';
 
 const DOJO_STR = {
@@ -24,18 +25,41 @@ const DOJO_STR = {
 // Date.now() inside component-scope closures — house pattern, see StudioLayout).
 const nowMs = () => Date.now();
 
-// Lesson manifest: PIM fragment keys with the Pimsleur anticipation pauses —
-// 3.0s after a prompt, 4.0s after a recall beat (generated on the context timeline).
-function lessonFragments(language, lesson) {
-  const L = String(lesson).padStart(2, '0');
-  const P = language === 'pt' ? 'PT' : 'ES';
-  return [
-    { key: `PIM-${P}-L${L}-01`, gapAfterMs: 3000 },
-    { key: `PIM-${P}-L${L}-02`, gapAfterMs: 4000 },
-    { key: `PIM-${P}-L${L}-03`, gapAfterMs: 3000 },
-    { key: `PIM-${P}-L${L}-04`, gapAfterMs: 4000 },
-    { key: `PIM-${P}-L${L}-05`, gapAfterMs: 0 },
-  ];
+// Breath-pause between back-chaining pieces — shorter than the anticipation/echo
+// pauses (those are for active learner recall; this is just a natural beat).
+const SHORT_GAP_MS = 1200;
+
+// Lesson manifest, built straight from audioDojoCurriculum.json's challenges —
+// English prompt -> (anticipation pause) -> native target -> back-chaining
+// breakdown (or, absent one, the target replayed once) -> (echo pause) -> next
+// challenge. Fragment keys are DOJO-<challenge_id>-PROMPT/TARGET/BC<i>, matching
+// scripts/build-audio-dojo-cues.mjs's baker exactly — no shared manifest needed.
+function lessonFragments(language, lessonNumber) {
+  const langName = language === 'pt' ? 'portuguese' : 'spanish';
+  const lessons = curriculum.languages[langName] || [];
+  const lesson = lessons.find((l) => l.lesson_number === lessonNumber);
+  if (!lesson) return [];
+
+  const out = [];
+  for (const c of lesson.challenges) {
+    out.push({ key: `DOJO-${c.challenge_id}-PROMPT`, gapAfterMs: Math.round((c.anticipation_seconds ?? 4) * 1000) });
+    const targetKey = `DOJO-${c.challenge_id}-TARGET`;
+    const bc = Array.isArray(c.back_chaining) ? c.back_chaining : [];
+    const echoMs = Math.round((c.echo_seconds ?? 2) * 1000);
+    if (bc.length) {
+      out.push({ key: targetKey, gapAfterMs: SHORT_GAP_MS });
+      bc.forEach((_, i) => {
+        const isLast = i === bc.length - 1;
+        out.push({ key: `DOJO-${c.challenge_id}-BC${i}`, gapAfterMs: isLast ? echoMs : SHORT_GAP_MS });
+      });
+    } else {
+      // No back-chaining authored for this challenge — the target's own replay is the echo.
+      out.push({ key: targetKey, gapAfterMs: echoMs });
+      out.push({ key: targetKey, gapAfterMs: 0 });
+    }
+  }
+  if (out.length) out[out.length - 1].gapAfterMs = 0; // no trailing pause after the lesson's last cue
+  return out;
 }
 
 export default function AudioDojo({ language = 'es' }) {
@@ -69,8 +93,10 @@ export default function AudioDojo({ language = 'es' }) {
       if (cancelled || !res?.ok) return;
       const p = res.pimsleur;
       if (p && p.status === 'in_progress') {
-        setLesson(Number(p.lesson_number) || 1);
-        setResumeSeq(Math.min(Number(p.last_fragment_seq) || 0, 4));
+        const lessonNumber = Number(p.lesson_number) || 1;
+        const total = lessonFragments(language, lessonNumber).length;
+        setLesson(lessonNumber);
+        setResumeSeq(Math.min(Math.max(Number(p.last_fragment_seq) || 0, 0), Math.max(total - 1, 0)));
       }
     });
     return () => { cancelled = true; };

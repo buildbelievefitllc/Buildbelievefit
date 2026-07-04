@@ -1,17 +1,21 @@
 // supabase/functions/bbf-bake-language-soundboard/index.ts
 // ═══════════════════════════════════════════════════════════════════════════
 // MARGIN GUARD — ONE-SHOT static bake for the Language Mastery soundboard
-// (AdminLanguageRoadmap + PimsleurAudioLab), mirroring bbf-bake-coach-static.
+// (AdminLanguageRoadmap + PimsleurAudioLab + Audio Dojo), mirroring
+// bbf-bake-coach-static.
 // ───────────────────────────────────────────────────────────────────────────
-// Takes { clips: [{ key, lang, text }] } (key is a content hash — see
-// scripts/build-language-soundboard-cues.mjs / languageSoundboardVoice.js's
-// staticKeyFor — NOT a positional slug), synthesizes each in Coach Akeem's
-// cloned voice via ElevenLabs eleven_multilingual_v2, uploads the MP3 to the
-// PUBLIC `language-fragments` Storage bucket at `<key>.mp3`, and upserts a row
-// into `language_audio_fragments` (the bake coverage ledger). Once baked, the
-// app plays the clip straight from the bucket's public CDN URL — ZERO
-// recurring ElevenLabs spend. Idempotent: skips clips already in the bucket
-// unless overwrite. Gated by bbf_app_config.language_soundboard_bake_secret.
+// Takes { clips: [{ key, lang, text, voice_id?, speaker_role? }] } (key is a
+// stable id — a content hash for the roadmap soundboard, a challenge_id-derived
+// slug for Audio Dojo — never a positional index), synthesizes each via
+// ElevenLabs eleven_multilingual_v2 (voice_id defaults to Coach Akeem's clone
+// when omitted, for backward compat with the original soundboard bake), uploads
+// the MP3 to the PUBLIC `language-fragments` Storage bucket at `<key>.mp3`, and
+// upserts a row into `language_audio_fragments` (the bake coverage ledger).
+// Once baked, the app plays the clip straight from the bucket's public CDN URL
+// — ZERO recurring ElevenLabs spend. Idempotent: skips clips already in the
+// bucket unless overwrite. Gated by bbf_app_config.language_soundboard_bake_secret.
+// GET ?list_voices=1 → the account's ElevenLabs voice roster (id/name/labels),
+// a free read-only lookup for picking voice_ids before baking.
 // verify_jwt:false (custom shared-secret auth below).
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -29,6 +33,9 @@ function jsonResponse(body: unknown, status = 200): Response {
 // Coach Akeem's Professional Voice Clone + the BBF Lab voice physics (CLAUDE.md §4).
 const AKEEM_VOICE_ID = 'ZbKDEqxkr8Ub4psNm5XD';
 const BBF_VOICE_SETTINGS = { stability: 0.35, similarity_boost: 0.85, style: 0.15, use_speaker_boost: true };
+// Balanced default for non-Akeem (premade/professional) voices — Audio Dojo's
+// narrator + native speakers, tuned per-voice via BBF_VOICE_SETTINGS only when needed.
+const DEFAULT_VOICE_SETTINGS = { stability: 0.5, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true };
 const VOICE_MODEL = 'eleven_multilingual_v2';
 const BUCKET = 'language-fragments';
 const OUTPUT_FORMAT = 'mp3_44100_128';
@@ -80,16 +87,16 @@ function estimateDurationMs(bytes: number): number {
 
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
-async function synthesize(apiKey: string, text: string): Promise<{ ok: true; buf: Uint8Array } | { ok: false; status: number; detail: string }> {
+async function synthesize(apiKey: string, text: string, voiceId: string, voiceSettings: Record<string, unknown>): Promise<{ ok: true; buf: Uint8Array } | { ok: false; status: number; detail: string }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45000);
   try {
     const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(AKEEM_VOICE_ID)}?output_format=${encodeURIComponent(OUTPUT_FORMAT)}`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=${encodeURIComponent(OUTPUT_FORMAT)}`,
       {
         method: 'POST',
         headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-        body: JSON.stringify({ text: String(text).slice(0, 800), model_id: VOICE_MODEL, voice_settings: BBF_VOICE_SETTINGS }),
+        body: JSON.stringify({ text: String(text).slice(0, 800), model_id: VOICE_MODEL, voice_settings: voiceSettings }),
         signal: controller.signal,
       },
     );
@@ -135,15 +142,33 @@ serve(async (req: Request) => {
   if (!cfgSecret) return jsonResponse({ error: 'config_missing_secret', detail: 'Set bbf_app_config.language_soundboard_bake_secret.' }, 503);
   if (req.headers.get('x-bbf-bake-secret') !== cfgSecret) return jsonResponse({ error: 'unauthorized' }, 401);
 
+  const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+
   // GET ?status=1 → how many objects are already in the bucket (progress check).
+  // GET ?list_voices=1 → the account's ElevenLabs voice roster (free, read-only).
   if (req.method === 'GET') {
+    const url = new URL(req.url);
+    if (url.searchParams.get('list_voices') === '1') {
+      if (!ELEVENLABS_API_KEY) return jsonResponse({ error: 'tts_unconfigured' }, 503);
+      try {
+        const r = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': ELEVENLABS_API_KEY } });
+        if (!r.ok) return jsonResponse({ ok: false, status: r.status, detail: (await r.text()).slice(0, 300) }, 200);
+        const body = await r.json();
+        const voices = Array.isArray(body?.voices) ? body.voices.map((v: any) => ({
+          voice_id: v.voice_id, name: v.name, category: v.category,
+          labels: v.labels, description: v.description,
+        })) : [];
+        return jsonResponse({ ok: true, count: voices.length, voices });
+      } catch (e) {
+        return jsonResponse({ ok: false, detail: (e as Error).message }, 200);
+      }
+    }
     const existing = await listExisting(SUPABASE_URL, SERVICE_KEY);
     return jsonResponse({ ok: true, bucket: BUCKET, uploaded: existing.size, public_base: `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}` });
   }
 
   if (req.method !== 'POST') return jsonResponse({ error: 'method_not_allowed' }, 405);
 
-  const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
   if (!ELEVENLABS_API_KEY) return jsonResponse({ error: 'tts_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
 
   let payload: any = {};
@@ -155,8 +180,9 @@ serve(async (req: Request) => {
   if (!rawClips.length) return jsonResponse({ error: 'no_clips' }, 400);
   if (rawClips.length > MAX_CLIPS) return jsonResponse({ error: 'too_many_clips', detail: `max ${MAX_CLIPS} per request` }, 400);
 
-  // Validate shape + key safety up front.
-  const clips: Array<{ key: string; lang: string; text: string }> = [];
+  // Validate shape + key safety up front. voice_id/speaker_role/voice_settings are
+  // optional — omit all to fall back to Coach Akeem's clone (the original bake).
+  const clips: Array<{ key: string; lang: string; text: string; voiceId: string; speakerRole: string; voiceSettings: Record<string, unknown> }> = [];
   for (const c of rawClips) {
     const key = String(c?.key || '');
     const lang = String(c?.lang || '');
@@ -164,7 +190,12 @@ serve(async (req: Request) => {
     if (!SAFE_KEY.test(key) || !['en', 'es', 'pt'].includes(lang) || !text) {
       return jsonResponse({ error: 'bad_clip', detail: key || '(empty)' }, 400);
     }
-    clips.push({ key, lang, text });
+    const voiceId = typeof c?.voice_id === 'string' && c.voice_id ? c.voice_id : AKEEM_VOICE_ID;
+    const speakerRole = typeof c?.speaker_role === 'string' && c.speaker_role ? c.speaker_role : 'coach_akeem';
+    const voiceSettings = (c?.voice_settings && typeof c.voice_settings === 'object')
+      ? c.voice_settings
+      : (voiceId === AKEEM_VOICE_ID ? BBF_VOICE_SETTINGS : DEFAULT_VOICE_SETTINGS);
+    clips.push({ key, lang, text, voiceId, speakerRole, voiceSettings });
   }
 
   const existing = overwrite ? new Set<string>() : await listExisting(SUPABASE_URL, SERVICE_KEY);
@@ -178,7 +209,7 @@ serve(async (req: Request) => {
   async function worker() {
     while (idx < todo.length) {
       const clip = todo[idx++];
-      const tts = await synthesize(ELEVENLABS_API_KEY!, clip.text);
+      const tts = await synthesize(ELEVENLABS_API_KEY!, clip.text, clip.voiceId, clip.voiceSettings);
       if (!tts.ok) { failed.push({ key: clip.key, detail: `tts_${tts.status}:${tts.detail}` }); continue; }
       const path = `${clip.key}.mp3`;
       const up = await uploadObject(SUPABASE_URL!, SERVICE_KEY!, path, tts.buf);
@@ -187,7 +218,7 @@ serve(async (req: Request) => {
       const sha = await sha256Hex(`${clip.lang}|${clip.text}`);
       await upsertFragmentRow(SUPABASE_URL!, SERVICE_KEY!, {
         fragment_key:   clip.key,
-        speaker_role:   'coach_akeem',
+        speaker_role:   clip.speakerRole,
         language:       clip.lang,
         script_text:    clip.text,
         script_version: 1,

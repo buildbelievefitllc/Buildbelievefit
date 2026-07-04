@@ -1,0 +1,3110 @@
+[
+  {
+    "key": "DOJO-PT_L1_C1-PROMPT",
+    "lang": "en",
+    "text": "How do you say 'Hello' to greet someone?",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L1_C1-TARGET",
+    "lang": "pt",
+    "text": "Olá.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C1-BC0",
+    "lang": "pt",
+    "text": "Olá",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C2-PROMPT",
+    "lang": "en",
+    "text": "Now, greet them with 'Good morning'.",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L1_C2-TARGET",
+    "lang": "pt",
+    "text": "Bom dia.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C2-BC0",
+    "lang": "pt",
+    "text": "dia",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C2-BC1",
+    "lang": "pt",
+    "text": "Bom dia",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C3-PROMPT",
+    "lang": "en",
+    "text": "Do you remember how to say 'My name is Akeem'?",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L1_C3-TARGET",
+    "lang": "pt",
+    "text": "Meu nome é Akeem.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C3-BC0",
+    "lang": "pt",
+    "text": "Akeem",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C3-BC1",
+    "lang": "pt",
+    "text": "nome é Akeem",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C3-BC2",
+    "lang": "pt",
+    "text": "Meu nome é Akeem",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C4-PROMPT",
+    "lang": "en",
+    "text": "Ask someone 'How are you?' in a friendly, local way.",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L1_C4-TARGET",
+    "lang": "pt",
+    "text": "Tudo bem?",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C4-BC0",
+    "lang": "pt",
+    "text": "bem",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C4-BC1",
+    "lang": "pt",
+    "text": "Tudo bem?",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C5-PROMPT",
+    "lang": "en",
+    "text": "After exchanging names, say 'Nice to meet you'.",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L1_C5-TARGET",
+    "lang": "pt",
+    "text": "Muito prazer.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C5-BC0",
+    "lang": "pt",
+    "text": "prazer",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C5-BC1",
+    "lang": "pt",
+    "text": "Muito prazer",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L1_C6-PROMPT",
+    "lang": "en",
+    "text": "Put it together. Say: 'Hello, good morning! How are you?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L1_C6-TARGET",
+    "lang": "pt",
+    "text": "Olá, bom dia! Tudo bem?",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L2_C1-PROMPT",
+    "lang": "en",
+    "text": "Ask a male contact: 'Are you American?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L2_C1-TARGET",
+    "lang": "pt",
+    "text": "Você é americano?",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C1-BC0",
+    "lang": "pt",
+    "text": "americano",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C1-BC1",
+    "lang": "pt",
+    "text": "é americano",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C1-BC2",
+    "lang": "pt",
+    "text": "Você é americano?",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C2-PROMPT",
+    "lang": "en",
+    "text": "Respond proudly: 'Yes, I am American.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L2_C2-TARGET",
+    "lang": "pt",
+    "text": "Sim, eu sou americano.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C2-BC0",
+    "lang": "pt",
+    "text": "americano",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C2-BC1",
+    "lang": "pt",
+    "text": "sou americano",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C2-BC2",
+    "lang": "pt",
+    "text": "Sim, eu sou americano",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C3-PROMPT",
+    "lang": "en",
+    "text": "Tell someone your profession: 'I am a personal trainer.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L2_C3-TARGET",
+    "lang": "pt",
+    "text": "Eu sou personal trainer.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C3-BC0",
+    "lang": "pt",
+    "text": "trainer",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C3-BC1",
+    "lang": "pt",
+    "text": "personal trainer",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C3-BC2",
+    "lang": "pt",
+    "text": "Eu sou personal trainer",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C4-PROMPT",
+    "lang": "en",
+    "text": "Express your love for the grind: 'I love to train.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L2_C4-TARGET",
+    "lang": "pt",
+    "text": "Eu amo treinar.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C4-BC0",
+    "lang": "pt",
+    "text": "treinar",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C4-BC1",
+    "lang": "pt",
+    "text": "amo treinar",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C4-BC2",
+    "lang": "pt",
+    "text": "Eu amo treinar",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C5-PROMPT",
+    "lang": "en",
+    "text": "Express the BBF core motto in Portuguese: 'We build and believe.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L2_C5-TARGET",
+    "lang": "pt",
+    "text": "Nós construímos e acreditamos.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C5-BC0",
+    "lang": "pt",
+    "text": "acreditamos",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C5-BC1",
+    "lang": "pt",
+    "text": "construímos e acreditamos",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L2_C5-BC2",
+    "lang": "pt",
+    "text": "Nós construímos e acreditamos",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L3_C1-PROMPT",
+    "lang": "en",
+    "text": "How do you ask: 'Where is the water?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L3_C1-TARGET",
+    "lang": "pt",
+    "text": "Onde fica a água?",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C1-BC0",
+    "lang": "pt",
+    "text": "água",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C1-BC1",
+    "lang": "pt",
+    "text": "fica a água",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C1-BC2",
+    "lang": "pt",
+    "text": "Onde fica a água?",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C2-PROMPT",
+    "lang": "en",
+    "text": "Now, ask where the bathrooms are located: 'Where are the restrooms?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L3_C2-TARGET",
+    "lang": "pt",
+    "text": "Onde ficam os banheiros?",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C2-BC0",
+    "lang": "pt",
+    "text": "banheiros",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C2-BC1",
+    "lang": "pt",
+    "text": "ficam os banheiros",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C2-BC2",
+    "lang": "pt",
+    "text": "Onde ficam os banheiros?",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C3-PROMPT",
+    "lang": "en",
+    "text": "Instruct someone to go forward: 'Go straight.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L3_C3-TARGET",
+    "lang": "pt",
+    "text": "Siga reto.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C3-BC0",
+    "lang": "pt",
+    "text": "reto",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C3-BC1",
+    "lang": "pt",
+    "text": "Siga reto",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C4-PROMPT",
+    "lang": "en",
+    "text": "Now, tell them to change direction: 'Turn left.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L3_C4-TARGET",
+    "lang": "pt",
+    "text": "Vire à esquerda.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C4-BC0",
+    "lang": "pt",
+    "text": "esquerda",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C4-BC1",
+    "lang": "pt",
+    "text": "Vire à esquerda",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C5-PROMPT",
+    "lang": "en",
+    "text": "And how do you say: 'Turn right'?",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L3_C5-TARGET",
+    "lang": "pt",
+    "text": "Vire à direita.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C5-BC0",
+    "lang": "pt",
+    "text": "direita",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C5-BC1",
+    "lang": "pt",
+    "text": "Vire à direita",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L3_C6-PROMPT",
+    "lang": "en",
+    "text": "Combine directions: 'Go straight and then turn right.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L3_C6-TARGET",
+    "lang": "pt",
+    "text": "Siga reto e depois vire à direita.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L4_C1-PROMPT",
+    "lang": "en",
+    "text": "Order your black coffee simply: 'A coffee, please.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L4_C1-TARGET",
+    "lang": "pt",
+    "text": "Um café, por favor.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C1-BC0",
+    "lang": "pt",
+    "text": "por favor",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C1-BC1",
+    "lang": "pt",
+    "text": "café, por favor",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C1-BC2",
+    "lang": "pt",
+    "text": "Um café, por favor",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C2-PROMPT",
+    "lang": "en",
+    "text": "Enforce your nutrition protocol: 'Without sugar, please.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L4_C2-TARGET",
+    "lang": "pt",
+    "text": "Sem açúcar, por favor.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C2-BC0",
+    "lang": "pt",
+    "text": "açúcar",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C2-BC1",
+    "lang": "pt",
+    "text": "Sem açúcar, por favor",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C3-PROMPT",
+    "lang": "en",
+    "text": "Order your post-workout drink: 'A protein shake.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L4_C3-TARGET",
+    "lang": "pt",
+    "text": "Um shake com proteína.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C3-BC0",
+    "lang": "pt",
+    "text": "proteína",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C3-BC1",
+    "lang": "pt",
+    "text": "com proteína",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C3-BC2",
+    "lang": "pt",
+    "text": "Um shake com proteína",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C4-PROMPT",
+    "lang": "en",
+    "text": "Ask for the price: 'How much is it?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L4_C4-TARGET",
+    "lang": "pt",
+    "text": "Quanto custa?",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C4-BC0",
+    "lang": "pt",
+    "text": "custa",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C4-BC1",
+    "lang": "pt",
+    "text": "Quanto custa?",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C5-PROMPT",
+    "lang": "en",
+    "text": "Request the bill to conclude: 'The bill, please.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L4_C5-TARGET",
+    "lang": "pt",
+    "text": "A conta, por favor.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C5-BC0",
+    "lang": "pt",
+    "text": "conta",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L4_C5-BC1",
+    "lang": "pt",
+    "text": "A conta, por favor",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L5_C1-PROMPT",
+    "lang": "en",
+    "text": "Count from one to three: 'One, two, three.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L5_C1-TARGET",
+    "lang": "pt",
+    "text": "Um, dois, três.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C1-BC0",
+    "lang": "pt",
+    "text": "três",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C1-BC1",
+    "lang": "pt",
+    "text": "dois, três",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C1-BC2",
+    "lang": "pt",
+    "text": "Um, dois, três",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C2-PROMPT",
+    "lang": "en",
+    "text": "Now count up to six: 'Four, five, six.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L5_C2-TARGET",
+    "lang": "pt",
+    "text": "Quatro, cinco, seis.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C2-BC0",
+    "lang": "pt",
+    "text": "seis",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C2-BC1",
+    "lang": "pt",
+    "text": "cinco, seis",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C2-BC2",
+    "lang": "pt",
+    "text": "Quatro, cinco, seis",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C3-PROMPT",
+    "lang": "en",
+    "text": "Finish counting up to ten: 'Seven, eight, nine, ten.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L5_C3-TARGET",
+    "lang": "pt",
+    "text": "Sete, oito, nove, dez.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C3-BC0",
+    "lang": "pt",
+    "text": "dez",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C3-BC1",
+    "lang": "pt",
+    "text": "nove, dez",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C3-BC2",
+    "lang": "pt",
+    "text": "Sete, oito, nove, dez",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C4-PROMPT",
+    "lang": "en",
+    "text": "Object politely to a high price: 'It is too expensive.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L5_C4-TARGET",
+    "lang": "pt",
+    "text": "Está muito caro.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C4-BC0",
+    "lang": "pt",
+    "text": "caro",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C4-BC1",
+    "lang": "pt",
+    "text": "muito caro",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C4-BC2",
+    "lang": "pt",
+    "text": "Está muito caro",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C5-PROMPT",
+    "lang": "en",
+    "text": "Propose a price cut: 'Can you do it for five reais?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L5_C5-TARGET",
+    "lang": "pt",
+    "text": "Faz por cinco reais?",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C5-BC0",
+    "lang": "pt",
+    "text": "reais",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C5-BC1",
+    "lang": "pt",
+    "text": "cinco reais",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L5_C5-BC2",
+    "lang": "pt",
+    "text": "Faz por cinco reais?",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L6_C1-PROMPT",
+    "lang": "en",
+    "text": "Ask for the current time: 'What time is it?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L6_C1-TARGET",
+    "lang": "pt",
+    "text": "Que horas são?",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C1-BC0",
+    "lang": "pt",
+    "text": "são",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C1-BC1",
+    "lang": "pt",
+    "text": "Que horas são?",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C2-PROMPT",
+    "lang": "en",
+    "text": "Answer: 'It is eight o'clock.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L6_C2-TARGET",
+    "lang": "pt",
+    "text": "São oito horas.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C2-BC0",
+    "lang": "pt",
+    "text": "horas",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C2-BC1",
+    "lang": "pt",
+    "text": "oito horas",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C2-BC2",
+    "lang": "pt",
+    "text": "São oito horas",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C3-PROMPT",
+    "lang": "en",
+    "text": "Tell your client or friend: 'I am fasting.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L6_C3-TARGET",
+    "lang": "pt",
+    "text": "Estou em jejum.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C3-BC0",
+    "lang": "pt",
+    "text": "jejum",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C3-BC1",
+    "lang": "pt",
+    "text": "em jejum",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C3-BC2",
+    "lang": "pt",
+    "text": "Estou em jejum",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C4-PROMPT",
+    "lang": "en",
+    "text": "Coordinate the session: 'At what time do we train?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L6_C4-TARGET",
+    "lang": "pt",
+    "text": "A que horas nós treinamos?",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C4-BC0",
+    "lang": "pt",
+    "text": "treinamos",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C4-BC1",
+    "lang": "pt",
+    "text": "nós treinamos",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C4-BC2",
+    "lang": "pt",
+    "text": "A que horas nós treinamos?",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C5-PROMPT",
+    "lang": "en",
+    "text": "Confirm the block: 'Our workout is at ten.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L6_C5-TARGET",
+    "lang": "pt",
+    "text": "Nosso treino é às dez.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C5-BC0",
+    "lang": "pt",
+    "text": "dez",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C5-BC1",
+    "lang": "pt",
+    "text": "às dez",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L6_C5-BC2",
+    "lang": "pt",
+    "text": "Nosso treino é às dez.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L7_C1-PROMPT",
+    "lang": "en",
+    "text": "State the focus muscle group: 'Chest.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L7_C1-TARGET",
+    "lang": "pt",
+    "text": "Peito.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C1-BC0",
+    "lang": "pt",
+    "text": "Peito",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C2-PROMPT",
+    "lang": "en",
+    "text": "Say the word for: 'Legs.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L7_C2-TARGET",
+    "lang": "pt",
+    "text": "Pernas.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C2-BC0",
+    "lang": "pt",
+    "text": "Pernas",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C3-PROMPT",
+    "lang": "en",
+    "text": "Say the word for: 'Back.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L7_C3-TARGET",
+    "lang": "pt",
+    "text": "Costas.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C3-BC0",
+    "lang": "pt",
+    "text": "Costas",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C4-PROMPT",
+    "lang": "en",
+    "text": "Explain that a muscle is hurting or sore: 'It hurts.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L7_C4-TARGET",
+    "lang": "pt",
+    "text": "Está doendo.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C4-BC0",
+    "lang": "pt",
+    "text": "doendo",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C4-BC1",
+    "lang": "pt",
+    "text": "Está doendo",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C5-PROMPT",
+    "lang": "en",
+    "text": "Provide feedback on local fatigue: 'My legs are sore.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L7_C5-TARGET",
+    "lang": "pt",
+    "text": "Minhas pernas estão doendo.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C5-BC0",
+    "lang": "pt",
+    "text": "doendo",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C5-BC1",
+    "lang": "pt",
+    "text": "estão doendo",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L7_C5-BC2",
+    "lang": "pt",
+    "text": "Minhas pernas estão doendo",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L8_C1-PROMPT",
+    "lang": "en",
+    "text": "Give an active lifting command: 'Push hard!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L8_C1-TARGET",
+    "lang": "pt",
+    "text": "Empurre forte!",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C1-BC0",
+    "lang": "pt",
+    "text": "forte",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C1-BC1",
+    "lang": "pt",
+    "text": "Empurre forte",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C2-PROMPT",
+    "lang": "en",
+    "text": "Say the command for: 'Pull.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L8_C2-TARGET",
+    "lang": "pt",
+    "text": "Puxe.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C2-BC0",
+    "lang": "pt",
+    "text": "Puxe",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C3-PROMPT",
+    "lang": "en",
+    "text": "Say the word for 'Barbell'.",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L8_C3-TARGET",
+    "lang": "pt",
+    "text": "Barra.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C3-BC0",
+    "lang": "pt",
+    "text": "Barra",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C4-PROMPT",
+    "lang": "en",
+    "text": "Request an increase: 'More weight.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L8_C4-TARGET",
+    "lang": "pt",
+    "text": "Mais peso.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C4-BC0",
+    "lang": "pt",
+    "text": "peso",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C4-BC1",
+    "lang": "pt",
+    "text": "Mais peso",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C5-PROMPT",
+    "lang": "en",
+    "text": "Direct your training partner: 'Put more weight on the barbell.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L8_C5-TARGET",
+    "lang": "pt",
+    "text": "Coloque mais peso na barra.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C5-BC0",
+    "lang": "pt",
+    "text": "barra",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C5-BC1",
+    "lang": "pt",
+    "text": "na barra",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C5-BC2",
+    "lang": "pt",
+    "text": "peso na barra",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L8_C5-BC3",
+    "lang": "pt",
+    "text": "Coloque mais peso na barra",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L9_C1-PROMPT",
+    "lang": "en",
+    "text": "Congratulate your partner or client: 'Great workout!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L9_C1-TARGET",
+    "lang": "pt",
+    "text": "Ótimo treino!",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C1-BC0",
+    "lang": "pt",
+    "text": "treino",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C1-BC1",
+    "lang": "pt",
+    "text": "Ótimo treino",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C2-PROMPT",
+    "lang": "en",
+    "text": "Say the word for: 'Tomorrow.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L9_C2-TARGET",
+    "lang": "pt",
+    "text": "Amanhã.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C2-BC0",
+    "lang": "pt",
+    "text": "Amanhã",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C3-PROMPT",
+    "lang": "en",
+    "text": "Say a standard 'See you later.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L9_C3-TARGET",
+    "lang": "pt",
+    "text": "Até logo.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C3-BC0",
+    "lang": "pt",
+    "text": "logo",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C3-BC1",
+    "lang": "pt",
+    "text": "Até logo",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C4-PROMPT",
+    "lang": "en",
+    "text": "Say specifically: 'See you tomorrow.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L9_C4-TARGET",
+    "lang": "pt",
+    "text": "Até amanhã.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C4-BC0",
+    "lang": "pt",
+    "text": "amanhã",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C4-BC1",
+    "lang": "pt",
+    "text": "Até amanhã",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C5-PROMPT",
+    "lang": "en",
+    "text": "Confirm the timing: 'Tomorrow at the same schedule.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L9_C5-TARGET",
+    "lang": "pt",
+    "text": "Amanhã no mesmo horário.",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C5-BC0",
+    "lang": "pt",
+    "text": "horário",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C5-BC1",
+    "lang": "pt",
+    "text": "mesmo horário",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L9_C5-BC2",
+    "lang": "pt",
+    "text": "Amanhã no mesmo horário",
+    "voice_id": "ORgG8rwdAiMYRug8RJwR",
+    "speaker_role": "pt_female"
+  },
+  {
+    "key": "DOJO-PT_L10_C1-PROMPT",
+    "lang": "en",
+    "text": "Declare your success: 'I speak Portuguese!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L10_C1-TARGET",
+    "lang": "pt",
+    "text": "Eu falo português.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C1-BC0",
+    "lang": "pt",
+    "text": "português",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C1-BC1",
+    "lang": "pt",
+    "text": "falo português",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C1-BC2",
+    "lang": "pt",
+    "text": "Eu falo português",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C2-PROMPT",
+    "lang": "en",
+    "text": "Suggest collective action: 'Let's go together.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L10_C2-TARGET",
+    "lang": "pt",
+    "text": "Vamos juntos.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C2-BC0",
+    "lang": "pt",
+    "text": "juntos",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C2-BC1",
+    "lang": "pt",
+    "text": "Vamos juntos",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C3-PROMPT",
+    "lang": "en",
+    "text": "Express casual excitement: 'Awesome!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L10_C3-TARGET",
+    "lang": "pt",
+    "text": "Que massa!",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C3-BC0",
+    "lang": "pt",
+    "text": "massa",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C3-BC1",
+    "lang": "pt",
+    "text": "Que massa!",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C4-PROMPT",
+    "lang": "en",
+    "text": "Refer to the famous Brazilian steakhouse: 'Barbecue house.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L10_C4-TARGET",
+    "lang": "pt",
+    "text": "Churrascaria.",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C4-BC0",
+    "lang": "pt",
+    "text": "ria",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C4-BC1",
+    "lang": "pt",
+    "text": "caria",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C4-BC2",
+    "lang": "pt",
+    "text": "churrascaria",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C5-PROMPT",
+    "lang": "en",
+    "text": "Invite everyone: 'Let's go together to celebrate!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-PT_L10_C5-TARGET",
+    "lang": "pt",
+    "text": "Vamos juntos comemorar!",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C5-BC0",
+    "lang": "pt",
+    "text": "comemorar",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C5-BC1",
+    "lang": "pt",
+    "text": "juntos comemorar",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-PT_L10_C5-BC2",
+    "lang": "pt",
+    "text": "Vamos juntos comemorar!",
+    "voice_id": "iP95p4xoKVk53GoZ742B",
+    "speaker_role": "pt_male"
+  },
+  {
+    "key": "DOJO-ES_L1_C1-PROMPT",
+    "lang": "en",
+    "text": "How do you say 'Hello' to greet someone?",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L1_C1-TARGET",
+    "lang": "es",
+    "text": "Hola.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C1-BC0",
+    "lang": "es",
+    "text": "Hola",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C2-PROMPT",
+    "lang": "en",
+    "text": "Now, greet them with 'Good morning'.",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L1_C2-TARGET",
+    "lang": "es",
+    "text": "Buenos días.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C2-BC0",
+    "lang": "es",
+    "text": "días",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C2-BC1",
+    "lang": "es",
+    "text": "Buenos días",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C3-PROMPT",
+    "lang": "en",
+    "text": "Do you remember how to say 'My name is Akeem' in Spanish?",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L1_C3-TARGET",
+    "lang": "es",
+    "text": "Me llamo Akeem.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C3-BC0",
+    "lang": "es",
+    "text": "Akeem",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C3-BC1",
+    "lang": "es",
+    "text": "llamo Akeem",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C3-BC2",
+    "lang": "es",
+    "text": "Me llamo Akeem",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C4-PROMPT",
+    "lang": "en",
+    "text": "Ask someone 'How are you?' in a friendly, conversational way.",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L1_C4-TARGET",
+    "lang": "es",
+    "text": "¿Cómo estás?",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C4-BC0",
+    "lang": "es",
+    "text": "estás",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C4-BC1",
+    "lang": "es",
+    "text": "¿Cómo estás?",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C5-PROMPT",
+    "lang": "en",
+    "text": "After exchanging names, say 'Nice to meet you'.",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L1_C5-TARGET",
+    "lang": "es",
+    "text": "Mucho gusto.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C5-BC0",
+    "lang": "es",
+    "text": "gusto",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C5-BC1",
+    "lang": "es",
+    "text": "Mucho gusto",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L1_C6-PROMPT",
+    "lang": "en",
+    "text": "Put it together. Say: 'Hola, buenos días! ¿Cómo estás?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L1_C6-TARGET",
+    "lang": "es",
+    "text": "Hola, buenos días! ¿Cómo estás?",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L2_C1-PROMPT",
+    "lang": "en",
+    "text": "Ask a male contact: 'Are you American?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L2_C1-TARGET",
+    "lang": "es",
+    "text": "¿Eres americano?",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C1-BC0",
+    "lang": "es",
+    "text": "americano",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C1-BC1",
+    "lang": "es",
+    "text": "Eres americano?",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C2-PROMPT",
+    "lang": "en",
+    "text": "Respond proudly: 'Yes, I am American.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L2_C2-TARGET",
+    "lang": "es",
+    "text": "Sí, soy americano.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C2-BC0",
+    "lang": "es",
+    "text": "americano",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C2-BC1",
+    "lang": "es",
+    "text": "soy americano",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C2-BC2",
+    "lang": "es",
+    "text": "Sí, soy americano",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C3-PROMPT",
+    "lang": "en",
+    "text": "Tell someone your profession: 'I am a personal trainer.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L2_C3-TARGET",
+    "lang": "es",
+    "text": "Soy entrenador personal.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C3-BC0",
+    "lang": "es",
+    "text": "personal",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C3-BC1",
+    "lang": "es",
+    "text": "entrenador personal",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C3-BC2",
+    "lang": "es",
+    "text": "Soy entrenador personal",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C4-PROMPT",
+    "lang": "en",
+    "text": "Express your love for the grind: 'I love to train.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L2_C4-TARGET",
+    "lang": "es",
+    "text": "Me encanta entrenar.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C4-BC0",
+    "lang": "es",
+    "text": "entrenar",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C4-BC1",
+    "lang": "es",
+    "text": "encanta entrenar",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C4-BC2",
+    "lang": "es",
+    "text": "Me encanta entrenar",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C5-PROMPT",
+    "lang": "en",
+    "text": "Express the BBF core motto in Spanish: 'We build and believe.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L2_C5-TARGET",
+    "lang": "es",
+    "text": "Nosotros construimos y creemos.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C5-BC0",
+    "lang": "es",
+    "text": "creemos",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C5-BC1",
+    "lang": "es",
+    "text": "construimos y creemos",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L2_C5-BC2",
+    "lang": "es",
+    "text": "Nosotros construimos y creemos",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L3_C1-PROMPT",
+    "lang": "en",
+    "text": "How do you ask: 'Where is the water?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L3_C1-TARGET",
+    "lang": "es",
+    "text": "¿Dónde está el agua?",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C1-BC0",
+    "lang": "es",
+    "text": "agua",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C1-BC1",
+    "lang": "es",
+    "text": "está el agua",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C1-BC2",
+    "lang": "es",
+    "text": "¿Dónde está el agua?",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C2-PROMPT",
+    "lang": "en",
+    "text": "Now, ask where the bathrooms are located: 'Where are the restrooms?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L3_C2-TARGET",
+    "lang": "es",
+    "text": "¿Dónde están los baños?",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C2-BC0",
+    "lang": "es",
+    "text": "baños",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C2-BC1",
+    "lang": "es",
+    "text": "están los baños",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C2-BC2",
+    "lang": "es",
+    "text": "¿Dónde están los baños?",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C3-PROMPT",
+    "lang": "en",
+    "text": "Instruct someone to go forward: 'Go straight.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L3_C3-TARGET",
+    "lang": "es",
+    "text": "Ve derecho.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C3-BC0",
+    "lang": "es",
+    "text": "derecho",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C3-BC1",
+    "lang": "es",
+    "text": "Ve derecho",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C4-PROMPT",
+    "lang": "en",
+    "text": "Now, tell them to change direction: 'Turn left.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L3_C4-TARGET",
+    "lang": "es",
+    "text": "Gira a la izquierda.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C4-BC0",
+    "lang": "es",
+    "text": "izquierda",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C4-BC1",
+    "lang": "es",
+    "text": "a la izquierda",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C4-BC2",
+    "lang": "es",
+    "text": "Gira a la izquierda",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C5-PROMPT",
+    "lang": "en",
+    "text": "And how do you say: 'Turn right'?",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L3_C5-TARGET",
+    "lang": "es",
+    "text": "Gira a la derecha.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C5-BC0",
+    "lang": "es",
+    "text": "derecha",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C5-BC1",
+    "lang": "es",
+    "text": "a la derecha",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C5-BC2",
+    "lang": "es",
+    "text": "Gira a la derecha",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L3_C6-PROMPT",
+    "lang": "en",
+    "text": "Combine directions: 'Go straight and then turn right.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L3_C6-TARGET",
+    "lang": "es",
+    "text": "Ve derecho y luego gira a la derecha.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L4_C1-PROMPT",
+    "lang": "en",
+    "text": "Order your black coffee simply: 'A coffee, please.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L4_C1-TARGET",
+    "lang": "es",
+    "text": "Un café, por favor.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C1-BC0",
+    "lang": "es",
+    "text": "por favor",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C1-BC1",
+    "lang": "es",
+    "text": "café, por favor",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C1-BC2",
+    "lang": "es",
+    "text": "Un café, por favor",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C2-PROMPT",
+    "lang": "en",
+    "text": "Enforce your nutrition protocol: 'Without sugar, please.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L4_C2-TARGET",
+    "lang": "es",
+    "text": "Sin azúcar, por favor.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C2-BC0",
+    "lang": "es",
+    "text": "azúcar",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C2-BC1",
+    "lang": "es",
+    "text": "Sin azúcar, por favor",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C3-PROMPT",
+    "lang": "en",
+    "text": "Order your post-workout drink: 'A protein shake.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L4_C3-TARGET",
+    "lang": "es",
+    "text": "Un licuado de proteína.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C3-BC0",
+    "lang": "es",
+    "text": "proteína",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C3-BC1",
+    "lang": "es",
+    "text": "de proteína",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C3-BC2",
+    "lang": "es",
+    "text": "Un licuado de proteína",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C4-PROMPT",
+    "lang": "en",
+    "text": "Ask for the price: 'How much is it?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L4_C4-TARGET",
+    "lang": "es",
+    "text": "¿Cuánto cuesta?",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C4-BC0",
+    "lang": "es",
+    "text": "cuesta",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C4-BC1",
+    "lang": "es",
+    "text": "¿Cuánto cuesta?",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C5-PROMPT",
+    "lang": "en",
+    "text": "Request the bill to conclude: 'The bill, please.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L4_C5-TARGET",
+    "lang": "es",
+    "text": "La cuenta, por favor.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C5-BC0",
+    "lang": "es",
+    "text": "cuenta",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L4_C5-BC1",
+    "lang": "es",
+    "text": "La cuenta, por favor",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L5_C1-PROMPT",
+    "lang": "en",
+    "text": "Count from one to three: 'One, two, three.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L5_C1-TARGET",
+    "lang": "es",
+    "text": "Uno, dos, tres.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C1-BC0",
+    "lang": "es",
+    "text": "tres",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C1-BC1",
+    "lang": "es",
+    "text": "dos, tres",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C1-BC2",
+    "lang": "es",
+    "text": "Uno, dos, tres",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C2-PROMPT",
+    "lang": "en",
+    "text": "Now count up to six: 'Four, five, six.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L5_C2-TARGET",
+    "lang": "es",
+    "text": "Cuatro, cinco, seis.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C2-BC0",
+    "lang": "es",
+    "text": "seis",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C2-BC1",
+    "lang": "es",
+    "text": "cinco, seis",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C2-BC2",
+    "lang": "es",
+    "text": "Cuatro, cinco, seis",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C3-PROMPT",
+    "lang": "en",
+    "text": "Finish counting up to ten: 'Seven, eight, nine, ten.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L5_C3-TARGET",
+    "lang": "es",
+    "text": "Siete, ocho, nueve, diez.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C3-BC0",
+    "lang": "es",
+    "text": "diez",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C3-BC1",
+    "lang": "es",
+    "text": "nueve, diez",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C3-BC2",
+    "lang": "es",
+    "text": "Siete, ocho, nueve, diez",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C4-PROMPT",
+    "lang": "en",
+    "text": "Object politely to a high price: 'It is too expensive.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L5_C4-TARGET",
+    "lang": "es",
+    "text": "Está muy caro.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C4-BC0",
+    "lang": "es",
+    "text": "caro",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C4-BC1",
+    "lang": "es",
+    "text": "muy caro",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C4-BC2",
+    "lang": "es",
+    "text": "Está muy caro",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C5-PROMPT",
+    "lang": "en",
+    "text": "Propose a price cut: 'Can you do it for five pesos?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L5_C5-TARGET",
+    "lang": "es",
+    "text": "¿Me lo deja en cinco pesos?",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C5-BC0",
+    "lang": "es",
+    "text": "pesos",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C5-BC1",
+    "lang": "es",
+    "text": "cinco pesos",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L5_C5-BC2",
+    "lang": "es",
+    "text": "¿Me lo deja en cinco pesos?",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L6_C1-PROMPT",
+    "lang": "en",
+    "text": "Ask for the current time: 'What time is it?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L6_C1-TARGET",
+    "lang": "es",
+    "text": "¿Qué hora es?",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C1-BC0",
+    "lang": "es",
+    "text": "es",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C1-BC1",
+    "lang": "es",
+    "text": "¿Qué hora es?",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C2-PROMPT",
+    "lang": "en",
+    "text": "Answer: 'It is eight o'clock.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L6_C2-TARGET",
+    "lang": "es",
+    "text": "Son las ocho.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C2-BC0",
+    "lang": "es",
+    "text": "ocho",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C2-BC1",
+    "lang": "es",
+    "text": "las ocho",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C2-BC2",
+    "lang": "es",
+    "text": "Son las ocho",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C3-PROMPT",
+    "lang": "en",
+    "text": "Tell your client or friend: 'I am fasting.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L6_C3-TARGET",
+    "lang": "es",
+    "text": "Estoy en ayunas.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C3-BC0",
+    "lang": "es",
+    "text": "ayunas",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C3-BC1",
+    "lang": "es",
+    "text": "en ayunas",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C3-BC2",
+    "lang": "es",
+    "text": "Estoy en ayunas",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C4-PROMPT",
+    "lang": "en",
+    "text": "Coordinate the session: 'At what time do we train?'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L6_C4-TARGET",
+    "lang": "es",
+    "text": "¿A qué hora entrenamos?",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C4-BC0",
+    "lang": "es",
+    "text": "entrenamos",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C4-BC1",
+    "lang": "es",
+    "text": "hora entrenamos",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C4-BC2",
+    "lang": "es",
+    "text": "¿A qué hora entrenamos?",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C5-PROMPT",
+    "lang": "en",
+    "text": "Confirm the block: 'Our workout is at ten.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L6_C5-TARGET",
+    "lang": "es",
+    "text": "Nuestro entrenamiento es a las diez.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C5-BC0",
+    "lang": "es",
+    "text": "diez",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C5-BC1",
+    "lang": "es",
+    "text": "a las diez",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L6_C5-BC2",
+    "lang": "es",
+    "text": "Nuestro entrenamiento es a las diez",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L7_C1-PROMPT",
+    "lang": "en",
+    "text": "State the focus muscle group: 'Chest.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L7_C1-TARGET",
+    "lang": "es",
+    "text": "Pecho.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C1-BC0",
+    "lang": "es",
+    "text": "Pecho",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C2-PROMPT",
+    "lang": "en",
+    "text": "Say the word for: 'Legs.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L7_C2-TARGET",
+    "lang": "es",
+    "text": "Piernas.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C2-BC0",
+    "lang": "es",
+    "text": "Piernas",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C3-PROMPT",
+    "lang": "en",
+    "text": "Say the word for: 'Back.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L7_C3-TARGET",
+    "lang": "es",
+    "text": "Espalda.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C3-BC0",
+    "lang": "es",
+    "text": "Espalda",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C4-PROMPT",
+    "lang": "en",
+    "text": "Explain that a muscle is hurting or sore: 'It hurts.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L7_C4-TARGET",
+    "lang": "es",
+    "text": "Me duele.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C4-BC0",
+    "lang": "es",
+    "text": "duele",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C4-BC1",
+    "lang": "es",
+    "text": "Me duele",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C5-PROMPT",
+    "lang": "en",
+    "text": "Provide feedback on local fatigue: 'My legs are sore.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L7_C5-TARGET",
+    "lang": "es",
+    "text": "Me duelen las piernas.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C5-BC0",
+    "lang": "es",
+    "text": "piernas",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C5-BC1",
+    "lang": "es",
+    "text": "las piernas",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L7_C5-BC2",
+    "lang": "es",
+    "text": "Me duelen las piernas",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L8_C1-PROMPT",
+    "lang": "en",
+    "text": "Give an active lifting command: 'Push hard!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L8_C1-TARGET",
+    "lang": "es",
+    "text": "Empuja fuerte!",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C1-BC0",
+    "lang": "es",
+    "text": "fuerte",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C1-BC1",
+    "lang": "es",
+    "text": "Empuja fuerte",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C2-PROMPT",
+    "lang": "en",
+    "text": "Say the command for: 'Pull.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L8_C2-TARGET",
+    "lang": "es",
+    "text": "Jala.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C2-BC0",
+    "lang": "es",
+    "text": "Jala",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C3-PROMPT",
+    "lang": "en",
+    "text": "Say the word for 'Barbell'.",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L8_C3-TARGET",
+    "lang": "es",
+    "text": "Barra.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C3-BC0",
+    "lang": "es",
+    "text": "Barra",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C4-PROMPT",
+    "lang": "en",
+    "text": "Request an increase: 'More weight.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L8_C4-TARGET",
+    "lang": "es",
+    "text": "Más peso.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C4-BC0",
+    "lang": "es",
+    "text": "peso",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C4-BC1",
+    "lang": "es",
+    "text": "Más peso",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C5-PROMPT",
+    "lang": "en",
+    "text": "Direct your training partner: 'Put more weight on the barbell.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L8_C5-TARGET",
+    "lang": "es",
+    "text": "Ponle más peso a la barra.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C5-BC0",
+    "lang": "es",
+    "text": "barra",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C5-BC1",
+    "lang": "es",
+    "text": "a la barra",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C5-BC2",
+    "lang": "es",
+    "text": "peso a la barra",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L8_C5-BC3",
+    "lang": "es",
+    "text": "Ponle más peso a la barra",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L9_C1-PROMPT",
+    "lang": "en",
+    "text": "Congratulate your partner or client: 'Great workout!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L9_C1-TARGET",
+    "lang": "es",
+    "text": "¡Excelente entrenamiento!",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C1-BC0",
+    "lang": "es",
+    "text": "entrenamiento",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C1-BC1",
+    "lang": "es",
+    "text": "Excelente entrenamiento",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C2-PROMPT",
+    "lang": "en",
+    "text": "Say the word for: 'Tomorrow.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L9_C2-TARGET",
+    "lang": "es",
+    "text": "Mañana.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C2-BC0",
+    "lang": "es",
+    "text": "Mañana",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C3-PROMPT",
+    "lang": "en",
+    "text": "Say a standard 'See you later.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L9_C3-TARGET",
+    "lang": "es",
+    "text": "Hasta luego.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C3-BC0",
+    "lang": "es",
+    "text": "luego",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C3-BC1",
+    "lang": "es",
+    "text": "Hasta luego",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C4-PROMPT",
+    "lang": "en",
+    "text": "Say specifically: 'See you tomorrow.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L9_C4-TARGET",
+    "lang": "es",
+    "text": "Hasta mañana.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C4-BC0",
+    "lang": "es",
+    "text": "mañana",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C4-BC1",
+    "lang": "es",
+    "text": "Hasta mañana",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C5-PROMPT",
+    "lang": "en",
+    "text": "Confirm the timing: 'Tomorrow at the same schedule.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L9_C5-TARGET",
+    "lang": "es",
+    "text": "Mañana a la misma hora.",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C5-BC0",
+    "lang": "es",
+    "text": "hora",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C5-BC1",
+    "lang": "es",
+    "text": "misma hora",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L9_C5-BC2",
+    "lang": "es",
+    "text": "Mañana a la misma hora",
+    "voice_id": "m7yTemJqdIqrcNleANfX",
+    "speaker_role": "es_female"
+  },
+  {
+    "key": "DOJO-ES_L10_C1-PROMPT",
+    "lang": "en",
+    "text": "Declare your success: 'I speak Spanish!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L10_C1-TARGET",
+    "lang": "es",
+    "text": "Hablo español.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C1-BC0",
+    "lang": "es",
+    "text": "español",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C1-BC1",
+    "lang": "es",
+    "text": "Hablo español",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C2-PROMPT",
+    "lang": "en",
+    "text": "Suggest collective action: 'Let's go together.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L10_C2-TARGET",
+    "lang": "es",
+    "text": "Vamos juntos.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C2-BC0",
+    "lang": "es",
+    "text": "juntos",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C2-BC1",
+    "lang": "es",
+    "text": "Vamos juntos",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C3-PROMPT",
+    "lang": "en",
+    "text": "Express casual excitement: 'Awesome!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L10_C3-TARGET",
+    "lang": "es",
+    "text": "¡Qué chido!",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C3-BC0",
+    "lang": "es",
+    "text": "chido",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C3-BC1",
+    "lang": "es",
+    "text": "¡Qué chido!",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C4-PROMPT",
+    "lang": "en",
+    "text": "Refer to the classic gathering over steak/barbecue: 'Barbecue.'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L10_C4-TARGET",
+    "lang": "es",
+    "text": "Asado.",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C4-BC0",
+    "lang": "es",
+    "text": "Asado",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C5-PROMPT",
+    "lang": "en",
+    "text": "Invite everyone: 'Let's go together to celebrate!'",
+    "voice_id": "Xb7hH8MSUJpSbSDYk0k2",
+    "speaker_role": "narrator"
+  },
+  {
+    "key": "DOJO-ES_L10_C5-TARGET",
+    "lang": "es",
+    "text": "¡Vamos juntos a celebrar!",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C5-BC0",
+    "lang": "es",
+    "text": "celebrar",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C5-BC1",
+    "lang": "es",
+    "text": "a celebrar",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  },
+  {
+    "key": "DOJO-ES_L10_C5-BC2",
+    "lang": "es",
+    "text": "¡Vamos juntos a celebrar!",
+    "voice_id": "cjVigY5qzO86Huf0OWal",
+    "speaker_role": "es_male"
+  }
+]
