@@ -35,6 +35,8 @@ import { CUISINES, CUISINE_PLANS, dayTotals, todayIndex } from './cuisineMeals.j
 import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
 import { resolveMealArt, MEAL_ART } from './mealArt.js';
 import CoachVoiceNote from './CoachVoiceNote.jsx';
+import ContextualVoiceover from './ContextualVoiceover.jsx';
+import { AUDIO_CTX_NUTRITION } from '../../lib/contextualVoiceover.js';
 import './vault.css';
 import './nutrition.css';
 
@@ -1160,6 +1162,20 @@ export default function Nutrition({ plans, profile }) {
   return (
     <div className="pg-nut">
       {isAdmin && onCommandSurface ? <NutritionStudioGate /> : null}
+
+      {/* ── CONTEXTUAL VOICEOVER — Coach Akeem explains WHY these macros are
+          TDEE-engineered, that meals are interchangeable when measured right, and
+          the payoff of following the plan to the T. Static clip, paused by default. ── */}
+      <ContextualVoiceover
+        audioKey={AUDIO_CTX_NUTRITION}
+        testId="ctx-vo-nutrition"
+        title={{ en: 'Fuel the Mission', es: 'Alimenta la Misión', pt: 'Abasteça a Missão' }}
+        sub={{
+          en: 'Why these macros are engineered from your TDEE — and why hitting the numbers, not the exact recipe, is what delivers results.',
+          es: 'Por qué estos macros se calculan desde tu GEDT — y por qué acertar los números, no la receta exacta, es lo que da resultados.',
+          pt: 'Por que esses macros são calculados a partir do seu GEDT — e por que bater os números, não a receita exata, é o que traz resultados.',
+        }}
+      />
 
       {/* ── PERSONAL NUTRITION NOTE — account-specific (gated); warm "why" over the plan ── */}
       {personal?.nutrition ? (

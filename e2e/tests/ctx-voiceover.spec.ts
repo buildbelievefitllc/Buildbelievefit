@@ -101,6 +101,17 @@ test.describe('BBF Vault — contextual voiceover layer', () => {
     // The What-is-RPE accordion still sits ABOVE the new player.
     await expect(page.locator('.rpe-card')).toBeVisible();
 
+    // ── 3 · Nutrition player — top of the Nutrition tab, PAUSED default ──
+    await page.getByRole('tab', { name: 'Nutrition' }).click();
+    const nut = page.getByTestId('ctx-vo-nutrition');
+    await expect(nut).toBeVisible();
+    await expect(nut).toHaveAttribute('data-audiokey', 'AUDIO_CTX_NUTRITION');
+    await expect(nut).toHaveAttribute('data-playing', '0');
+    await expect(nut).toHaveAttribute('data-autoplay', 'off');
+    await expect(nut.getByTestId('ctx-vo-nutrition-audio')).toHaveAttribute(
+      'src', /nutrition-audio-ctx-nutrition\.mp3$/,
+    );
+
     expect(realDbHits).toHaveLength(0);
   });
 

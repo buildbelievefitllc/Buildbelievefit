@@ -19,5 +19,12 @@
     "scenario": "Post-Workout Check-In modal · capture pain + RPE to feed the recovery engine",
     "target_duration": "40s",
     "script": "Great work on the floor today. Before you log off, we need to capture your post-workout data. Take a second to scan your body. Do you have any new target areas of pain or friction? Log the joint and rate the pain from one to ten. Finally, lock in your overall session difficulty. This feedback loops right back into the engine to prep your recovery for tomorrow. Lock it in, save, and recover."
+  },
+  {
+    "category": "Nutrition",
+    "subject_line": "AUDIO_CTX_NUTRITION",
+    "scenario": "Nutrition Locker · TDEE-engineered macros, interchangeable meals, adherence payoff",
+    "target_duration": "55s",
+    "script": "Listen — this meal plan is not a guess. Every number on that macro wheel was reverse-engineered from your TDEE, your total daily energy expenditure. We did the math on exactly what your body burns, then built your protein, carbs, and fat around it so the fuel matches the mission. Now hear this — the meals are interchangeable. You don't have to eat it exactly as written. Swap one meal for another, eat last night's leftovers, build your own plate — as long as you measure it right and it hits your macros, the success still comes. The magic isn't the recipe; it's the numbers. So follow the targets to the T, weigh your food, log every meal, protein first, water on point — do that, and the results aren't a maybe, they're mathematics. Respect the work that went into this, trust the plan, and just Believe. That's how you build the best version of your body."
   }
 ]

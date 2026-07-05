@@ -18,6 +18,7 @@ import manifest from '../data/contextualVoiceoverManifest.json';
 export const AUDIO_CTX_HUB_CHECKIN = 'AUDIO_CTX_HUB_CHECKIN';
 export const AUDIO_CTX_PROGRAM_RPE = 'AUDIO_CTX_PROGRAM_RPE';
 export const AUDIO_CTX_POST_WORKOUT = 'AUDIO_CTX_POST_WORKOUT';
+export const AUDIO_CTX_NUTRITION = 'AUDIO_CTX_NUTRITION';
 
 // key (subjectLine) → entry (id, category, subjectLine, scenario, duration, url)
 const BY_KEY = new Map(manifest.map((m) => [m.subjectLine, m]));

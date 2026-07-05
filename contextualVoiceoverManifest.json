@@ -22,5 +22,13 @@
     "scenario": "Post-Workout Check-In modal · capture pain + RPE to feed the recovery engine",
     "duration": "40s",
     "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/accountability-audio-ctx-post-workout.mp3"
+  },
+  {
+    "id": "audio_20b6affc",
+    "category": "Nutrition",
+    "subjectLine": "AUDIO_CTX_NUTRITION",
+    "scenario": "Nutrition Locker · TDEE-engineered macros, interchangeable meals, adherence payoff",
+    "duration": "55s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/nutrition-audio-ctx-nutrition.mp3"
   }
 ]
