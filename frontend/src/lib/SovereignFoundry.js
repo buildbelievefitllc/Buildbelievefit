@@ -35,6 +35,30 @@ import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 const TARGET_W = 1080;
 const TARGET_H = 1920;
 
+// Phone-backdrop frame skins — mirrors phone-frame-v4's CSS gradients
+// (sovereignStudioV4.css). Drawn natively on canvas (see _drawPhoneFrame) rather
+// than rasterized via html2canvas, which doesn't reliably capture a rounded,
+// box-shadowed element forced transparent for a video hole — the frame is instead
+// stripped from the html2canvas overlay clone entirely (captureOverlay) and
+// reconstructed here with plain, deterministic Canvas 2D drawing.
+const PHONE_FRAME_SKINS = {
+  sleek: ['#3a3744', '#232029', '#17151c'],
+  gold: ['#6a5a16', '#4a3e0c', '#241d06'],
+  carbon: ['#1c1c20', '#101013', '#070708'],
+};
+
+// Builds (but does not begin/stroke/fill) a rounded-rect subpath on the CURRENT
+// path — callers control beginPath()/fill()/stroke()/clip() so multiple calls can
+// accumulate into one compound path (e.g. an evenodd "donut" clip).
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
 export class SovereignFoundry {
   /**
    * @param {HTMLElement} [container] hidden DOM node to host the private <video>.
@@ -75,13 +99,14 @@ export class SovereignFoundry {
     try {
       const { default: html2canvas } = await import('html2canvas');
       const clone = stageNode.cloneNode(true);
-      clone.querySelectorAll('.reel-video-v4, .reel-placeholder-v4, .reel-play-v4, .reel-vo-v4, .reel-progress-v4')
+      // Phone-backdrop mode: the whole mock-up (bezel + notch + screen) is stripped
+      // here and redrawn natively on canvas by render()/_drawPhoneFrame instead —
+      // html2canvas doesn't reliably rasterize phone-frame-v4's rounded, box-shadowed
+      // bezel with a punched-transparent screen hole (this WAS attempted via a
+      // forced-transparent .phone-screen-v4 background; in practice it produced a
+      // solid, undercut bezel shape and an opaque hole that buried the footage).
+      clone.querySelectorAll('.reel-video-v4, .reel-placeholder-v4, .reel-play-v4, .reel-vo-v4, .reel-progress-v4, .phone-frame-v4')
         .forEach((el) => el.remove());
-      // Phone-backdrop mode: the screen div's own opaque #000 fallback (phone-screen-v4,
-      // shared with the Phone tab's screenshot mock-up) must also go transparent, or it
-      // paints a solid black hole where render()'s clipped videoRect footage should show
-      // through — the video element itself was just removed above, so nothing else fills it.
-      clone.querySelectorAll('.phone-screen-v4').forEach((el) => { el.style.background = 'transparent'; });
       // Kill the opaque stage background so the footage isn't buried by the overlay.
       clone.style.transform = 'none';
       clone.style.width = TARGET_W + 'px';
@@ -101,7 +126,7 @@ export class SovereignFoundry {
    * Render the reel.
    * @returns {Promise<{blob:Blob, ext:'mp4', mime:'video/mp4', audio:boolean, frames:number, durationSec:number}>}
    */
-  async render({ videoUrl, voUrl = null, overlay = null, videoRect = null, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, onProgress } = {}) {
+  async render({ videoUrl, voUrl = null, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, onProgress } = {}) {
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
     if (!videoUrl) throw new Error('no_footage');
 
@@ -169,6 +194,11 @@ export class SovereignFoundry {
       let frames = 0;
       const encodeAt = (tSec) => {
         this._drawCover(ctx, video, W, H, videoRect);
+        // Phone-backdrop mock-up — drawn AFTER the footage (so its bezel donut-clip
+        // never covers the just-drawn video) and BEFORE the overlay (so brand/hook/
+        // watch-button text still paints on top of the bezel, same stacking as the
+        // live DOM preview's z-index).
+        if (videoRect && frameRect) this._drawPhoneFrame(ctx, frameRect, videoRect, phoneFrame);
         if (overlay) { try { ctx.drawImage(overlay, 0, 0, W, H); } catch { /* overlay optional */ } }
         const frame = new VideoFrame(canvas, { timestamp: Math.max(0, Math.round(tSec * 1e6)), duration: frameDurUs });
         venc.encode(frame, { keyFrame: frames % (fps * 2) === 0 });
@@ -404,9 +434,7 @@ export class SovereignFoundry {
   // videoRect (phone-backdrop mode, see reelPhoneBackdrop.js): cover-fit the footage
   // into that smaller rect only, clipped to its rounded corners, over the same
   // gradient the DOM's .has-phone-backdrop uses — instead of full-bleeding the whole
-  // canvas. The phone-frame bezel/notch is drawn afterward by the caller as part of
-  // the `overlay` PNG, with the screen area transparent (captureOverlay), so it reads
-  // through to this clipped footage underneath.
+  // canvas. The phone-frame bezel/notch is drawn afterward by the caller (_drawPhoneFrame).
   _drawCover(ctx, video, W, H, videoRect) {
     if (videoRect) {
       const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -414,7 +442,8 @@ export class SovereignFoundry {
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
       const { x, y, width: w, height: h, radius = 0 } = videoRect;
       ctx.save();
-      this._roundRectPath(ctx, x, y, w, h, radius);
+      ctx.beginPath();
+      roundRectPath(ctx, x, y, w, h, radius);
       ctx.clip();
       const vw = video.videoWidth || w, vh = video.videoHeight || h;
       const s = Math.max(w / vw, h / vh), dw = vw * s, dh = vh * s;
@@ -428,14 +457,48 @@ export class SovereignFoundry {
     ctx.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
   }
 
-  _roundRectPath(ctx, x, y, w, h, r) {
+  // Phone-backdrop bezel + notch, drawn NATIVELY on canvas (not via html2canvas — see
+  // captureOverlay's comment for why). frameRect is the outer mock-up box, screenRect
+  // the inner cutout the footage was just cover-fit into by _drawCover.
+  //
+  // The bezel is filled through an EVEN-ODD "donut" clip (outer rounded-rect minus the
+  // inner screen rounded-rect), so its fill can never paint over the footage that's
+  // already sitting in the screen rect — no destination-out/alpha trickery needed,
+  // which also means this works fine on the alpha:false compositing canvas.
+  _drawPhoneFrame(ctx, frameRect, screenRect, skin) {
+    const stops = PHONE_FRAME_SKINS[skin] || PHONE_FRAME_SKINS.sleek;
+    const { left: fx, top: fy, width: fw, height: fh, radius: fr = 78, notch } = frameRect;
+
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
+    roundRectPath(ctx, fx, fy, fw, fh, fr);
+    roundRectPath(ctx, screenRect.x, screenRect.y, screenRect.width, screenRect.height, screenRect.radius);
+    ctx.clip('evenodd');
+    const g = ctx.createLinearGradient(fx, fy, fx, fy + fh);
+    g.addColorStop(0, stops[0]); g.addColorStop(0.45, stops[1]); g.addColorStop(1, stops[2]);
+    ctx.fillStyle = g;
+    ctx.fillRect(fx, fy, fw, fh);
+    ctx.restore();
+
+    // Rim highlight tracing the screen cutout — mirrors the CSS frame's inset box-shadow bezel line.
+    ctx.save();
+    ctx.beginPath();
+    roundRectPath(ctx, screenRect.x - 1.5, screenRect.y - 1.5, screenRect.width + 3, screenRect.height + 3, screenRect.radius + 1.5);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(130, 122, 148, 0.55)';
+    ctx.stroke();
+    ctx.restore();
+
+    // Notch (camera dot), same fixed size/offset as .phone-notch-v4.
+    if (notch) {
+      const r = notch.diameter / 2;
+      ctx.save();
+      ctx.fillStyle = '#06060a';
+      ctx.beginPath();
+      ctx.arc(fx + fw / 2, fy + notch.top + r, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   }
 
   // Pick the best AVAILABLE video codec → { codec (encoder string), muxer (mp4-muxer

@@ -7,7 +7,7 @@ import ReelPreviewEngine from './ReelPreviewEngine';
 import StageScaler from './StageScaler';
 import QueueMonitor from './QueueMonitor';
 import { renderMarkup } from './markup.jsx';
-import { REEL_PHONE_SCREEN } from '../../lib/reelPhoneBackdrop.js';
+import { REEL_PHONE_FRAME, REEL_PHONE_SCREEN } from '../../lib/reelPhoneBackdrop.js';
 import { seriesLabel } from '../../lib/reelSeriesLabels.js';
 
 const PLATFORMS = [
@@ -307,9 +307,12 @@ export default function StudioLayout({
         // Voice wins the export bake; with no voiceover the backing track carries it.
         voUrl: reelData.voUrl || reelData.musicFile?.url || null,
         overlay,
-        // Phone backdrop → clip the footage into the same rect the DOM preview used
-        // (reelPhoneBackdrop.js — shared with ReelPreviewEngine so they can't drift).
+        // Phone backdrop → clip the footage into the same rect the DOM preview used, and
+        // have the export draw the matching bezel/notch itself (reelPhoneBackdrop.js —
+        // shared with ReelPreviewEngine so preview and export can't drift apart).
         videoRect: reelData.phoneBackdrop ? REEL_PHONE_SCREEN : null,
+        frameRect: reelData.phoneBackdrop ? REEL_PHONE_FRAME : null,
+        phoneFrame: reelData.phoneFrame || 'sleek',
         durationCap: target ? 90 : 1200,
         onProgress: (p) => setRecordPct(Math.round(p * 100)),
       });
