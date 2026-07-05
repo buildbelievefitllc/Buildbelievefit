@@ -40,6 +40,8 @@ import MindsetIntercept from './MindsetIntercept.jsx';
 import RecoveryPrescriptionCard from './RecoveryPrescriptionCard.jsx';
 import SovereignBriefingCard from './SovereignBriefingCard.jsx';
 import { SequenceNext } from './SovereignSequence.jsx';
+import ContextualVoiceover from './ContextualVoiceover.jsx';
+import { AUDIO_CTX_HUB_CHECKIN } from '../../lib/contextualVoiceover.js';
 import './sovereignHub.css';
 
 // Handshake diagnostic — its own chunk; only the Check-In tab ever pulls it in.
@@ -278,6 +280,19 @@ export default function SovereignClientHub({ refreshKey = 0, onSequence, prescri
           </span>
         ) : null}
       </header>
+
+      {/* ── CONTEXTUAL VOICEOVER — Coach Akeem explains WHY the baseline check-in
+          matters before any load is prescribed. Static clip, paused by default. ── */}
+      <ContextualVoiceover
+        audioKey={AUDIO_CTX_HUB_CHECKIN}
+        testId="ctx-vo-hub-checkin"
+        title={{ en: 'Start With Your Baseline', es: 'Empieza Por Tu Línea Base', pt: 'Comece Pela Sua Base' }}
+        sub={{
+          en: 'Why we capture sleep, stress and readiness before we prescribe a single rep.',
+          es: 'Por qué capturamos sueño, estrés y preparación antes de prescribir una sola repetición.',
+          pt: 'Por que capturamos sono, estresse e prontidão antes de prescrever uma única repetição.',
+        }}
+      />
 
       {/* ── PERSONAL DEDICATION — account-specific (gated); warm note over the chrome ── */}
       {personal && personal.dedication ? (

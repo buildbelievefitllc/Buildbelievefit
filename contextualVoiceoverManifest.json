@@ -1,0 +1,26 @@
+[
+  {
+    "id": "audio_82d2fec2",
+    "category": "Accountability",
+    "subjectLine": "AUDIO_CTX_HUB_CHECKIN",
+    "scenario": "Client Hub Check-In · why we capture baseline telemetry before load",
+    "duration": "42s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/accountability-audio-ctx-hub-checkin.mp3"
+  },
+  {
+    "id": "audio_bfe686c4",
+    "category": "RPE_Education",
+    "subjectLine": "AUDIO_CTX_PROGRAM_RPE",
+    "scenario": "Program tab · Enter the Floor · how to read rep ranges and RPE",
+    "duration": "44s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/rpe-education-audio-ctx-program-rpe.mp3"
+  },
+  {
+    "id": "audio_714092a9",
+    "category": "Accountability",
+    "subjectLine": "AUDIO_CTX_POST_WORKOUT",
+    "scenario": "Post-Workout Check-In modal · capture pain + RPE to feed the recovery engine",
+    "duration": "40s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/accountability-audio-ctx-post-workout.mp3"
+  }
+]

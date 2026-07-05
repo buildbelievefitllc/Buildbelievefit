@@ -21,6 +21,8 @@ import SovereignSentinel from './SovereignSentinel.jsx';
 import HypertrophyBalanceAnalyzer from './HypertrophyBalanceAnalyzer.jsx';
 import VoiceCoachButton from './VoiceCoachButton.jsx';
 import RPEEducationCard from './RPEEducationCard.jsx';
+import ContextualVoiceover from './ContextualVoiceover.jsx';
+import { AUDIO_CTX_PROGRAM_RPE } from '../../lib/contextualVoiceover.js';
 import TierGate from '../TierGate.jsx';
 import { buildCoachCue } from './coachCue.js';
 import { SequenceCTA } from './SovereignSequence.jsx';
@@ -115,6 +117,20 @@ export default function Program({ plans, profile, onSequence }) {
       {/* RPE Education Card — collapsible, text-first education on RPE.
           Mounted at top of program tab, always visible above analytics and grid. */}
       <RPEEducationCard preferred_locale={lang} />
+
+      {/* ── CONTEXTUAL VOICEOVER — Coach Akeem walks "Enter the Floor": how to read
+          the rep ranges + RPE for today. Sits directly below the What-is-RPE
+          accordion. Static clip, paused by default. ── */}
+      <ContextualVoiceover
+        audioKey={AUDIO_CTX_PROGRAM_RPE}
+        testId="ctx-vo-program-rpe"
+        title={{ en: 'Enter the Floor', es: 'Entra al Piso', pt: 'Entre no Treino' }}
+        sub={{
+          en: 'How to read the rep ranges and RPE so you match the prescribed intensity — not just go through the motions.',
+          es: 'Cómo leer los rangos de repeticiones y el RPE para igualar la intensidad prescrita — no solo cumplir el movimiento.',
+          pt: 'Como ler as faixas de repetições e o RPE para bater a intensidade prescrita — não só cumprir o movimento.',
+        }}
+      />
 
       {/* Master visual dashboard — COLLAPSED BY DEFAULT so the Program tab opens
           straight onto the day's protocol (action over analysis). The toggle reveals

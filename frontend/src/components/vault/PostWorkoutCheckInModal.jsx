@@ -18,6 +18,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { submitSessionFeedback, TARGET_AREAS } from '../../lib/sessionFeedbackApi.js';
+import ContextualVoiceover from './ContextualVoiceover.jsx';
+import { AUDIO_CTX_POST_WORKOUT } from '../../lib/contextualVoiceover.js';
 import './postWorkoutCheckIn.css';
 
 const SUCCESS_DISMISS_MS = 1500; // psychological-closure beat before auto-dismiss
@@ -170,6 +172,25 @@ export default function PostWorkoutCheckInModal({ open, onClose, onSuccess }) {
           <h2 id="pwc-title" className="pwc-title">{S.title}</h2>
           <p className="pwc-sub">{S.sub}</p>
         </header>
+
+        {/* ── CONTEXTUAL VOICEOVER (Mandate 4) — Coach Akeem AUTO-PLAYS the moment
+            this modal mounts (i.e. on open), explaining why we capture pain + RPE.
+            The mount-only guarantee lives in ContextualVoiceover's autoPlay effect
+            (empty-dep + ref guard): the sheet returns null while closed and re-mounts
+            on open, so playback triggers exactly ONCE per open and NEVER re-fires when
+            a pain/RPE slider re-renders this component. ── */}
+        <ContextualVoiceover
+          audioKey={AUDIO_CTX_POST_WORKOUT}
+          testId="ctx-vo-post-workout"
+          autoPlay
+          compact
+          title={{ en: 'Capture the Session', es: 'Captura la Sesión', pt: 'Capture a Sessão' }}
+          sub={{
+            en: 'Scan your body, log any pain, and lock in your RPE — it loops straight back into tomorrow’s recovery.',
+            es: 'Escanea tu cuerpo, registra el dolor y fija tu RPE — retroalimenta directamente tu recuperación de mañana.',
+            pt: 'Escaneie seu corpo, registre a dor e fixe seu RPE — retroalimenta direto a sua recuperação de amanhã.',
+          }}
+        />
 
         {/* Target Area — pill row */}
         <div className="pwc-section">

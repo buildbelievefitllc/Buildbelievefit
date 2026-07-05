@@ -1,0 +1,23 @@
+[
+  {
+    "category": "Accountability",
+    "subject_line": "AUDIO_CTX_HUB_CHECKIN",
+    "scenario": "Client Hub Check-In · why we capture baseline telemetry before load",
+    "target_duration": "42s",
+    "script": "Before we touch a weight, we need your baseline. If your wearable isn't synced yet, log your sleep and stress manually right here. The engine needs this data to calculate your central nervous system readiness. Based on what you log, the Recovery Prescription below will automatically adapt to fix your specific pain points and prep your joints for today’s load. Give the system the data, and it will give you the blueprint."
+  },
+  {
+    "category": "RPE_Education",
+    "subject_line": "AUDIO_CTX_PROGRAM_RPE",
+    "scenario": "Program tab · Enter the Floor · how to read rep ranges and RPE",
+    "target_duration": "44s",
+    "script": "Step three: Enter the floor. Look closely at the structure today—pay attention to the rep ranges and the RPE. RPE is your Rate of Perceived Exertion on a scale of one to ten. It dictates how heavy you should go. An RPE of eight means you should only have two reps left in the tank. Do not just go through the motions. Match the prescribed intensity, hit the target sets, and earn your rest."
+  },
+  {
+    "category": "Accountability",
+    "subject_line": "AUDIO_CTX_POST_WORKOUT",
+    "scenario": "Post-Workout Check-In modal · capture pain + RPE to feed the recovery engine",
+    "target_duration": "40s",
+    "script": "Great work on the floor today. Before you log off, we need to capture your post-workout data. Take a second to scan your body. Do you have any new target areas of pain or friction? Log the joint and rate the pain from one to ten. Finally, lock in your overall session difficulty. This feedback loops right back into the engine to prep your recovery for tomorrow. Lock it in, save, and recover."
+  }
+]
