@@ -324,7 +324,18 @@
   background: linear-gradient(160deg, #3a3744 0%, #232029 45%, #17151c 100%);
   box-shadow: 0 50px 100px rgba(0, 0, 0, 0.75), inset 0 0 0 3px rgba(130, 122, 148, 0.55), inset 0 0 0 7px #0c0b10;
 }
-.phone-frame-v4.layout-dual { transform: translateX(-58%) rotate(-6deg); }
+/* DUAL/TRIO fan positions — ported from the v3 reference (bbf-studio.html's
+   ph-anchor1/2/3 math). Percentages are relative to the phone's OWN width (the
+   base rule's `left:50%` anchor), so front/back/side phones fan out and overlap
+   regardless of the frame's absolute px size. Back/side phones sit dimmer,
+   smaller and lower (bigger negative `bottom`) so they read as behind the front
+   phone, not just beside it. */
+.phone-frame-v4.is-back { z-index: 2; filter: brightness(0.72); bottom: -190px; }
+.phone-frame-v4.pos-dual-front { transform: translateX(-32%) rotate(-5deg); }
+.phone-frame-v4.pos-dual-back { transform: translateX(-78%) rotate(2deg) scale(0.9); }
+.phone-frame-v4.pos-trio-front { transform: translateX(-50%) rotate(-5deg); }
+.phone-frame-v4.pos-trio-left { transform: translateX(-112%) rotate(2deg) scale(0.9); }
+.phone-frame-v4.pos-trio-right { transform: translateX(12%) rotate(11deg) scale(0.88); }
 .phone-frame-v4.frame-gold { background: linear-gradient(160deg, #6a5a16 0%, #4a3e0c 45%, #241d06 100%); }
 .phone-frame-v4.frame-carbon {
   background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.03) 0 2px, transparent 2px 5px),

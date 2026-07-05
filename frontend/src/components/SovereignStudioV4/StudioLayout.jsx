@@ -16,6 +16,27 @@ const PLATFORMS = [
 
 const stripMarkup = (s) => String(s || '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').trim();
 
+// Which phone frames to render for a given layout, front-to-back (CSS z-index/
+// dimming makes the stacking read correctly regardless of array order). Position
+// classes port the v3 reference's fan math (sovereignStudioV4.css) — dual = two
+// overlapped screens, trio = a three-screen fan.
+function phoneLayers({ layout, backgroundImage, backgroundImage2, backgroundImage3 }) {
+  if (layout === 'dual') {
+    return [
+      { img: backgroundImage2, cls: 'is-back pos-dual-back', ph: '2ND SHOT' },
+      { img: backgroundImage, cls: 'pos-dual-front', ph: 'SCREENSHOT' },
+    ];
+  }
+  if (layout === 'trio') {
+    return [
+      { img: backgroundImage2, cls: 'is-back pos-trio-left', ph: '2ND SHOT' },
+      { img: backgroundImage3, cls: 'is-back pos-trio-right', ph: '3RD SHOT' },
+      { img: backgroundImage, cls: 'pos-trio-front', ph: 'SCREENSHOT' },
+    ];
+  }
+  return [{ img: backgroundImage, cls: '', ph: 'SCREENSHOT' }];
+}
+
 // Per-session base for unique export filenames. Module scope so the timestamp is read
 // once at load (the render-purity rule forbids Date.now() inside the component).
 const SESSION_STAMP = Date.now();
@@ -439,7 +460,14 @@ export default function StudioLayout({
                 >
                   DUAL
                 </button>
+                <button
+                  className={phoneData.layout === 'trio' ? 'active' : ''}
+                  onClick={() => handlePhoneChange('layout', 'trio')}
+                >
+                  TRIO
+                </button>
               </div>
+              <div className="hint-v4">Single = centered hero. Dual = two screens overlapped. Trio = three-screen fan.</div>
             </div>
 
             <div className="ctl-group-v4">
@@ -482,6 +510,64 @@ export default function StudioLayout({
               )}
               <div className="hint-v4">Drops your screenshot straight into the phone screen — it exports baked into the mock-up.</div>
             </div>
+
+            {(phoneData.layout === 'dual' || phoneData.layout === 'trio') && (
+              <div className="ctl-group-v4">
+                <label className="ctl-label-v4">📱 2nd Screenshot (dual / trio)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="input-v4"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (phoneData.backgroundImage2?.url) URL.revokeObjectURL(phoneData.backgroundImage2.url);
+                    handlePhoneChange('backgroundImage2', { file, url: URL.createObjectURL(file) });
+                  }}
+                />
+                {phoneData.backgroundImage2?.url && (
+                  <button
+                    type="button"
+                    className="ph-clear-v4"
+                    onClick={() => {
+                      if (phoneData.backgroundImage2?.url) URL.revokeObjectURL(phoneData.backgroundImage2.url);
+                      handlePhoneChange('backgroundImage2', null);
+                    }}
+                  >
+                    ✕ Remove 2nd screenshot
+                  </button>
+                )}
+              </div>
+            )}
+
+            {phoneData.layout === 'trio' && (
+              <div className="ctl-group-v4">
+                <label className="ctl-label-v4">📱 3rd Screenshot (trio)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="input-v4"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (phoneData.backgroundImage3?.url) URL.revokeObjectURL(phoneData.backgroundImage3.url);
+                    handlePhoneChange('backgroundImage3', { file, url: URL.createObjectURL(file) });
+                  }}
+                />
+                {phoneData.backgroundImage3?.url && (
+                  <button
+                    type="button"
+                    className="ph-clear-v4"
+                    onClick={() => {
+                      if (phoneData.backgroundImage3?.url) URL.revokeObjectURL(phoneData.backgroundImage3.url);
+                      handlePhoneChange('backgroundImage3', null);
+                    }}
+                  >
+                    ✕ Remove 3rd screenshot
+                  </button>
+                )}
+              </div>
+            )}
 
             <div className="ctl-group-v4">
               <label className="ctl-label-v4">Eyebrow</label>
@@ -595,14 +681,16 @@ export default function StudioLayout({
                   <div className="phone-hl-v4">{phoneData.headline}</div>
                   <div className="phone-benefit-v4">{phoneData.benefit}</div>
                 </div>
-                <div className={`phone-frame-v4 frame-${phoneData.frame} layout-${phoneData.layout}`}>
-                  <div className="phone-notch-v4" />
-                  <div className="phone-screen-v4">
-                    {phoneData.backgroundImage?.url
-                      ? <img src={phoneData.backgroundImage.url} alt="App screenshot" className="phone-screen-img-v4" crossOrigin="anonymous" />
-                      : <div className="phone-screen-ph-v4">SCREENSHOT</div>}
+                {phoneLayers(phoneData).map((p, i) => (
+                  <div key={i} className={`phone-frame-v4 frame-${phoneData.frame} ${p.cls}`}>
+                    <div className="phone-notch-v4" />
+                    <div className="phone-screen-v4">
+                      {p.img?.url
+                        ? <img src={p.img.url} alt="App screenshot" className="phone-screen-img-v4" crossOrigin="anonymous" />
+                        : <div className="phone-screen-ph-v4">{p.ph}</div>}
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
             </StageScaler>
           </div>

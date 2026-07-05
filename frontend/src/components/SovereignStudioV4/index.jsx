@@ -57,7 +57,9 @@ export default function SovereignStudioV4() {
     eyebrow: 'NUTRITION  •  ADAPTIVE FASTING',
     headline: 'FUEL ON\nYOUR CLOCK',
     benefit: 'Six fasting protocols, a live eating window, and your macros tracked in real time.',
-    backgroundImage: null,
+    backgroundImage: null,   // front-phone screenshot (single / dual / trio)
+    backgroundImage2: null,  // 2nd-phone screenshot (dual back phone / trio left phone)
+    backgroundImage3: null,  // 3rd-phone screenshot (trio right phone)
   });
 
   const [reelData, setReelData] = useState({
@@ -86,20 +88,24 @@ export default function SovereignStudioV4() {
 
   // Keep a live ref to the reel blob URLs so the unmount cleanup revokes whatever
   // is current. Synced in an effect (never during render) per the hooks rules.
-  const blobUrlsRef = useRef({ video: null, logo: null, phone: null });
+  const blobUrlsRef = useRef({ video: null, logo: null, phone: null, phone2: null, phone3: null });
   useEffect(() => {
     blobUrlsRef.current = {
       video: reelData.videoFile?.url || null,
       logo: reelData.logoImage?.url || null,
       phone: phoneData.backgroundImage?.url || null,
+      phone2: phoneData.backgroundImage2?.url || null,
+      phone3: phoneData.backgroundImage3?.url || null,
       music: reelData.musicFile?.url || null,
     };
-  }, [reelData.videoFile?.url, reelData.logoImage?.url, reelData.musicFile?.url, phoneData.backgroundImage?.url]);
+  }, [reelData.videoFile?.url, reelData.logoImage?.url, reelData.musicFile?.url, phoneData.backgroundImage?.url, phoneData.backgroundImage2?.url, phoneData.backgroundImage3?.url]);
   useEffect(() => () => {
-    const { video, logo, phone, music } = blobUrlsRef.current;
+    const { video, logo, phone, phone2, phone3, music } = blobUrlsRef.current;
     if (video) URL.revokeObjectURL(video);
     if (logo) URL.revokeObjectURL(logo);
     if (phone) URL.revokeObjectURL(phone);
+    if (phone2) URL.revokeObjectURL(phone2);
+    if (phone3) URL.revokeObjectURL(phone3);
     if (music) URL.revokeObjectURL(music);
   }, []);
 
