@@ -28,6 +28,7 @@ import { resolveVideoId } from './exerciseVideos.js';
 import FormDemoPlayer from './FormDemoPlayer.jsx';
 import { localizeMuscle } from '../../lib/trainingI18n.js';
 import { fetchRoster, assignWorkout, toErrorMessage } from '../../lib/rosterApi.js';
+import GeneratorVoiceBox from './GeneratorVoiceBox.jsx';
 import './vault.css';
 
 // Trilingual UI chrome for the Vault Roster Engine. The signature-split preset
@@ -314,6 +315,8 @@ export default function Generator({ onRevertToLibrary }) {
         <h2 className="pg-nut-head">{tr.head}</h2>
         <div className="pg-nut-meta">{tr.meta}</div>
       </div>
+
+      <GeneratorVoiceBox isUnlimited={isUnlimited} tokenSpent={tokenSpent} />
 
       {/* ── Akeem's Signature Chamber Splits (Overwatch Override) — 3 hard-wired presets ── */}
       <div className="pg-card gen-chambers">
