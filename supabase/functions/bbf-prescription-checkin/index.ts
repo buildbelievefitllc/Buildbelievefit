@@ -112,8 +112,19 @@ serve(async (req: Request) => {
   // ── PREHAB THREADING — enqueue the reported joint (best-effort, fail-soft) ──
   // Reported area → prehab_queue.joint_zone (schema CHECK taxonomy). full_body =
   // no joint complaint → nothing to enqueue; low pain (<4) = no clinical flag.
+  //
+  // ⚠ KEEP IN SYNC — SINGLE SOURCE OF TRUTH for area→joint routing.
+  // This MUST stay byte-identical to the frontend's AREA_TO_PREHAB_REGION in
+  // src/lib/useActiveSymptom.js. The Hub Prehab card renders THIS queue row's
+  // joint_zone while the Prehab tab renders the deck AREA_TO_PREHAB_REGION picks —
+  // if the two maps drift, the same complaint is named two different joints across
+  // the two surfaces (the exact bug this alignment fixes). Only joints that own a
+  // real drill deck are targeted: 'hip'/'neck' have NO deck, so lower_body routes to
+  // lower_back and neck to its shoulder clinical neighbor (scapular/rotator work).
+  // The athlete's ACTUAL reported area is preserved verbatim in
+  // trigger_reason.target_area below, so no clinical signal is lost.
   const AREA_TO_JOINT: Record<string, string> = {
-    shoulder: 'shoulder', knee: 'knee', neck: 'neck', upper_body: 'shoulder', lower_body: 'hip',
+    shoulder: 'shoulder', knee: 'knee', neck: 'shoulder', upper_body: 'shoulder', lower_body: 'lower_back',
   };
   let prehabQueued = false;
   const joint = AREA_TO_JOINT[targetArea];

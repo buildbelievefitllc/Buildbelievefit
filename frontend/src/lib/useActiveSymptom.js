@@ -22,6 +22,13 @@ import { SESSION_COMPLETE_EVENT } from './sessionFeedbackApi.js';
 // Every reportable area routes to its closest clinical bucket — there is NO silent
 // lumbar fallback: only full_body (a whole-body session, no joint complaint) maps
 // to null, which lets the surface keep its own neutral default.
+//
+// ⚠ KEEP IN SYNC — SINGLE SOURCE OF TRUTH for area→joint routing.
+// The backend AREA_TO_JOINT in supabase/functions/bbf-prescription-checkin/index.ts
+// writes prehab_queue.joint_zone (the Hub Prehab card's label) and MUST resolve to
+// the SAME value this map produces (full_body → null there means "don't enqueue").
+// If these drift, the Hub card and this drill deck name two different joints for the
+// same complaint. Every non-null value here is a real prehabProtocol drill deck.
 export const AREA_TO_PREHAB_REGION = {
   shoulder: 'shoulder',
   knee: 'knee',
