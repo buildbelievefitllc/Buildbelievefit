@@ -300,12 +300,17 @@ export default function StudioLayout({
       }
       setPostNote({ ok: true, text: 'Rendering reel (seeking + encoding frames + voiceover)…' });
       const videoUrl = stageRef.current?.querySelector('.reel-video-v4')?.src || reelData.videoFile?.url;
+      // Voice wins the export bake; with no voiceover the backing track carries it;
+      // with neither, fall back to the uploaded footage's OWN audio track (if it has
+      // one) — the capture <video> is muted (Chrome suspends decode on inaudible
+      // elements otherwise), so without this fallback a clip's native sound was
+      // silently dropped even though _decodeVo can pull audio out of any container.
+      const audioUrl = reelData.voUrl || reelData.musicFile?.url || reelData.videoFile?.url || null;
       const overlay = await SovereignFoundry.captureOverlay(stageRef.current);
       const foundry = new SovereignFoundry(document.body);
       const result = await foundry.render({
         videoUrl,
-        // Voice wins the export bake; with no voiceover the backing track carries it.
-        voUrl: reelData.voUrl || reelData.musicFile?.url || null,
+        voUrl: audioUrl,
         overlay,
         // Phone backdrop → clip the footage into the same rect the DOM preview used, and
         // have the export draw the matching bezel/notch itself (reelPhoneBackdrop.js —
@@ -329,10 +334,10 @@ export default function StudioLayout({
 
       // Audio status line — explicit, never silent (CEO order: bubble the reason).
       const audioMsg = result.audio
-        ? '🎙 Voiceover baked in.'
-        : (reelData.voUrl
-            ? `⚠ Audio failed: ${result.audioError || 'unknown'} — video exported without voiceover.`
-            : 'No voiceover was attached.');
+        ? '🎙 Audio baked in.'
+        : (audioUrl
+            ? `⚠ Audio failed: ${result.audioError || 'unknown'} — video exported without sound.`
+            : 'No voiceover, music, or footage audio was available — video exported silent.');
 
       // EXPORT ONLY (no targets) → download the clean MP4.
       if (!target) {
@@ -341,7 +346,7 @@ export default function StudioLayout({
         const frm = result.frames ? `${result.frames} real frames` : '';
         const stats = [dur, frm].filter(Boolean).join(', ');
         setPostNote({
-          ok: !!result.audio || !reelData.voUrl,
+          ok: !!result.audio || !audioUrl,
           text: `✓ Exported bbf-reel-${stamp}.mp4 — clean MP4${stats ? ` (${stats})` : ''}, plays everywhere. ${audioMsg}`,
         });
         return;
