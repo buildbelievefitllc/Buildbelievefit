@@ -96,6 +96,13 @@ const HOOKS = {
   ],
 };
 
+// Hook headline typeface choices — mirrors ReelPreviewEngine's HOOK_FONT_STACK ids.
+const HOOK_FONTS = [
+  ['bebas', 'BEBAS'],
+  ['anton', 'ANTON'],
+  ['barlow', 'CONDENSED'],
+];
+
 const SERIES = [
   ['', '— series database —'],
   ['form-fix', 'FORM FIX'],
@@ -232,6 +239,38 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           className="textarea-v4"
           placeholder="The hook that drives the reel"
         />
+      </div>
+
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">Hook Font</label>
+        <div className="seg-v4" data-testid="reel-hook-font">
+          {HOOK_FONTS.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={(reelData.hookFont || 'bebas') === id ? 'active' : ''}
+              onClick={() => handleReelChange('hookFont', id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🔧 Hook Size — {reelData.hookFontSize ?? 138}px</label>
+        <input
+          type="range"
+          className="range-v4"
+          min="50"
+          max="180"
+          step="2"
+          value={reelData.hookFontSize ?? 138}
+          onChange={(e) => handleReelChange('hookFontSize', Number(e.target.value))}
+          aria-label="Hook headline size"
+          data-testid="reel-hook-size"
+        />
+        <div className="hint-v4">Shrink it for a longer, more descriptive hook; go bigger for a punchy one-liner.</div>
       </div>
 
       <div className="ctl-group-v4">

@@ -14,6 +14,16 @@ const OVERLAY_CLASS = {
   frame: 'ovl-frame',
 };
 
+// Hook headline typeface choices — all three already load on the page (index.html's
+// Google Fonts link) and are LOCKED-brand-approved display faces (index.css §Typography),
+// so switching is instant with no extra asset cost. Barlow Condensed reads cleanly at
+// smaller sizes — the pick for a more descriptive, multi-line hook.
+const HOOK_FONT_STACK = {
+  bebas: "'Bebas Neue', sans-serif",
+  anton: "'Anton', sans-serif",
+  barlow: "'Barlow Condensed', sans-serif",
+};
+
 export default function ReelPreviewEngine({ reelData, stageRef }) {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -146,7 +156,17 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
       </div>
 
       <div className="reel-bottom-v4">
-        {reelData.hook && <div className="reel-hl-v4">{reelData.hook}</div>}
+        {reelData.hook && (
+          <div
+            className="reel-hl-v4"
+            style={{
+              fontFamily: HOOK_FONT_STACK[reelData.hookFont] || undefined,
+              fontSize: reelData.hookFontSize ? `${reelData.hookFontSize}px` : undefined,
+            }}
+          >
+            {reelData.hook}
+          </div>
+        )}
         {reelData.hookSub && <div className="reel-sub-v4">{reelData.hookSub}</div>}
         {(reelData.hook || reelData.hookSub) && <div className="reel-watch-v4">▶ WATCH</div>}
         {(reelData.voUrl || reelData.musicFile?.url) && (

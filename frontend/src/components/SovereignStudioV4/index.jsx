@@ -71,6 +71,8 @@ export default function SovereignStudioV4() {
     videoFile: null,
     musicFile: null,        // custom music upload → the dedicated MUSIC track element
     textLayout: 'bottom',   // overlay text placement toggle (bottom | center | top)
+    hookFont: 'bebas',      // hook headline typeface (bebas | anton | barlow)
+    hookFontSize: 138,      // hook headline size in px, 1080-design space (matches the old fixed CSS default)
     logoScale: 1,           // asset size handle — scales the corner logo badge
     musicVolume: 80,        // music-track mix (0–100%) → ReelPreviewEngine music element
     voiceVolume: 100,       // voice-track mix (0–100%) → ReelPreviewEngine voiceover element
