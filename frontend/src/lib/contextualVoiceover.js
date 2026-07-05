@@ -14,11 +14,16 @@
 
 import manifest from '../data/contextualVoiceoverManifest.json';
 
-// The three bound static keys (also each clip's `subjectLine` in the manifest).
+// The bound static keys (also each clip's `subjectLine` in the manifest).
 export const AUDIO_CTX_HUB_CHECKIN = 'AUDIO_CTX_HUB_CHECKIN';
 export const AUDIO_CTX_PROGRAM_RPE = 'AUDIO_CTX_PROGRAM_RPE';
 export const AUDIO_CTX_POST_WORKOUT = 'AUDIO_CTX_POST_WORKOUT';
 export const AUDIO_CTX_NUTRITION = 'AUDIO_CTX_NUTRITION';
+// Recovery Prescription card explainer ("why this is here"). The clip bakes from
+// bbf-contextual-voiceover-scripts.json → run scripts/compile-voice-vault.js with
+// VAULT_SCRIPTS=bbf-contextual-voiceover-scripts.json + this manifest as MANIFEST_OUT.
+// Until baked, contextualAudioUrl() returns null and the player self-hides (no broken UI).
+export const AUDIO_CTX_RECOVERY_RX = 'AUDIO_CTX_RECOVERY_RX';
 
 // key (subjectLine) → entry (id, category, subjectLine, scenario, duration, url)
 const BY_KEY = new Map(manifest.map((m) => [m.subjectLine, m]));

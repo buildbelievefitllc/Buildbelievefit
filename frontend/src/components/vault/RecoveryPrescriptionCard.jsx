@@ -14,7 +14,19 @@ import { useLang } from '../../context/LangContext.jsx';
 import { fetchTodaysPrescription } from '../../lib/prescriptionApi.js';
 import { resolveDosage } from '../../data/prescriptionDosage.js';
 import PrescriptionMoveModal from './PrescriptionMoveModal.jsx';
+import ContextualVoiceover from './ContextualVoiceover.jsx';
+import { AUDIO_CTX_RECOVERY_RX } from '../../lib/contextualVoiceover.js';
 import './recoveryPrescription.css';
+
+// Coach Akeem "why this is here" explainer chrome — trilingual (§1). The clip is
+// OPT-IN (autoPlay=false): the athlete presses to hear it, so nothing auto-fires at
+// check-in. Self-hides until the clip is baked (ContextualVoiceover returns null
+// with no resolved URL), so shipping this ahead of the voice bake shows no broken UI.
+const VO = {
+  en: { title: 'Why This Is Here', sub: 'Your recovery plan for tomorrow — auto-built from the check-in you just logged, not random.' },
+  es: { title: 'Por Qué Está Aquí', sub: 'Tu plan de recuperación para mañana — generado automáticamente del check-in que acabas de registrar, no al azar.' },
+  pt: { title: 'Por Que Isto Está Aqui', sub: 'Seu plano de recuperação para amanhã — gerado automaticamente do check-in que você acabou de registrar, não aleatório.' },
+};
 
 const STR = {
   en: {
@@ -136,6 +148,16 @@ export default function RecoveryPrescriptionCard({ refreshKey = 0 }) {
           <span className={`rxp-badge rxp-badge--${action}`}>{S.actions[action].label}</span>
         ) : null}
       </header>
+
+      {/* Opt-in "why this is here" explainer — self-hides until the Coach Akeem clip
+          is baked. autoPlay=false so it never fires on its own at check-in. */}
+      <ContextualVoiceover
+        audioKey={AUDIO_CTX_RECOVERY_RX}
+        testId="ctx-vo-recovery-rx"
+        compact
+        title={(VO[lang] || VO.en).title}
+        sub={(VO[lang] || VO.en).sub}
+      />
 
       {status === 'loading' ? (
         <p className="rxp-state">{S.loading}</p>
