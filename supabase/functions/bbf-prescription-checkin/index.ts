@@ -19,8 +19,15 @@
 // post-session pain/RPE check-in is foundational logging, available to any valid
 // vault session (locked accounts have their session rows revoked → never resolve).
 //
-// Response: 200 { ok, feedback_id, user_id, target_area } · 400 bad input ·
-//           401 no/invalid session · 405 method · 500 write failure.
+// PREHAB THREADING (architectural reconciliation): a check-in reporting a real
+// joint issue (mappable area + pain ≥ 4) ALSO enqueues that joint into
+// prehab_queue for today — so the Hub's Prehab card and the Prehab tab reflect
+// the reported joint immediately, not just the next nightly sentinel pass.
+// Best-effort + fail-soft: a duplicate (uq_prehab_active: athlete/day/joint) or
+// any enqueue failure never fails the already-committed check-in (house H-1).
+//
+// Response: 200 { ok, feedback_id, user_id, target_area, prehab_queued } ·
+//           400 bad input · 401 no/invalid session · 405 method · 500 write failure.
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
@@ -102,6 +109,53 @@ serve(async (req: Request) => {
   const rows = await res.json().catch(() => null);
   const feedbackId = (Array.isArray(rows) && rows[0]?.id) ? rows[0].id : null;
 
-  console.log(`[bbf-prescription-checkin] user=${userId} pain=${pain} rpe=${rpe} area=${targetArea} feedback_id=${feedbackId}`);
-  return jsonResponse({ ok: true, feedback_id: feedbackId, user_id: userId, target_area: targetArea }, 200);
+  // ── PREHAB THREADING — enqueue the reported joint (best-effort, fail-soft) ──
+  // Reported area → prehab_queue.joint_zone (schema CHECK taxonomy). full_body =
+  // no joint complaint → nothing to enqueue; low pain (<4) = no clinical flag.
+  const AREA_TO_JOINT: Record<string, string> = {
+    shoulder: 'shoulder', knee: 'knee', neck: 'neck', upper_body: 'shoulder', lower_body: 'hip',
+  };
+  let prehabQueued = false;
+  const joint = AREA_TO_JOINT[targetArea];
+  if (joint && pain >= 4) {
+    try {
+      const svc = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' };
+      const pr = await fetch(
+        `${SUPABASE_URL}/rest/v1/athlete_profiles?user_id=eq.${encodeURIComponent(userId)}&select=id&order=created_at.asc&limit=1`,
+        { headers: svc },
+      );
+      const profs = pr.ok ? await pr.json().catch(() => []) : [];
+      const profileId = Array.isArray(profs) && profs[0]?.id ? String(profs[0].id) : null;
+      if (profileId) {
+        const today = new Date().toISOString().slice(0, 10);
+        const ins = await fetch(`${SUPABASE_URL}/rest/v1/prehab_queue`, {
+          method: 'POST',
+          headers: { ...svc, Prefer: 'return=minimal' },
+          body: JSON.stringify({
+            athlete_id: profileId,
+            scheduled_for: today,
+            joint_zone: joint,
+            priority: pain >= 7 ? 'mandatory' : pain >= 5 ? 'strong' : 'advisory',
+            risk_score: pain * 10,
+            status: 'queued',
+            trigger_reason: { source: 'post_workout_checkin', target_area: targetArea, pain_score: pain, rpe_score: rpe },
+            // protocol is NOT NULL — the check-in flags the joint; the prehab
+            // agent/sentinel fills the drill content when the card is served.
+            protocol: { origin: 'post_workout_checkin', drills: [], pending: true },
+          }),
+        });
+        // 409/23505 = this joint is already queued today (uq_prehab_active) — that IS
+        // the desired end state, so it counts as queued (fail-soft, house H-1 pattern).
+        prehabQueued = ins.ok || ins.status === 409;
+        if (!ins.ok && ins.status !== 409) {
+          console.warn(`[bbf-prescription-checkin] prehab enqueue failed HTTP ${ins.status} (non-fatal)`);
+        }
+      }
+    } catch (e) {
+      console.warn(`[bbf-prescription-checkin] prehab enqueue threw (non-fatal): ${(e as Error).message}`);
+    }
+  }
+
+  console.log(`[bbf-prescription-checkin] user=${userId} pain=${pain} rpe=${rpe} area=${targetArea} feedback_id=${feedbackId} prehab_queued=${prehabQueued}`);
+  return jsonResponse({ ok: true, feedback_id: feedbackId, user_id: userId, target_area: targetArea, prehab_queued: prehabQueued }, 200);
 });

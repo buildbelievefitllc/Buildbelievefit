@@ -90,6 +90,31 @@ export function resolvePrepLoads(plan) {
   return { today, yesterday };
 }
 
+// ── SYMPTOM ALIGNMENT (architectural reconciliation) ────────────────────────────
+// The reported Post-Workout Check-In target_area → the prep muscle-group buckets
+// the recovery engine speaks, so a joint flagged yesterday is PRIORITIZED in
+// today's Sovereign Prep alongside the programmed workout.
+export const SYMPTOM_PREP_GROUPS = {
+  shoulder: ['shoulders'],
+  upper_body: ['shoulders', 'upper_back', 'chest'],
+  neck: ['neck'],
+  knee: ['quads', 'calves'],
+  lower_body: ['quads', 'hamstrings', 'hip_abductors'],
+  full_body: [], // whole-body session, no joint complaint → plan-derived loads only
+};
+
+// Merge the athlete's logged symptom into the plan-derived loads: the flagged
+// joint's groups lead yesterday's list (highest prep priority), deduped against
+// what the plan already contributed. No symptom → loads pass through untouched.
+export function mergePrepLoads(loads, targetArea) {
+  const symptom = SYMPTOM_PREP_GROUPS[String(targetArea || '').trim().toLowerCase()] || [];
+  if (!symptom.length) return loads;
+  return {
+    today: loads?.today || [],
+    yesterday: Array.from(new Set([...symptom, ...(loads?.yesterday || [])])),
+  };
+}
+
 // Map an edge-gate slug / HTTP status to a clean, on-brand message.
 function gateMessage(slug, status) {
   const map = {

@@ -88,5 +88,24 @@ export async function submitSessionFeedback({ uid, painScore, rpeScore, targetAr
     throw e;
   }
 
-  return { ok: true, feedbackId: parsed.feedback_id || null, targetArea: parsed.target_area || area };
+  // ── STATE INVALIDATION ON THE 200 (architectural reconciliation) ──
+  // Broadcast the saved symptom payload the instant the write commits, so every
+  // subscribed surface — the Hub (useHubHydration), Prehab & Recovery
+  // (useActiveSymptom), the readiness store — re-routes immediately with the
+  // reported target_area, then reconciles via its own refetch. Without this the
+  // check-in mutation fired into a black hole and the prescription surfaces kept
+  // rendering their defaults until a full reload.
+  try {
+    window.dispatchEvent(new CustomEvent('bbf:protocol-updated', {
+      detail: {
+        source: 'post_workout_checkin',
+        target_area: parsed.target_area || area,
+        pain_score: pain,
+        rpe_score: rpe,
+        prehab_queued: parsed.prehab_queued === true,
+      },
+    }));
+  } catch { /* no window (SSR) — non-fatal */ }
+
+  return { ok: true, feedbackId: parsed.feedback_id || null, targetArea: parsed.target_area || area, prehabQueued: parsed.prehab_queued === true };
 }

@@ -36,6 +36,7 @@ import TierGate from '../TierGate.jsx';
 import { SequenceNext } from './SovereignSequence.jsx';
 import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness.js';
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
+import { useActiveSymptom, AREA_TO_PREHAB_REGION, AREA_TO_MATRIX_JOINT } from '../../lib/useActiveSymptom.js';
 import PREHAB_MATRIX from '../../data/prehabDiagnosticMatrix.json';
 import './prehab.css';
 
@@ -382,6 +383,22 @@ function MobilityPlanner() {
 
   // Options derived live from the matrix, narrowing at each step.
   const joints = useMemo(() => uniq(PREHAB_MATRIX.map((n) => n.joint_complex)), []);
+
+  // ── SYMPTOM PRE-ISOLATION (architectural reconciliation) ──
+  // The diagnostic consumes the ledger's active check-in symptom: the reported
+  // target_area auto-answers Step 1 (joint complex) once per symptom, so the flow
+  // opens ON the athlete's reported joint instead of a blank/neutral start. Guarded
+  // render-adjust (the sanctioned prop-change pattern) — never an effect, applied
+  // once per symptom value, and any manual pick/reset stays untouched after.
+  const { targetArea } = useActiveSymptom();
+  const symptomJoint = AREA_TO_MATRIX_JOINT[targetArea] || null;
+  const [appliedSymptom, setAppliedSymptom] = useState(null);
+  if (symptomJoint !== appliedSymptom) {
+    setAppliedSymptom(symptomJoint);
+    if (symptomJoint && joint === null && pain === null && trigger === null && joints.includes(symptomJoint)) {
+      setJoint(symptomJoint);
+    }
+  }
   const pains = useMemo(
     () => (joint ? uniq(PREHAB_MATRIX.filter((n) => n.joint_complex === joint).map((n) => n.diagnostic_inputs.pain_profile)) : []),
     [joint],
@@ -672,7 +689,17 @@ function ProtocolDeck() {
   const { user, isAdmin } = useAuth();
   const uid = user?.username || user?.id || '';
   const { REGIONS, PROTOCOLS } = getPrehabCatalog(lang);
-  const [region, setRegion] = useState(REGIONS[0].id);
+  // ── SYMPTOM ROUTING (architectural reconciliation) ──
+  // The deck no longer force-defaults to REGIONS[0] (lower back) regardless of the
+  // athlete's reported state. The ledger's active symptom (Post-Workout Check-In →
+  // prescription target_area) routes the deck to the reported joint; a manual chip
+  // tap always wins; the neutral catalog default applies ONLY when no symptom is
+  // logged (full_body / no check-in yet).
+  const { targetArea } = useActiveSymptom();
+  const symptomRegion = AREA_TO_PREHAB_REGION[targetArea] || null;
+  const [manualRegion, setManualRegion] = useState(null);
+  const region = manualRegion
+    || (symptomRegion && PROTOCOLS[symptomRegion] ? symptomRegion : REGIONS[0].id);
   const [done, setDone] = useState(() => new Set());
 
   // Live Recovery Matrix override (bbf-agentic-prehab via prehabApi). null ⇒ render the
@@ -689,8 +716,9 @@ function ProtocolDeck() {
 
   // Switching the friction area loads a fresh protocol — clear done AND any live matrix
   // so the deck reverts to that region's static catalog (and the % tracker resets).
+  // A manual tap pins the deck (athlete agency beats the auto-route).
   const selectRegion = (id) => {
-    setRegion(id);
+    setManualRegion(id);
     setDone(new Set());
     setLiveMatrix(null);
     setScan({ loading: false, error: null });
@@ -729,8 +757,9 @@ function ProtocolDeck() {
   const pct = total ? Math.round((done.size / total) * 100) : 0;
 
   return (
-    <section className="pde-card" aria-label={s.ariaRegion}>
-      {/* Friction-area selection menu — pick the painful joint to load its protocol. */}
+    <section className="pde-card" aria-label={s.ariaRegion} data-testid="protocol-deck" data-region={region}>
+      {/* Friction-area selection menu — pick the painful joint to load its protocol.
+          Pre-routed to the ledger's reported symptom; a tap overrides. */}
       <div className="pde-kicker">{s.regionKicker}</div>
       <div className="pde-regions" role="tablist" aria-label={s.regionAria}>
         {REGIONS.map((r) => {

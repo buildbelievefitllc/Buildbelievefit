@@ -15,7 +15,8 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { parseWorkoutPlan } from '../../lib/vaultApi.js';
 import { getProgram } from './programData.js';
-import { resolvePrepLoads, generateSovereignPrep } from '../../lib/sovereignPrep.js';
+import { resolvePrepLoads, mergePrepLoads, generateSovereignPrep } from '../../lib/sovereignPrep.js';
+import { useActiveSymptom } from '../../lib/useActiveSymptom.js';
 import SovereignPrepPanels from './SovereignPrepPanels.jsx';
 import { SequenceNext } from './SovereignSequence.jsx';
 import CoachVoiceNote from './CoachVoiceNote.jsx';
@@ -32,20 +33,30 @@ export default function Recovery({ plans = null, onSequence }) {
   const [error, setError] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
 
+  // ── SYMPTOM ALIGNMENT (architectural reconciliation) ──
+  // The prep no longer runs on the programmed plan alone: the ledger's active
+  // check-in symptom (yesterday's flagged joint) is merged into yesterday's load
+  // groups with top priority, so a shoulder flagged last session drives shoulder
+  // mobility in today's Sovereign Prep. A fresh check-in re-fires this via
+  // useActiveSymptom's live relay — the prep regenerates without a reload.
+  const { targetArea, loading: symptomLoading } = useActiveSymptom();
   const loads = useMemo(() => {
     const assigned = parseWorkoutPlan(plans?.workoutPlan || '');
     const plan = Array.isArray(assigned) && assigned.length ? assigned : getProgram(programKey);
-    return resolvePrepLoads(plan);
-  }, [plans?.workoutPlan, programKey]);
+    return mergePrepLoads(resolvePrepLoads(plan), targetArea);
+  }, [plans?.workoutPlan, programKey, targetArea]);
 
   useEffect(() => {
+    // Hold the prep fetch until the ledger's symptom read resolves — one engine
+    // call with the COMPLETE picture, never a plan-only call racing the symptom.
+    if (symptomLoading) return undefined;
     let cancelled = false;
     generateSovereignPrep({ uid, today: loads.today, yesterday: loads.yesterday })
       .then((res) => { if (!cancelled) { setData(res); setError(null); } })
       .catch((e) => { if (!cancelled) setError((e && e.message) || 'Could not generate your prep.'); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [uid, loads, reloadKey]);
+  }, [uid, loads, reloadKey, symptomLoading]);
 
   // Retry — state mutated in the event handler (not an effect), then re-run.
   const onRetry = () => { setError(null); setLoading(true); setReloadKey((k) => k + 1); };

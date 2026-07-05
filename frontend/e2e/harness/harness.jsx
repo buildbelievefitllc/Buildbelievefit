@@ -15,6 +15,8 @@ import CoachAudioButton from '../../src/components/vault/CoachAudioButton.jsx';
 import SovereignBriefingCard from '../../src/components/vault/SovereignBriefingCard.jsx';
 import VocabFlashcard from '../../src/components/language/VocabFlashcard.jsx';
 import LanguageMasteryPanel from '../../src/components/language/LanguageMasteryPanel.jsx';
+import Prehab from '../../src/components/vault/Prehab.jsx';
+import Recovery from '../../src/components/vault/Recovery.jsx';
 import { lockScoreDigits } from '../../src/lib/scoreLock.js';
 import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
@@ -71,6 +73,18 @@ function pick() {
     }
     case 'vocab-gym':
       return <VocabFlashcard language={props.language || 'es'} />;
+    case 'prehab':
+      return (
+        <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>
+          <Prehab />
+        </AuthMock>
+      );
+    case 'recovery':
+      return (
+        <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>
+          <Recovery plans={null} />
+        </AuthMock>
+      );
     case 'language-lab':
       return (
         <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' } }}>
