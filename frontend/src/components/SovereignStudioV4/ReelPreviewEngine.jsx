@@ -5,6 +5,7 @@
 // placeholder; the overlay skin is driven by reelData.overlayStyle.
 
 import { useState, useRef, useEffect } from 'react';
+import { REEL_PHONE_FRAME } from '../../lib/reelPhoneBackdrop.js';
 
 const OVERLAY_CLASS = {
   scrim: 'ovl-scrim',
@@ -73,7 +74,10 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
       video.removeEventListener('play', onPlay);
       video.removeEventListener('pause', onPause);
     };
-  }, [reelData.videoFile?.url]);
+  // phoneBackdrop is included because toggling it moves the <video> to a different
+  // spot in the tree (full-bleed vs. nested in the phone-screen) — React mounts a
+  // fresh element either way, so listeners must rebind onto it.
+  }, [reelData.videoFile?.url, reelData.phoneBackdrop]);
 
   // Only command the element; isPlaying follows the real play/pause events above.
   const togglePlay = () => {
@@ -137,14 +141,28 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
   const layoutClass = `txt-${reelData.textLayout || 'bottom'}`; // overlay text-placement toggle
   const pct = duration ? (currentTime / duration) * 100 : 0;
 
+  const video = reelData.videoFile?.url ? (
+    <video ref={videoRef} src={reelData.videoFile.url} className="reel-video-v4" playsInline crossOrigin="anonymous" />
+  ) : null;
+
   return (
-    <div className={`stage-reel-v4 ${overlayClass} ${layoutClass}`} ref={stageRef}>
-      {reelData.videoFile?.url ? (
-        <video ref={videoRef} src={reelData.videoFile.url} className="reel-video-v4" playsInline crossOrigin="anonymous" />
-      ) : (
-        <div className="reel-placeholder-v4">
-          <div className="placeholder-text-v4">UPLOAD A VIDEO<br />TO PREVIEW</div>
+    <div className={`stage-reel-v4 ${overlayClass} ${layoutClass} ${reelData.phoneBackdrop ? 'has-phone-backdrop' : ''}`} ref={stageRef}>
+      {reelData.phoneBackdrop ? (
+        <div
+          className={`phone-frame-v4 frame-${reelData.phoneFrame || 'sleek'}`}
+          style={{ left: REEL_PHONE_FRAME.left, top: REEL_PHONE_FRAME.top, width: REEL_PHONE_FRAME.width, height: REEL_PHONE_FRAME.height, bottom: 'auto', transform: 'none' }}
+        >
+          <div className="phone-notch-v4" />
+          <div className="phone-screen-v4">
+            {video || <div className="phone-screen-ph-v4">UPLOAD<br />VIDEO</div>}
+          </div>
         </div>
+      ) : (
+        video || (
+          <div className="reel-placeholder-v4">
+            <div className="placeholder-text-v4">UPLOAD A VIDEO<br />TO PREVIEW</div>
+          </div>
+        )
       )}
 
       <div className="reel-ov-v4" />

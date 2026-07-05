@@ -77,6 +77,11 @@ export class SovereignFoundry {
       const clone = stageNode.cloneNode(true);
       clone.querySelectorAll('.reel-video-v4, .reel-placeholder-v4, .reel-play-v4, .reel-vo-v4, .reel-progress-v4')
         .forEach((el) => el.remove());
+      // Phone-backdrop mode: the screen div's own opaque #000 fallback (phone-screen-v4,
+      // shared with the Phone tab's screenshot mock-up) must also go transparent, or it
+      // paints a solid black hole where render()'s clipped videoRect footage should show
+      // through — the video element itself was just removed above, so nothing else fills it.
+      clone.querySelectorAll('.phone-screen-v4').forEach((el) => { el.style.background = 'transparent'; });
       // Kill the opaque stage background so the footage isn't buried by the overlay.
       clone.style.transform = 'none';
       clone.style.width = TARGET_W + 'px';
@@ -96,7 +101,7 @@ export class SovereignFoundry {
    * Render the reel.
    * @returns {Promise<{blob:Blob, ext:'mp4', mime:'video/mp4', audio:boolean, frames:number, durationSec:number}>}
    */
-  async render({ videoUrl, voUrl = null, overlay = null, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, onProgress } = {}) {
+  async render({ videoUrl, voUrl = null, overlay = null, videoRect = null, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, onProgress } = {}) {
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
     if (!videoUrl) throw new Error('no_footage');
 
@@ -163,7 +168,7 @@ export class SovereignFoundry {
       const frameDurUs = Math.round(1e6 / fps);
       let frames = 0;
       const encodeAt = (tSec) => {
-        this._drawCover(ctx, video, W, H);
+        this._drawCover(ctx, video, W, H, videoRect);
         if (overlay) { try { ctx.drawImage(overlay, 0, 0, W, H); } catch { /* overlay optional */ } }
         const frame = new VideoFrame(canvas, { timestamp: Math.max(0, Math.round(tSec * 1e6)), duration: frameDurUs });
         venc.encode(frame, { keyFrame: frames % (fps * 2) === 0 });
@@ -254,6 +259,12 @@ export class SovereignFoundry {
         resolve(v);
       };
       const hasContent = () => {
+        // Deliberately NOT passed videoRect here: this probe samples a grid across the
+        // FULL canvas, and phone-backdrop footage only fills a smaller centered rect —
+        // most probe points would land on the (dark) surrounding background and read as
+        // "no content" even with a perfectly healthy decode. That just means backdrop
+        // reels fall back to the slower-but-bulletproof seek-capture path more often;
+        // correctness is unaffected either way, so it's not worth a rect-aware probe.
         this._drawCover(ctx, video, W, H);
         try {
           for (let gx = 1; gx < 5; gx++) {
@@ -390,11 +401,41 @@ export class SovereignFoundry {
     });
   }
 
-  _drawCover(ctx, video, W, H) {
+  // videoRect (phone-backdrop mode, see reelPhoneBackdrop.js): cover-fit the footage
+  // into that smaller rect only, clipped to its rounded corners, over the same
+  // gradient the DOM's .has-phone-backdrop uses — instead of full-bleeding the whole
+  // canvas. The phone-frame bezel/notch is drawn afterward by the caller as part of
+  // the `overlay` PNG, with the screen area transparent (captureOverlay), so it reads
+  // through to this clipped footage underneath.
+  _drawCover(ctx, video, W, H, videoRect) {
+    if (videoRect) {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0d0118'); g.addColorStop(1, '#08060a');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const { x, y, width: w, height: h, radius = 0 } = videoRect;
+      ctx.save();
+      this._roundRectPath(ctx, x, y, w, h, radius);
+      ctx.clip();
+      const vw = video.videoWidth || w, vh = video.videoHeight || h;
+      const s = Math.max(w / vw, h / vh), dw = vw * s, dh = vh * s;
+      ctx.drawImage(video, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+      ctx.restore();
+      return;
+    }
     ctx.fillStyle = '#08060a'; ctx.fillRect(0, 0, W, H);
     const vw = video.videoWidth || W, vh = video.videoHeight || H;
     const s = Math.max(W / vw, H / vh), dw = vw * s, dh = vh * s;
     ctx.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  }
+
+  _roundRectPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
   }
 
   // Pick the best AVAILABLE video codec → { codec (encoder string), muxer (mp4-muxer

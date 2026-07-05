@@ -399,6 +399,27 @@ export default function VibeSelector({ reelData, handleReelChange }) {
       </div>
 
       <div className="ctl-group-v4">
+        <label className="ctl-label-v4">📱 Phone Backdrop</label>
+        <div className="seg-v4" data-testid="reel-phone-backdrop">
+          <button type="button" className={!reelData.phoneBackdrop ? 'active' : ''} onClick={() => handleReelChange('phoneBackdrop', false)}>OFF</button>
+          <button type="button" className={reelData.phoneBackdrop ? 'active' : ''} onClick={() => handleReelChange('phoneBackdrop', true)}>ON</button>
+        </div>
+        <div className="hint-v4">Plays the footage INSIDE a phone mock-up instead of full-bleed — same frame as the Phone tab, so you can show a live demo of the app on screen.</div>
+        {reelData.phoneBackdrop && (
+          <select
+            value={reelData.phoneFrame || 'sleek'}
+            onChange={(e) => handleReelChange('phoneFrame', e.target.value)}
+            className="select-v4"
+            data-testid="reel-phone-frame"
+          >
+            <option value="sleek">Sleek Modern</option>
+            <option value="gold">Sovereign Gold</option>
+            <option value="carbon">Matte Black Carbon</option>
+          </select>
+        )}
+      </div>
+
+      <div className="ctl-group-v4">
         <label className="ctl-label-v4">Logo (optional corner badge)</label>
         <label className="upload-btn-v4" htmlFor="reel-logo-input">UPLOAD LOGO</label>
         <input

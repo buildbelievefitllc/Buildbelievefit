@@ -7,6 +7,7 @@ import ReelPreviewEngine from './ReelPreviewEngine';
 import StageScaler from './StageScaler';
 import QueueMonitor from './QueueMonitor';
 import { renderMarkup } from './markup.jsx';
+import { REEL_PHONE_SCREEN } from '../../lib/reelPhoneBackdrop.js';
 
 const PLATFORMS = [
   ['instagram', 'Instagram'],
@@ -263,6 +264,9 @@ export default function StudioLayout({
         // Voice wins the export bake; with no voiceover the backing track carries it.
         voUrl: reelData.voUrl || reelData.musicFile?.url || null,
         overlay,
+        // Phone backdrop → clip the footage into the same rect the DOM preview used
+        // (reelPhoneBackdrop.js — shared with ReelPreviewEngine so they can't drift).
+        videoRect: reelData.phoneBackdrop ? REEL_PHONE_SCREEN : null,
         durationCap: target ? 90 : 1200,
         onProgress: (p) => setRecordPct(Math.round(p * 100)),
       });
