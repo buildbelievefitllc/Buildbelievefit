@@ -283,6 +283,19 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         />
       </div>
 
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">Watch Button Text</label>
+        <input
+          type="text"
+          value={reelData.watchText ?? 'WATCH'}
+          onChange={(e) => handleReelChange('watchText', e.target.value)}
+          className="input-v4"
+          placeholder="WATCH"
+          data-testid="reel-watch-text"
+        />
+        <div className="hint-v4">The ▶ chip label under the hook — only shows once a hook is set.</div>
+      </div>
+
       <div className="divider-v4"></div>
 
       {/* ── FRONT 5 · SOVEREIGN VOICEOVER (lazy-cached) ── */}

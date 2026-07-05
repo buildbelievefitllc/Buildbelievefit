@@ -66,6 +66,7 @@ export default function SovereignStudioV4() {
     spectrum: '',
     hook: '',
     hookSub: '',
+    watchText: 'WATCH',     // editable label for the ▶ WATCH chip
     overlayStyle: 'scrim',
     series: '',
     backgroundColor: '#08060a',

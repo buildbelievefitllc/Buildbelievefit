@@ -155,6 +155,21 @@
 .post-toggle-v4.on { color: var(--wht); border-color: var(--pur); background: rgba(106, 13, 173, 0.18); }
 .post-toggle-v4 input { accent-color: var(--yel); }
 
+/* Auto-caption preview (v3 parity restore) — headline/body + ad-line + hashtags,
+   read-only, recomputed live from whatever the post/queue buttons would send. */
+.caption-box-v4 {
+  background: var(--gry2); border: 1px solid var(--gry3); border-radius: 8px; padding: 12px;
+  font-family: var(--bd); font-size: 0.82rem; line-height: 1.5; color: #cfc7dd;
+  white-space: pre-wrap; max-height: 180px; overflow-y: auto; margin-top: 8px;
+}
+.copycap-btn-v4 {
+  display: block; width: 100%; text-align: center; border-radius: 8px; margin-top: 8px;
+  background: var(--gry2); color: var(--mut); border: 1px solid var(--gry3);
+  font-family: var(--hb); font-size: 0.8rem; letter-spacing: 1.5px; padding: 11px;
+  cursor: pointer; transition: all 0.15s;
+}
+.copycap-btn-v4:hover { color: var(--wht); border-color: var(--pur); }
+
 /* ===== HOOK AUTO-GEN (Haiku) ===== */
 .hook-actions-v4 { display: flex; gap: 8px; align-items: stretch; }
 .hook-actions-v4 .spin-btn-v4 { flex: 1; }

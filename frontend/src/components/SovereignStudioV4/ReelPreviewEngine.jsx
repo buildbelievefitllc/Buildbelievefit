@@ -6,6 +6,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { REEL_PHONE_FRAME } from '../../lib/reelPhoneBackdrop.js';
+import { seriesLabel } from '../../lib/reelSeriesLabels.js';
 
 const OVERLAY_CLASS = {
   scrim: 'ovl-scrim',
@@ -186,7 +187,7 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
           </div>
         )}
         {reelData.hookSub && <div className="reel-sub-v4">{reelData.hookSub}</div>}
-        {(reelData.hook || reelData.hookSub) && <div className="reel-watch-v4">▶ WATCH</div>}
+        {(reelData.hook || reelData.hookSub) && <div className="reel-watch-v4">▶ {reelData.watchText || 'WATCH'}</div>}
         {(reelData.voUrl || reelData.musicFile?.url) && (
           <button type="button" className="reel-vo-v4" onClick={toggleVoiceover} aria-label={voPlaying ? 'Pause audio' : 'Play audio'}>
             {voPlaying ? '❚❚ AUDIO' : '🎙 PLAY AUDIO'}
@@ -217,18 +218,4 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
       )}
     </div>
   );
-}
-
-function seriesLabel(id) {
-  const map = {
-    'form-fix': 'FORM FIX',
-    'recovery-protocol': 'RECOVERY PROTOCOL',
-    mindset: 'MINDSET PROTOCOL',
-    metabolic: 'METABOLIC WINDOW',
-    '12hour': '12-HOUR SURVIVAL',
-    sovereign: 'SOVEREIGN SUNDAY',
-    fuel: 'FUEL FILES',
-    lab: 'THE LAB',
-  };
-  return map[id] || id;
 }

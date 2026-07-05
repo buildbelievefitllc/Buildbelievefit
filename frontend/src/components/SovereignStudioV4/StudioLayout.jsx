@@ -8,6 +8,7 @@ import StageScaler from './StageScaler';
 import QueueMonitor from './QueueMonitor';
 import { renderMarkup } from './markup.jsx';
 import { REEL_PHONE_SCREEN } from '../../lib/reelPhoneBackdrop.js';
+import { seriesLabel } from '../../lib/reelSeriesLabels.js';
 
 const PLATFORMS = [
   ['instagram', 'Instagram'],
@@ -16,6 +17,17 @@ const PLATFORMS = [
 ];
 
 const stripMarkup = (s) => String(s || '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').trim();
+
+// Auto-caption — v3 parity restore: headline/body, a one-line "advertisement" (CTA /
+// link-in-bio / series tag), then hashtags. Every mode shares the brand + local-area
+// tags so IG/FB discovery always includes the service area, on top of a mode-flavored
+// trio.
+const LOCAL_HASHTAGS = '#Buckeye #Avondale #Goodyear #WestValleyAZ';
+const HASHTAGS = {
+  cta: `#BuildBelieveFit #MindsetMatters #DisciplineEqualsFreedom ${LOCAL_HASHTAGS}`,
+  phone: `#BuildBelieveFit #AICoach #FitnessApp #SmartTraining ${LOCAL_HASHTAGS}`,
+  reel: `#BuildBelieveFit #FitnessReels #FormCheck #TrainSmarter ${LOCAL_HASHTAGS}`,
+};
 
 // Which phone frames to render for a given layout, front-to-back (CSS z-index/
 // dimming makes the stacking read correctly regardless of array order). Position
@@ -84,6 +96,8 @@ export default function StudioLayout({
   const [exporting, setExporting] = useState(false);
   const [posting, setPosting] = useState(false);
   const [postNote, setPostNote] = useState(null); // { ok: boolean, text: string }
+  const [captionCopied, setCaptionCopied] = useState(false);
+  const copiedTimerRef = useRef(null);
   // Reel MediaRecorder state (drives the hard UI lock + progress overlay).
   const [recording, setRecording] = useState(false);
   const [recordPct, setRecordPct] = useState(0);
@@ -173,17 +187,23 @@ export default function StudioLayout({
     }
   };
 
-  // Build the IG/FB post metadata (caption etc.) from a card's fields.
-  const cardFields = (eyebrow, headline, body, cta, palette) => {
-    const hl = stripMarkup(headline);
+  // Build the IG/FB post metadata (caption etc.) from a card's fields. `mode`
+  // ('cta' | 'phone') picks the ad-line + hashtag flavor — see HASHTAGS above.
+  const cardFields = (eyebrow, headline, body, cta, palette, mode = 'cta') => {
+    const hl = stripMarkup(headline).replace(/\n/g, ' ');
     const bd = stripMarkup(body);
+    const ctaTxt = stripMarkup(cta);
+    const adLine = mode === 'phone' ? '📲 Link in bio.' : (ctaTxt ? `👉 ${ctaTxt}` : '');
+    // Each entry is one paragraph — blank entries drop out instead of leaving a
+    // stray double blank line when a field (body/cta) is empty.
+    const blocks = [hl, bd, [adLine, '🌐 buildbelievefit.fitness'].filter(Boolean).join('\n'), HASHTAGS[mode] || HASHTAGS.cta];
     return {
       headline: hl,
       body: bd,
       eye_label: stripMarkup(eyebrow),
-      cta: stripMarkup(cta),
+      cta: ctaTxt,
       color_palette: palette || 'custom',
-      caption: [hl, bd, '', '#BuildBelieveFit'].filter(Boolean).join('\n'),
+      caption: blocks.filter(Boolean).join('\n\n'),
     };
   };
 
@@ -199,9 +219,30 @@ export default function StudioLayout({
     </div>
   );
 
-  // Image panels (CTA / Phone): toggles + QUEUE + POST NOW.
+  const copyCaption = async (text) => {
+    try { await navigator.clipboard.writeText(text); } catch { return; }
+    setCaptionCopied(true);
+    if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    copiedTimerRef.current = setTimeout(() => setCaptionCopied(false), 1800);
+  };
+
+  // Read-only auto-caption preview + copy button (v3 parity restore) — shared by the
+  // CTA/Phone/Reel panels. Recomputes live from cardFields()/reelFields() on every
+  // render, so it always mirrors whatever the post/queue buttons would actually send.
+  const captionBox = (caption) => (
+    <div className="ctl-group-v4">
+      <label className="ctl-label-v4">📋 Auto-Caption</label>
+      <div className="caption-box-v4" data-testid="caption-box">{caption}</div>
+      <button type="button" className="copycap-btn-v4" onClick={() => copyCaption(caption)} data-testid="copy-caption-btn">
+        {captionCopied ? '✓ COPIED' : '📋 COPY CAPTION'}
+      </button>
+    </div>
+  );
+
+  // Image panels (CTA / Phone): caption preview + toggles + QUEUE + POST NOW.
   const postControls = (fields) => (
     <>
+      {captionBox(fields.caption)}
       {socialToggles()}
       <button className="queue-btn-v4" onClick={() => postCard(fields, false)} disabled={posting}>
         {posting ? '… WORKING' : '📡 QUEUE → SOCIAL'}
@@ -219,12 +260,14 @@ export default function StudioLayout({
   const reelFields = () => {
     const hl = (reelData.hook || '').replace(/\n/g, ' ').trim();
     const bd = (reelData.hookSub || '').trim();
+    const tag = reelData.series ? seriesLabel(reelData.series) : '';
+    const blocks = [hl ? `${hl} 🎬` : '', bd, [tag ? `[${tag}]` : '', '🌐 buildbelievefit.fitness'].filter(Boolean).join('\n'), HASHTAGS.reel];
     return {
       headline: hl,
       body: bd,
       eye_label: reelData.series || '',
       color_palette: 'custom',
-      caption: [hl, bd, '', '#BuildBelieveFit'].filter(Boolean).join('\n'),
+      caption: blocks.filter(Boolean).join('\n\n'),
     };
   };
 
@@ -442,7 +485,7 @@ export default function StudioLayout({
               <button className="export-btn-v4" onClick={() => exportPNG('cta')} disabled={exporting}>
                 {exporting ? '… RENDERING' : '⬇ EXPORT PNG'}
               </button>
-              {postControls(cardFields(ctaData.eyebrow, ctaData.headline, ctaData.body, ctaData.buttonText, ctaData.primaryColor))}
+              {postControls(cardFields(ctaData.eyebrow, ctaData.headline, ctaData.body, ctaData.buttonText, ctaData.primaryColor, 'cta'))}
             </div>
           </div>
         )}
@@ -605,7 +648,7 @@ export default function StudioLayout({
               <button className="export-btn-v4" onClick={() => exportPNG('phone')} disabled={exporting}>
                 {exporting ? '… RENDERING' : '⬇ EXPORT 1080×1350'}
               </button>
-              {postControls(cardFields(phoneData.eyebrow, phoneData.headline, phoneData.benefit, '', 'custom'))}
+              {postControls(cardFields(phoneData.eyebrow, phoneData.headline, phoneData.benefit, '', 'custom', 'phone'))}
             </div>
           </div>
         )}
@@ -628,6 +671,7 @@ export default function StudioLayout({
             <div className="divider-v4"></div>
             <div className="ctl-group-v4">
               <label className="ctl-label-v4">📤 Distribute Reel</label>
+              {captionBox(reelFields().caption)}
               {socialToggles()}
               <button className="postnow-btn-v4" onClick={exportOrPostReel} disabled={recording || posting}>
                 {recording ? `🎬 RECORDING… ${recordPct}%` : platformTarget() ? `🚀 EXPORT & POST → ${platformLabel()}` : '⬇ EXPORT VIDEO'}
