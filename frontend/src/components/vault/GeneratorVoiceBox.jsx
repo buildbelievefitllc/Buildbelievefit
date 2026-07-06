@@ -1,35 +1,34 @@
 // src/components/vault/GeneratorVoiceBox.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Coach Akeem voice orientation box for the Vault Roster Engine.
+// Coach Akeem voice orientation box — Vault Roster Engine.
 //
-// Three context-aware scripts — one fires based on who's looking and what
-// state their token is in:
+// PRIMARY path: BBF Coach Akeem's cloned ElevenLabs voice via bbf-tts-eleven
+// (feature: 'virtual_coach' → Floor Coach · turbo). Falls back to browser TTS
+// ONLY if ElevenLabs errors (billing block, network, etc) — never as the primary.
 //
-//   unlimited  → admin / CEO authoring mode, no limit mentioned
-//   available  → standard client, monthly token still available: full
-//                orientation + what the 8 params are + access confirmed +
-//                limit stated + WHY the limit exists (program consistency)
-//   spent      → standard client, token already used this month: reinforce
-//                the commitment message, route them to their saved program
+// Three context-aware scripts selected from isUnlimited + tokenSpent:
 //
-// Delivery: browser-native TTS via speechFallback.js. Zero API cost, no MP3
-// pre-bake required. Same fallback mechanism the rest of the platform uses
-// when ElevenLabs clips aren't baked yet. Trilingual (EN / ES / PT).
+//   unlimited  → admin / CEO: brief authoring-mode briefing, no limit mentioned
+//   available  → standard client, token unused: full orientation — 8 parameters,
+//                3 signature chamber splits, access confirmed, 1 blueprint/month
+//                limit + the reason (consistency — execute it, don't redesign)
+//   spent      → standard client, token used: reinforce commitment, route to Program
+//
 // Visual shell re-uses the locked .cvn class system (coachVoiceNote.css).
+// Trilingual: EN / ES / PT.
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
+import { requestCoachVoice, decodeAudio, COACH_FEATURE } from '../../lib/voiceCoachApi.js';
 import { speakWithBrowser, warmUpSpeech, browserSpeechSupported } from '../../lib/speechFallback.js';
 
-// Three scripts × three languages. Plain prose — the browser TTS reads them
-// as-is. Kept here (not in a shared file) because this copy is specific to
-// this surface and is not reused anywhere.
+// ── Scripted copy (3 states × 3 languages) ───────────────────────────────────
 const SCRIPTS = {
   en: {
     unlimited: {
       title: 'Vault Roster Engine — Authoring Mode',
       topic: 'Unlimited access · Signature chamber splits · Roster push',
-      text: "Vault Roster Engine — authoring mode. You have unlimited access. Design blueprints, activate any of the three Signature Chamber Splits — Arnold Era Classic, FST-7 Fascia Expand, or Elite NASM Clinical — reshuffle at will, and push blueprints directly to your athlete roster from the Deployment Bay below.",
+      text: "Vault Roster Engine — authoring mode. Unlimited access. Design blueprints, activate any of the three Signature Chamber Splits — Arnold Era Classic, FST-7 Fascia Expand, or Elite NASM Clinical — reshuffle at will, and push blueprints directly to your athlete roster from the Deployment Bay below.",
     },
     available: {
       title: 'Welcome to the Vault Roster Engine',
@@ -37,8 +36,8 @@ const SCRIPTS = {
       text: "Welcome to the Vault Roster Engine — your personal program design studio. You have full access. Here you dial in your training with eight precision parameters: training priority, athletic gender focus, experience level, equipment availability, weekly frequency, workout pace, splits architecture, and intensifier technique. Or activate one of my three Signature Chamber Splits — Arnold Era Classic, FST-7 Fascia Expand, or Elite NASM Clinical — loaded directly from my golden-era protocols. You get one blueprint per month. That limit is intentional. A program works when you work it. Your job is to execute what you generate, not keep redesigning. Build it, commit to it, dominate it. See you next month with a new base to build from.",
     },
     spent: {
-      title: "Blueprint Generated — Now Execute It",
-      topic: "Your program is live · Consistency is the protocol",
+      title: 'Blueprint Generated — Now Execute It',
+      topic: 'Your program is live · Consistency is the protocol',
       text: "You've generated your blueprint for this month — now execute it. The one-blueprint-per-month discipline is not a restriction, it's the protocol. Programs produce results through consistent repetition, not constant redesign. Your program is live in your Program tab. Go run it. Come back next month with a new base to build from.",
     },
   },
@@ -46,7 +45,7 @@ const SCRIPTS = {
     unlimited: {
       title: 'Motor de Roster — Modo de Autoría',
       topic: 'Acceso ilimitado · Splits de cámara insignia · Envío al roster',
-      text: "Motor de Roster del Cofre — modo de autoría. Tienes acceso ilimitado. Diseña planes, activa cualquiera de los tres Splits de Cámara Insignia — Arnold Era Classic, FST-7 Fascia Expand o Elite NASM Clinical — rebaraja a voluntad y envía los planes directamente al roster de tus atletas desde la Bahía de Despliegue.",
+      text: "Motor de Roster del Cofre — modo de autoría. Acceso ilimitado. Diseña planes, activa cualquiera de los tres Splits de Cámara Insignia — Arnold Era Classic, FST-7 Fascia Expand o Elite NASM Clinical — rebaraja a voluntad y envía planes directamente al roster de tus atletas desde la Bahía de Despliegue.",
     },
     available: {
       title: 'Bienvenido al Motor de Roster del Cofre',
@@ -63,7 +62,7 @@ const SCRIPTS = {
     unlimited: {
       title: 'Motor de Roster — Modo de Autoria',
       topic: 'Acesso ilimitado · Splits de câmara assinatura · Envio ao roster',
-      text: "Motor de Roster do Cofre — modo de autoria. Você tem acesso ilimitado. Crie planos, ative qualquer um dos três Splits de Câmara Assinatura — Arnold Era Classic, FST-7 Fascia Expand ou Elite NASM Clinical — reembaralhe à vontade e envie planos diretamente ao roster dos seus atletas pela Baía de Implantação.",
+      text: "Motor de Roster do Cofre — modo de autoria. Acesso ilimitado. Crie planos, ative qualquer um dos três Splits de Câmara Assinatura — Arnold Era Classic, FST-7 Fascia Expand ou Elite NASM Clinical — reembaralhe à vontade e envie planos diretamente ao roster dos seus atletas pela Baía de Implantação.",
     },
     available: {
       title: 'Bem-vindo ao Motor de Roster do Cofre',
@@ -79,68 +78,167 @@ const SCRIPTS = {
 };
 
 const CHROME = {
-  en: { eyebrow: "Coach Akeem · Vault Briefing", listen: 'Listen', playing: 'Now Playing', replay: 'Replay', noSupport: 'Audio not supported on this browser.' },
-  es: { eyebrow: 'Coach Akeem · Briefing del Cofre', listen: 'Escuchar', playing: 'Reproduciendo', replay: 'Repetir', noSupport: 'Audio no disponible en este navegador.' },
-  pt: { eyebrow: 'Coach Akeem · Briefing do Cofre', listen: 'Ouvir', playing: 'Tocando agora', replay: 'Repetir', noSupport: 'Áudio não disponível neste navegador.' },
+  en: { eyebrow: 'Coach Akeem · Vault Briefing', cueing: 'Cueing Coach…', listen: 'Listen to Coach Akeem', pause: 'Pause', replay: 'Replay', err: 'Coach voice unavailable.' },
+  es: { eyebrow: 'Coach Akeem · Briefing del Cofre', cueing: 'Preparando Coach…', listen: 'Escucha al Coach Akeem', pause: 'Pausar', replay: 'Repetir', err: 'Voz del coach no disponible.' },
+  pt: { eyebrow: 'Coach Akeem · Briefing do Cofre', cueing: 'Preparando Coach…', listen: 'Ouça o Coach Akeem', pause: 'Pausar', replay: 'Repetir', err: 'Voz do coach indisponível.' },
 };
+
+// Wait for the audio element to be decodable before calling play() — same
+// pattern as CoachAudioButton to prevent "unavailable" on the first tap.
+async function playWhenReady(node) {
+  const waitReady = () => new Promise((resolve) => {
+    if (node.readyState >= 2) { resolve(); return; }
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      node.removeEventListener('loadeddata', done);
+      node.removeEventListener('canplay', done);
+      node.removeEventListener('error', done);
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(done, 4000);
+    node.addEventListener('loadeddata', done, { once: true });
+    node.addEventListener('canplay', done, { once: true });
+    node.addEventListener('error', done, { once: true });
+  });
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await waitReady();
+    try { await node.play(); return true; } catch { /* retry */ }
+  }
+  return false;
+}
 
 export default function GeneratorVoiceBox({ isUnlimited, tokenSpent }) {
   const { lang } = useLang();
   const tr = CHROME[lang] || CHROME.en;
   const scripts = SCRIPTS[lang] || SCRIPTS.en;
-
   const scriptKey = isUnlimited ? 'unlimited' : tokenSpent ? 'spent' : 'available';
   const script = scripts[scriptKey];
 
-  const controllerRef = useRef(null);
+  const audioRef = useRef(null);
+  const stockRef = useRef(null);
+  const busyRef = useRef(false);
+  const revokeRef = useRef(null);
+  const loadedLangRef = useRef(null);
+
+  const [url, setUrl] = useState(null);
+  const [busy, setBusy] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
-  const [unsupported, setUnsupported] = useState(false);
+  const [showErr, setShowErr] = useState(false);
+  const [usingStock, setUsingStock] = useState(false);
 
-  if (!browserSpeechSupported()) return null;
+  // Revoke the blob URL on unmount or when a new one is set.
+  useEffect(() => () => { revokeRef.current?.(); }, []);
 
-  async function toggle() {
-    if (playing) {
-      controllerRef.current?.stop();
+  // When the script key changes (token spent mid-session), stop any active
+  // playback and reset so the next tap delivers the correct script.
+  useEffect(() => {
+    const el = audioRef.current;
+    if (el && !el.paused) { el.pause(); el.src = ''; }
+    stockRef.current?.stop?.();
+    stockRef.current = null;
+    revokeRef.current?.();
+    revokeRef.current = null;
+    setUrl(null);
+    setPlaying(false);
+    setHasPlayed(false);
+    setUsingStock(false);
+    setShowErr(false);
+    loadedLangRef.current = null;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scriptKey]);
+
+  async function onClick() {
+    if (busy) return;
+
+    // Toggle cached ElevenLabs clip (same language).
+    const el = audioRef.current;
+    if (url && el && loadedLangRef.current === lang) {
+      if (playing) el.pause(); else el.play().catch(() => setShowErr(true));
+      return;
+    }
+    // Stop active stock-voice fallback.
+    if (stockRef.current) {
+      stockRef.current.stop?.();
+      stockRef.current = null;
       setPlaying(false);
       return;
     }
-    warmUpSpeech();
+
+    warmUpSpeech(); // unlock iOS speechSynthesis inside the click gesture
+    busyRef.current = true;
+    setBusy(true);
+    setShowErr(false);
+    setUsingStock(false);
+
     try {
-      const ctrl = await speakWithBrowser({
+      // PRIMARY: BBF Coach Akeem via bbf-tts-eleven (virtual_coach feature).
+      const { audioBase64, mime } = await requestCoachVoice({
+        feature: COACH_FEATURE,
         text: script.text,
-        lang,
-        voiceGender: 'male',
-        rate: 0.95,
-        onEnd: () => { setPlaying(false); setHasPlayed(true); },
-        onError: () => { setPlaying(false); },
       });
-      controllerRef.current = ctrl;
-      setPlaying(true);
-      setHasPlayed(true);
-    } catch (e) {
-      if (e?.code === 'no_speech_synthesis') setUnsupported(true);
-      setPlaying(false);
+      const { url: blobUrl, revoke } = decodeAudio(audioBase64, mime);
+      revokeRef.current?.();
+      revokeRef.current = revoke;
+      loadedLangRef.current = lang;
+      setUrl(blobUrl);
+      const node = audioRef.current;
+      if (node) {
+        node.src = blobUrl;
+        node.load();
+        const ok = await playWhenReady(node);
+        if (!ok) setShowErr(true);
+        else setHasPlayed(true);
+      }
+    } catch {
+      // FAILURE-ONLY fallback: browser TTS. Never the primary.
+      if (browserSpeechSupported()) {
+        try {
+          setUsingStock(true);
+          stockRef.current = await speakWithBrowser({
+            text: script.text,
+            lang,
+            voiceGender: 'male',
+            rate: 0.95,
+            onEnd: () => { setPlaying(false); setUsingStock(false); stockRef.current = null; },
+            onError: () => { setShowErr(true); setPlaying(false); setUsingStock(false); stockRef.current = null; },
+          });
+          setPlaying(true);
+          setHasPlayed(true);
+        } catch { setShowErr(true); setUsingStock(false); }
+      } else {
+        setShowErr(true);
+      }
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
     }
   }
 
-  if (unsupported) return null;
-
-  const label = playing ? tr.playing : hasPlayed ? tr.replay : tr.listen;
+  const btnLabel = busy ? tr.cueing
+    : playing ? tr.pause
+    : hasPlayed ? tr.replay
+    : tr.listen;
 
   return (
     <div
-      className={`cvn cvn--gate gen-voice-box${playing ? '' : ''}`}
+      className="cvn cvn--gate"
       data-playing={playing ? '1' : '0'}
       data-script={scriptKey}
     >
       <button
         type="button"
         className="cvn-btn"
-        onClick={toggle}
-        aria-label={`${script.title} — ${label}`}
+        onClick={onClick}
+        disabled={busy}
+        aria-label={`${script.title} — ${btnLabel}`}
       >
-        <span className="cvn-ic" aria-hidden="true">{playing ? '❚❚' : '▶'}</span>
+        <span className="cvn-ic" aria-hidden="true">
+          {busy ? '◌' : playing ? '❚❚' : '▶'}
+        </span>
       </button>
 
       <div className="cvn-body">
@@ -149,6 +247,8 @@ export default function GeneratorVoiceBox({ isUnlimited, tokenSpent }) {
         </div>
         <div className="cvn-title">{script.title}</div>
         <div className="cvn-topic">{script.topic}</div>
+        {usingStock ? <div className="cvn-topic" style={{ opacity: 0.5 }}>· stock voice</div> : null}
+        {showErr ? <div className="cvn-topic" style={{ color: 'var(--bbf-gold)' }}>{tr.err}</div> : null}
       </div>
 
       <span className={`cvn-eq${playing ? ' is-live' : ''}`} aria-hidden="true">
@@ -156,6 +256,16 @@ export default function GeneratorVoiceBox({ isUnlimited, tokenSpent }) {
           <span key={i} className="cvn-bar" style={{ animationDelay: `${i * 120}ms` }} />
         ))}
       </span>
+
+      <audio
+        ref={audioRef}
+        src={url || undefined}
+        preload="none"
+        onPlay={() => { setPlaying(true); setHasPlayed(true); }}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
+        onError={() => { if (url && !busyRef.current) setShowErr(true); }}
+      />
     </div>
   );
 }
