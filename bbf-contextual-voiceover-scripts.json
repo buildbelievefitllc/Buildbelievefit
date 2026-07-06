@@ -28,7 +28,7 @@
     "script": "Listen — this meal plan is not a guess. Every number on that macro wheel was reverse-engineered from your TDEE, your total daily energy expenditure. We did the math on exactly what your body burns, then built your protein, carbs, and fat around it so the fuel matches the mission. Now hear this — the meals are interchangeable. You don't have to eat it exactly as written. Swap one meal for another, eat last night's leftovers, build your own plate — as long as you measure it right and it hits your macros, the success still comes. The magic isn't the recipe; it's the numbers. So follow the targets to the T, weigh your food, log every meal, protein first, water on point — do that, and the results aren't a maybe, they're mathematics. Respect the work that went into this, trust the plan, and just Believe. That's how you build the best version of your body."
   },
   {
-    "category": "Recovery",
+    "category": "Accountability",
     "subject_line": "AUDIO_CTX_RECOVERY_RX",
     "scenario": "Post-Workout Check-In · Recovery Prescription card · what it is and why it appears (deterministically built from the check-in's pain + RPE + flagged target area)",
     "target_duration": "45s",
