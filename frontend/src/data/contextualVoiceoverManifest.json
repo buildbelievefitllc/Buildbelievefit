@@ -30,5 +30,13 @@
     "scenario": "Nutrition Locker · TDEE-engineered macros, interchangeable meals, adherence payoff",
     "duration": "55s",
     "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/nutrition-audio-ctx-nutrition.mp3"
+  },
+  {
+    "id": "audio_34bb8a5f",
+    "category": "Accountability",
+    "subjectLine": "AUDIO_CTX_RECOVERY_RX",
+    "scenario": "Post-Workout Check-In · Recovery Prescription card · what it is and why it appears (deterministically built from the check-in's pain + RPE + flagged target area)",
+    "duration": "45s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/accountability-audio-ctx-recovery-rx.mp3"
   }
 ]
