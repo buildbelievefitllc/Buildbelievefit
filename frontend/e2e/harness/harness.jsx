@@ -11,6 +11,7 @@ import { LangProvider } from '../../src/context/LangContext.jsx';
 import AuthContext from '../../src/context/AuthContext.jsx';
 import NutritionCard from '../../src/components/hub/NutritionCard.jsx';
 import Nutrition from '../../src/components/vault/Nutrition.jsx';
+import ProvisionGate from '../../src/components/vault/ProvisionGate.jsx';
 import CardioCard from '../../src/components/hub/CardioCard.jsx';
 import DashboardHub from '../../src/components/hub/DashboardHub.jsx';
 import CoachAudioButton from '../../src/components/vault/CoachAudioButton.jsx';
@@ -58,6 +59,16 @@ function pick() {
   switch (which) {
     case 'nutrition':
       return <NutritionCard data={props.data ?? null} defaults={props.defaults ?? null} />;
+    case 'provision-gate':
+      // The vault-landing provisioning guard around a Hub sentinel — the Hub is not
+      // granted until useEnsureProvisioned (bbf_ensure_provisioned) confirms readiness.
+      return (
+        <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'fueluser' }, session: { vaultToken: 'test-vault-token' } }}>
+          <ProvisionGate>
+            <div data-testid="hub-sentinel">HUB READY</div>
+          </ProvisionGate>
+        </AuthMock>
+      );
     case 'nutrition-tab':
       // The FULL Nutrition tab — the adherence loop (server-synced meal log, wheel vs
       // canonical targets, tiered surfaces). Wrapped in a Router (the tab reads

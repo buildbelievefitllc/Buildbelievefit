@@ -44,6 +44,7 @@ import Recovery from '../components/vault/Recovery.jsx';
 import ChampionMindset from '../components/vault/ChampionMindset.jsx';
 import SovereignClientHub from '../components/vault/SovereignClientHub.jsx';
 import PostWorkoutCheckInModal from '../components/vault/PostWorkoutCheckInModal.jsx';
+import ProvisionGate from '../components/vault/ProvisionGate.jsx';
 import TierGate from '../components/TierGate.jsx';
 import ComlinkFAB from '../components/vault/ComlinkFAB.jsx';
 import Concierge from '../components/vault/Concierge.jsx';
@@ -150,6 +151,10 @@ export default function ClientVault() {
   useAutoVitalsSync();
 
   return (
+    // Provisioning guard — no athlete reaches the Hub shell until their
+    // athlete_profiles + today's nutrition targets are confirmed (seeded first for a
+    // legacy / tier-change account that's missing them). Fail-open (see the hook).
+    <ProvisionGate>
     <div className="cv-screen" data-bbf-mode={handshake}>
       <header className="cv-topbar">
         <div className="cv-brand">
@@ -295,5 +300,6 @@ export default function ClientVault() {
         onSuccess={() => { setCheckInOpen(false); setCheckInRefresh((n) => n + 1); }}
       />
     </div>
+    </ProvisionGate>
   );
 }
