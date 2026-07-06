@@ -41,7 +41,7 @@ function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 }
 
-const KNOWN_AREAS = ['shoulder', 'lower_body', 'knee', 'neck', 'upper_body', 'full_body'];
+const KNOWN_AREAS = ['none', 'shoulder', 'lower_body', 'knee', 'neck', 'upper_body', 'full_body'];
 const num = (v: unknown): number | null => { const n = Number(v); return Number.isFinite(n) ? n : null; };
 
 // Server-authoritative identity: resolve bbf_users.id (uuid) from the 24h vault
@@ -71,14 +71,16 @@ serve(async (req: Request) => {
   let payload: Record<string, unknown>;
   try { payload = await req.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const pain = num(payload.pain_score);
-  const rpe = num(payload.rpe_score);
-  if (pain === null || rpe === null) return jsonResponse({ error: 'missing_scores' }, 400);
-  if (pain < 1 || pain > 10 || rpe < 1 || rpe > 10) return jsonResponse({ error: 'scores_out_of_range' }, 400);
-
-  // Canonicalize the target area; unknown/empty → full_body (the engine also normalizes).
+  // Canonicalize the target area first so we can validate pain correctly.
+  // 'none' = no complaint → pain is 0, prehab skipped.
   const rawArea = String(payload.target_area ?? '').trim().toLowerCase().replace(/\s+/g, '_');
   const targetArea = KNOWN_AREAS.includes(rawArea) ? rawArea : 'full_body';
+  const isNone = targetArea === 'none';
+
+  const pain = isNone ? 0 : num(payload.pain_score);
+  const rpe = num(payload.rpe_score);
+  if (pain === null || rpe === null) return jsonResponse({ error: 'missing_scores' }, 400);
+  if ((!isNone && (pain < 1 || pain > 10)) || rpe < 1 || rpe > 10) return jsonResponse({ error: 'scores_out_of_range' }, 400);
 
   // Identity from the vault bearer (body or header) — never the client-supplied uid.
   const vaultToken = String(payload.vault_token ?? req.headers.get('x-bbf-vault-token') ?? '').trim();
@@ -127,7 +129,7 @@ serve(async (req: Request) => {
     shoulder: 'shoulder', knee: 'knee', neck: 'shoulder', upper_body: 'shoulder', lower_body: 'lower_back',
   };
   let prehabQueued = false;
-  const joint = AREA_TO_JOINT[targetArea];
+  const joint = isNone ? null : AREA_TO_JOINT[targetArea];
   if (joint && pain >= 4) {
     try {
       const svc = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' };

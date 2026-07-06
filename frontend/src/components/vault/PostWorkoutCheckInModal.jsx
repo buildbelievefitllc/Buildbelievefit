@@ -40,7 +40,7 @@ const STR = {
     success: 'Locked In',
     close: 'Close',
     errGeneric: 'Couldn’t save your check-in. Try again.',
-    areas: { shoulder: 'Shoulder', lower_body: 'Lower Body', knee: 'Knee', neck: 'Neck', upper_body: 'Upper Body', full_body: 'Full Body' },
+    areas: { none: 'None', shoulder: 'Shoulder', lower_body: 'Lower Body', knee: 'Knee', neck: 'Neck', upper_body: 'Upper Body', full_body: 'Full Body' },
   },
   es: {
     title: 'Registro Post-Entrenamiento',
@@ -57,7 +57,7 @@ const STR = {
     success: 'Confirmado',
     close: 'Cerrar',
     errGeneric: 'No se pudo guardar tu registro. Inténtalo de nuevo.',
-    areas: { shoulder: 'Hombro', lower_body: 'Tren Inferior', knee: 'Rodilla', neck: 'Cuello', upper_body: 'Tren Superior', full_body: 'Cuerpo Completo' },
+    areas: { none: 'Ninguna', shoulder: 'Hombro', lower_body: 'Tren Inferior', knee: 'Rodilla', neck: 'Cuello', upper_body: 'Tren Superior', full_body: 'Cuerpo Completo' },
   },
   pt: {
     title: 'Check-In Pós-Treino',
@@ -74,7 +74,7 @@ const STR = {
     success: 'Confirmado',
     close: 'Fechar',
     errGeneric: 'Não foi possível salvar seu check-in. Tente novamente.',
-    areas: { shoulder: 'Ombro', lower_body: 'Inferiores', knee: 'Joelho', neck: 'Pescoço', upper_body: 'Superiores', full_body: 'Corpo Inteiro' },
+    areas: { none: 'Nenhuma', shoulder: 'Ombro', lower_body: 'Inferiores', knee: 'Joelho', neck: 'Pescoço', upper_body: 'Superiores', full_body: 'Corpo Inteiro' },
   },
 };
 
@@ -83,8 +83,9 @@ export default function PostWorkoutCheckInModal({ open, onClose, onSuccess }) {
   const { user } = useAuth();
   const S = STR[lang] || STR.en;
 
-  const [targetArea, setTargetArea] = useState('full_body');
+  const [targetArea, setTargetArea] = useState('none');
   const [pain, setPain] = useState(3);
+  const noPain = targetArea === 'none';
   const [rpe, setRpe] = useState(5);
   const [status, setStatus] = useState('idle'); // idle | saving | success | error
   const [errorMsg, setErrorMsg] = useState('');
@@ -107,7 +108,7 @@ export default function PostWorkoutCheckInModal({ open, onClose, onSuccess }) {
   if (open !== prevOpen) {
     setPrevOpen(open);
     if (open) {
-      setTargetArea('full_body');
+      setTargetArea('none');
       setPain(3);
       setRpe(5);
       setStatus('idle');
@@ -136,7 +137,7 @@ export default function PostWorkoutCheckInModal({ open, onClose, onSuccess }) {
     try {
       const result = await submitSessionFeedback({
         uid: user?.id,
-        painScore: pain,
+        painScore: noPain ? 0 : pain,
         rpeScore: rpe,
         targetArea,
       });
@@ -212,23 +213,25 @@ export default function PostWorkoutCheckInModal({ open, onClose, onSuccess }) {
           </div>
         </div>
 
-        {/* Pain slider — green → yellow → red */}
-        <div className="pwc-section">
-          <div className="pwc-slider-head">
-            <span className="pwc-label">{S.pain}</span>
-            <span className="pwc-value" data-tone="pain">{pain}<span className="pwc-value-max">/10</span></span>
+        {/* Pain slider — hidden when "None" selected (no target area = no pain signal) */}
+        {!noPain && (
+          <div className="pwc-section">
+            <div className="pwc-slider-head">
+              <span className="pwc-label">{S.pain}</span>
+              <span className="pwc-value" data-tone="pain">{pain}<span className="pwc-value-max">/10</span></span>
+            </div>
+            <input
+              type="range" min="1" max="10" step="1"
+              className="pwc-range pwc-range--pain"
+              value={pain}
+              onChange={(e) => setPain(Number(e.target.value))}
+              disabled={locked}
+              aria-label={S.pain}
+              aria-valuetext={`${pain} / 10`}
+            />
+            <div className="pwc-scale"><span>{S.painLow}</span><span>{S.painHigh}</span></div>
           </div>
-          <input
-            type="range" min="1" max="10" step="1"
-            className="pwc-range pwc-range--pain"
-            value={pain}
-            onChange={(e) => setPain(Number(e.target.value))}
-            disabled={locked}
-            aria-label={S.pain}
-            aria-valuetext={`${pain} / 10`}
-          />
-          <div className="pwc-scale"><span>{S.painLow}</span><span>{S.painHigh}</span></div>
-        </div>
+        )}
 
         {/* RPE slider — purple → gold */}
         <div className="pwc-section">

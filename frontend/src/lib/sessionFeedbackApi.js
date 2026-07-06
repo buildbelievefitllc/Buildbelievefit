@@ -18,7 +18,8 @@ import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
 
 // Canonical body_part values (must match clinical_exercises.body_part / the engine).
-export const TARGET_AREAS = ['shoulder', 'lower_body', 'knee', 'neck', 'upper_body', 'full_body'];
+// 'none' = athlete has no pain/complaint — skips prehab queue, pain forced to 0.
+export const TARGET_AREAS = ['none', 'shoulder', 'lower_body', 'knee', 'neck', 'upper_body', 'full_body'];
 
 // Window CustomEvent the workout loggers (FloorLogger / SmartCardio) fire the
 // moment a session is completed; the Vault shell listens and opens the check-in
@@ -33,14 +34,16 @@ export async function submitSessionFeedback({ uid, painScore, rpeScore, targetAr
     throw e;
   }
 
-  const pain = Number(painScore);
+  const area = TARGET_AREAS.includes(targetArea) ? targetArea : 'full_body';
+  const isNone = area === 'none';
+  // When no target area, pain is 0 (nothing to score). RPE is always required.
+  const pain = isNone ? 0 : Number(painScore);
   const rpe = Number(rpeScore);
-  if (!Number.isFinite(pain) || pain < 1 || pain > 10 || !Number.isFinite(rpe) || rpe < 1 || rpe > 10) {
+  if ((!isNone && (!Number.isFinite(pain) || pain < 1 || pain > 10)) || !Number.isFinite(rpe) || rpe < 1 || rpe > 10) {
     const e = new Error('Pain and difficulty must each be between 1 and 10.');
     e.code = 'invalid_input';
     throw e;
   }
-  const area = TARGET_AREAS.includes(targetArea) ? targetArea : 'full_body';
 
   const headers = { 'Content-Type': 'application/json' };
   // Gateway routing — without the anon key the request 401s at the edge.
