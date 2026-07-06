@@ -37,6 +37,9 @@ import { resolveMealArt, MEAL_ART } from './mealArt.js';
 import CoachVoiceNote from './CoachVoiceNote.jsx';
 import ContextualVoiceover from './ContextualVoiceover.jsx';
 import { AUDIO_CTX_NUTRITION } from '../../lib/contextualVoiceover.js';
+import { useNutritionSync } from '../../lib/useNutritionSync.js';
+import { syncMealLog } from '../../lib/mealLogApi.js';
+import { mealBenefit } from './mealBenefit.js';
 import './vault.css';
 import './nutrition.css';
 
@@ -129,6 +132,22 @@ const NUT_STR = {
     fpAdaptSub: 'System under strain — carbohydrates taper toward recovery fueling while protein holds the floor.',
     fpScore: (s) => `Readiness ${s == null ? '—' : s}/100`,
     fpSplit: 'Target split', fpStale: 'Synced',
+    // Meal-logged benefit note (Layer 1 all tiers · Layer 2 readiness-gated)
+    benefitKicker: 'Why this fuels you',
+    // Daily Fueling Status (Fuel Performance+)
+    fsKicker: 'Daily Fueling Status', fsToday: 'Today', fsWeek: '7-day adherence',
+    fsMacro: { p: 'Protein', c: 'Carbs', f: 'Fat', kcal: 'Energy' },
+    fsPct: (n) => `${n}%`,
+    fsSummary: (p) => (p >= 90
+      ? 'Dialed in — protein’s covered and your fuel is on target. Keep it here.'
+      : p >= 60
+        ? 'Protein’s on its way — close the gap to lock in today’s repair.'
+        : 'Fuel’s light so far — log your meals to hit today’s repair and energy.'),
+    fsLock: 'Daily Fueling Status',
+    // Periodized fuel timing (Fuel Sovereign)
+    perKicker: 'Periodized Fuel Timing', perLock: 'Periodized Fuel Timing',
+    perCalibrating: 'Your Sovereign timing windows are calibrating — keep logging and the engine will schedule your fuel across the day.',
+    perWindow: 'Window',
     hydKicker: 'Daily Hydration', hydActivity: 'Activity Level',
     hydLevels: { sedentary: 'Sedentary', light: 'Light', moderate: 'Moderate', active: 'Active', athlete: 'Athlete' },
     hydReset: 'Reset', hydGoalHit: 'Goal hit!',
@@ -169,6 +188,19 @@ const NUT_STR = {
     fpAdaptSub: 'Sistema en tensión — los carbohidratos bajan hacia una nutrición de recuperación mientras la proteína sostiene la base.',
     fpScore: (s) => `Preparación ${s == null ? '—' : s}/100`,
     fpSplit: 'Distribución objetivo', fpStale: 'Sincronizado',
+    benefitKicker: 'Por qué te alimenta',
+    fsKicker: 'Estado de Combustible Diario', fsToday: 'Hoy', fsWeek: 'Adherencia de 7 días',
+    fsMacro: { p: 'Proteína', c: 'Carbos', f: 'Grasa', kcal: 'Energía' },
+    fsPct: (n) => `${n}%`,
+    fsSummary: (p) => (p >= 90
+      ? 'En punto — la proteína está cubierta y tu combustible va en objetivo. Mantenlo así.'
+      : p >= 60
+        ? 'La proteína va en camino — cierra la brecha para asegurar la reparación de hoy.'
+        : 'Vas ligero de combustible — registra tus comidas para lograr la reparación y energía de hoy.'),
+    fsLock: 'Estado de Combustible Diario',
+    perKicker: 'Temporización de Combustible Periodizada', perLock: 'Temporización de Combustible Periodizada',
+    perCalibrating: 'Tus ventanas de temporización Soberanas se están calibrando — sigue registrando y el motor programará tu combustible a lo largo del día.',
+    perWindow: 'Ventana',
     hydKicker: 'Hidratación Diaria', hydActivity: 'Nivel de Actividad',
     hydLevels: { sedentary: 'Sedentario', light: 'Leve', moderate: 'Moderado', active: 'Activo', athlete: 'Atleta' },
     hydReset: 'Reiniciar', hydGoalHit: '¡Meta alcanzada!',
@@ -209,6 +241,19 @@ const NUT_STR = {
     fpAdaptSub: 'Sistema em tensão — os carboidratos descem rumo à nutrição de recuperação enquanto a proteína segura a base.',
     fpScore: (s) => `Prontidão ${s == null ? '—' : s}/100`,
     fpSplit: 'Divisão alvo', fpStale: 'Sincronizado',
+    benefitKicker: 'Por que isto te alimenta',
+    fsKicker: 'Status de Combustível Diário', fsToday: 'Hoje', fsWeek: 'Aderência de 7 dias',
+    fsMacro: { p: 'Proteína', c: 'Carbos', f: 'Gordura', kcal: 'Energia' },
+    fsPct: (n) => `${n}%`,
+    fsSummary: (p) => (p >= 90
+      ? 'No ponto — a proteína está coberta e seu combustível está na meta. Mantenha assim.'
+      : p >= 60
+        ? 'A proteína está a caminho — feche a lacuna para garantir o reparo de hoje.'
+        : 'Você está leve de combustível — registre suas refeições para atingir o reparo e a energia de hoje.'),
+    fsLock: 'Status de Combustível Diário',
+    perKicker: 'Temporização de Combustível Periodizada', perLock: 'Temporização de Combustível Periodizada',
+    perCalibrating: 'Suas janelas de temporização Soberanas estão calibrando — continue registrando e o motor programará seu combustível ao longo do dia.',
+    perWindow: 'Janela',
     hydKicker: 'Hidratação Diária', hydActivity: 'Nível de Atividade',
     hydLevels: { sedentary: 'Sedentário', light: 'Leve', moderate: 'Moderado', active: 'Ativo', athlete: 'Atleta' },
     hydReset: 'Reiniciar', hydGoalHit: 'Meta atingida!',
@@ -231,6 +276,13 @@ function useNutStr() {
 
 // Macro accent colours (legend boxes + volume-ratio segments).
 const MACRO_COLORS = { p: '#ff5d5d', c: '#4dc3ff', f: '#ffb547' };
+
+// Shared brand-locked card chrome for the adherence surfaces (inline to avoid CSS
+// churn; mirrors the personal-note card's purple→void gradient + gold hairline).
+const CARD_WRAP = { background: 'linear-gradient(180deg, rgba(106,13,173,.22), rgba(9,9,9,.25))', border: '1px solid rgba(245,200,0,.35)', borderRadius: 12, padding: '14px 16px', margin: '0 0 14px' };
+const CARD_KICK = { fontFamily: 'var(--hb,"Barlow Condensed")', fontSize: '.66rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: '#f5c800', marginBottom: 6 };
+const CARD_TITLE = { fontFamily: 'var(--display,"Bebas Neue")', fontStyle: 'italic', fontSize: '1.3rem', lineHeight: 1.05, color: '#f9f5ff', margin: '0 0 6px' };
+const CARD_SUB = { fontFamily: 'var(--bd,"Barlow Condensed")', fontSize: '.92rem', lineHeight: 1.5, color: 'rgba(255,255,255,.86)', margin: '0 0 10px' };
 
 // ── Fasting Pace (CEO override: intermittent fasting is OPTIONAL) ─────────────
 // The full menu of time-restricted-feeding intervals. `off` is the default state
@@ -486,6 +538,97 @@ function DailyFuel({ consumed, totals, doneCount, mealCount }) {
           <div className="nl-mealprog-fill" style={{ width: `${progPct}%` }} />
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Meal-logged benefit note — Layer 1 (all tiers, goal/macro-framed) + Layer 2
+//    (readiness-framed, appended only when the athlete HAS readiness telemetry). ──
+function MealBenefitNote({ note }) {
+  const { tr } = useNutStr();
+  if (!note) return null;
+  return (
+    <div className="pg-card" data-testid="meal-benefit-note" style={CARD_WRAP}>
+      <div style={CARD_KICK}>♥ {tr.benefitKicker}</div>
+      <div style={CARD_TITLE}>{note.title}</div>
+      <p style={{ ...CARD_SUB, margin: 0 }}>{note.body}</p>
+    </div>
+  );
+}
+
+// ── Daily Fueling Status — Fuel Performance+ (adherence vs the canonical daily
+//    targets + a 7-day kcal-adherence strip). Gated by <TierGate>. ──────────────
+function FuelingStatus({ consumed, target, weekAdherence }) {
+  const { tr } = useNutStr();
+  const pct = (cur, tgt) => (tgt > 0 ? Math.round((cur / tgt) * 100) : 0);
+  const rows = [
+    { k: 'p', lbl: tr.fsMacro.p, v: pct(consumed.p, target.p), color: MACRO_COLORS.p },
+    { k: 'c', lbl: tr.fsMacro.c, v: pct(consumed.c, target.c), color: MACRO_COLORS.c },
+    { k: 'f', lbl: tr.fsMacro.f, v: pct(consumed.f, target.f), color: MACRO_COLORS.f },
+    { k: 'kcal', lbl: tr.fsMacro.kcal, v: pct(consumed.kcal, target.kcal), color: '#f5c800' },
+  ];
+  return (
+    <div className="pg-card" data-testid="nutrition-fueling-status" style={CARD_WRAP}>
+      <div style={CARD_KICK}>◆ {tr.fsKicker}</div>
+      <p style={CARD_SUB}>{tr.fsSummary(rows[0].v)}</p>
+      <div style={{ display: 'grid', gap: 8 }}>
+        {rows.map((r) => (
+          <div key={r.k} style={{ display: 'grid', gridTemplateColumns: '68px 1fr 44px', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontFamily: 'var(--bd,"Barlow Condensed")', fontSize: '.8rem', color: 'rgba(255,255,255,.8)' }}>{r.lbl}</span>
+            <span style={{ position: 'relative', height: 8, borderRadius: 999, background: 'rgba(255,255,255,.10)', overflow: 'hidden' }}>
+              <span style={{ position: 'absolute', inset: 0, width: `${Math.min(r.v, 100)}%`, background: r.color, borderRadius: 999 }} />
+            </span>
+            <span style={{ fontFamily: 'var(--hb,"Barlow Condensed")', fontSize: '.85rem', textAlign: 'right', color: '#f5c800' }}>{tr.fsPct(r.v)}</span>
+          </div>
+        ))}
+      </div>
+      {weekAdherence?.length ? (
+        <div data-testid="nutrition-week-adherence" style={{ marginTop: 12 }}>
+          <span style={{ ...CARD_KICK, marginBottom: 4, display: 'block' }}>{tr.fsWeek}</span>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 44 }}>
+            {weekAdherence.map((d, i) => (
+              <div key={i} title={`${d.day}: ${d.pct}%`} style={{ flex: 1, display: 'flex', alignItems: 'flex-end', height: '100%' }}>
+                <div style={{ width: '100%', height: `${Math.max(Math.min(d.pct, 100), 3)}%`, background: d.pct >= 90 ? '#f5c800' : d.pct >= 50 ? '#6a0dad' : 'rgba(106,13,173,.45)', borderRadius: 3 }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ── Periodized Fuel Timing — Fuel Sovereign (the Tier-3 timing_plan windows).
+//    Gated by <TierGate>; renders a calibrating state until the engine schedules. ──
+function PeriodizedPlan({ timingPlan }) {
+  const { tr } = useNutStr();
+  const windows = Array.isArray(timingPlan)
+    ? timingPlan
+    : (Array.isArray(timingPlan?.windows) ? timingPlan.windows : []);
+  return (
+    <div className="pg-card" data-testid="nutrition-periodization" style={CARD_WRAP}>
+      <div style={CARD_KICK}>◆ {tr.perKicker}</div>
+      {windows.length ? (
+        <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
+          {windows.map((w, i) => {
+            const macros = [
+              w.protein_g != null ? `${w.protein_g}P` : null,
+              w.carbs_g != null ? `${w.carbs_g}C` : null,
+              w.fat_g != null ? `${w.fat_g}F` : null,
+            ].filter(Boolean).join(' / ');
+            return (
+              <li key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,.05)' }}>
+                <span style={{ fontFamily: 'var(--bd,"Barlow Condensed")', fontSize: '.9rem', color: '#f9f5ff' }}>
+                  {w.label || w.name || `${tr.perWindow} ${i + 1}`}{w.time ? ` · ${w.time}` : ''}
+                </span>
+                {macros ? <span style={{ fontFamily: 'var(--hb,"Barlow Condensed")', fontSize: '.82rem', color: '#f5c800' }}>{macros}</span> : null}
+              </li>
+            );
+          })}
+        </ol>
+      ) : (
+        <p style={{ ...CARD_SUB, margin: 0 }} data-testid="nutrition-periodization-calibrating">{tr.perCalibrating}</p>
+      )}
     </div>
   );
 }
@@ -1104,32 +1247,96 @@ export default function Nutrition({ plans, profile }) {
   const day = plan.days[activeDayIdx] || plan.days[0];
   const totals = useMemo(() => dayTotals(day), [day]);
 
-  // Completed-meal indexes — one persisted store for the user, keyed live by the
-  // active source (cuisine id, or 'live') + day (no effect; derived each render).
+  // ── Server-synced adherence (the loop) ───────────────────────────────────────
+  // useNutritionSync gives today's CANONICAL targets (the SAME athlete_nutrition_
+  // targets_daily row the Hub Fuel Targets card reads), the set of client_meal_keys
+  // already logged today (so checked cards rehydrate from the SERVER across reloads /
+  // devices), and a 7-day kcal-adherence strip.
+  const { targets, loggedKeys, weekAdherence, reload: reloadSync } = useNutritionSync();
+
+  // Completed-meal state — SERVER-authoritative with an optimistic overlay:
+  //   • loggedKeys (server) = source of truth on load.
+  //   • overrides (this session) = the optimistic flip, applied instantly on tap and
+  //     reverted on a hard write failure.
+  //   • doneStore (localStorage) = instant-paint cache before the RPC resolves.
   const dayName = day.day;
   const [doneStore, setDoneStore] = useState(() => readUserDone(uid));
-  const done = doneStore?.[activeKey]?.[dayName] || EMPTY;
+  const [overrides, setOverrides] = useState({});
+  const [benefitNote, setBenefitNote] = useState(null);
+
+  const legacyDone = doneStore?.[activeKey]?.[dayName] || EMPTY;
+  const mealKeyFor = (idx) => `${activeKey}:${dayName}:${idx}`;
+  const isDone = (idx) => {
+    const k = mealKeyFor(idx);
+    if (Object.prototype.hasOwnProperty.call(overrides, k)) return overrides[k];
+    if (loggedKeys.has(k)) return true;
+    return legacyDone.includes(idx); // instant-paint fallback before the server read resolves
+  };
+
+  // Auto-dismiss the "why this fuels you" note a beat after a log.
+  useEffect(() => {
+    if (!benefitNote) return undefined;
+    const t = setTimeout(() => setBenefitNote(null), 7000);
+    return () => clearTimeout(t);
+  }, [benefitNote]);
 
   const toggleMeal = (idx) => {
+    const k = mealKeyFor(idx);
+    const meal = day.meals[idx] || {};
+    const nextDone = !isDone(idx);
+
+    // Optimistic: flip the override + mirror to the localStorage instant-paint cache.
+    setOverrides((o) => ({ ...o, [k]: nextDone }));
     setDoneStore((prev) => {
       const cur = prev?.[activeKey]?.[dayName] || [];
-      const nextArr = cur.includes(idx) ? cur.filter((i) => i !== idx) : [...cur, idx];
+      const nextArr = nextDone
+        ? (cur.includes(idx) ? cur : [...cur, idx])
+        : cur.filter((i) => i !== idx);
       const next = { ...prev, [activeKey]: { ...(prev[activeKey] || {}), [dayName]: nextArr } };
       writeUserDone(uid, next);
       return next;
     });
+
+    // Layer 1 (all tiers) + Layer 2 (readiness-gated) coaching note — on a LOG only.
+    if (nextDone) {
+      setBenefitNote(mealBenefit({ p: meal.p || 0, c: meal.c || 0, f: meal.f || 0 }, lang, readiness));
+    }
+
+    // Server sync → reconcile. On a hard failure, revert the optimistic flip.
+    syncMealLog({
+      action: nextDone ? 'log' : 'unlog',
+      clientMealKey: k,
+      mealSlot: meal.m,
+      foodLabel: String(meal.i || meal.m || '').slice(0, 200),
+      servingG: (meal.p || 0) + (meal.c || 0) + (meal.f || 0),
+      proteinG: meal.p || 0, carbsG: meal.c || 0, fatG: meal.f || 0,
+    })
+      .then(() => {
+        // Reconciled — drop the override so the server read is authoritative, then refetch.
+        setOverrides((o) => { const n = { ...o }; delete n[k]; return n; });
+        reloadSync();
+      })
+      .catch(() => {
+        // Hard failure (bad session / network) → revert the optimistic flip.
+        setOverrides((o) => ({ ...o, [k]: !nextDone }));
+      });
   };
 
-  // Consumed macros = sum of completed meals (|| 0 — a live meal may not resolve
-  // every macro from its text annotation).
-  const consumed = useMemo(() => {
-    return day.meals.reduce(
-      (acc, m, i) => (done.includes(i)
-        ? { kcal: acc.kcal + (m.kcal || 0), p: acc.p + (m.p || 0), c: acc.c + (m.c || 0), f: acc.f + (m.f || 0) }
-        : acc),
-      { kcal: 0, p: 0, c: 0, f: 0 },
-    );
-  }, [day, done]);
+  // Consumed macros = sum of the meals currently marked done (server + optimistic).
+  const consumed = day.meals.reduce(
+    (acc, m, i) => (isDone(i)
+      ? { kcal: acc.kcal + (m.kcal || 0), p: acc.p + (m.p || 0), c: acc.c + (m.c || 0), f: acc.f + (m.f || 0) }
+      : acc),
+    { kcal: 0, p: 0, c: 0, f: 0 },
+  );
+  const doneCount = day.meals.reduce((n, _m, i) => (isDone(i) ? n + 1 : n), 0);
+
+  // The wheel + legend + Fueling Status grade against the CANONICAL daily target
+  // (athlete_nutrition_targets_daily via bbf_nutrition_today) — the SAME numbers the
+  // Hub Fuel Targets card shows. Falls back to the meal-plan totals when absent.
+  const targetMacros = targets
+    ? { kcal: targets.tdee_kcal || 0, p: targets.protein_g || 0, c: targets.carbs_g || 0, f: targets.fat_g || 0 }
+    : totals;
 
   // Fasting Pace — client-controlled (CEO override: IF is optional). Seed from a
   // saved choice, else a coach-assigned tier, else Off. Persisted per user; never
@@ -1256,18 +1463,33 @@ export default function Nutrition({ plans, profile }) {
         />
         <DailyFuel
           consumed={consumed}
-          totals={totals}
-          doneCount={done.length}
+          totals={targetMacros}
+          doneCount={doneCount}
           mealCount={day.meals.length}
         />
       </div>
+
+      {/* Daily Fueling Status — Fuel Performance+ (adherence vs the canonical target
+          + 7-day trend). Lower tiers see the upgrade padlock (justifies the ladder). */}
+      <TierGate feature="nutrition_fueling_status" featureLabel={tr.fsLock} testId="nutrition-fueling-status-lock">
+        <FuelingStatus consumed={consumed} target={targetMacros} weekAdherence={weekAdherence} />
+      </TierGate>
+
+      {/* Periodized Fuel Timing — Fuel Sovereign (Tier-3 timing_plan). Lower tiers
+          see the upgrade padlock. */}
+      <TierGate feature="nutrition_periodization" featureLabel={tr.perLock} testId="nutrition-periodization-lock">
+        <PeriodizedPlan timingPlan={targets?.timing_plan} />
+      </TierGate>
+
+      {/* Layer 1/2 "why this fuels you" note — appears on a log, auto-dismisses. */}
+      <MealBenefitNote note={benefitNote} />
 
       <div>
         <div className="nl-meal-hint">{tr.mealHint}</div>
         {day.meals.map((m, i) => (
           // key includes the active source + day so switching tabs remounts each card
           // — resetting its local prep-drawer / broken-thumbnail state for the new meal.
-          <MealCard key={`${activeKey}-${dayName}-${i}`} meal={m} done={done.includes(i)} onToggle={() => toggleMeal(i)} />
+          <MealCard key={`${activeKey}-${dayName}-${i}`} meal={m} done={isDone(i)} onToggle={() => toggleMeal(i)} />
         ))}
       </div>
 

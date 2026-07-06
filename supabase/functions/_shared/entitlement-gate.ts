@@ -88,10 +88,12 @@ export const FEATURE_ACCESS: Record<string, Group[]> = {
   cardio:             AUTO_BAND, // legacy alias for smart_cardio
   prehab:             AUTO_BAND,
   biokinetic_forecast: AUTO_BAND, // Biokinetic Forecast (audio-first 1RM/OT engine)
+  nutrition_fueling_status: AUTO_BAND, // Fuel Performance+ — Daily Fueling Status + weekly adherence trend
   // Apex band only (+ God) — the premium adult unlocks.
   advanced_nutrition: APEX_BAND, // Meal Scanner
   nutrition_macros:   APEX_BAND,
   nutrition_image:    APEX_BAND, // Meal Scanner (image)
+  nutrition_periodization: APEX_BAND, // Fuel Sovereign — periodized / meal-timing (timing_plan) UI
   sovereign_comlink:  APEX_BAND,
   coach_orchestration:APEX_BAND,
   // Youth band only (+ God) — the Athlete Portal suite.

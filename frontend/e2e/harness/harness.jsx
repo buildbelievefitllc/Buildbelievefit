@@ -6,9 +6,11 @@
 // outside the production index.html graph and is never shipped by `vite build`.
 
 import { createRoot } from 'react-dom/client';
+import { MemoryRouter } from 'react-router-dom';
 import { LangProvider } from '../../src/context/LangContext.jsx';
 import AuthContext from '../../src/context/AuthContext.jsx';
 import NutritionCard from '../../src/components/hub/NutritionCard.jsx';
+import Nutrition from '../../src/components/vault/Nutrition.jsx';
 import CardioCard from '../../src/components/hub/CardioCard.jsx';
 import DashboardHub from '../../src/components/hub/DashboardHub.jsx';
 import CoachAudioButton from '../../src/components/vault/CoachAudioButton.jsx';
@@ -56,6 +58,21 @@ function pick() {
   switch (which) {
     case 'nutrition':
       return <NutritionCard data={props.data ?? null} defaults={props.defaults ?? null} />;
+    case 'nutrition-tab':
+      // The FULL Nutrition tab — the adherence loop (server-synced meal log, wheel vs
+      // canonical targets, tiered surfaces). Wrapped in a Router (the tab reads
+      // useLocation) + a controllable AuthMock (user/isAdmin/session drive entitlement).
+      return (
+        <MemoryRouter>
+          <AuthMock value={{
+            isAdmin: !!props.isAdmin,
+            user: props.user ?? { username: 'akeem' },
+            session: { vaultToken: 'test-vault-token' },
+          }}>
+            <Nutrition plans={props.plans ?? null} profile={props.profile ?? null} />
+          </AuthMock>
+        </MemoryRouter>
+      );
     case 'cardio':
       return <CardioCard data={props.data ?? null} defaults={props.defaults ?? null} />;
     case 'sovereign-briefing': {
