@@ -1,72 +1,567 @@
 {
-  "version": "1.0.0",
-  "generated": "2026-07-07",
-  "note": "STATIC pre-baked content library for the Digital Content Manager. NO live LLM reads this — the Command Center panel ingests it directly and only the Approve & Synthesize trigger calls an external API (ElevenLabs, for the Akeem voiceover). Add drafts here; they surface as Review Bucket cards.",
-  "drafts": [
+  "content_library_version": "1.0.0",
+  "generated_batch": "30_Day_Evergreen",
+  "posts": [
     {
-      "id": "mind-001",
+      "id": "post_en_001",
+      "language": "EN",
+      "format": "Reel Cover",
       "series": "Mindset Engine",
-      "target_angle": "Discipline outlives motivation — sell the system, not the spark.",
-      "hook": "MOTIVATION IS A LIAR",
-      "caption": "Motivation shows up when it feels like it. Discipline shows up when it doesn't. The difference between the body you want and the body you have is the workout you did anyway — cold, tired, uninspired. Stop waiting to feel ready. Build the system, then let the system carry you. 🟣 Build. Believe. #BuildBelieveFit #Discipline #MindsetEngine",
+      "target_angle": "Discipline = Clarity",
+      "hook": "Sovereignty Starts at 5 AM.",
+      "caption": "Your mind wants comfort. Comfort is an illusion that breeds atrophy. When you log into the BBF Lab Calibration HUD at 5 AM, you aren't just logging metrics; you are claiming ownership of your day. We look at the data—CNS readiness, sleep quality, training density. We don't negotiate with feelings. We execute standard protocols. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#BBFLab #SovereignMindset #BuckeyeAZ #BuckeyeFitness #PerformanceCoaching #DisciplineOverComfort",
+      "recommended_post_time": "Morning CNS Check",
       "studio_recipe": {
-        "visual": "Matte black canvas. BBF-gold kinetic type on the hook, slow push-in. Founder cutaway at 0:04. No stock footage.",
-        "asset": "reel-cover-mindset-01",
-        "format": "reel"
+        "mode": "Reel Cover",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
       },
-      "voiceover_script": "Let me tell you the truth nobody sells you. Motivation is a liar. It shows up loud on the easy days and vanishes the second it gets cold, dark, and hard. You don't rise to the level of your motivation — you fall to the level of your systems. So stop negotiating with your feelings at five a.m. Build the discipline, build the habit, and let the machine carry you when the spark is gone. That's how you win. Build. Believe."
+      "reel_kit": {
+        "voiceover_script": "The mind will always choose comfort... because comfort is safe... But growth demands friction... When you check your CNS score this morning... remember... you are measuring capacity... not willingness... The standard does not adapt to your fatigue... you adapt to the standard... Rise... calibrate... execute...",
+        "cut_sheet": "Slow-motion macro shot of the BBF Lab app calibration ring lighting up in a dark room, transitioning to a crisp, high-torque dynamic stretch."
+      }
     },
     {
-      "id": "form-001",
+      "id": "post_en_002",
+      "language": "EN",
+      "format": "Phone",
       "series": "Form Fix",
-      "target_angle": "Injury-prevention authority — protect the joint to earn the load.",
-      "hook": "YOUR KNEES AREN'T THE PROBLEM",
-      "caption": "Knee pain on squats is almost never the knee — it's a hip that won't hinge and an ankle that won't bend. Fix the joints above and below, and the pain you blamed on your knees disappears. Screenshot this before your next leg day. 🟡 #FormFix #Prehab #BuildBelieveFit",
+      "target_angle": "The Guide",
+      "hook": "The Myth of the Barbell Back Squat.",
+      "caption": "Stop compressing your lumbar spine for the sake of tradition. The barbell back squat is not the universal standard for lower body power. At BBF Lab, we program the Trap-Bar Squat. By aligning the load directly with your center of mass, we eliminate shear stress on the lower back and maximize glute and quadriceps recruitment. Train the tissue, protect the spine. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#TrapBarSquat #Biomechanics #ExerciseScience #BuckeyeAZ #PlanetFitnessWatson #StrengthTraining",
+      "recommended_post_time": "Morning CNS Check",
       "studio_recipe": {
-        "visual": "Split-screen: red-flag squat vs corrected squat. Gold arc overlay tracing hip + ankle path. Slow-mo at bottom position.",
-        "asset": "reel-cover-formfix-knees",
-        "format": "reel"
+        "mode": "Phone",
+        "background": "Dark Charcoal with #f5c800 Gold Accent"
       },
-      "voiceover_script": "If your knees scream every time you squat, listen close — the knee is rarely the criminal. It's the accomplice. Look one joint up and one joint down. A hip that refuses to hinge and an ankle that won't bend force your knee to eat load it was never built to carry. Bulletproof the hip, free the ankle, and watch the pain you blamed on your knees walk right out the door. Fix the chain, earn the load."
+      "reel_kit": {
+        "voiceover_script": "Traditional back squats create massive shear force on your lumbar spine... Why take the risk?... The Trap-Bar Squat places the load in perfect alignment with your gravity line... More torque... less compression... absolute muscle recruitment... Stop chasing tradition... start honoring biomechanics...",
+        "cut_sheet": "Split screen. Left side: red x over a loaded barbell. Right side: golden checkmark showing a clean, high-density Trap-Bar Squat with pristine vertical spine alignment."
+      }
     },
     {
-      "id": "fuel-001",
-      "series": "Fuel Protocol",
-      "target_angle": "Demystify macros — adherence beats perfection.",
-      "hook": "STOP EATING CLEAN",
-      "caption": "\"Clean eating\" is a vibe, not a plan. Your body runs on numbers — protein, carbs, fat, total energy. Hit your targets and you can eat the foods you actually like. Miss them, and the cleanest salad on earth won't save you. Measure it. Log it. Trust the math. 🟢 #FuelProtocol #Macros #BuildBelieveFit",
+      "id": "post_en_003",
+      "language": "EN",
+      "format": "Spotlight",
+      "series": "Prehab Architect",
+      "target_angle": "Proof-of-Work",
+      "hook": "Core Stability Isn't Found in a Crunch.",
+      "caption": "Your abdominal wall is designed to resist movement, not create it. Stop flexing your spine into absolute dysfunction with abdominal crunches. True core sovereignty is built through anti-rotational tension. We program the Pallof Press and heavy planks to teach your trunk how to lock down and protect the spine under high-torque loading. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#PallofPress #CoreStability #Prehab #BuckeyeAZ #BuckeyeLocal #PhysicalPrep #SovereignVault",
+      "recommended_post_time": "Mid-Day Calibration",
       "studio_recipe": {
-        "visual": "Flat-lay of a measured plate with floating gram badges binding to each macro. Green accent grade. No hands.",
-        "asset": "card-fuel-macros-01",
-        "format": "card"
+        "mode": "Spotlight",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
       },
-      "voiceover_script": "Here's what nobody with an agenda will tell you. Eating clean is a feeling. Hitting your macros is a fact. Your body doesn't read vibes — it reads numbers. Protein, carbs, fat, total energy. Land those targets and you can build the best version of your body eating the food you actually enjoy. So put the guilt down, pick up the scale, and let the math do the work. Measure it, log it, trust it."
+      "reel_kit": {
+        "voiceover_script": "Your spine is a high-voltage cable... and your core is the insulation... Crunches ruin the system... The Pallof Press forces anti-rotational stability... teaching your obliques to anchor... Lock the hips... resist the pull... protect the column...",
+        "cut_sheet": "Close-up shot of a cable stack under heavy tension, panning to a client resisting the lateral rotation during a rock-solid Pallof Press hold."
+      }
     },
     {
-      "id": "recover-001",
-      "series": "Recovery Lab",
-      "target_angle": "Recovery is training — reframe rest as the growth window.",
-      "hook": "YOU DON'T GROW IN THE GYM",
-      "caption": "The gym is where you tear it down. Sleep, breath, and food are where you build it back — bigger. Skip recovery and you're just accumulating damage with no payoff. Tonight, protect your sleep like it's a set you can't miss. 🔵 #RecoveryLab #BuildBelieveFit",
+      "id": "post_en_004",
+      "language": "EN",
+      "format": "CTA Card",
+      "series": "Recovery Mode",
+      "target_angle": "The Guide",
+      "hook": "Down-Regulate to Rebuild.",
+      "caption": "Growth does not happen in the gym; it is permitted during recovery. If your daily BBF Lab metrics indicate a depleted central nervous system, pushing past your capacity is a regression. We use parasympathetic breathing and targeted myofascial release to reset your cortisol levels. Honor the deload. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#CNSReadiness #Parasympathetic #BuckeyeAZ #VerradoLife #RestAndRecover #Periodization",
+      "recommended_post_time": "Evening Recovery",
       "studio_recipe": {
-        "visual": "Low-light breathing orb expanding/contracting on a 4-count. Deep blue grade. Single line of gold text on the exhale.",
-        "asset": "reel-cover-recovery-breath",
-        "format": "reel"
+        "mode": "CTA Card",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
       },
-      "voiceover_script": "Everybody worships the workout. But listen — you don't grow in the gym. In the gym you break the tissue down. You grow in the dark, while you sleep, while you breathe, while you feed the repair. Skip that, and all you're stacking is damage with no reward. So tonight, guard your sleep like it's the heaviest set of the week. Recovery isn't the break from the work. Recovery is the work."
+      "reel_kit": {
+        "voiceover_script": "You cannot build on a broken foundation... When your CNS score is bottomed out... training harder is a symptom of ego... not discipline... Down-regulate... breathe... let the nervous system reset... Protect your asset...",
+        "cut_sheet": "Slow, cinematic pan over a dark room with a single candle and a lacrosse ball releasing tension in the posterior shoulder capsule."
+      }
     },
     {
-      "id": "mind-002",
+      "id": "post_en_005",
+      "language": "EN",
+      "format": "Reel Cover",
+      "series": "Fuel Files",
+      "target_angle": "Proof-of-Work",
+      "hook": "Precision Over Guesswork.",
+      "caption": "Your cells do not recognize 'clean eating'—they recognize macronutrient structures. Stop guessing your portions and expecting elite results. We anchor our nutrition plans on high-density staples: ground turkey, wild salmon, and jasmine rice. Precise measurement is the difference between a plateau and a breakthrough. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#NutritionScience #MacroTracking #BuckeyeAZ #VerradoCommunity #MealPrep #PhysicalStandard",
+      "recommended_post_time": "Evening Recovery",
+      "studio_recipe": {
+        "mode": "Reel Cover",
+        "background": "Dark Charcoal with #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "Guessing your food is a confession of laziness... Your body operates on biochemical precision... Weigh the salmon... measure the jasmine rice... Feed the muscle exactly what it needs to rebuild... No shortcuts... only standards...",
+        "cut_sheet": "High-contrast footage of seasoned salmon and jasmine rice being weighed on a sleek digital scale, transitioning to the BBF Lab nutrition tracker HUD."
+      }
+    },
+    {
+      "id": "post_en_006",
+      "language": "EN",
+      "format": "Phone",
       "series": "Mindset Engine",
-      "target_angle": "Identity-based change — become the person, the results follow.",
-      "hook": "STOP CHASING RESULTS",
-      "caption": "You don't rise to your goals — you fall to your identity. Stop asking \"how do I lose 20 pounds\" and start asking \"who is the person that already lives this way.\" Then act like them today. The scale is a lagging indicator of who you decided to become. 🟣 #MindsetEngine #BuildBelieveFit",
+      "target_angle": "Discipline = Clarity",
+      "hook": "The Flow State is Pre-Programmed.",
+      "caption": "Inspiration is temporary; system architecture is permanent. BBF Lab clients don't wait for motivation to strike. They step into the present moment, review their active metrics on the Calibration HUD, and execute the exact training density prescribed for that block. Flow state is not an accident—it's the logical result of structural discipline. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#FlowState #SystemArchitecture #BuckeyeAZ #BuckeyeStrength #UnyieldingDiscipline #PresentMoment",
+      "recommended_post_time": "Morning CNS Check",
       "studio_recipe": {
-        "visual": "Founder direct-to-camera, matte black set, single purple rim light. Hook stamps in on the beat. Minimal cuts.",
-        "asset": "reel-cover-mindset-identity",
-        "format": "reel"
+        "mode": "Phone",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
       },
-      "voiceover_script": "Stop chasing the result. The result is a shadow — you can't grab it. Chase the identity instead. Don't ask how you lose twenty pounds. Ask who is the person that already trains, already eats right, already shows up — and then be that person for the next twenty-four hours. Do it again tomorrow. The body always follows the identity. Decide who you are, and let the mirror catch up. Build. Believe."
+      "reel_kit": {
+        "voiceover_script": "Stop waiting to feel like it... Motivation is a myth... Clear the noise... look at your active metrics... step onto the floor... and execute... The present moment is the only reality... Move with intention...",
+        "cut_sheet": "Steadicam shot focusing on a pair of running shoes stepping onto a gym floor, overlaying a clean, animated graphics block showing CNS readiness metrics."
+      }
+    },
+    {
+      "id": "post_en_007",
+      "language": "EN",
+      "format": "Spotlight",
+      "series": "Form Fix",
+      "target_angle": "The Guide",
+      "hook": "Banded Pull-Aparts: The Posture Reset.",
+      "caption": "Hours at a desk or behind the wheel of your Tesla crush your thoracic extension and lock your shoulders in internal rotation. Stop stretching the chest without stabilizing the back. The banded pull-apart is our foundational shoulder prehab protocol. By engaging the rear deltoids and rhomboids, we restore structural balance and unlock optimal pressing mechanics. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#PrehabArchitect #ShoulderHealth #BandedPullAparts #BuckeyeAZ #TeslaBuckeye #Biomechanics",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Spotlight",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "Your environment is constant compression... Desk work... driving... it all locks the thoracic spine... Reset the system with banded pull-aparts... Retract... depress... and hold... Build the back to protect the front...",
+        "cut_sheet": "Close-up shot of a resistance band being pulled apart with a clean view of the posterior deltoids and mid-traps contracting dynamically."
+      }
+    },
+    {
+      "id": "post_en_008",
+      "language": "EN",
+      "format": "CTA Card",
+      "series": "Recovery Mode",
+      "target_angle": "Discipline = Clarity",
+      "hook": "The Fast is Your Shield.",
+      "caption": "We run a structured 16/8 fast not to suffer, but to master our biology. Fasting down-regulates inflammation, sharpens cognitive focus, and allows the gut to clear. It teaches your brain the difference between biological hunger and emotional boredom. Break the fast with precision at 1 PM; never before. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#FastingProtocol #IntermittentFasting #BuckeyeAZ #HealthyBuckeye #BiochemicalControl #SovereignVault",
+      "recommended_post_time": "Evening Recovery",
+      "studio_recipe": {
+        "mode": "CTA Card",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
+      },
+      "reel_kit": {
+        "voiceover_script": "Fasting is a lesson in control... You dictate when the system receives fuel... not your cravings... When you break your fast at one o'clock... do it with absolute precision... Stand tall... maintain the standard...",
+        "cut_sheet": "Sleek close-up of a digital watch ticking to 1:00 PM, followed by a clean, macro shot of ground turkey, avocado, and jasmine rice being prepared."
+      }
+    },
+    {
+      "id": "post_en_009",
+      "language": "EN",
+      "format": "Reel Cover",
+      "series": "Prehab Architect",
+      "target_angle": "Proof-of-Work",
+      "hook": "Smart Cardio is a Kinetic Armor.",
+      "caption": "Mindless steady-state cardio is an inefficient waste of training density. The BBF Lab Smart Cardio engine dynamically adjusts your target intensities based on your active CNS readiness and recovery metrics. Build an elite cardiovascular engine without sacrificing raw muscular power. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#SmartCardio #EngineBuilding #BuckeyeAZ #VerradoFitness #CardioScience #PerformanceCoaching",
+      "recommended_post_time": "Morning CNS Check",
+      "studio_recipe": {
+        "mode": "Reel Cover",
+        "background": "Dark Charcoal with #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "Mindless sweating is a waste of training density... We build engines with clinical precision... The Smart Cardio engine adjusts your output to match your active CNS capacity... Breathe... align... and drive...",
+        "cut_sheet": "Cinematic shot of a client on an air bike, pacing their output with a graphic showing real-time heart-rate zone calibration."
+      }
+    },
+    {
+      "id": "post_en_010",
+      "language": "EN",
+      "format": "Phone",
+      "series": "Fuel Files",
+      "target_angle": "The Guide",
+      "hook": "Local Outreach, Sovereign Results.",
+      "caption": "Sovereignty is digital, but community is physical. We are doing direct, physical outreach to local Buckeye businesses. From Watson Road to the Verrado hills, we are helping local leaders and families break the loop of physical decay. Download the app, calibrate your profile, and join the elite standard in Buckeye, Arizona. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#BuckeyeArizona #BuckeyeSmallBusiness #BuckeyeAZ #BuckeyeHighSchool #SovereignCommunity #BBFLab",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Phone",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "reel_kit": null
+    },
+    {
+      "id": "post_es_001",
+      "language": "ES",
+      "format": "Reel Cover",
+      "series": "Mindset Engine",
+      "target_angle": "Discipline = Clarity",
+      "hook": "La Soberanía Comienza a las 5 AM.",
+      "caption": "Tu mente busca comodidad. La comodidad es una ilusión que genera atrofia. Al iniciar el HUD de Calibración de BBF Lab a las 5 AM, no solo registras números; reclamas la propiedad de tu día. Analizamos datos: preparación del CNS, sueño y densidad de entrenamiento. No negociamos con emociones. Ejecutamos el estándar. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#BBFLab #MenteSoberana #BuckeyeAZ #BuckeyeFitness #EntrenamientoCientifico #DisciplinaEstricta",
+      "recommended_post_time": "Morning CNS Check",
+      "studio_recipe": {
+        "mode": "Reel Cover",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
+      },
+      "reel_kit": {
+        "voiceover_script": "Tu mente buscará excusas... porque la comodidad es fácil... Pero la fuerza exige fricción... Al revisar tu CNS hoy... recuerda... mides capacidad... no ganas... El estándar no se adapta a tu fatiga... tú te adaptas al estándar... Calibra... ejecuta...",
+        "cut_sheet": "Toma macro en cámara lenta de la pantalla del móvil mostrando la interfaz de calibración de BBF Lab, iluminando un rostro concentrado en la penumbra."
+      }
+    },
+    {
+      "id": "post_es_002",
+      "language": "ES",
+      "format": "Phone",
+      "series": "Form Fix",
+      "target_angle": "The Guide",
+      "hook": "El Mito de la Sentadilla con Barra.",
+      "caption": "Deja de comprimir tu columna por mera tradición. La sentadilla trasera con barra no es la ley para la potencia del tren inferior. En BBF Lab, programamos la Sentadilla con Barra Hexagonal (Trap-Bar Squat). Al alinear la carga con tu centro de gravedad, eliminamos el estrés de cizallamiento en la zona lumbar y reclutamos más tejido muscular. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#BarraHexagonal #Biomecanica #CienciaDelDeporte #BuckeyeAZ #PlanetFitnessWatson #FuerzaReal",
+      "recommended_post_time": "Morning CNS Check",
+      "studio_recipe": {
+        "mode": "Phone",
+        "background": "Dark Charcoal with #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "La sentadilla trasera tradicional destruye tu espalda baja... Por qué arriesgarse?... La barra hexagonal mantiene el peso alineado con tu gravedad... Más torque... cero compresión... activación muscular real... Respeta la biomecánica...",
+        "cut_sheet": "Pantalla dividida. Izquierda: símbolo de prohibido sobre una barra de sentadillas tradicional. Derecha: ejecución perfecta de una Sentadilla con Barra Hexagonal con la espalda neutra."
+      }
+    },
+    {
+      "id": "post_es_003",
+      "language": "ES",
+      "format": "Spotlight",
+      "series": "Prehab Architect",
+      "target_angle": "Proof-of-Work",
+      "hook": "La Estabilidad No Se Logra con Abdominales.",
+      "caption": "Tu abdomen está diseñado para resistir el movimiento, no para crearlo. Deja de flexionar tu columna con abdominales tradicionales de cuna. La verdadera fuerza del torso se forja con tensión anti-rotacional. Programamos el Pallof Press y planchas pesadas para enseñar a tu núcleo a proteger la columna bajo cargas de alto torque. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#PressPallof #EstabilidadCore #Prehab #BuckeyeAZ #BuckeyeLocal #EntrenamientoFuerza #SovereignVault",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Spotlight",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "Tu columna es un cable de alta tensión... tu abdomen es el aislante... Los abdominales de cuna rompen el sistema... El Pallof Press exige estabilidad anti-rotacional... bloquea las caderas... resiste la fuerza... protege tu columna...",
+        "cut_sheet": "Primer plano de una polea bajo alta tensión, abriendo la toma para mostrar a un atleta bloqueando por completo la rotación del tronco."
+      }
+    },
+    {
+      "id": "post_es_004",
+      "language": "ES",
+      "format": "CTA Card",
+      "series": "Recovery Mode",
+      "target_angle": "The Guide",
+      "hook": "Descomprime para Reconstruir.",
+      "caption": "El crecimiento ocurre en el descanso, no en el esfuerzo. Si tus métricas diarias de BBF Lab indican un sistema nervioso central agotado, forzar el entrenamiento es retroceder. Utilizamos respiración parasimpática y liberación miofascial para reducir el cortisol. El deload es una decisión científica. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#CNS #SistemaNervioso #BuckeyeAZ #VerradoLife #RecuperacionActiva #Periodizacion",
+      "recommended_post_time": "Evening Recovery",
+      "studio_recipe": {
+        "mode": "CTA Card",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
+      },
+      "reel_kit": {
+        "voiceover_script": "No puedes construir sobre la fatiga extrema... Cuando tu CNS está agotado... entrenar más es una decisión del ego... no de la razón... Respira... reduce el cortisol... deja que el cuerpo se cure... Sé inteligente...",
+        "cut_sheet": "Toma cálida y lenta de un rodillo de espuma deslizando sobre la fascia dorsal en un ambiente de luz tenue y purpúrea."
+      }
+    },
+    {
+      "id": "post_es_005",
+      "language": "ES",
+      "format": "Reel Cover",
+      "series": "Fuel Files",
+      "target_angle": "Proof-of-Work",
+      "hook": "Precisión Sobre Conjeturas.",
+      "caption": "Tu cuerpo no entiende de 'comer limpio', entiende de estructuras de macronutrientes. Deja de adivinar tus porciones. Basamos nuestra nutrición en alimentos densos: pavo molido, salmón salvaje y arroz jazmín. Medir con precisión es la línea entre estancarse y romper marcas. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#CienciaNutricional #Macronutrientes #BuckeyeAZ #VerradoCommunity #PreparacionComidas #Rendimiento",
+      "recommended_post_time": "Evening Recovery",
+      "studio_recipe": {
+        "mode": "Reel Cover",
+        "background": "Dark Charcoal with #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "Comer al ojo es pereza... Tu biología es matemática pura... Pesa el pavo molido... mide el arroz jazmín... Dale al músculo la materia prima exacta para reconstruirse... Sin excusas... solo precisión...",
+        "cut_sheet": "Pavo molido y arroz jazmín siendo pesados con exactitud milimétrica en una báscula negra, con la pantalla de la app BBF Lab mostrando el desglose calórico."
+      }
+    },
+    {
+      "id": "post_es_006",
+      "language": "ES",
+      "format": "Phone",
+      "series": "Mindset Engine",
+      "target_angle": "Discipline = Clarity",
+      "hook": "El Estado de Flow está Programado.",
+      "caption": "La inspiración es efímera; la arquitectura de sistemas es permanente. Los atletas de BBF Lab no esperan a la motivación. Entran en el momento presente, evalúan sus datos biológicos en el HUD de Calibración y ejecutan la densidad de entrenamiento prescrita. El flow se programa con disciplina. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#EstadoDeFlow #ArquitecturaDeSistemas #BuckeyeAZ #BuckeyeStrength #DisciplinaInquebrantable #Presente",
+      "recommended_post_time": "Morning CNS Check",
+      "studio_recipe": {
+        "mode": "Phone",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
+      },
+      "reel_kit": {
+        "voiceover_script": "La motivación es una mentira... Elimina el ruido mental... mira tus métricas biológicas... entra a la plataforma... y ejecuta... El presente es lo único real... Muévete con precisión...",
+        "cut_sheet": "Enfoque dinámico de una mano ajustando el calzado de entrenamiento, con gráficos semi-transparentes de la app proyectando los datos de recuperación en pantalla."
+      }
+    },
+    {
+      "id": "post_es_007",
+      "language": "ES",
+      "format": "Spotlight",
+      "series": "Form Fix",
+      "target_angle": "The Guide",
+      "hook": "Aperturas con Banda: Corrige la Postura.",
+      "caption": "Trabajar en oficina o conducir tu Tesla por Watson Road aplasta tu extensión torácica y rota tus hombros hacia adelante. No estires el pecho sin estabilizar la espalda. Las aperturas con banda (banded pull-aparts) son clave. Al fortalecer los deltoides posteriores y romboides, restauramos el equilibrio estructural. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#Prehab #HombrosSanos #AperturasConBanda #BuckeyeAZ #TeslaBuckeye #BiomecanicaHumana",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Spotlight",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "El sedentarismo te encorva... La conducción prolongada colapsa tu pecho... Abre el sistema con las aperturas con banda... Retrae... deprime las escápulas... y sostén... Fortalece atrás para sostener adelante...",
+        "cut_sheet": "Atleta ejecutando aperturas con banda elástica negra, enfocando la contracción isométrica del deltoides posterior."
+      }
+    },
+    {
+      "id": "post_es_008",
+      "language": "ES",
+      "format": "CTA Card",
+      "series": "Recovery Mode",
+      "target_angle": "Discipline = Clarity",
+      "hook": "El Ayuno es tu Escudo.",
+      "caption": "Ejecutamos un ayuno estructural 16/8 no por castigo, sino por control biológico. El ayuno regula la inflación, agudiza el enfoque mental y restaura la flora intestinal. Enseña a tu cerebro la diferencia entre hambre real y aburrimiento emocional. Rompe el ayuno con precisión a la 1 PM; nunca antes. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#AyunoIntermitente #ControlBiologico #BuckeyeAZ #SaludFisica #DisciplinaFisica #SovereignVault",
+      "recommended_post_time": "Evening Recovery",
+      "studio_recipe": {
+        "mode": "CTA Card",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
+      },
+      "reel_kit": {
+        "voiceover_script": "El ayuno es dominio propio... Tú decides cuándo se alimenta tu biología... no tus impulsos... Al romper tu ayuno a la una en punto... hazlo con total precisión... Mantén el estándar...",
+        "cut_sheet": "Plano detalle de un temporizador llegando a cero, seguido del emplatado limpio de una porción controlada de salmón, aguacate y arroz jazmín."
+      }
+    },
+    {
+      "id": "post_es_009",
+      "language": "ES",
+      "format": "Reel Cover",
+      "series": "Prehab Architect",
+      "target_angle": "Proof-of-Work",
+      "hook": "Smart Cardio es Armadura Cinética.",
+      "caption": "El cardio estático sin propósito es un desperdicio de densidad de entrenamiento. El motor Smart Cardio de BBF Lab adapta las intensidades basándose en tu CNS activo y métricas de recuperación. Desarrolla capacidad cardiovascular de élite sin sacrificar tu masa muscular y fuerza. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#SmartCardio #Acondicionamiento #BuckeyeAZ #VerradoFitness #CienciaDelCardio #SovereignVault",
+      "recommended_post_time": "Morning CNS Check",
+      "studio_recipe": {
+        "mode": "Reel Cover",
+        "background": "Dark Charcoal with #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "Sudar sin pensar es desperdiciar energía... Construimos tu motor cardiovascular de forma científica... Smart Cardio regula la intensidad según tu CNS real... Respira... alinea... y empuja...",
+        "cut_sheet": "Toma veloz de un atleta entrenando en la remadora de resistencia, sincronizando el esfuerzo con un gráfico de zonas de frecuencia cardíaca en pantalla."
+      }
+    },
+    {
+      "id": "post_es_010",
+      "language": "ES",
+      "format": "Phone",
+      "series": "Fuel Files",
+      "target_angle": "The Guide",
+      "hook": "Presencia Local, Estándar Global.",
+      "caption": "La tecnología es digital, la comunidad es física. Estamos haciendo divulgación física directa a comercios en Buckeye. Desde Watson Road hasta las colinas de Verrado, ayudamos a líderes locales y familias a romper el ciclo del descuido físico. Descarga la app, calibra tu perfil y súmate al estándar en Buckeye, Arizona. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#BuckeyeArizona #NegociosBuckeye #BuckeyeAZ #BuckeyeHighSchool #ComunidadSovereign #BBFLab",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Phone",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "reel_kit": null
+    },
+    {
+      "id": "post_pt_001",
+      "language": "PT",
+      "format": "Reel Cover",
+      "series": "Mindset Engine",
+      "target_angle": "Discipline = Clarity",
+      "hook": "A Soberania Começa às 5 da Manhã.",
+      "caption": "A sua mente quer conforto. O conforto é uma ilusão que gera atrofia. Ao abrir o HUD de Calibração do BBF Lab às 5 AM, você não está apenas registrando números; você está assumindo o controle do seu dia. Analisamos dados: prontidão do CNS, qualidade do sono e densidade de treino. Não negociamos com preguiça. Executamos o padrão. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#BBFLab #MenteSoberana #BuckeyeAZ #BuckeyeFitness #CienciaDoTreino #DisciplinaConsistente",
+      "recommended_post_time": "Morning CNS Check",
+      "studio_recipe": {
+        "mode": "Reel Cover",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
+      },
+      "reel_kit": {
+        "voiceover_script": "A sua mente vai pedir conforto... porque o conforto é fácil... Mas a evolução exige atrito... Ao avaliar seu CNS hoje... lembre-se... você mede capacidade... não vontade... O padrão não negocia com o cansaço... você domina o padrão... Calibre... execute...",
+        "cut_sheet": "Câmera macro e lenta mostrando o anel de carregamento do app BBF Lab mudando de cor de acordo com os níveis de prontidão do sistema nervoso."
+      }
+    },
+    {
+      "id": "post_pt_002",
+      "language": "PT",
+      "format": "Phone",
+      "series": "Form Fix",
+      "target_angle": "The Guide",
+      "hook": "O Mito do Agachamento com Barra Traseira.",
+      "caption": "Pare de esmagar a sua coluna lombar por pura tradição. O agachamento com barra nas costas não é a lei absoluta para força de pernas. No BBF Lab, só programamos o Agachamento com Barra Hexagonal (Trap-Bar Squat). Alinhando a carga com o seu centro de gravidade, eliminamos a pressão lombar e aumentamos o recrutamento de glúteos e quadríceps. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#BarraHexagonal #Biomecanica #FisiologiaDoExercicio #BuckeyeAZ #PlanetFitnessWatson #ForcaEstrutural",
+      "recommended_post_time": "Morning CNS Check",
+      "studio_recipe": {
+        "mode": "Phone",
+        "background": "Dark Charcoal with #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "Agachamentos tradicionais com barra geram uma compressão brutal na lombar... Por que correr esse risco?... A barra hexagonal mantém o peso alinhado ao seu centro... Mais torque... pressão zero na coluna... ativação total... Esqueça a tradição... treine com ciência...",
+        "cut_sheet": "Vídeo demonstrativo comparando a compressão da coluna. Linhas vermelhas de estresse na barra tradicional e linhas douradas de força vertical na barra hexagonal."
+      }
+    },
+    {
+      "id": "post_pt_003",
+      "language": "PT",
+      "format": "Spotlight",
+      "series": "Prehab Architect",
+      "target_angle": "Proof-of-Work",
+      "hook": "Abdominais Não Constroem Estabilidade.",
+      "caption": "A sua musculatura abdominal foi feita para resistir ao movimento, não para gerá-lo. Pare de flexionar a sua coluna repetidamente com abdominais tradicionais. A força real do core é anti-rotacional. Programamos o Pallof Press e pranchas pesadas para ensinar o seu tronco a se manter rígido e proteger a coluna sob altas cargas de torque. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#PressPallof #EstabilidadeDeCore #Prehab #BuckeyeAZ #BuckeyeLocal #TreinoDeForca #SovereignVault",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Spotlight",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "A sua coluna lombar é um mastro... o core é a estrutura de suporte... Abdominais convencionais destroem a integridade do sistema... O Pallof Press estabiliza seu tronco... ative os oblíquos... resista à rotação... blinde a coluna...",
+        "cut_sheet": "Imagem estática detalhando as forças de rotação resistidas pelo atleta durante a execução perfeita do Pallof Press com elástico."
+      }
+    },
+    {
+      "id": "post_pt_004",
+      "language": "PT",
+      "format": "CTA Card",
+      "series": "Recovery Mode",
+      "target_angle": "The Guide",
+      "hook": "Descomprima para Evoluir.",
+      "caption": "A evolução acontece no descanso, nunca no esgotamento. Se as suas mídias diárias do BBF Lab acusam um sistema nervoso central esgotado, treinar pesado é um erro tático. Usamos respiração parassimpática e liberação miofascial para reajustar o cortisol. O deload é uma escolha científica. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#CNS #NervosoCentral #BuckeyeAZ #VerradoLife #RecuperacaoAtiva #PeriodizacaoTreino",
+      "recommended_post_time": "Evening Recovery",
+      "studio_recipe": {
+        "mode": "CTA Card",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
+      },
+      "reel_kit": {
+        "voiceover_script": "Treinar na exaustão crônica não é força... é burrice do ego... Quando o seu CNS está esgotado... o deload é a sua única arma... Respire fundo... acalme o sistema... prepare-se para o próximo ciclo... Seja cirúrgico...",
+        "cut_sheet": "Toma aérea e suave de um atleta alongando o quadril em posição de deitada profunda, respirando calmamente no tapete do estúdio."
+      }
+    },
+    {
+      "id": "post_pt_005",
+      "language": "PT",
+      "format": "Reel Cover",
+      "series": "Fuel Files",
+      "target_angle": "Proof-of-Work",
+      "hook": "Precisão é a Única Regra.",
+      "caption": "O seu corpo não entende o conceito de 'comer limpo', ele responde a estruturas de macronutrientes. Pare de chutar as suas porções e esperar performance de elite. Baseamos a nossa nutrição em fontes de alta densidade: peito de peru moído, salmão selvagem e arroz jasmim. Pesar é a diferença entre estagnar e evoluir. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#NutricaoFisiologica #Macronutrientes #BuckeyeAZ #VerradoCommunity #MarmitaFit #AltaPerformance",
+      "recommended_post_time": "Evening Recovery",
+      "studio_recipe": {
+        "mode": "Reel Cover",
+        "background": "Dark Charcoal with #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "Comer sem pesar é pura preguiça... Sua fisionomia funciona com matemática... Pese o peru moído... controle o arroz jasmim... Forneça as frações exatas que a fibra muscular precisa... Sem desculpas...",
+        "cut_sheet": "Corte rápido e dinâmico de porções de arroz jasmim e peito de peru grelhado sendo arrumadas em potes pretos organizados sobre uma mesa escura."
+      }
+    },
+    {
+      "id": "post_pt_006",
+      "language": "PT",
+      "format": "Phone",
+      "series": "Mindset Engine",
+      "target_angle": "Discipline = Clarity",
+      "hook": "O Estado de Flow é uma Engenharia.",
+      "caption": "Inspiração é passageira; arquitetura de sistemas é perene. Os atletas do BBF Lab não dependem de motivação. Eles entram no momento presente, verificam os dados do HUD de Calibração e executam a densidade de treino prescrita para o bloco. O foco é fruto de disciplina física. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#EstadoDeFlow #SistemasEsportivos #BuckeyeAZ #BuckeyeStrength #DisciplinaInabalavel #Presente",
+      "recommended_post_time": "Morning CNS Check",
+      "studio_recipe": {
+        "mode": "Phone",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
+      },
+      "reel_kit": {
+        "voiceover_script": "Esqueça a inspiração... ela não constrói estruturas... Silencie as vozes da dúvida... olhe os seus dados de recuperação... suba na plataforma... e cumpra o plano... Concentração total...",
+        "cut_sheet": "Toma baixa e dinâmica focando nos pés de um atleta em posição inicial no Trap-Bar, mantendo o quadril firme antes do primeiro movimento."
+      }
+    },
+    {
+      "id": "post_pt_007",
+      "language": "PT",
+      "format": "Spotlight",
+      "series": "Form Fix",
+      "target_angle": "The Guide",
+      "hook": "Abertura com Elástico: Ajuste Postural.",
+      "caption": "Horas em frente ao computador ou dirigindo seu Tesla pela Watson Road destroem a sua extensão torácica e fecham os seus ombros. Não alongue o peitoral sem estabilizar as costas. A abertura com elástico (banded pull-apart) é a nossa arma de correção. Ativando deltoide posterior e romboides, equilibramos as articulações. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#Prehab #OmbrosSaudaveis #BandedPullAparts #BuckeyeAZ #TeslaBuckeye #BiomecanicaFisica",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Spotlight",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "O seu cotidiano fecha os seus ombros... Dirigir por muito tempo destrói a postura... Abra o sistema com as aberturas com elástico... Retraia... ative o trapézio médio... e segure... Fortaleça o suporte...",
+        "cut_sheet": "Foco traseiro em câmera lenta evidenciando a ativação detalhada das escápulas e do músculo infraespinhal durante o pull-apart."
+      }
+    },
+    {
+      "id": "post_pt_008",
+      "language": "PT",
+      "format": "CTA Card",
+      "series": "Recovery Mode",
+      "target_angle": "Discipline = Clarity",
+      "hook": "O Jejum é o Seu Escudo.",
+      "caption": "Seguimos o protocolo de jejum estruturado 16/8 não para passar fome, mas para dominar a nossa bioquímica. O jejum reduz marcadores inflamatórios, limpa a névoa mental e protege a integridade do intestino. Ele ensina a diferença entre a fome física e a ansiedade emocional. Quebre o jejum com precisão às 13h; nunca antes. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#JejumIntermitente #FisiologiaHumana #BuckeyeAZ #NutricaoEsportiva #DisciplinaFisica #SovereignVault",
+      "recommended_post_time": "Evening Recovery",
+      "studio_recipe": {
+        "mode": "CTA Card",
+        "background": "Dark Charcoal with #6a0dad Purple Glow"
+      },
+      "reel_kit": {
+        "voiceover_script": "Jejum é um treino de autocontrole... Você define quando a sua biologia recebe energia... não o seu tédio... Ao quebrar o jejum às treze horas em ponto... use precisão máxima... Sem deslizes...",
+        "cut_sheet": "Plano macro de um garfo pegando uma porção limpa de salmão fresco e arroz jasmim, com luz dourada ressaltando a textura do alimento."
+      }
+    },
+    {
+      "id": "post_pt_009",
+      "language": "PT",
+      "format": "Reel Cover",
+      "series": "Prehab Architect",
+      "target_angle": "Proof-of-Work",
+      "hook": "Smart Cardio é Armadura Funcional.",
+      "caption": "Cardio convencional sem propósito é um desperdício de densidade de treino. O sistema Smart Cardio do BBF Lab calcula a sua intensidade com base nos seus dados ativos de CNS e fadiga periférica. Desenvolva saúde e potência cardiovascular sem comprometer a sua força e musculatura. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#SmartCardio #AcondicionamentoFisico #BuckeyeAZ #VerradoFitness #CienciaDoTreino #SovereignVault",
+      "recommended_post_time": "Morning CNS Check",
+      "studio_recipe": {
+        "mode": "Reel Cover",
+        "background": "Dark Charcoal with #f5c800 Gold Accent"
+      },
+      "reel_kit": {
+        "voiceover_script": "Sudar sem métrica é ineficiência física... Construímos potência com base científica... O Smart Cardio ajusta a sua saída de acordo com a sua capacidade real... Respire... alinhe... e acelere...",
+        "cut_sheet": "Atleta na bike ergométrica em alta intensidade, com os dados da zona de potência cardiovascular subindo na tela do aplicativo."
+      }
+    },
+    {
+      "id": "post_pt_010",
+      "language": "PT",
+      "format": "Phone",
+      "series": "Fuel Files",
+      "target_angle": "The Guide",
+      "hook": "Presença Local, Padrão Global.",
+      "caption": "A tecnologia é digital, mas a conexão é física. Estamos realizando um trabalho direto de contato e apoio com as empresas locais de Buckeye. Da Watson Road às colinas de Verrado, ajudamos líderes e famílias a quebrar o ciclo do sedentarismo. Baixe o app, calibre seu perfil e adote o padrão em Buckeye, Arizona. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#BuckeyeArizona #ComercioLocal #BuckeyeAZ #BuckeyeHighSchool #ComunidadeSovereign #BBFLab",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Phone",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "reel_kit": null
     }
   ]
 }

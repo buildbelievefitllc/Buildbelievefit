@@ -12,17 +12,28 @@
 .dcm-tab { font-family: var(--hb, 'Barlow Condensed', sans-serif); font-size: .8rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dcm-mut); background: none; border: none; border-radius: 999px; padding: .5rem 1rem; cursor: pointer; transition: background .15s, color .15s; }
 .dcm-tab.is-on { color: #0e0a16; background: linear-gradient(90deg, var(--dcm-purple), var(--dcm-gold)); font-weight: 700; }
 
+/* ── Language filter bar ───────────────────────────────────────────────────── */
+.dcm-langbar { display: flex; gap: .4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.dcm-langchip { font-family: var(--hb, sans-serif); font-size: .72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dcm-mut); background: none; border: 1px solid var(--dcm-line); border-radius: 999px; padding: .35rem .85rem; cursor: pointer; }
+.dcm-langchip.is-on { color: #0e0a16; background: var(--dcm-gold); border-color: var(--dcm-gold); font-weight: 800; }
+
 /* ── Review Bucket ─────────────────────────────────────────────────────────── */
-.dcm-bucket { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+.dcm-bucket { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; align-items: start; }
 .dcm-empty { color: var(--dcm-mut); font-style: italic; padding: 2rem 0; }
 
 .dcm-card { position: relative; border: 1px solid var(--dcm-line); border-radius: 14px; padding: 1rem 1.1rem; background: linear-gradient(160deg, rgba(106,13,173,.12), rgba(9,9,9,.5)); display: flex; flex-direction: column; gap: .7rem; }
 .dcm-card.is-done { opacity: .72; border-color: rgba(245,200,0,.4); }
 
 .dcm-card-head { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-.dcm-series { font-family: var(--hb, sans-serif); font-size: .72rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #0e0a16; background: var(--series, #8a8f98); padding: .2rem .6rem; border-radius: 999px; }
+.dcm-series { font-family: var(--hb, sans-serif); font-size: .72rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: .2rem .6rem; border-radius: 999px; }
+.dcm-lang { font-family: var(--hb, sans-serif); font-size: .64rem; font-weight: 800; letter-spacing: 1px; color: var(--dcm-ink); border: 1px solid var(--dcm-line); padding: .15rem .45rem; border-radius: 999px; }
 .dcm-format { font-size: .62rem; letter-spacing: 1px; text-transform: uppercase; color: var(--dcm-mut); border: 1px solid var(--dcm-line); padding: .15rem .45rem; border-radius: 999px; }
+.dcm-slot-band { font-size: .6rem; letter-spacing: .5px; color: var(--dcm-mut); }
 .dcm-scheduled-badge { margin-left: auto; font-size: .68rem; font-weight: 800; color: var(--dcm-gold); }
+.dcm-hashtags { margin: 0; font-size: .74rem; line-height: 1.4; color: #8ab4f8; word-break: break-word; }
+.dcm-recipe-chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+.dcm-chip { font-size: .68rem; color: var(--dcm-ink); background: rgba(9,9,9,.5); border: 1px solid var(--dcm-line); border-radius: 6px; padding: .2rem .5rem; }
+.dcm-novo { margin: 0; font-size: .78rem; font-style: italic; color: var(--dcm-mut); }
 
 .dcm-field { display: flex; flex-direction: column; gap: .2rem; }
 .dcm-label { font-family: var(--hb, sans-serif); font-size: .62rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dcm-gold); }
@@ -73,10 +84,15 @@
 .dcm-cal-daynum { font-size: .68rem; color: var(--dcm-mut); align-self: flex-end; }
 .dcm-cal-items { display: flex; flex-direction: column; gap: 3px; }
 
-.dcm-cal-block { text-align: left; border: none; border-radius: 5px; padding: .25rem .35rem; cursor: grab; display: flex; flex-direction: column; gap: 1px; color: #0e0a16; background: var(--series, #8a8f98); box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+/* Left-border accent (matte-black canvas + series color as the identity bar) — reads
+   cleanly for every series including the dark BBF Purple, where light text on the
+   color itself would fail contrast. */
+.dcm-cal-block { text-align: left; border: none; border-left: 3px solid var(--series, #8a8f98); border-radius: 4px; padding: .28rem .4rem; cursor: grab; display: flex; flex-direction: column; gap: 2px; color: var(--dcm-ink); background: rgba(9,9,9,.72); box-shadow: 0 1px 3px rgba(0,0,0,.35); }
 .dcm-cal-block:active { cursor: grabbing; }
-.dcm-cal-block-series { font-family: var(--hb, sans-serif); font-size: .56rem; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; opacity: .85; }
-.dcm-cal-block-hook { font-size: .64rem; font-weight: 700; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.dcm-cal-block-top { display: flex; align-items: center; justify-content: space-between; gap: .25rem; }
+.dcm-cal-block-series { font-family: var(--hb, sans-serif); font-size: .56rem; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--series, #8a8f98); }
+.dcm-cal-block-lang { font-size: .5rem; font-weight: 800; letter-spacing: .5px; color: var(--dcm-mut); border: 1px solid var(--dcm-line); border-radius: 3px; padding: 0 .2rem; }
+.dcm-cal-block-hook { font-size: .64rem; font-weight: 600; line-height: 1.1; color: rgba(249,245,255,.9); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
 @media (max-width: 720px) {
   .dcm-cal-cell { min-height: 72px; }

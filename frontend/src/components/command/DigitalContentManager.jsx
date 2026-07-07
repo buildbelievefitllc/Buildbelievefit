@@ -3,23 +3,26 @@
 // DIGITAL CONTENT MANAGER — Command Center panel (admin-only via the AdminGuard
 // /command route + server-side session re-gate on every backend call).
 //
-// Three surfaces, one panel (CEO spec):
+// Two surfaces, one panel (CEO spec):
 //   1. REVIEW BUCKET   — ingests the STATIC bbf_master_content_engine.json library
-//      (no live LLM) and renders each draft as an actionable card: Series, Target
-//      Angle, Hook, Full Caption, Studio Recipe (visuals), and the text-only Akeem
-//      voiceover script. Each card: [Edit Draft] (tweak script/caption/recipe) and
-//      [Approve & Synthesize] (the ONLY external API — bakes the Akeem MP3 and
-//      inserts a scheduled row into bbf_content_manager_queue).
+//      (the 30-day evergreen batch; no live LLM) and renders each post as an
+//      actionable card: Series, Language, Format, Target Angle, Hook, Full Caption,
+//      Studio Recipe (mode + background + cut sheet), Hashtags, and the text-only
+//      Akeem voiceover script. Trilingual filter (EN/ES/PT/All). Each card:
+//      [Edit Draft] (tweak script / caption / cut sheet) and [Approve & Synthesize]
+//      — the ONLY external API. Outreach posts with no reel_kit schedule WITHOUT a
+//      synth call ("Schedule · No VO").
 //   2. DISTRIBUTION CALENDAR — month/week grid fed by the queue. Blocks are
-//      color-coded by series and DRAG-AND-DROP between days fires a reschedule RPC
-//      that updates the row's scheduled_at.
+//      series-color-coded (Mindset Engine purple, Form Fix gold, …) and DRAG-AND-DROP
+//      between days fires a reschedule RPC that updates the row's scheduled_at.
 //
 // Brand-locked (§2): BBF Purple #6a0dad, Gold #f5c800; matte black canvas only.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import LIBRARY from '../../data/bbf_master_content_engine.json';
 import {
-  SERIES_META, seriesMeta, approveAndSynthesize, fetchContentQueue, rescheduleContentItem,
+  SERIES_META, seriesMeta, readableText,
+  approveAndSynthesize, fetchContentQueue, rescheduleContentItem,
 } from '../../lib/contentManagerApi.js';
 import './digitalContentManager.css';
 
@@ -27,20 +30,17 @@ import './digitalContentManager.css';
 const pad2 = (n) => String(n).padStart(2, '0');
 const isoDay = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-// datetime-local input value (YYYY-MM-DDTHH:MM) from a Date.
 const toLocalInput = (d) => `${isoDay(d)}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-// Default approval slot: tomorrow at 09:00 local.
 function defaultSlot() {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   d.setHours(9, 0, 0, 0);
   return d;
 }
-// Build a month matrix (weeks of 7 Sun→Sat Dates) covering `anchor`'s month.
 function monthMatrix(anchor) {
   const first = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
   const gridStart = new Date(first);
-  gridStart.setDate(first.getDate() - first.getDay()); // back to Sunday
+  gridStart.setDate(first.getDate() - first.getDay());
   const weeks = [];
   const cur = new Date(gridStart);
   for (let w = 0; w < 6; w++) {
@@ -50,7 +50,6 @@ function monthMatrix(anchor) {
   }
   return weeks;
 }
-// Build a single week (Sun→Sat) containing `anchor`.
 function weekRow(anchor) {
   const start = new Date(anchor);
   start.setDate(anchor.getDate() - anchor.getDay());
@@ -59,7 +58,29 @@ function weekRow(anchor) {
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-const DRAFTS = Array.isArray(LIBRARY?.drafts) ? LIBRARY.drafts : [];
+// ── ingest + normalize the static library (posts schema; drafts as a fallback) ──
+const RAW_POSTS = Array.isArray(LIBRARY?.posts) ? LIBRARY.posts
+  : Array.isArray(LIBRARY?.drafts) ? LIBRARY.drafts : [];
+function normalizePost(p) {
+  const recipe = p.studio_recipe || {};
+  return {
+    id: p.id,
+    language: String(p.language || 'EN').toUpperCase(),
+    format: p.format || recipe.mode || '',
+    series: p.series,
+    target_angle: p.target_angle || '',
+    hook: p.hook || '',
+    caption: p.caption || '',
+    hashtags: p.hashtags || '',
+    recommended_post_time: p.recommended_post_time || '',
+    mode: recipe.mode || p.format || '',
+    background: recipe.background || '',
+    voiceover_script: p.reel_kit?.voiceover_script || p.voiceover_script || '',
+    cut_sheet: p.reel_kit?.cut_sheet || '',
+    has_vo: !!(p.reel_kit && p.reel_kit.voiceover_script),
+  };
+}
+const DRAFTS = RAW_POSTS.map(normalizePost);
 
 // ── Series color legend ───────────────────────────────────────────────────────
 function SeriesLegend() {
@@ -84,7 +105,7 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
   const [form, setForm] = useState({
     voiceover_script: draft.voiceover_script || '',
     caption: draft.caption || '',
-    visual: draft.studio_recipe?.visual || '',
+    cut_sheet: draft.cut_sheet || '',
   });
   const [slot, setSlot] = useState(() => toLocalInput(defaultSlot()));
   const [state, setState] = useState({ phase: already ? 'done' : 'idle', error: null, audioUrl: null });
@@ -95,10 +116,18 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
     setState({ phase: 'working', error: null, audioUrl: null });
     try {
       const merged = {
-        ...draft,
-        voiceover_script: form.voiceover_script,
+        id: draft.id,
+        series: draft.series,
+        target_angle: draft.target_angle,
+        hook: draft.hook,
         caption: form.caption,
-        studio_recipe: { ...(draft.studio_recipe || {}), visual: form.visual },
+        voiceover_script: form.voiceover_script,
+        cut_sheet: form.cut_sheet,
+        language: draft.language,
+        format: draft.format,
+        hashtags: draft.hashtags,
+        recommended_post_time: draft.recommended_post_time,
+        studio_recipe: { mode: draft.mode, background: draft.background },
       };
       const scheduledIso = new Date(slot).toISOString();
       const { audio } = await approveAndSynthesize(merged, { scheduled_at: scheduledIso });
@@ -109,15 +138,20 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
     }
   };
 
-  const recipe = draft.studio_recipe || {};
   const working = state.phase === 'working';
   const done = state.phase === 'done';
+  const approveLabel = working
+    ? (draft.has_vo ? '⟳ Synthesizing…' : '⟳ Scheduling…')
+    : done ? '↻ Re-run'
+      : draft.has_vo ? 'Approve & Synthesize' : 'Schedule · No VO';
 
   return (
-    <article className={`dcm-card${done ? ' is-done' : ''}`} data-testid="draft-card" data-draft-id={draft.id} data-status={state.phase}>
+    <article className={`dcm-card${done ? ' is-done' : ''}`} data-testid="draft-card" data-draft-id={draft.id} data-status={state.phase} data-lang={draft.language}>
       <header className="dcm-card-head">
-        <span className="dcm-series" style={{ '--series': meta.color }}>{draft.series}</span>
-        {recipe.format ? <span className="dcm-format">{recipe.format}</span> : null}
+        <span className="dcm-series" style={{ background: meta.color, color: readableText(meta.color) }}>{draft.series}</span>
+        <span className="dcm-lang">{draft.language}</span>
+        {draft.format ? <span className="dcm-format">{draft.format}</span> : null}
+        {draft.recommended_post_time ? <span className="dcm-slot-band">🕑 {draft.recommended_post_time}</span> : null}
         {done ? <span className="dcm-scheduled-badge">✓ Scheduled</span> : null}
       </header>
 
@@ -136,23 +170,41 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
       <div className="dcm-field">
         <span className="dcm-label">Full Caption</span>
         {editing
-          ? <textarea className="dcm-textarea" rows={4} value={form.caption} onChange={setField('caption')} data-testid={`draft-caption-${draft.id}`} />
+          ? <textarea className="dcm-textarea" rows={5} value={form.caption} onChange={setField('caption')} data-testid={`draft-caption-${draft.id}`} />
           : <p className="dcm-caption">{form.caption}</p>}
       </div>
 
+      {draft.hashtags ? (
+        <div className="dcm-field">
+          <span className="dcm-label">Hashtags</span>
+          <p className="dcm-hashtags">{draft.hashtags}</p>
+        </div>
+      ) : null}
+
       <div className="dcm-field">
-        <span className="dcm-label">Studio Recipe · Visuals</span>
+        <span className="dcm-label">Studio Recipe</span>
+        <div className="dcm-recipe-chips">
+          {draft.mode ? <span className="dcm-chip">Mode · {draft.mode}</span> : null}
+          {draft.background ? <span className="dcm-chip">{draft.background}</span> : null}
+        </div>
+      </div>
+
+      <div className="dcm-field">
+        <span className="dcm-label">Cut Sheet · Visuals</span>
         {editing
-          ? <textarea className="dcm-textarea" rows={3} value={form.visual} onChange={setField('visual')} data-testid={`draft-visual-${draft.id}`} />
-          : <p className="dcm-recipe">{form.visual}</p>}
-        {recipe.asset ? <span className="dcm-asset">⛓ {recipe.asset}</span> : null}
+          ? <textarea className="dcm-textarea" rows={3} value={form.cut_sheet} onChange={setField('cut_sheet')} data-testid={`draft-cutsheet-${draft.id}`} />
+          : <p className="dcm-recipe">{form.cut_sheet || '—'}</p>}
       </div>
 
       <div className="dcm-field">
         <span className="dcm-label">🎙 Voiceover Script <em>(Coach Akeem)</em></span>
-        {editing
-          ? <textarea className="dcm-textarea dcm-textarea--script" rows={5} value={form.voiceover_script} onChange={setField('voiceover_script')} data-testid={`draft-script-${draft.id}`} />
-          : <p className="dcm-script">{form.voiceover_script}</p>}
+        {draft.has_vo ? (
+          editing
+            ? <textarea className="dcm-textarea dcm-textarea--script" rows={5} value={form.voiceover_script} onChange={setField('voiceover_script')} data-testid={`draft-script-${draft.id}`} />
+            : <p className="dcm-script">{form.voiceover_script}</p>
+        ) : (
+          <p className="dcm-novo">No reel kit — outreach post. Schedules as text/visual only (no synthesis).</p>
+        )}
       </div>
 
       {state.audioUrl ? (
@@ -189,7 +241,7 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
             disabled={working}
             data-testid={`draft-approve-${draft.id}`}
           >
-            {working ? '⟳ Synthesizing…' : done ? '↻ Re-synthesize' : 'Approve & Synthesize'}
+            {approveLabel}
           </button>
         </div>
       </footer>
@@ -200,10 +252,9 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
 // ── Distribution Calendar ─────────────────────────────────────────────────────
 function DistributionCalendar({ items, onReschedule }) {
   const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
-  const [view, setView] = useState('month'); // 'month' | 'week'
+  const [view, setView] = useState('month');
   const draggingId = useRef(null);
 
-  // Group scheduled items by local ISO day.
   const byDay = useMemo(() => {
     const map = new Map();
     for (const it of items) {
@@ -234,10 +285,9 @@ function DistributionCalendar({ items, onReschedule }) {
     if (!id) return;
     const existing = items.find((x) => x.id === id);
     if (!existing) return;
-    // Preserve the original time-of-day; move only the date to the dropped cell.
     const prev = new Date(existing.scheduled_at);
     const next = new Date(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate(), prev.getHours(), prev.getMinutes(), 0, 0);
-    if (isoDay(next) === isoDay(prev)) return; // no-op drop onto same day
+    if (isoDay(next) === isoDay(prev)) return;
     onReschedule(id, next.toISOString());
   };
 
@@ -294,7 +344,10 @@ function DistributionCalendar({ items, onReschedule }) {
                       data-series={it.series}
                       title={`${it.series} · ${it.hook || ''}`}
                     >
-                      <span className="dcm-cal-block-series">{it.series}</span>
+                      <span className="dcm-cal-block-top">
+                        <span className="dcm-cal-block-series">{it.series}</span>
+                        {it.language ? <span className="dcm-cal-block-lang">{it.language}</span> : null}
+                      </span>
                       <span className="dcm-cal-block-hook">{it.hook || it.target_angle || '—'}</span>
                     </button>
                   );
@@ -323,6 +376,7 @@ function humanizeError(slug) {
 // ── Panel ─────────────────────────────────────────────────────────────────────
 export default function DigitalContentManager() {
   const [tab, setTab] = useState('bucket'); // 'bucket' | 'calendar'
+  const [lang, setLang] = useState('EN');    // 'EN' | 'ES' | 'PT' | 'ALL'
   const [items, setItems] = useState([]);
   const [queueState, setQueueState] = useState({ loading: true, error: null });
 
@@ -353,20 +407,24 @@ export default function DigitalContentManager() {
     return () => { alive = false; };
   }, []);
 
-  // Optimistic reschedule → fire the RPC → reconcile from the returned row.
   const handleReschedule = useCallback(async (id, scheduledIso) => {
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, scheduled_at: scheduledIso } : it)));
     try {
       const updated = await rescheduleContentItem({ id, scheduled_at: scheduledIso });
       if (updated) setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...updated } : it)));
     } catch {
-      refresh(); // revert to server truth on failure
+      refresh();
     }
   }, [refresh]);
 
   const scheduledSourceRefs = useMemo(
     () => new Set(items.map((it) => it.source_ref).filter(Boolean)),
     [items],
+  );
+
+  const visibleDrafts = useMemo(
+    () => (lang === 'ALL' ? DRAFTS : DRAFTS.filter((d) => d.language === lang)),
+    [lang],
   );
 
   return (
@@ -398,20 +456,37 @@ export default function DigitalContentManager() {
       </header>
 
       {tab === 'bucket' ? (
-        <div className="dcm-bucket" data-testid="review-bucket">
-          {DRAFTS.length === 0 ? (
-            <p className="dcm-empty">No drafts in bbf_master_content_engine.json.</p>
-          ) : (
-            DRAFTS.map((d) => (
-              <DraftCard
-                key={d.id}
-                draft={d}
-                scheduledSourceRefs={scheduledSourceRefs}
-                onApproved={refresh}
-              />
-            ))
-          )}
-        </div>
+        <>
+          <div className="dcm-langbar" role="tablist" aria-label="Language filter">
+            {['EN', 'ES', 'PT', 'ALL'].map((L) => (
+              <button
+                key={L}
+                type="button"
+                role="tab"
+                aria-selected={lang === L}
+                className={`dcm-langchip${lang === L ? ' is-on' : ''}`}
+                onClick={() => setLang(L)}
+                data-testid={`content-mgr-lang-${L.toLowerCase()}`}
+              >
+                {L === 'ALL' ? `All (${DRAFTS.length})` : `${L} (${DRAFTS.filter((d) => d.language === L).length})`}
+              </button>
+            ))}
+          </div>
+          <div className="dcm-bucket" data-testid="review-bucket">
+            {visibleDrafts.length === 0 ? (
+              <p className="dcm-empty">No drafts for this language in bbf_master_content_engine.json.</p>
+            ) : (
+              visibleDrafts.map((d) => (
+                <DraftCard
+                  key={d.id}
+                  draft={d}
+                  scheduledSourceRefs={scheduledSourceRefs}
+                  onApproved={refresh}
+                />
+              ))
+            )}
+          </div>
+        </>
       ) : (
         <div className="dcm-calendar-wrap">
           {queueState.error ? <p className="dcm-error" role="alert">⚠ {queueState.error}</p> : null}

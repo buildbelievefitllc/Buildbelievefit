@@ -184,4 +184,27 @@ test.describe('BBF Command Center — Digital Content Manager', () => {
 
     expect(realDbHits).toHaveLength(0);
   });
+
+  test('outreach post with no reel_kit schedules WITHOUT an ElevenLabs call', async ({ page }) => {
+    await seedAdminSession(page);
+    const { realDbHits } = await installSupabaseBaseline(page);
+    const { voiceoverCalls, approveCalls } = await installBackends(page);
+
+    await page.goto('/command/content-manager');
+    await expect(page.getByTestId('content-manager')).toBeVisible();
+
+    // The EN outreach post (post_en_010) has reel_kit:null → its trigger reads
+    // "Schedule · No VO" and must persist the row without touching ElevenLabs.
+    const approveBtn = page.getByTestId('draft-approve-post_en_010');
+    await expect(approveBtn).toBeVisible();
+    await expect(approveBtn).toHaveText(/No VO/i);
+    await approveBtn.click();
+
+    await expect.poll(() => approveCalls.length).toBe(1);
+    expect(approveCalls[0].source_ref).toBe('post_en_010');
+    expect(approveCalls[0].audio_url ?? null).toBeNull();
+    expect(voiceoverCalls).toHaveLength(0); // zero ElevenLabs spend for outreach
+
+    expect(realDbHits).toHaveLength(0);
+  });
 });

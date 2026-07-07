@@ -125,7 +125,7 @@ async function resolveAdminUid(req: Request): Promise<string | null> {
 }
 
 // ─── DB helpers (service role) ───────────────────────────────────────────────────
-const ITEM_COLS = 'id,series,target_angle,hook,caption,studio_recipe,voiceover_script,audio_url,audio_slug,status,scheduled_at,source_ref,created_at,updated_at';
+const ITEM_COLS = 'id,series,target_angle,hook,caption,studio_recipe,voiceover_script,cut_sheet,language,format,hashtags,recommended_post_time,audio_url,audio_slug,status,scheduled_at,source_ref,created_at,updated_at';
 
 async function insertRow(row: Record<string, unknown>): Promise<unknown> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
@@ -181,6 +181,11 @@ serve(async (req) => {
         caption: clip(body?.caption, 2200),
         studio_recipe: asObject(body?.studio_recipe),
         voiceover_script: clip(body?.voiceover_script, 4000),
+        cut_sheet: clip(body?.cut_sheet, 2000),
+        language: clip(body?.language, 8),
+        format: clip(body?.format, 40),
+        hashtags: clip(body?.hashtags, 800),
+        recommended_post_time: clip(body?.recommended_post_time, 80),
         audio_url: clip(body?.audio_url, 600),
         audio_slug: clip(body?.audio_slug, 200),
         status: 'scheduled',

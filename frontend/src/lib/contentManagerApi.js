@@ -22,15 +22,28 @@ const MANAGER_FN = `${FUNCTIONS_BASE}/bbf-content-manager`;
 
 // Series → calendar color + Akeem voice vibe. Mindset Engine = BBF Purple and
 // Form Fix = BBF Gold are LOCKED by the CEO spec; the rest get distinct, on-brand
-// accent hues so the monthly grid reads as a rapid visual audit of the mix.
+// accent hues so the monthly grid reads as a rapid visual audit of the mix. The
+// vibe drives the ElevenLabs delivery physics per content type.
 export const SERIES_META = {
-  'Mindset Engine': { color: '#6a0dad', vibe: 'the_architect' },
-  'Form Fix':       { color: '#f5c800', vibe: 'the_mechanic' },
-  'Fuel Protocol':  { color: '#12b886', vibe: 'real_talk' },
-  'Recovery Lab':   { color: '#4dabf7', vibe: 'the_sanctuary' },
+  'Mindset Engine':   { color: '#6a0dad', vibe: 'the_architect' },  // philosophy → Architect
+  'Form Fix':         { color: '#f5c800', vibe: 'the_mechanic' },   // biomechanics → Mechanic
+  'Prehab Architect': { color: '#4dabf7', vibe: 'the_mechanic' },   // technical prehab → Mechanic
+  'Recovery Mode':    { color: '#20c997', vibe: 'the_sanctuary' },  // down-regulate → Sanctuary
+  'Fuel Files':       { color: '#fd7e14', vibe: 'real_talk' },      // nutrition → Real Talk
 };
 const FALLBACK_META = { color: '#8a8f98', vibe: 'the_architect' };
 export const seriesMeta = (series) => SERIES_META[series] || FALLBACK_META;
+
+// Pick a legible foreground (near-black or white) for a series-colored chip, by
+// perceived luminance — so the dark BBF Purple gets white text while Gold/Orange/
+// Teal keep near-black. Threshold tuned so #6a0dad → white, the rest → ink.
+export function readableText(hex) {
+  const h = String(hex || '').replace('#', '');
+  if (h.length < 6) return '#0e0a16';
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.55 ? '#0e0a16' : '#fff';
+}
 
 function headers(token) {
   return {
@@ -54,9 +67,13 @@ function estimateDuration(script) {
   return Math.max(8, Math.min(180, Math.round(words / 2.5)));
 }
 
+const LANG_RE = /^(en|es|pt)$/;
+const normLang = (l) => { const v = String(l || 'en').trim().toLowerCase(); return LANG_RE.test(v) ? v : 'en'; };
+
 // STEP 2a — bake the Akeem MP3 from the EXACT script (provided_script → no LLM).
-// Returns { url, slug, cached }. Throws a slug Error on failure.
-export async function synthesizeVoiceover({ script, series, topic }) {
+// Returns { url, slug, cached }. Throws a slug Error on failure. `lang` locks the
+// voice (and cache key) to the post's EN/ES/PT so pronunciation matches the copy.
+export async function synthesizeVoiceover({ script, series, topic, lang }) {
   const token = requireToken();
   const clean = String(script || '').trim();
   if (!clean) throw new Error('empty_script');
@@ -68,7 +85,7 @@ export async function synthesizeVoiceover({ script, series, topic }) {
       topic: String(topic || series || 'BBF').slice(0, 120),
       series,
       vibe,
-      lang: 'en',
+      lang: normLang(lang),
       target_duration: estimateDuration(clean),
       provided_script: clean, // voice our words verbatim — the ONLY external API call
     }),
@@ -93,22 +110,34 @@ export async function approveContentItem(payload) {
   return j.item;
 }
 
-// Full "Approve & Synthesize" orchestration — bake audio, then queue the row.
+// Full "Approve & Synthesize" orchestration — bake audio (when the draft carries a
+// voiceover script), then queue the row. Outreach posts with no reel_kit skip the
+// ElevenLabs call entirely and schedule as text/visual-only (audio stays null).
 export async function approveAndSynthesize(draft, { scheduled_at } = {}) {
-  const audio = await synthesizeVoiceover({
-    script: draft.voiceover_script,
-    series: draft.series,
-    topic: draft.hook || draft.target_angle || draft.series,
-  });
+  const script = String(draft.voiceover_script || '').trim();
+  let audio = null;
+  if (script) {
+    audio = await synthesizeVoiceover({
+      script,
+      series: draft.series,
+      topic: draft.hook || draft.target_angle || draft.series,
+      lang: draft.language,
+    });
+  }
   const item = await approveContentItem({
     series: draft.series,
     target_angle: draft.target_angle,
     hook: draft.hook,
     caption: draft.caption,
     studio_recipe: draft.studio_recipe,
-    voiceover_script: draft.voiceover_script,
-    audio_url: audio.url,
-    audio_slug: audio.slug,
+    voiceover_script: script || null,
+    cut_sheet: draft.cut_sheet,
+    language: draft.language,
+    format: draft.format,
+    hashtags: draft.hashtags,
+    recommended_post_time: draft.recommended_post_time,
+    audio_url: audio?.url || null,
+    audio_slug: audio?.slug || null,
     scheduled_at,
     source_ref: draft.id,
   });
