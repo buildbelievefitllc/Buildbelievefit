@@ -39,6 +39,7 @@ import ContextualVoiceover from './ContextualVoiceover.jsx';
 import { AUDIO_CTX_NUTRITION } from '../../lib/contextualVoiceover.js';
 import { useNutritionSync } from '../../lib/useNutritionSync.js';
 import { syncMealLog } from '../../lib/mealLogApi.js';
+import NutritionSyncCard from './NutritionSyncCard.jsx';
 import { mealBenefit } from './mealBenefit.js';
 import './vault.css';
 import './nutrition.css';
@@ -1492,6 +1493,11 @@ export default function Nutrition({ plans, profile }) {
           <MealCard key={`${activeKey}-${dayName}-${i}`} meal={m} done={isDone(i)} onToggle={() => toggleMeal(i)} />
         ))}
       </div>
+
+      {/* Complete & Sync Protocol — the daily fueling commit (parity with the
+          workout / cardio sync). Commits today's adherence to history + fires the
+          shared PROTOCOL_UPDATED broadcast so every readiness surface rehydrates. */}
+      <NutritionSyncCard doneCount={doneCount} mealCount={day.meals.length} />
 
       <HydrationTracker uid={uid} />
     </div>

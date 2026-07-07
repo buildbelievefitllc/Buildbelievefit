@@ -76,6 +76,53 @@ export async function syncMealLog({
   return { ok: true, action: parsed.action, clientMealKey: parsed.client_meal_key, day: parsed.day };
 }
 
+// ── SYNC — commit today's fueling adherence (the "Complete & Sync Protocol") ──
+// Parity with the workout / cardio sync ritual. The RPC recomputes today's
+// adherence SERVER-SIDE from nutrition_intake_log vs the canonical daily target,
+// upserts a nutrition_daily_sync snapshot, and returns the verdict. On success we
+// fire the SAME 'bbf:protocol-updated' broadcast the morning check-in + cardio
+// sync use, so every readiness-board consumer (Hub, Program, Cardio, the shell)
+// rehydrates off the fresh commit. Discipline (§2.3): this COMMITS + SURFACES the
+// day's fuel — it does not rewrite the HRV readiness score.
+export async function syncNutritionAdherence() {
+  const token = getStoredVaultToken();
+  if (!token) {
+    const e = new Error('Your session expired — sign in again.');
+    e.code = 'no_session';
+    throw e;
+  }
+
+  const { data, error } = await supabase.rpc('bbf_log_nutrition_adherence', {
+    p_session_token: token,
+  });
+
+  if (error || !data || data.ok === false) {
+    const slug = error?.message || data?.error || 'sync_failed';
+    const e = new Error(`Nutrition sync could not be saved (${slug}).`);
+    e.code = 'sync_failed';
+    e.slug = slug;
+    throw e;
+  }
+
+  // Broadcast on the shared readiness channel — same event the morning check-in
+  // and cardio "Complete & Sync" fire (literal string to avoid a hook import cycle).
+  try {
+    window.dispatchEvent(new CustomEvent('bbf:protocol-updated', {
+      detail: {
+        source: 'nutrition_sync',
+        date: data.day,
+        nutrition: {
+          kcal_pct: data.kcal_pct,
+          protein_pct: data.protein_pct,
+          meals_logged: data.meals_logged,
+        },
+      },
+    }));
+  } catch { /* no window (SSR) — non-fatal */ }
+
+  return data;
+}
+
 // ── READ — today's targets + already-logged keys + 7-day adherence strip ─────
 export async function fetchNutritionToday(uid) {
   const token = getStoredVaultToken();
