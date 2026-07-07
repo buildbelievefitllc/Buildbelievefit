@@ -35,6 +35,19 @@ import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 const TARGET_W = 1080;
 const TARGET_H = 1920;
 
+// Video codec preference — H.264 (AVC) first (most social-compatible), then VP9,
+// then AV1. SHARED by the encoder's _pickVideo AND the pre-export codec probe
+// (probeVideoCodec) so the Studio's fallback warning can NEVER disagree with what
+// the encoder actually selects at render time.
+const VIDEO_CODEC_CANDIDATES = [
+  { codec: 'avc1.640028', muxer: 'avc', isAvc: true },
+  { codec: 'avc1.4d0028', muxer: 'avc', isAvc: true },
+  { codec: 'avc1.42e028', muxer: 'avc', isAvc: true },
+  { codec: 'avc1.640020', muxer: 'avc', isAvc: true },
+  { codec: 'vp09.00.10.08', muxer: 'vp9', isAvc: false },
+  { codec: 'av01.0.08M.08', muxer: 'av1', isAvc: false },
+];
+
 // Phone-backdrop frame skins — mirrors phone-frame-v4's CSS gradients
 // (sovereignStudioV4.css). Drawn natively on canvas (see _drawPhoneFrame) rather
 // than rasterized via html2canvas, which doesn't reliably capture a rounded,
@@ -512,18 +525,30 @@ export class SovereignFoundry {
   // Pick the best AVAILABLE video codec → { codec (encoder string), muxer (mp4-muxer
   // codec), isAvc }. H.264 first (most compatible), then VP9, then AV1.
   async _pickVideo(W, H, fps) {
-    const candidates = [
-      { codec: 'avc1.640028', muxer: 'avc', isAvc: true },
-      { codec: 'avc1.4d0028', muxer: 'avc', isAvc: true },
-      { codec: 'avc1.42e028', muxer: 'avc', isAvc: true },
-      { codec: 'avc1.640020', muxer: 'avc', isAvc: true },
-      { codec: 'vp09.00.10.08', muxer: 'vp9', isAvc: false },
-      { codec: 'av01.0.08M.08', muxer: 'av1', isAvc: false },
-    ];
-    for (const c of candidates) {
-      try { const r = await window.VideoEncoder.isConfigSupported({ codec: c.codec, width: W, height: H, bitrate: 8_000_000, framerate: fps }); if (r && r.supported) return c; } catch { /* next */ }
+    for (const c of VIDEO_CODEC_CANDIDATES) {
+      try { const r = await window.VideoEncoder.isConfigSupported({ codec: c.codec, width: W, height: H, bitrate: 12_000_000, framerate: fps }); if (r && r.supported) return c; } catch { /* next */ }
     }
     return { codec: 'avc1.42e028', muxer: 'avc', isAvc: true }; // last-ditch; will throw on configure if truly absent
+  }
+
+  // PRE-EXPORT CODEC PROBE — runs the SAME isConfigSupported checks _pickVideo uses,
+  // WITHOUT rendering, so the Studio can warn BEFORE a job that would fall off H.264.
+  //   • { supported:false }            → WebCodecs absent entirely (export unavailable).
+  //   • { willFallback:true }          → no H.264/AVC encoder; export uses VP9/AV1
+  //                                      (a container/codec social platforms recompress
+  //                                      hard → softer posted quality).
+  //   • { willFallback:false, isAvc }  → H.264 available; maximum-quality path.
+  static async probeVideoCodec({ width = TARGET_W, height = TARGET_H, fps = 30 } = {}) {
+    if (!SovereignFoundry.isSupported()) return { supported: false, codec: null, isAvc: false, willFallback: false };
+    for (const c of VIDEO_CODEC_CANDIDATES) {
+      try {
+        const r = await window.VideoEncoder.isConfigSupported({ codec: c.codec, width, height, bitrate: 12_000_000, framerate: fps });
+        if (r && r.supported) return { supported: true, codec: c.codec, isAvc: c.isAvc, willFallback: !c.isAvc };
+      } catch { /* next */ }
+    }
+    // WebCodecs present but nothing config-supported → warn (the render's last-ditch
+    // AVC would likely fail too); treat as a fallback-risk state.
+    return { supported: true, codec: null, isAvc: false, willFallback: true };
   }
 
   // Pick the best AVAILABLE audio codec → { codec, muxer } or null. AAC first, Opus fallback.

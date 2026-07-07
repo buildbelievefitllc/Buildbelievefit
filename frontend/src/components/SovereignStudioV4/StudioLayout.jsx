@@ -1,7 +1,7 @@
 // src/components/SovereignStudioV4/StudioLayout.jsx
 // Main UI grid: controls sidebar (left) + preview (right)
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import VibeSelector from './VibeSelector';
 import ReelPreviewEngine from './ReelPreviewEngine';
 import StageScaler from './StageScaler';
@@ -101,6 +101,19 @@ export default function StudioLayout({
   // Reel MediaRecorder state (drives the hard UI lock + progress overlay).
   const [recording, setRecording] = useState(false);
   const [recordPct, setRecordPct] = useState(0);
+  // PRE-EXPORT CODEC PROBE — runs once on mount, BEFORE any render. Warns
+  // (non-blocking) when this browser has no H.264 encoder and the reel would export
+  // via the VP9/AV1 fallback (which IG/TikTok/YouTube recompress hard → softer post).
+  // Best-effort: a probe failure never blocks the studio.
+  const [codecProbe, setCodecProbe] = useState(null); // { supported, willFallback } | null
+  useEffect(() => {
+    let alive = true;
+    import('../../lib/SovereignFoundry.js')
+      .then(({ SovereignFoundry }) => SovereignFoundry.probeVideoCodec())
+      .then((r) => { if (alive) setCodecProbe(r); })
+      .catch(() => { /* probe is advisory only */ });
+    return () => { alive = false; };
+  }, []);
   // Social auto-post target toggles (V3 parity → server distributors route the post).
   const [targets, setTargets] = useState({ instagram: true, facebook: true, tiktok: false });
   const toggleTarget = (k) => setTargets((t) => ({ ...t, [k]: !t[k] }));
@@ -681,6 +694,20 @@ export default function StudioLayout({
               <label className="ctl-label-v4">📤 Distribute Reel</label>
               {captionBox(reelFields().caption)}
               {socialToggles()}
+              {/* VP9 fallback guardrail — non-blocking, shown BEFORE the render when
+                  this browser has no H.264 encoder (Linux/headless/some Chromium). */}
+              {codecProbe && codecProbe.willFallback ? (
+                <div
+                  className="hint-v4"
+                  role="alert"
+                  data-testid="codec-fallback-warning"
+                  style={{ color: '#fb923c', border: '1px solid rgba(251,146,60,.5)', background: 'rgba(251,146,60,.08)', borderRadius: 8, padding: '8px 10px', margin: '0 0 8px' }}
+                >
+                  ⚠ Hardware H.264 not detected. Video will export using a fallback codec,
+                  which may result in lower quality on social platforms. For maximum quality,
+                  use a supported browser.
+                </div>
+              ) : null}
               <button className="postnow-btn-v4" onClick={exportOrPostReel} disabled={recording || posting}>
                 {recording ? `🎬 RECORDING… ${recordPct}%` : platformTarget() ? `🚀 EXPORT & POST → ${platformLabel()}` : '⬇ EXPORT VIDEO'}
               </button>
