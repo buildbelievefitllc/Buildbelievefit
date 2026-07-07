@@ -65,9 +65,13 @@ type Kind = 'image' | 'video';
 const ROUTING: Record<Kind, { bucket: string; ext: string; table: string; contentType: string; distributor: string }> = {
   image: {
     bucket: Deno.env.get('BBF_CARDS_BUCKET') || 'calling-cards-v1',
-    ext: (Deno.env.get('BBF_CARDS_EXT') || 'png').replace(/^\./, ''),
+    // JPEG, hardcoded — NOT env-overridable. Instagram's Content Publishing API
+    // rejects PNG image posts (400 at container creation); it only accepts JPEG.
+    // The studio bakes JPEG (StudioLayout.getStageBlob) and the distributor
+    // probes .jpg first, so the whole image path is JPEG end-to-end.
+    ext: 'jpg',
     table: 'bbf_calling_cards_batch_v1',
-    contentType: 'image/png',
+    contentType: 'image/jpeg',
     distributor: 'bbf-card-distributor',
   },
   video: {

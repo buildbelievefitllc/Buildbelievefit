@@ -140,7 +140,9 @@ async function resolveConfig() {
     metaToken, igUser, fbPage, tiktokToken,
     graph: `https://graph.facebook.com/${graphVer || 'v21.0'}`,
     bucket: bucket || 'calling-cards-v1',
-    ext: (ext || 'png').replace(/^\./, ''),
+    // Preferred extension (JPEG for the studio/IG path). resolveAssetUrl still
+    // falls back to legacy .png for the resvg batch renderer's cards.
+    ext: (ext || 'jpg').replace(/^\./, ''),
     enabled: {
       instagram: Boolean(metaToken && igUser),
       facebook: Boolean(metaToken && fbPage),
@@ -151,14 +153,27 @@ async function resolveConfig() {
 type Config = Awaited<ReturnType<typeof resolveConfig>>;
 
 // Public Storage URL for a card's rendered image (by id convention).
-function assetUrl(cfg: Config, id: string): string {
-  return `${SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(cfg.bucket)}/${id}.${cfg.ext}`;
+function assetUrl(cfg: Config, id: string, ext: string): string {
+  return `${SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(cfg.bucket)}/${id}.${ext}`;
 }
-async function assetExists(url: string): Promise<boolean> {
+async function headOk(url: string): Promise<boolean> {
   try {
     const r = await fetch(url, { method: 'HEAD' });
     return r.ok;
   } catch (_) { return false; }
+}
+// Resolve the real asset URL by probing candidate extensions in preference order:
+// JPEG first (the studio pipeline + what Instagram requires), then any legacy PNG
+// (the resvg batch renderer at tools/calling-cards still emits .png). Returns the
+// existing URL or null. This lets JPEG (studio) and PNG (batch) cards coexist in the
+// same bucket/table without a global-extension flip breaking the other producer.
+async function resolveAssetUrl(cfg: Config, id: string): Promise<string | null> {
+  const cands = [...new Set([cfg.ext, 'jpg', 'jpeg', 'png'])];
+  for (const ext of cands) {
+    const url = assetUrl(cfg, id, ext);
+    if (await headOk(url)) return url;
+  }
+  return null;
 }
 
 // ─── Connection verification (authenticated, read-only — never posts) ────────────
@@ -367,8 +382,8 @@ serve(async (req) => {
       for (const row of queued) {
         const id = String(row.id);
         const caption = String(row.caption ?? '');
-        const imageUrl = assetUrl(cfg, id);
-        const haveAsset = await assetExists(imageUrl);          // GATE 4
+        const imageUrl = await resolveAssetUrl(cfg, id);        // GATE 4 (probes .jpg → .png)
+        const haveAsset = !!imageUrl;
 
         // ---- DRY RUN: preview only, no posting, no DB writes ----
         if (!live) {
@@ -378,10 +393,10 @@ serve(async (req) => {
         }
 
         // ---- LIVE ----
-        if (!haveAsset) {
+        if (!imageUrl) {
           // Asset not rendered yet — leave queued, do not consume the row.
           skipped++;
-          report.push({ id, result: 'skipped_no_asset', image_url: imageUrl });
+          report.push({ id, result: 'skipped_no_asset' });
           await writeAudit(id, { last_error: 'asset_not_in_storage' });
           continue;
         }
@@ -421,7 +436,10 @@ serve(async (req) => {
         }
 
         // Merge prior refs with this run's results so the audit trail stays cumulative.
-        const refs = { ...prior, ...Object.fromEntries(Object.entries(channelResults).map(([k, v]) => [k, { status: v.status, ref: v.ref ?? null }])) };
+        // Persist each channel's `detail` too — for a failure that's the API's actual
+        // error string (e.g. IG's `ig_create:...`), which makes a 'failed' row
+        // self-diagnosing instead of surfacing only a bare HTTP status code.
+        const refs = { ...prior, ...Object.fromEntries(Object.entries(channelResults).map(([k, v]) => [k, { status: v.status, ref: v.ref ?? null, ...(v.ok ? {} : { detail: v.detail ?? null }) }])) };
         if (allOk) {
           // FLIP RULE — 'posted' only when every channel returned HTTP 200.
           await pgPatch(`${TABLE}?id=eq.${encodeURIComponent(id)}`, { status: 'posted' });

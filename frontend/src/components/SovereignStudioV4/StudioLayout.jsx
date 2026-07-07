@@ -144,33 +144,39 @@ export default function StudioLayout({
     }
   };
 
-  const exportPNG = async (slug) => {
+  // Cards are baked as JPEG, not PNG: Instagram's Content Publishing API rejects
+  // PNG (400 at container creation) — it only accepts JPEG for image posts, while
+  // Facebook tolerates either. 0.92 quality keeps text/logo crisp at a fraction of
+  // PNG's byte weight. (See getStageBlob for the upload path.)
+  const exportImage = async (slug) => {
     if (exporting) return;
     setExporting(true);
     try {
       const canvas = await renderStageCanvas();
       if (!canvas) return;
-      const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+      const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.92));
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `bbf-${slug}-${canvas.width}x${canvas.height}.png`;
+      a.download = `bbf-${slug}-${canvas.width}x${canvas.height}.jpg`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
     } catch (e) {
-      console.error('[StudioV4] PNG export failed:', e);
+      console.error('[StudioV4] image export failed:', e);
     } finally {
       setExporting(false);
     }
   };
 
-  // Bake the current image stage → Blob (for queue/post upload).
+  // Bake the current image stage → Blob (for queue/post upload). JPEG, not PNG —
+  // Instagram rejects PNG image posts (see exportImage). The queue/distributor
+  // pipeline is JPEG-aware end-to-end (bbf-studio-queue stamps image/jpeg + .jpg).
   const getStageBlob = async () => {
     const canvas = await renderStageCanvas();
     if (!canvas) return null;
-    return new Promise((res) => canvas.toBlob(res, 'image/png'));
+    return new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.92));
   };
 
   // QUEUE (drip) or POST NOW (immediate) the current image card → IG/FB.
@@ -290,9 +296,9 @@ export default function StudioLayout({
     const hasVideo = !!reelData.videoFile?.url;
     setPostNote(null);
 
-    // No footage → fall back to the cover frame (export PNG, or post as image).
+    // No footage → fall back to the cover frame (export JPEG, or post as image).
     if (!hasVideo) {
-      if (!target) { await exportPNG('reel-cover'); setPostNote({ ok: true, text: 'Exported reel cover (PNG). Upload footage to record/post video.' }); return; }
+      if (!target) { await exportImage('reel-cover'); setPostNote({ ok: true, text: 'Exported reel cover (JPEG). Upload footage to record/post video.' }); return; }
       await postCard(reelFields(), true);
       return;
     }
@@ -503,8 +509,8 @@ export default function StudioLayout({
             </div>
 
             <div className="ctl-group-v4">
-              <button className="export-btn-v4" onClick={() => exportPNG('cta')} disabled={exporting}>
-                {exporting ? '… RENDERING' : '⬇ EXPORT PNG'}
+              <button className="export-btn-v4" onClick={() => exportImage('cta')} disabled={exporting}>
+                {exporting ? '… RENDERING' : '⬇ EXPORT JPG'}
               </button>
               {postControls(cardFields(ctaData.eyebrow, ctaData.headline, ctaData.body, ctaData.buttonText, ctaData.primaryColor, 'cta'))}
             </div>
@@ -666,7 +672,7 @@ export default function StudioLayout({
             </div>
 
             <div className="ctl-group-v4">
-              <button className="export-btn-v4" onClick={() => exportPNG('phone')} disabled={exporting}>
+              <button className="export-btn-v4" onClick={() => exportImage('phone')} disabled={exporting}>
                 {exporting ? '… RENDERING' : '⬇ EXPORT 1080×1350'}
               </button>
               {postControls(cardFields(phoneData.eyebrow, phoneData.headline, phoneData.benefit, '', 'custom', 'phone'))}
