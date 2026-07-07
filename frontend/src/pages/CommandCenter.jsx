@@ -28,6 +28,7 @@ import CoachCave from '../components/command/CoachCave.jsx';
 import CoachLab from '../components/command/CoachLab.jsx';
 import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
 import ContentEngine from '../components/command/ContentEngine.jsx';
+import DigitalContentManager from '../components/command/DigitalContentManager.jsx';
 import SovereignStudio from '../components/command/SovereignStudio.jsx';
 import SovereignStudioV4 from '../components/SovereignStudioV4/index.jsx';
 import StudioBatchPanel from '../components/studio/StudioBatchPanel.jsx';
@@ -80,6 +81,10 @@ const TABS = [
   // Content Engine — operator-editable marketing CTA cards (the calibration deck); the
   // public landing reads these live. Admin-only via the AdminGuard /command route.
   { id: 'content', labelKey: 'cmd-tab-content', Panel: ContentEngine },
+  // Digital Content Manager — static pre-baked draft library (bbf_master_content_engine.json)
+  // → Review Bucket + Approve&Synthesize (ElevenLabs) → drag-drop Distribution Calendar.
+  // Additive: its own bbf_content_manager_queue table; never touches the live auto-posters.
+  { id: 'content-manager', labelKey: 'cmd-tab-content-manager', Panel: DigitalContentManager },
   // Sovereign Studio (FRONT 5) — private ElevenLabs voiceover producer (Akeem clone +
   // Vibe Matrix). Admin-only via the AdminGuard /command route; the webhook re-gates
   // server-side on the admin's vault token.

@@ -1,0 +1,84 @@
+/* src/components/command/digitalContentManager.css
+   Digital Content Manager — brand-locked (§2): BBF Purple #6a0dad, Gold #f5c800,
+   matte black canvas only. Scoped under .dcm so nothing leaks into sibling panels. */
+
+.dcm { --dcm-purple: #6a0dad; --dcm-gold: #f5c800; --dcm-ink: #f9f5ff; --dcm-mut: rgba(249,245,255,.55); --dcm-line: rgba(249,245,255,.12); color: var(--dcm-ink); }
+
+.dcm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+.dcm-title { font-family: var(--display, 'Bebas Neue', sans-serif); font-size: 2rem; letter-spacing: 1px; margin: 0; }
+.dcm-sub { margin: .25rem 0 0; color: var(--dcm-mut); font-size: .85rem; max-width: 44ch; line-height: 1.4; }
+
+.dcm-tabs { display: inline-flex; gap: .3rem; border: 1px solid var(--dcm-line); border-radius: 999px; padding: .25rem; }
+.dcm-tab { font-family: var(--hb, 'Barlow Condensed', sans-serif); font-size: .8rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dcm-mut); background: none; border: none; border-radius: 999px; padding: .5rem 1rem; cursor: pointer; transition: background .15s, color .15s; }
+.dcm-tab.is-on { color: #0e0a16; background: linear-gradient(90deg, var(--dcm-purple), var(--dcm-gold)); font-weight: 700; }
+
+/* ── Review Bucket ─────────────────────────────────────────────────────────── */
+.dcm-bucket { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+.dcm-empty { color: var(--dcm-mut); font-style: italic; padding: 2rem 0; }
+
+.dcm-card { position: relative; border: 1px solid var(--dcm-line); border-radius: 14px; padding: 1rem 1.1rem; background: linear-gradient(160deg, rgba(106,13,173,.12), rgba(9,9,9,.5)); display: flex; flex-direction: column; gap: .7rem; }
+.dcm-card.is-done { opacity: .72; border-color: rgba(245,200,0,.4); }
+
+.dcm-card-head { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.dcm-series { font-family: var(--hb, sans-serif); font-size: .72rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #0e0a16; background: var(--series, #8a8f98); padding: .2rem .6rem; border-radius: 999px; }
+.dcm-format { font-size: .62rem; letter-spacing: 1px; text-transform: uppercase; color: var(--dcm-mut); border: 1px solid var(--dcm-line); padding: .15rem .45rem; border-radius: 999px; }
+.dcm-scheduled-badge { margin-left: auto; font-size: .68rem; font-weight: 800; color: var(--dcm-gold); }
+
+.dcm-field { display: flex; flex-direction: column; gap: .2rem; }
+.dcm-label { font-family: var(--hb, sans-serif); font-size: .62rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dcm-gold); }
+.dcm-label em { color: var(--dcm-mut); font-style: normal; }
+.dcm-angle { margin: 0; font-size: .82rem; color: var(--dcm-mut); }
+.dcm-hook { margin: 0; font-family: var(--display, sans-serif); font-size: 1.3rem; line-height: 1.05; letter-spacing: .5px; }
+.dcm-caption, .dcm-recipe, .dcm-script { margin: 0; font-size: .82rem; line-height: 1.45; color: rgba(249,245,255,.85); white-space: pre-wrap; }
+.dcm-script { color: rgba(249,245,255,.7); font-style: italic; }
+.dcm-asset { display: inline-block; margin-top: .3rem; font-size: .68rem; color: var(--dcm-mut); }
+
+.dcm-textarea { width: 100%; box-sizing: border-box; background: rgba(9,9,9,.55); border: 1px solid var(--dcm-line); border-radius: 8px; color: var(--dcm-ink); font: inherit; font-size: .82rem; padding: .5rem .6rem; resize: vertical; }
+.dcm-textarea:focus { outline: none; border-color: var(--dcm-gold); }
+.dcm-textarea--script { font-style: italic; }
+
+.dcm-audio { width: 100%; margin-top: .3rem; }
+.dcm-error { margin: 0; color: #ff6b6b; font-size: .8rem; font-weight: 600; }
+
+.dcm-card-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-top: auto; padding-top: .6rem; border-top: 1px solid var(--dcm-line); }
+.dcm-slot { display: flex; flex-direction: column; gap: .2rem; }
+.dcm-slot-lbl { font-size: .6rem; letter-spacing: 1px; text-transform: uppercase; color: var(--dcm-mut); }
+.dcm-slot-input { background: rgba(9,9,9,.6); border: 1px solid var(--dcm-line); border-radius: 8px; color: var(--dcm-ink); font: inherit; font-size: .78rem; padding: .35rem .5rem; color-scheme: dark; }
+.dcm-actions { display: flex; gap: .4rem; }
+
+.dcm-btn { font-family: var(--hb, sans-serif); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; border-radius: 999px; padding: .5rem .9rem; cursor: pointer; border: 1px solid transparent; transition: filter .15s, opacity .15s; }
+.dcm-btn:disabled { opacity: .5; cursor: not-allowed; }
+.dcm-btn--gold { color: #0e0a16; background: linear-gradient(90deg, var(--dcm-gold), #ffd83a); border: none; }
+.dcm-btn--gold:hover:not(:disabled) { filter: brightness(1.05); }
+.dcm-btn--ghost { color: var(--dcm-ink); background: transparent; border-color: var(--dcm-line); }
+.dcm-btn--ghost:hover:not(:disabled) { border-color: var(--dcm-gold); }
+
+/* ── Distribution Calendar ─────────────────────────────────────────────────── */
+.dcm-cal-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.dcm-cal-nav { display: flex; align-items: center; gap: .6rem; }
+.dcm-cal-title { font-family: var(--display, sans-serif); font-size: 1.4rem; letter-spacing: 1px; min-width: 12ch; text-align: center; }
+.dcm-cal-views { display: inline-flex; gap: .25rem; }
+.dcm-viewbtn { font-family: var(--hb, sans-serif); font-size: .7rem; letter-spacing: 1px; text-transform: uppercase; color: var(--dcm-mut); background: none; border: 1px solid var(--dcm-line); border-radius: 999px; padding: .35rem .8rem; cursor: pointer; }
+.dcm-viewbtn.is-on { color: #0e0a16; background: var(--dcm-gold); border-color: var(--dcm-gold); font-weight: 700; }
+
+.dcm-legend { display: flex; flex-wrap: wrap; gap: .8rem; margin-bottom: .7rem; }
+.dcm-legend-item { display: inline-flex; align-items: center; gap: .35rem; font-size: .7rem; color: var(--dcm-mut); }
+.dcm-legend-dot { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+.dcm-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.dcm-cal-dow { font-family: var(--hb, sans-serif); font-size: .62rem; letter-spacing: 1px; text-transform: uppercase; color: var(--dcm-mut); text-align: center; padding: .3rem 0; }
+.dcm-cal-cell { min-height: 92px; border: 1px solid var(--dcm-line); border-radius: 8px; padding: .3rem; background: rgba(9,9,9,.4); display: flex; flex-direction: column; gap: .25rem; }
+.dcm-cal-cell.is-muted { opacity: .4; }
+.dcm-cal-cell.is-today { border-color: var(--dcm-gold); box-shadow: inset 0 0 0 1px rgba(245,200,0,.35); }
+.dcm-cal-daynum { font-size: .68rem; color: var(--dcm-mut); align-self: flex-end; }
+.dcm-cal-items { display: flex; flex-direction: column; gap: 3px; }
+
+.dcm-cal-block { text-align: left; border: none; border-radius: 5px; padding: .25rem .35rem; cursor: grab; display: flex; flex-direction: column; gap: 1px; color: #0e0a16; background: var(--series, #8a8f98); box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.dcm-cal-block:active { cursor: grabbing; }
+.dcm-cal-block-series { font-family: var(--hb, sans-serif); font-size: .56rem; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; opacity: .85; }
+.dcm-cal-block-hook { font-size: .64rem; font-weight: 700; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+@media (max-width: 720px) {
+  .dcm-cal-cell { min-height: 72px; }
+  .dcm-cal-block-hook { -webkit-line-clamp: 1; }
+}

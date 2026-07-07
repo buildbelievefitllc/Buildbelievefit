@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-07-07",
+  "note": "STATIC pre-baked content library for the Digital Content Manager. NO live LLM reads this — the Command Center panel ingests it directly and only the Approve & Synthesize trigger calls an external API (ElevenLabs, for the Akeem voiceover). Add drafts here; they surface as Review Bucket cards.",
+  "drafts": [
+    {
+      "id": "mind-001",
+      "series": "Mindset Engine",
+      "target_angle": "Discipline outlives motivation — sell the system, not the spark.",
+      "hook": "MOTIVATION IS A LIAR",
+      "caption": "Motivation shows up when it feels like it. Discipline shows up when it doesn't. The difference between the body you want and the body you have is the workout you did anyway — cold, tired, uninspired. Stop waiting to feel ready. Build the system, then let the system carry you. 🟣 Build. Believe. #BuildBelieveFit #Discipline #MindsetEngine",
+      "studio_recipe": {
+        "visual": "Matte black canvas. BBF-gold kinetic type on the hook, slow push-in. Founder cutaway at 0:04. No stock footage.",
+        "asset": "reel-cover-mindset-01",
+        "format": "reel"
+      },
+      "voiceover_script": "Let me tell you the truth nobody sells you. Motivation is a liar. It shows up loud on the easy days and vanishes the second it gets cold, dark, and hard. You don't rise to the level of your motivation — you fall to the level of your systems. So stop negotiating with your feelings at five a.m. Build the discipline, build the habit, and let the machine carry you when the spark is gone. That's how you win. Build. Believe."
+    },
+    {
+      "id": "form-001",
+      "series": "Form Fix",
+      "target_angle": "Injury-prevention authority — protect the joint to earn the load.",
+      "hook": "YOUR KNEES AREN'T THE PROBLEM",
+      "caption": "Knee pain on squats is almost never the knee — it's a hip that won't hinge and an ankle that won't bend. Fix the joints above and below, and the pain you blamed on your knees disappears. Screenshot this before your next leg day. 🟡 #FormFix #Prehab #BuildBelieveFit",
+      "studio_recipe": {
+        "visual": "Split-screen: red-flag squat vs corrected squat. Gold arc overlay tracing hip + ankle path. Slow-mo at bottom position.",
+        "asset": "reel-cover-formfix-knees",
+        "format": "reel"
+      },
+      "voiceover_script": "If your knees scream every time you squat, listen close — the knee is rarely the criminal. It's the accomplice. Look one joint up and one joint down. A hip that refuses to hinge and an ankle that won't bend force your knee to eat load it was never built to carry. Bulletproof the hip, free the ankle, and watch the pain you blamed on your knees walk right out the door. Fix the chain, earn the load."
+    },
+    {
+      "id": "fuel-001",
+      "series": "Fuel Protocol",
+      "target_angle": "Demystify macros — adherence beats perfection.",
+      "hook": "STOP EATING CLEAN",
+      "caption": "\"Clean eating\" is a vibe, not a plan. Your body runs on numbers — protein, carbs, fat, total energy. Hit your targets and you can eat the foods you actually like. Miss them, and the cleanest salad on earth won't save you. Measure it. Log it. Trust the math. 🟢 #FuelProtocol #Macros #BuildBelieveFit",
+      "studio_recipe": {
+        "visual": "Flat-lay of a measured plate with floating gram badges binding to each macro. Green accent grade. No hands.",
+        "asset": "card-fuel-macros-01",
+        "format": "card"
+      },
+      "voiceover_script": "Here's what nobody with an agenda will tell you. Eating clean is a feeling. Hitting your macros is a fact. Your body doesn't read vibes — it reads numbers. Protein, carbs, fat, total energy. Land those targets and you can build the best version of your body eating the food you actually enjoy. So put the guilt down, pick up the scale, and let the math do the work. Measure it, log it, trust it."
+    },
+    {
+      "id": "recover-001",
+      "series": "Recovery Lab",
+      "target_angle": "Recovery is training — reframe rest as the growth window.",
+      "hook": "YOU DON'T GROW IN THE GYM",
+      "caption": "The gym is where you tear it down. Sleep, breath, and food are where you build it back — bigger. Skip recovery and you're just accumulating damage with no payoff. Tonight, protect your sleep like it's a set you can't miss. 🔵 #RecoveryLab #BuildBelieveFit",
+      "studio_recipe": {
+        "visual": "Low-light breathing orb expanding/contracting on a 4-count. Deep blue grade. Single line of gold text on the exhale.",
+        "asset": "reel-cover-recovery-breath",
+        "format": "reel"
+      },
+      "voiceover_script": "Everybody worships the workout. But listen — you don't grow in the gym. In the gym you break the tissue down. You grow in the dark, while you sleep, while you breathe, while you feed the repair. Skip that, and all you're stacking is damage with no reward. So tonight, guard your sleep like it's the heaviest set of the week. Recovery isn't the break from the work. Recovery is the work."
+    },
+    {
+      "id": "mind-002",
+      "series": "Mindset Engine",
+      "target_angle": "Identity-based change — become the person, the results follow.",
+      "hook": "STOP CHASING RESULTS",
+      "caption": "You don't rise to your goals — you fall to your identity. Stop asking \"how do I lose 20 pounds\" and start asking \"who is the person that already lives this way.\" Then act like them today. The scale is a lagging indicator of who you decided to become. 🟣 #MindsetEngine #BuildBelieveFit",
+      "studio_recipe": {
+        "visual": "Founder direct-to-camera, matte black set, single purple rim light. Hook stamps in on the beat. Minimal cuts.",
+        "asset": "reel-cover-mindset-identity",
+        "format": "reel"
+      },
+      "voiceover_script": "Stop chasing the result. The result is a shadow — you can't grab it. Chase the identity instead. Don't ask how you lose twenty pounds. Ask who is the person that already trains, already eats right, already shows up — and then be that person for the next twenty-four hours. Do it again tomorrow. The body always follows the identity. Decide who you are, and let the mirror catch up. Build. Believe."
+    }
+  ]
+}

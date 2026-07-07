@@ -29,6 +29,8 @@ const NAV_ITEMS = [
   { labelKey: 'cmd-tab-coach-cave', to: '/command/coach-cave', isActive: (tab) => tab === 'coach-cave' },
   // Sovereign Studio (FRONT 5) — admin-only ElevenLabs voiceover producer (own deep-link).
   { labelKey: 'cmd-tab-studio', to: '/command/studio', isActive: (tab) => tab === 'studio' },
+  // Digital Content Manager — Review Bucket + drag-drop Distribution Calendar (own deep-link).
+  { labelKey: 'cmd-tab-content-manager', to: '/command/content-manager', isActive: (tab) => tab === 'content-manager' },
   { labelKey: 'cmd-tab-sports', to: '/command/sports', isActive: (tab) => tab === 'sports' },
   { labelKey: 'cmd-tab-language', to: '/command/language', isActive: (tab) => tab === 'language' },
   { labelKey: 'vault-tab-settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },

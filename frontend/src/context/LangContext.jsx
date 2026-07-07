@@ -650,6 +650,7 @@ const DICT = {
   // noun feel; ES/PT localize lightly.
   'cmd-tab-studio': { en: 'Sovereign Studio', es: 'Estudio Soberano', pt: 'Estúdio Soberano' },
   'cmd-tab-studio-v4': { en: 'Studio V4', es: 'Studio V4', pt: 'Studio V4' },
+  'cmd-tab-content-manager': { en: 'Content Manager', es: 'Gestor de Contenido', pt: 'Gestor de Conteúdo' },
   // Phase 3.5 — new Command Center surfaces (Language Mastery Lab · Studio Batch Compiler).
   'cmd-tab-language-lab': { en: 'Language Lab', es: 'Lab de Idiomas', pt: 'Lab de Idiomas' },
   'cmd-tab-studio-batch': { en: 'Studio Batch', es: 'Lote de Studio', pt: 'Lote de Studio' },
