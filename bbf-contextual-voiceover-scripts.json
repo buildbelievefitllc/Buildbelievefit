@@ -33,5 +33,12 @@
     "scenario": "Post-Workout Check-In · Recovery Prescription card · what it is and why it appears (deterministically built from the check-in's pain + RPE + flagged target area)",
     "target_duration": "45s",
     "script": "This right here is your Recovery Prescription, and it is not random. The second you logged your check-in, the engine read two things: the joint you flagged, and how hard that session actually hit you. Then it built tomorrow's plan around exactly that — the right movements for that specific area, dialed to the right volume. See the verdict up top? Regress means we back off to protect the joint. Maintain means we hold steady with a measured load. Progress means you earned the green light to push. Every drill below is hand-picked to bulletproof the spot that needs it, and we finish with a breathing reset to lock the recovery in. Nothing here is popping up by accident — this is the system working for you around the clock. Trust the protocol, run it, and Believe."
+  },
+  {
+    "category": "Accountability",
+    "subject_line": "AUDIO_CTX_PREHAB",
+    "scenario": "Prehab & Recovery Matrix tab · what prehab is and why it's here (joint diagnostic + corrective protocol deck + breathing reset — get ahead of injury instead of rehabbing after it)",
+    "target_duration": "48s",
+    "script": "This right here is your Prehab lab — and prehab means we armor the joint before it ever becomes an injury. Most people wait until something tears, then they scramble to rehab it. Not you. In here you get ahead of it. Tell the Joint Diagnostic where it hurts, what it feels like, and what sets it off — and it compiles the exact clinical read plus the three corrective drills built to bulletproof that spot. Pick your friction area, run the scanner, and the engine hand-builds a personalized recovery matrix off your profile and today's load. Then lock it in with the breathing reset to flush cortisol and stabilize the fibers. This isn't extra work — this is how you stay on the floor: durable, pain-free, and still building while everybody else is sidelined. Do the prehab, protect the machine, and Believe."
   }
 ]

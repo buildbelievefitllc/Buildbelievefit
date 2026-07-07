@@ -38,5 +38,13 @@
     "scenario": "Post-Workout Check-In · Recovery Prescription card · what it is and why it appears (deterministically built from the check-in's pain + RPE + flagged target area)",
     "duration": "45s",
     "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/accountability-audio-ctx-recovery-rx.mp3"
+  },
+  {
+    "id": "audio_dc7d898e",
+    "category": "Accountability",
+    "subjectLine": "AUDIO_CTX_PREHAB",
+    "scenario": "Prehab & Recovery Matrix tab · what prehab is and why it's here (joint diagnostic + corrective protocol deck + breathing reset — get ahead of injury instead of rehabbing after it)",
+    "duration": "48s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/accountability-audio-ctx-prehab.mp3"
   }
 ]

@@ -26,6 +26,12 @@ export const AUDIO_CTX_NUTRITION = 'AUDIO_CTX_NUTRITION';
 // and frontend/src/data copies). Until baked, contextualAudioUrl() returns null and
 // the player self-hides (no broken UI).
 export const AUDIO_CTX_RECOVERY_RX = 'AUDIO_CTX_RECOVERY_RX';
+// Prehab & Recovery Matrix tab explainer ("what prehab is / why it's here"). Same
+// bake path as above: bbf-contextual-voiceover-scripts.json →
+// scripts/compile-voice-vault.js with VAULT_SCRIPTS=bbf-contextual-voiceover-scripts.json
+// and MANIFEST_OUT=contextualVoiceoverManifest.json. Until baked, contextualAudioUrl()
+// returns null and the player self-hides (no broken UI).
+export const AUDIO_CTX_PREHAB = 'AUDIO_CTX_PREHAB';
 
 // key (subjectLine) → entry (id, category, subjectLine, scenario, duration, url)
 const BY_KEY = new Map(manifest.map((m) => [m.subjectLine, m]));

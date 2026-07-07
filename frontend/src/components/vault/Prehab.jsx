@@ -38,7 +38,19 @@ import { useDailyReadiness, handshakeChannel } from '../../lib/useDailyReadiness
 import { deriveVolumeDirective } from '../../lib/autoRegulation.js';
 import { useActiveSymptom, AREA_TO_PREHAB_REGION, AREA_TO_MATRIX_JOINT } from '../../lib/useActiveSymptom.js';
 import PREHAB_MATRIX from '../../data/prehabDiagnosticMatrix.json';
+import ContextualVoiceover from './ContextualVoiceover.jsx';
+import { AUDIO_CTX_PREHAB } from '../../lib/contextualVoiceover.js';
 import './prehab.css';
+
+// Coach Akeem "what prehab is / why it's here" explainer chrome — trilingual (§1).
+// OPT-IN (autoPlay=false): the athlete presses to hear it; nothing auto-fires on tab
+// open. Self-hides until the clip is baked (ContextualVoiceover returns null with no
+// resolved URL), so shipping ahead of the voice bake shows no broken UI.
+const PREHAB_VO = {
+  en: { title: 'What Prehab Is', sub: 'Armor the joint before it becomes an injury — get ahead of it instead of rehabbing after.' },
+  es: { title: 'Qué Es el Prehab', sub: 'Blinda la articulación antes de que se convierta en lesión — adelántate en vez de rehabilitar después.' },
+  pt: { title: 'O Que É Prehab', sub: 'Blinde a articulação antes que vire lesão — antecipe-se em vez de reabilitar depois.' },
+};
 
 const PRESETS = [30, 45, 60];
 
@@ -942,13 +954,21 @@ function PrehabReadinessBanner({ readiness }) {
 }
 
 export default function Prehab({ onSequence }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   // The shared CNS telemetry channel — the EXACT store ProgramGrid / Smart Cardio
   // read, so a manual baseline (or a wearable sync) lights up this tab the moment
   // it lands, live, via PROTOCOL_UPDATED_EVENT (no reload).
   const { data: readiness } = useDailyReadiness();
   return (
     <div className="pde" data-testid="prehab-module" data-bbf-mode={handshakeChannel(readiness)}>
+      {/* Opt-in "what prehab is / why it's here" explainer — self-hides until the
+          Coach Akeem clip is baked. autoPlay=false so nothing fires on tab open. */}
+      <ContextualVoiceover
+        audioKey={AUDIO_CTX_PREHAB}
+        testId="ctx-vo-prehab"
+        title={(PREHAB_VO[lang] || PREHAB_VO.en).title}
+        sub={(PREHAB_VO[lang] || PREHAB_VO.en).sub}
+      />
       <PrehabReadinessBanner readiness={readiness} />
       <MobilityPlanner />
       <ProtocolDeck />
