@@ -36,7 +36,8 @@
 //   TIKTOK_TOKEN        — TikTok Content Posting API access token (enables TikTok)
 //   META_GRAPH_VERSION  — optional, defaults to v21.0
 //   BBF_CARDS_BUCKET    — optional, defaults to 'calling-cards-v1'
-//   BBF_CARDS_EXT       — optional, defaults to 'png'
+//   BBF_CARDS_EXT       — optional, preferred ext, defaults to 'jpg' (IG needs JPEG;
+//                         resolveAssetUrl still falls back to legacy .png cards)
 // Auto-injected by Supabase: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
 //   BBF_COACH_AGENT_TOKEN (admin gate).
 

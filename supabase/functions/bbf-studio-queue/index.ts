@@ -5,7 +5,7 @@
 // admin secret. This function is the trusted bridge between that client-side
 // design tool and the Supabase auto-post queue:
 //
-//   • The browser bakes a post (PNG card/reel-cover/phone/spotlight, or an MP4
+//   • The browser bakes a post (JPEG card/reel-cover/phone/spotlight, or an MP4
 //     reel) entirely client-side, then asks THIS function for a one-shot signed
 //     upload URL, uploads the asset directly to Storage, and confirms.
 //   • Only the SERVICE ROLE (held here, never shipped) mints the signed URL and
@@ -33,7 +33,7 @@
 //              { ok, status:'posted'|'failed', posted_now:true, distribute }
 //
 // ROUTING (kind → bucket / ext / table) — kept in lockstep with the distributors:
-//   image → calling-cards-v1 / png / bbf_calling_cards_batch_v1  (bbf-card-distributor)
+//   image → calling-cards-v1 / jpg / bbf_calling_cards_batch_v1  (bbf-card-distributor)
 //   video → reels-v1         / mp4 / bbf_reels_batch_v1          (bbf-reel-distributor)
 // A plain queued row (no scheduled_for — that column does not exist) posts on the
 // next daily distributor drip, which is the intended behavior.
