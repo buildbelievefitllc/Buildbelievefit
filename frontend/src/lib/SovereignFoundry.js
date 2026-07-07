@@ -178,7 +178,11 @@ export class SovereignFoundry {
         output: (chunk, meta) => { try { muxer.addVideoChunk(chunk, meta); } catch (e) { setErr(e); } },
         error: (e) => setErr(e),
       });
-      const vconf = { codec: vpick.codec, width: W, height: H, bitrate: 8_000_000, framerate: fps };
+      // MAX-QUALITY FLOOR (CEO mandate): 12 Mbps 1080x1920 H.264 — the WebCodecs
+      // equivalent of MediaRecorder videoBitsPerSecond:12_000_000. 8 Mbps was ~30-45%
+      // under IG/TikTok/YouTube ingest spec for 1080x1920@30, so their re-encoder was
+      // starting from a soft source. 12 Mbps survives the platform transcode.
+      const vconf = { codec: vpick.codec, width: W, height: H, bitrate: 12_000_000, framerate: fps };
       if (vpick.isAvc) vconf.avc = { format: 'avc' };
       venc.configure(vconf);
 
@@ -340,9 +344,13 @@ export class SovereignFoundry {
         if (t0 === null) t0 = now;
         const tSec = (now - t0) / 1000;
         if (tSec >= d) { finish(); return; }
-        // Encode at most ~fps frames/s; drop a frame if the encoder is backed up so
-        // memory can't balloon (rare on hardware H.264).
-        if ((lastEnc < 0 || tSec - lastEnc >= minDelta) && venc.encodeQueueSize < 60) {
+        // Encode at most ~fps frames/s. The backpressure watermark is raised to 120
+        // (from 60) so transient memory/CPU pressure in a long-lived tab lets the
+        // hardware H.264 queue drain rather than SILENTLY DROPPING FRAMES — dropped
+        // frames were the one in-code mechanism that made exports progressively
+        // choppier the longer a studio session ran. Frame rate / resolution are never
+        // sacrificed for memory; the queue still bounds runaway growth on slow encoders.
+        if ((lastEnc < 0 || tSec - lastEnc >= minDelta) && venc.encodeQueueSize < 120) {
           encodeAt(tSec); lastEnc = tSec; count += 1;
           if (onProgress) onProgress(Math.min(0.95, (tSec / d) * 0.95));
         }
@@ -583,7 +591,9 @@ export class SovereignFoundry {
       output: (chunk, meta) => { try { muxer.addAudioChunk(chunk, meta); } catch (e) { setErr(e); } },
       error: (e) => setErr(e),
     });
-    aenc.configure({ codec: apick.codec, sampleRate: aSr, numberOfChannels: aCh, bitrate: 128_000 });
+    // 192 kbps AAC — matches the upgraded 192 kbps voiceover source and survives the
+    // platform re-transcode cleanly (the file-size cost is trivial).
+    aenc.configure({ codec: apick.codec, sampleRate: aSr, numberOfChannels: aCh, bitrate: 192_000 });
     const total = Math.min(audioBuffer.length, Math.ceil(durationSec * aSr));
     for (let off = 0; off < total; off += aSr) {
       const n = Math.min(aSr, total - off);

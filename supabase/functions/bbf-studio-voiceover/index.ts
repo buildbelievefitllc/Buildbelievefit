@@ -241,8 +241,14 @@ async function synthesize(apiKey: string, text: string, settings: Record<string,
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
   try {
+    // MAX-QUALITY AUDIO VALVE: mp3_44100_192 — 44.1 kHz / 192 kbps, ElevenLabs'
+    // top MP3 rung (Creator tier+, which the Akeem PVC already requires). NOT
+    // pcm_16000: that is a 16 kHz sample rate (below this 44.1 kHz — thinner, not
+    // richer) and would break the .mp3 / audio/mpeg container the vault + the video
+    // export (SovereignFoundry) decode from. 192 kbps MP3 is the lossless-practical
+    // ceiling that keeps the pipeline intact.
     const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(AKEEM_VOICE_ID)}?output_format=mp3_44100_128`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(AKEEM_VOICE_ID)}?output_format=mp3_44100_192`,
       {
         method: 'POST',
         headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },

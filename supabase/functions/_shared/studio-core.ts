@@ -127,14 +127,18 @@ export function mergeOverlay(preset: OverlayState | null, override: OverlayState
 // Resolution ladder from deviceClass via studio_ladder_v1 (fallback matches the seed).
 export interface LadderCfg { high: LadderRung; mid: LadderRung; low: LadderRung; }
 export interface LadderRung { w: number; h: number; bitrate_bps: number; [k: string]: unknown; }
+// MAX-QUALITY FLOOR (CEO mandate — survive IG/TikTok/YouTube re-encoding):
+// EVERY rung is full 1080x1920 at a strict ≥12 Mbps minimum. The old 720p/3.5 Mbps
+// `low` rung and the sub-12 Mbps `mid` default are RETIRED — no device-memory or
+// backpressure condition may downgrade resolution or drop below 12 Mbps.
 export const LADDER_FALLBACK: LadderCfg = {
-  high: { w: 1080, h: 1920, bitrate_bps: 8000000 },
-  mid: { w: 1080, h: 1920, bitrate_bps: 6000000 },
-  low: { w: 720, h: 1280, bitrate_bps: 3500000 },
+  high: { w: 1080, h: 1920, bitrate_bps: 16000000 },
+  mid: { w: 1080, h: 1920, bitrate_bps: 12000000 },
+  low: { w: 1080, h: 1920, bitrate_bps: 12000000 },
 };
 export function resolveLadder(deviceClass: string | null | undefined, cfg: LadderCfg): LadderRung {
   const dc = String(deviceClass ?? '').toLowerCase();
-  if (dc === 'low') return cfg.low;
   if (dc === 'high') return cfg.high;
-  return cfg.mid; // default/mid
+  // 'low' and default both resolve to the 1080p / 12 Mbps floor — never a downgrade.
+  return cfg.mid;
 }
