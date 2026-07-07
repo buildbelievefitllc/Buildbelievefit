@@ -16,10 +16,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { homePathForUser } from '../lib/sportsRoster.js';
+import { supabase } from '../lib/supabaseClient.js';
+import { isNativePlatform } from '../native/platform.js';
 import './login.css';
 
+const NATIVE = isNativePlatform();
+
 export default function Login() {
-  const { signInWithPin, user, loading } = useAuth();
+  const { signInWithPin, bridgeSupabaseSession, user, loading } = useAuth();
   const { setLang } = useLang();
   const navigate = useNavigate();
 
@@ -28,9 +32,50 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null); // { kind: 'error'|'info', text }
   const [lockRemaining, setLockRemaining] = useState(0);
+  const [appleBusy, setAppleBusy] = useState(false);
   const lockTimer = useRef(null);
 
   useEffect(() => () => clearInterval(lockTimer.current), []);
+
+  // Apple Sign-In return leg (native only): `detectSessionInUrl` on the shared
+  // Supabase client already parses the OAuth redirect, so a returning GoTrue
+  // session just needs bridging into the app's own bbf_users-keyed session (see
+  // AuthContext.bridgeSupabaseSession). Runs once on mount — a fresh native boot
+  // that isn't returning from Apple simply finds no session and no-ops.
+  useEffect(() => {
+    if (!NATIVE) return undefined;
+    let cancelled = false;
+    supabase.auth.getSession().then(async ({ data }) => {
+      const authUser = data?.session?.user;
+      if (!authUser || cancelled) return;
+      setAppleBusy(true);
+      const result = await bridgeSupabaseSession(authUser);
+      if (cancelled) return;
+      setAppleBusy(false);
+      if (result.ok) {
+        navigate(result.home || '/vault', { replace: true });
+      } else {
+        setMsg({ kind: 'error', text: result.message || 'Sign in with Apple could not be completed.' });
+      }
+    });
+    return () => { cancelled = true; };
+  }, [bridgeSupabaseSession, navigate]);
+
+  async function handleAppleSignIn() {
+    if (appleBusy || busy) return;
+    setAppleBusy(true);
+    setMsg({ kind: 'info', text: 'Opening Sign in with Apple…' });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: `${window.location.origin}/login` },
+    });
+    // On success the WebView navigates away to Apple's auth page — nothing left
+    // to do here. Only surface a message if the redirect itself failed to start.
+    if (error) {
+      setAppleBusy(false);
+      setMsg({ kind: 'error', text: error.message || 'Sign in with Apple failed to start.' });
+    }
+  }
 
   // PWA route isolation: /login is the installed app's start_url. If a session
   // already exists (returning client launching the installed app), send them
@@ -88,8 +133,9 @@ export default function Login() {
   }
 
   // While resolving an existing session (or redirecting an authed user away),
-  // show a minimal boot state instead of flashing the sign-in form.
-  if (loading || user) {
+  // show a minimal boot state instead of flashing the sign-in form. Also covers
+  // the Apple Sign-In return leg while it bridges the GoTrue session.
+  if (loading || user || appleBusy) {
     return (
       <div className="lg-screen">
         <div className="lg-top">
@@ -156,6 +202,23 @@ export default function Login() {
           )}
         </button>
 
+        {NATIVE ? (
+          <>
+            <div className="lg-divider" role="separator" aria-label="or">
+              <span>or</span>
+            </div>
+            <button
+              type="button"
+              className="lg-apple-btn"
+              disabled={disabled}
+              onClick={handleAppleSignIn}
+              data-testid="apple-signin-cta"
+            >
+              <AppleGlyph /> Sign in with Apple
+            </button>
+          </>
+        ) : null}
+
         <div
           className={`lg-msg ${msg?.kind === 'error' ? 'is-error' : 'is-info'}`}
           role="status"
@@ -164,6 +227,26 @@ export default function Login() {
           {lockText || msg?.text || ''}
         </div>
       </form>
+
+      {NATIVE ? (
+        // Apple anti-steering guardrail (guideline 3.1.3): pure text, no link/tap
+        // target — account provisioning happens on the web, never inside the app.
+        <p className="lg-native-notice" data-testid="native-access-notice">
+          BBF Lab is a private coaching platform. Access must be secured via
+          buildbelievefit.fitness prior to login.
+        </p>
+      ) : null}
     </div>
+  );
+}
+
+function AppleGlyph() {
+  return (
+    <svg className="lg-apple-glyph" viewBox="0 0 384 512" width="18" height="18" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141 8 184.8 8 273.5c0 26.2 4.8 53.3 14.4 81.2 12.8 37.3 59 128.8 107.2 127.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-84 102.6-121.4-65.2-30.7-65.7-90-65.7-91.8zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"
+      />
+    </svg>
   );
 }

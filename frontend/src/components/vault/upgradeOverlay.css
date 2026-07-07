@@ -107,6 +107,16 @@
 }
 .uplock__compare:hover { color: var(--wht); }
 
+/* Native-only replacement for the checkout CTA (Apple anti-steering guardrail) —
+   plain text, no link, no tap target. */
+.uplock__native-notice {
+  font-family: var(--bd);
+  font-size: .92rem;
+  line-height: 1.5;
+  color: rgba(249, 245, 255, .7);
+  margin: 0;
+}
+
 @media (max-width: 480px) {
   .uplock { min-height: 360px; padding: 1.6rem .75rem; }
   .uplock__card { padding: 1.8rem 1.3rem; }

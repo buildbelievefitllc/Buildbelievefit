@@ -23,7 +23,10 @@ import { useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { createUpgradeCheckout } from '../../lib/checkoutApi.js';
+import { isNativePlatform } from '../../native/platform.js';
 import './upgradeOverlay.css';
+
+const NATIVE = isNativePlatform();
 
 export default function UpgradeOverlay({
   featureLabelKey,
@@ -76,7 +79,14 @@ export default function UpgradeOverlay({
           <strong className="uplock__tier">{tierName}</strong>
           {t('uplock-body-post')}
         </p>
-        {priceId ? (
+        {NATIVE ? (
+          // Apple anti-steering guardrail (guideline 3.1.3): no checkout button and
+          // no link back to the marketing/pricing surface from inside the native
+          // app — pure text only. Plan changes happen on the web.
+          <p className="uplock__native-notice" data-testid="upgrade-overlay-native-notice">
+            Plan upgrades are managed via buildbelievefit.fitness.
+          </p>
+        ) : priceId ? (
           <button
             type="button"
             className="uplock__cta"
@@ -95,7 +105,9 @@ export default function UpgradeOverlay({
         {err ? (
           <div className="uplock__err" role="alert" style={{ color: '#ef4444', fontWeight: 700, marginTop: '.6rem' }}>{err}</div>
         ) : null}
-        <a className="uplock__compare" href="/#programs">{t('uplock-compare')}</a>
+        {NATIVE ? null : (
+          <a className="uplock__compare" href="/#programs">{t('uplock-compare')}</a>
+        )}
       </div>
     </section>
   );

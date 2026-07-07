@@ -1,12 +1,14 @@
 // src/App.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Root routing. The apex URL ("/") ALWAYS renders the public MarketingLanding —
-// authenticated users are NEVER auto-redirected away from it. They reach their
-// Sovereign Vault through the landing's navbar / hero doors (which point to /vault
-// when a session exists). The Vault has its own guarded route; admins cross into
-// the Command Center via the in-Vault toggle (→ /command, AdminGuard-gated).
+// Root routing. On the WEB, the apex URL ("/") ALWAYS renders the public
+// MarketingLanding — authenticated users are NEVER auto-redirected away from it.
+// They reach their Sovereign Vault through the landing's navbar / hero doors
+// (which point to /vault when a session exists). The Vault has its own guarded
+// route; admins cross into the Command Center via the in-Vault toggle (→ /command,
+// AdminGuard-gated). On the NATIVE (Capacitor) app shell, "/" is intercepted by
+// RootRoute and never renders MarketingLanding at all — see that component below.
 //
-//   /          → <MarketingLanding>             (public — ALWAYS, regardless of auth)
+//   /          → <MarketingLanding>             (public, WEB ONLY — native → /login)
 //   /vault     → <ClientVault>                  (authed only; unauth → /login; a
 //                                                flagged sports athlete is bounced
 //                                                to /sports-hub — the youth surface
@@ -25,6 +27,7 @@ import AdminGuard from './components/AdminGuard.jsx';
 import Login from './pages/Login.jsx';
 import TierGate from './components/TierGate.jsx';
 import { isSportsAthlete, SPORTS_HUB_PATH } from './lib/sportsRoster.js';
+import { isNativePlatform } from './native/platform.js';
 
 // Route-level code splitting (Material Upgrade): each top surface ships as its
 // own chunk, so the public landing no longer pays for the entire Vault + admin
@@ -83,6 +86,19 @@ const bootStyle = {
   fontFamily: 'var(--bd)', color: 'var(--mut)', letterSpacing: '.5px',
 };
 
+// Native start-URL guardrail (Apple/Android compliance): the Capacitor wrapper
+// always boots index.html at "/", which — unlike the web PWA (manifest start_url
+// is "/login") — has no equivalent "start path" config for a bundled webDir app.
+// Left unguarded, a fresh native install would render the public MarketingLanding,
+// exposing Stripe checkout links inside the app shell (an Apple IAP/anti-steering
+// violation, guideline 3.1.1/3.1.3). Native sessions bypass "/" entirely and land
+// on the guarded /login gate, which itself forwards a returning session straight
+// into the Vault/Sports Hub (see Login.jsx's boot redirect).
+function RootRoute() {
+  if (isNativePlatform()) return <Navigate to="/login" replace />;
+  return <MarketingLanding />;
+}
+
 // The Sports Portal & Athlete Database — its own GUARDED route. Authentication is
 // required (unauth → /login), but admin is NOT: the SportsPortal component itself
 // strictly switches the Sovereign Admin Override View vs the Client View on
@@ -118,9 +134,11 @@ export default function App() {
     <Suspense fallback={<div style={bootStyle}>Loading…</div>}>
     <Routes>
       <Route path="/login" element={<Login />} />
-      {/* Apex root — ALWAYS the public marketing landing, even when authenticated.
-          Authed users enter the Vault via the navbar/doors, never an auto-redirect. */}
-      <Route path="/" element={<MarketingLanding />} />
+      {/* Apex root — the public marketing landing, even when authenticated (authed
+          web users enter the Vault via the navbar/doors, never an auto-redirect).
+          The NATIVE app shell never sees this panel at all — RootRoute bounces it
+          straight to /login (see comment above). */}
+      <Route path="/" element={<RootRoute />} />
       {/* The Metabolic Gateway — standalone, nav-free lead magnet; its CTA hands
           off to /pathfinder with the entered biometrics in router state. */}
       <Route path="/burn" element={<DailyBurnCalculator />} />

@@ -36,6 +36,7 @@ const AuthContext = createContext({
   loading: true,
   isAdmin: false,
   signInWithPin: async () => ({ ok: false }),
+  bridgeSupabaseSession: async () => ({ ok: false }),
   signOut: () => {},
 });
 
@@ -166,6 +167,62 @@ export function AuthProvider({ children }) {
     return { ok: true, home: homePathForUser(nextSession.user), lang: nextSession.user.preferredLanguage };
   }, []);
 
+  // Apple Sign-In identity bridge (native mobile compliance infra). GoTrue
+  // authenticates via auth.users, but the live app is still keyed off bbf_users —
+  // see the file header — so a successful `supabase.auth.signInWithOAuth` only
+  // unlocks the Vault if this auth.uid() is already linked to a bbf_users row.
+  // Mirrors the bridge already staged (inert) in LoginV2.jsx; the raw GoTrue
+  // session carries no vault_token/plans payload the way the PIN RPC does, so
+  // full parity there still awaits the same backend bootstrap that page's cutover
+  // is gated on. Until an account is explicitly linked, this fails closed with a
+  // clear message rather than a silent dead end.
+  const bridgeSupabaseSession = useCallback(async (authUser) => {
+    if (!authUser?.id) return { ok: false, reason: 'no_auth_user' };
+
+    const { data: row, error } = await supabase
+      .from('bbf_users')
+      .select('uid,name,role')
+      .eq('id', authUser.id)
+      .maybeSingle();
+
+    if (error || !row?.uid) {
+      // No linked profile — don't leave a dangling GoTrue session behind.
+      await supabase.auth.signOut();
+      return {
+        ok: false,
+        reason: 'unlinked',
+        message: 'Signed in with Apple, but no BBF profile is linked to this account yet. Contact your coach.',
+      };
+    }
+
+    const username = row.uid;
+    const nextSession = {
+      uid: username,
+      // The OAuth bridge mints no vault_token today (no PIN RPC in this path) —
+      // '' matches the documented "absent token" contract above: downstream cloud
+      // writes force a re-login rather than silently failing.
+      vaultToken: '',
+      user: {
+        id: username,
+        username,
+        role: row.role ?? null,
+        type: null,
+        programKey: resolveProgramKey(username),
+        preferredLanguage: 'en',
+        calibrationStartedAt: null,
+      },
+      plans: null,
+      authenticatedAt: Date.now(),
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSession));
+    } catch {
+      /* private-mode / quota — session stays in-memory for this tab */
+    }
+    setSession(nextSession);
+    return { ok: true, home: homePathForUser(nextSession.user) };
+  }, []);
+
   const signOut = useCallback(() => {
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -211,6 +268,7 @@ export function AuthProvider({ children }) {
     loading,
     isAdmin,
     signInWithPin,
+    bridgeSupabaseSession,
     signOut,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

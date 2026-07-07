@@ -13,14 +13,15 @@
 //   frontend/android/app/src/main/java/fitness/buildbelievefit/twa/
 //   — HealthConnectManager.kt + HealthConnectBridgePlugin.kt (Health Connect client).
 
+import { isNativePlatform } from './platform.js';
+
+// Re-exported for backward compatibility — platform.js is now the single source
+// of truth (also consumed by App.jsx / Login.jsx / UpgradeOverlay.jsx, none of
+// which need the Health Connect plugin machinery below).
+export { isNativePlatform };
+
 function capacitor() {
   return (typeof window !== 'undefined' && window.Capacitor) || null;
-}
-
-// True only inside the native Android (Capacitor) shell — not in the browser/PWA.
-export function isNativePlatform() {
-  const c = capacitor();
-  return !!(c && typeof c.isNativePlatform === 'function' && c.isNativePlatform());
 }
 
 function plugin() {
