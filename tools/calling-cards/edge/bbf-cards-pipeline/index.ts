@@ -5,7 +5,9 @@
 // Actions (querystring ?action=):
 //   export        → all bbf_calling_cards_batch_v1 rows (service-role read, RLS-bypassing)
 //   ensure_bucket → create public bucket calling-cards-v1 (idempotent)
-//   upload        → body {path, b64}: write one PNG into the bucket (upsert)
+//   upload        → body {path, b64}: write one image into the bucket (upsert).
+//                   Content-Type is derived from the path extension (.jpg→image/jpeg,
+//                   .png→image/png) so JPEG cards land labeled correctly for Instagram.
 //   count         → number of objects currently in the bucket
 //
 // Auth: standard Supabase JWT (verify_jwt = true) — invoke with the project anon key.
@@ -61,9 +63,13 @@ Deno.serve(async (req) => {
       if (!path || !b64) return json({ error: "missing_path_or_b64" }, 400);
       await ensureBucket();
       const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      // Derive Content-Type from the path extension — Instagram needs image/jpeg on
+      // .jpg cards; default to jpeg (the pipeline's format) for anything unlabeled.
+      const ext = String(path).toLowerCase().split(".").pop();
+      const contentType = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
       const up = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
         method: "POST",
-        headers: { ...svc, "Content-Type": "image/png", "x-upsert": "true" },
+        headers: { ...svc, "Content-Type": contentType, "x-upsert": "true" },
         body: bytes,
       });
       if (!up.ok) return json({ error: "upload_failed", status: up.status, detail: await up.text() }, 500);

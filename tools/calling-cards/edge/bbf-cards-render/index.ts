@@ -1,12 +1,20 @@
 // supabase/functions/bbf-cards-render — server-side BBF calling-card renderer.
-// SVG → PNG (resvg-wasm), text metrics via opentype.js. Faithfully reproduces the
-// blueprint card (bbf-100-card-admap.html) at 4:5 (1080×1350): LOCKED Bebas Neue /
-// Barlow Condensed, BBF Purple #6a0dad + Gold #f5c800 foundation, per-palette accents.
+// SVG → JPEG (resvg-wasm rasterizes to RGBA, jpeg-js encodes), text metrics via
+// opentype.js. Faithfully reproduces the blueprint card (bbf-100-card-admap.html) at
+// 4:5 (1080×1350): LOCKED Bebas Neue / Barlow Condensed, BBF Purple #6a0dad + Gold
+// #f5c800 foundation, per-palette accents.
 // Reads bbf_calling_cards_batch_v1 (service-role) and uploads to bucket calling-cards-v1.
 // The service-role key is injected by Supabase and never leaves the function (§7).
+//
+// FORMAT — JPEG, not PNG: Instagram's Content Publishing API rejects PNG image posts
+// (400 at container creation); it only accepts JPEG. Facebook tolerates either, which
+// masks the bug. resvg only emits PNG/RGBA, so we take its raw RGBA pixels and encode
+// JPEG (quality 92) — keeping the whole calling-card pipeline JPEG end-to-end and in
+// lockstep with the studio (bbf-studio-queue / bbf-card-distributor).
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { Resvg, initWasm } from "npm:@resvg/resvg-wasm@2.6.2";
 import opentype from "npm:opentype.js@1.3.4";
+import jpeg from "npm:jpeg-js@0.4.4";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -145,10 +153,15 @@ function buildSVG(row: any, idx: number): string {
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${g}</svg>`;
 }
 
-function renderPng(row: any, idx: number, fitWidth?: number): Uint8Array {
+// Rasterize the card SVG to a JPEG (Instagram-compatible). resvg renders to RGBA
+// pixels; jpeg-js encodes them (quality 92). JPEG has no alpha, but every palette
+// paints a full-bleed opaque background rect, so flattening is lossless here.
+function renderJpeg(row: any, idx: number, fitWidth?: number): Uint8Array {
   const opts: any = { font: { fontBuffers: FONTS, loadSystemFonts: false, defaultFontFamily: "Barlow Condensed" } };
   if (fitWidth) opts.fitTo = { mode: "width", value: fitWidth };
-  return new Resvg(buildSVG(row, idx), opts).render().asPng();
+  const rendered = new Resvg(buildSVG(row, idx), opts).render();
+  const { width, height, pixels } = rendered;
+  return jpeg.encode({ width, height, data: pixels }, 92).data;
 }
 function toB64(u8: Uint8Array) { let s = ""; const c = 0x8000; for (let i = 0; i < u8.length; i += c) s += String.fromCharCode(...u8.subarray(i, i + c)); return btoa(s); }
 async function sha256(u8: Uint8Array) { const h = await crypto.subtle.digest("SHA-256", u8); return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join(""); }
@@ -157,9 +170,15 @@ async function ensureBucket() {
   const r = await fetch(`${SUPABASE_URL}/storage/v1/bucket`, { method: "POST", headers: { ...svc, "Content-Type": "application/json" }, body: JSON.stringify({ id: BUCKET, name: BUCKET, public: true }) });
   if (r.ok) return; const t = await r.text(); if (r.status === 409 || /exist/i.test(t)) return; throw new Error(`bucket ${r.status}: ${t}`);
 }
-async function uploadPng(path: string, png: Uint8Array) {
-  const up = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, { method: "POST", headers: { ...svc, "Content-Type": "image/png", "x-upsert": "true" }, body: png });
+async function uploadJpeg(path: string, jpg: Uint8Array) {
+  const up = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, { method: "POST", headers: { ...svc, "Content-Type": "image/jpeg", "x-upsert": "true" }, body: jpg });
   if (!up.ok) throw new Error(`upload ${up.status}: ${await up.text()}`);
+}
+// Best-effort delete (used to retire a stale .png once its .jpg twin is written).
+// A 404/absent object is not an error — nothing to retire.
+async function deleteObject(path: string) {
+  try { await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, { method: "DELETE", headers: { ...svc } }); }
+  catch (_) { /* best effort — a leftover .png is inert (distributor prefers .jpg) */ }
 }
 async function fetchRows(offset: number, limit: number) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=id,headline,body,eye_label,cta,color_palette,platform_target&order=created_at.asc,id.asc&offset=${offset}&limit=${limit}`, { headers: svc });
@@ -178,10 +197,10 @@ Deno.serve(async (req) => {
       const i = Number(u.searchParams.get("i") || "0");
       const rows = await fetchRows(i, 1);
       if (!rows.length) return json({ error: "no_row", i }, 404);
-      const png = renderPng(rows[0], i);
-      await uploadPng(`${rows[0].id}.png`, png);
-      const small = renderPng(rows[0], i, Number(u.searchParams.get("w") || "150"));
-      return json({ ok: true, id: rows[0].id, palette: rows[0].color_palette, pngBytes: png.length, preview_sha256: await sha256(small), preview_b64: toB64(small) });
+      const jpg = renderJpeg(rows[0], i);
+      await uploadJpeg(`${rows[0].id}.jpg`, jpg);
+      const small = renderJpeg(rows[0], i, Number(u.searchParams.get("w") || "150"));
+      return json({ ok: true, id: rows[0].id, palette: rows[0].color_palette, jpgBytes: jpg.length, preview_sha256: await sha256(small), preview_b64: toB64(small) });
     }
     if (action === "run") {
       const offset = Number(u.searchParams.get("offset") || "0");
@@ -189,7 +208,11 @@ Deno.serve(async (req) => {
       const rows = await fetchRows(offset, limit);
       const done: string[] = []; const errors: any[] = [];
       for (let k = 0; k < rows.length; k++) {
-        try { await uploadPng(`${rows[k].id}.png`, renderPng(rows[k], offset + k)); done.push(rows[k].id); }
+        try {
+          await uploadJpeg(`${rows[k].id}.jpg`, renderJpeg(rows[k], offset + k));
+          await deleteObject(`${rows[k].id}.png`); // retire any stale PNG so nothing is left non-JPEG
+          done.push(rows[k].id);
+        }
         catch (e) { errors.push({ id: rows[k]?.id, e: String(e) }); }
       }
       return json({ ok: true, offset, limit, processed: rows.length, uploaded: done.length, errors });
@@ -198,6 +221,29 @@ Deno.serve(async (req) => {
       const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${BUCKET}`, { method: "POST", headers: { ...svc, "Content-Type": "application/json" }, body: JSON.stringify({ prefix: "", limit: 10000 }) });
       const list = await r.json();
       return json({ ok: true, count: Array.isArray(list) ? list.length : 0 });
+    }
+    // Retire stale PNGs via the Storage API (direct DB deletes are blocked). Removes a
+    // .png when it has a .jpg twin (redundant) OR no backing card row (orphan) — so the
+    // bucket ends up JPEG-only, matching the Instagram-safe pipeline.
+    if (action === "cleanup") {
+      const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${BUCKET}`, { method: "POST", headers: { ...svc, "Content-Type": "application/json" }, body: JSON.stringify({ prefix: "", limit: 10000 }) });
+      const list = await r.json();
+      const names = new Set((Array.isArray(list) ? list : []).map((o: any) => o.name));
+      const pngs = [...names].filter((n) => String(n).endsWith(".png"));
+      const removed: string[] = []; const kept: string[] = [];
+      for (const png of pngs) {
+        const stem = String(png).replace(/\.png$/, "");
+        const hasTwin = names.has(`${stem}.jpg`);
+        let hasRow = false;
+        if (!hasTwin) {
+          const rr = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=id&id=eq.${stem}&limit=1`, { headers: svc });
+          const rows = await rr.json().catch(() => []);
+          hasRow = Array.isArray(rows) && rows.length > 0;
+        }
+        if (hasTwin || !hasRow) { await deleteObject(String(png)); removed.push(String(png)); }
+        else kept.push(String(png));
+      }
+      return json({ ok: true, removed_count: removed.length, kept_count: kept.length, removed, kept });
     }
     return json({ error: "unknown_action", action }, 400);
   } catch (e) {
