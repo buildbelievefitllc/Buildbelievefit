@@ -164,10 +164,10 @@ async function headOk(url: string): Promise<boolean> {
   } catch (_) { return false; }
 }
 // Resolve the real asset URL by probing candidate extensions in preference order:
-// JPEG first (the studio pipeline + what Instagram requires), then any legacy PNG
-// (the resvg batch renderer at tools/calling-cards still emits .png). Returns the
-// existing URL or null. This lets JPEG (studio) and PNG (batch) cards coexist in the
-// same bucket/table without a global-extension flip breaking the other producer.
+// JPEG first (every producer now emits JPEG — the studio composer AND the resvg batch
+// renderer — because Instagram requires it), then a legacy .png fallback for safety in
+// case any pre-JPEG asset survives. Returns the existing URL or null, so a stray old
+// PNG can still post rather than being stranded.
 async function resolveAssetUrl(cfg: Config, id: string): Promise<string | null> {
   const cands = [...new Set([cfg.ext, 'jpg', 'jpeg', 'png'])];
   for (const ext of cands) {

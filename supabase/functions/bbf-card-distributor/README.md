@@ -52,7 +52,7 @@ falling back to `Deno.env.get`. Inject whichever way you prefer.
 | `TIKTOK_TOKEN` | TikTok | Content Posting API access token |
 | `META_GRAPH_VERSION` | — | optional, default `v21.0` |
 | `BBF_CARDS_BUCKET` | — | optional, default `calling-cards-v1` |
-| `BBF_CARDS_EXT` | — | optional, default `png` |
+| `BBF_CARDS_EXT` | — | optional preferred ext, default `jpg` (Instagram requires JPEG; the resolver still falls back to legacy `.png`) |
 
 Inject into Vault (example):
 
@@ -67,7 +67,8 @@ select vault.create_secret('act.your-tiktok-token', 'TIKTOK_TOKEN');
 
 Each card's image is expected at
 `storage/v1/object/public/<BBF_CARDS_BUCKET>/<row id>.<BBF_CARDS_EXT>`
-(default `calling-cards-v1/<id>.png`). The bucket must be **public** (or this can be
+(default `calling-cards-v1/<id>.jpg`; the resolver probes `.jpg` first, then a legacy
+`.png` fallback). The bucket must be **public** (or this can be
 switched to signed URLs). For TikTok PULL_FROM_URL, the bucket domain must be
 verified in the TikTok developer console.
 
