@@ -25,14 +25,15 @@
 // in the Client Database Hub, instead of on a separate top-level surface.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, fetchTiers, reassignTier, setAccessStatus, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
+import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, fetchTiers, reassignTier, setAccessStatus, assignWorkout, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
 import { coachThread, coachSendMessage, adminNutritionHistory, commsErrorMessage } from '../../lib/coachMessagesApi.js';
 import { hasAdminPin, setAdminPin, fetchBodyComposition } from '../../lib/coachAnalyticsApi.js';
 import { BarChart, LineChart, BodyComp } from './charts.jsx';
 import { numOrNull, GOLD, GRN, PURL, GOLD_SOFT } from './chartUtils.js';
 import { buildSportsProtocol, normalizeSportKey } from '../../lib/sportsEngine.js';
 import { buildMealPlan } from '../../lib/nutritionEngine.js';
-import { getSportsProtocol, setSportsProtocol, setMealPlan } from '../../lib/protocolOverrideApi.js';
+import { getSportsProtocol, setSportsProtocol, setMealPlan, getLivePlans } from '../../lib/protocolOverrideApi.js';
+import { generateProgram, toAssignedPlan, GOALS, LEVELS, LOCATIONS, DAY_OPTIONS } from '../vault/generatorEngine.js';
 import SovereignAthlete from './SovereignAthlete.jsx';
 import { useAthleteWearable } from '../../lib/wearableApi.js';
 import './analytics.css';
@@ -76,7 +77,30 @@ export default function ClientDossier({ client, onBack, onRosterRefresh }) {
     setError(null);
     try {
       const body = await rosterCall('detail', { id: client.id });
-      setData(body.client ?? null);
+      let row = body.client ?? null;
+      // LIVE DATA BINDING (Centralization fix): overlay the freshest plans +
+      // clinical intake from bbf_admin_client_live_plans. The detail action's
+      // unordered active_clients join could hydrate from a STALE intake row —
+      // this ordered read guarantees the dossier renders exactly what the
+      // athlete's app pulls. Non-fatal: on failure the detail row stands.
+      if (row) {
+        try {
+          const live = await getLivePlans(client.id);
+          if (live?.ok) {
+            row = {
+              ...row,
+              workout_plan: live.workout_plan ?? row.workout_plan,
+              meal_plan: live.meal_plan ?? row.meal_plan,
+              plans_generated_at: live.plans_generated_at ?? row.plans_generated_at,
+              age: live.age ?? row.age,
+              height_weight: live.height_weight ?? row.height_weight,
+              health_notes: live.clinical_history ?? row.health_notes,
+              preferred_language: live.preferred_language ?? row.preferred_language,
+            };
+          }
+        } catch { /* live overlay is non-fatal */ }
+      }
+      setData(row);
     } catch (e) {
       setError(toErrorMessage(e));
       setData(null);
@@ -187,6 +211,7 @@ export default function ClientDossier({ client, onBack, onRosterRefresh }) {
             accountStatus={client.account_status}
             onRosterRefresh={onRosterRefresh}
             onPatched={applyTargetPatch}
+            onRefetch={fetchDetail}
             analytics={{ data: analytics, loading: anLoading, error: anError, onRetry: fetchAnalyticsData }}
             isAthlete={isAthlete}
             proto={proto}
@@ -299,7 +324,7 @@ const DECKS = [
 const ATHLETE_DECK_ORDER = ['override', 'workouts', 'nutrition', 'analytics', 'feed', 'target', 'access'];
 const ATHLETE_DECKS = ATHLETE_DECK_ORDER.map((id) => DECKS.find((d) => d.id === id));
 
-function DossierBody({ c, clientId, clientUid, accountStatus, onRosterRefresh, onPatched, analytics, isAthlete, proto, protoLoading, protoError, onProtoReload, picked, onPick }) {
+function DossierBody({ c, clientId, clientUid, accountStatus, onRosterRefresh, onPatched, onRefetch, analytics, isAthlete, proto, protoLoading, protoError, onProtoReload, picked, onPick }) {
   // `picked` (lifted to ClientDossier — the Sovereign header's quick-action menu writes
   // it too) = the explicit choice; until one is made, the active deck tracks the layout
   // default (Override for athletes, Nutrition otherwise) so resolving athlete-ness after
@@ -329,8 +354,8 @@ function DossierBody({ c, clientId, clientUid, accountStatus, onRosterRefresh, o
       </nav>
 
       <div key={deck}>
-        {deck === 'nutrition' && <NutritionTab c={c} clientId={clientId} />}
-        {deck === 'workouts' && <ProgramTab c={c} />}
+        {deck === 'nutrition' && <NutritionTab c={c} clientId={clientId} onRefetch={onRefetch} />}
+        {deck === 'workouts' && <ProgramTab c={c} clientId={clientId} onRefetch={onRefetch} />}
         {deck === 'analytics' && <AnalyticsDeck {...analytics} uid={clientUid} />}
         {deck === 'feed' && <FeedChat clientId={clientId} clientName={c.name || c.uid || 'this athlete'} />}
         {deck === 'target' && <ReconfiguratorDeck c={c} clientId={clientId} onPatched={onPatched} />}
@@ -348,7 +373,106 @@ function DossierBody({ c, clientId, clientUid, accountStatus, onRosterRefresh, o
 }
 
 // ── 7-Day Workouts — active training plan + training/medical profile. ──────────
-function ProgramTab({ c }) {
+// ── Program Override — the Generator, centralized into the dossier (Mandate 2).
+//    The SAME deterministic engine the Vault Generator runs (generateProgram →
+//    toAssignedPlan), pre-loaded with this athlete's context, injected via the
+//    existing assign_workout write (server-side blacklist scrub + bbf_users +
+//    bbf_active_clients mirror). No leaving the dossier to program an athlete. ──
+function ProgramOverridePanel({ clientId, clientName, onRefetch }) {
+  const [open, setOpen] = useState(false);
+  const [params, setParams] = useState({ goal: 'hypertrophy', level: '2', days: '4', loc: 'commercial' });
+  const [result, setResult] = useState(null);
+  const [state, setState] = useState({ busy: false, ok: null, err: null });
+
+  const setP = (k) => (e) => { setParams((p) => ({ ...p, [k]: e.target.value })); setResult(null); };
+
+  function generate(regen = 0) {
+    setState({ busy: false, ok: null, err: null });
+    setResult(generateProgram({ ...params, warmups: true, regen }));
+  }
+
+  async function inject() {
+    if (!result || state.busy) return;
+    setState({ busy: true, ok: null, err: null });
+    try {
+      const plan = toAssignedPlan(result);
+      const res = await assignWorkout(clientId, plan);
+      setState({ busy: false, ok: `Injected — ${res.days ?? plan.length}-day protocol is live on ${clientName}'s app.`, err: null });
+      onRefetch?.(); // re-hydrate the dossier so the plan above renders the new truth
+    } catch (e) {
+      setState({ busy: false, ok: null, err: toErrorMessage(e) });
+    }
+  }
+
+  return (
+    <Section title="⚡ Program Override — Generator" meta="deterministic engine · injects live">
+      {!open ? (
+        <div style={styles.saveRow}>
+          <button type="button" style={styles.saveBtn} onClick={() => setOpen(true)} data-testid="program-override-open">
+            ⚡ Open Program Override
+          </button>
+        </div>
+      ) : (
+        <>
+          <div style={styles.macroGrid}>
+            <label style={styles.field}>
+              <span style={styles.fieldLabel}>Goal</span>
+              <select style={OVR_SELECT} value={params.goal} disabled={state.busy} onChange={setP('goal')} data-testid="po-goal">
+                {GOALS.map((g) => <option key={g.v} value={g.v}>{g.l}</option>)}
+              </select>
+            </label>
+            <label style={styles.field}>
+              <span style={styles.fieldLabel}>Level</span>
+              <select style={OVR_SELECT} value={params.level} disabled={state.busy} onChange={setP('level')}>
+                {LEVELS.map((l) => <option key={l.v} value={l.v}>{l.l}</option>)}
+              </select>
+            </label>
+            <label style={styles.field}>
+              <span style={styles.fieldLabel}>Days / Week</span>
+              <select style={OVR_SELECT} value={params.days} disabled={state.busy} onChange={setP('days')}>
+                {DAY_OPTIONS.map((d) => <option key={d} value={d}>{d} days</option>)}
+              </select>
+            </label>
+            <label style={styles.field}>
+              <span style={styles.fieldLabel}>Equipment</span>
+              <select style={OVR_SELECT} value={params.loc} disabled={state.busy} onChange={setP('loc')}>
+                {LOCATIONS.map((l) => <option key={l.v} value={l.v}>{l.l}</option>)}
+              </select>
+            </label>
+          </div>
+
+          <div style={styles.saveRow}>
+            <button type="button" style={{ ...styles.saveBtn, opacity: state.busy ? .6 : 1 }} disabled={state.busy} onClick={() => generate(0)} data-testid="po-generate">
+              {result ? '↻ Regenerate' : 'Generate Blueprint'}
+            </button>
+            {result ? (
+              <button type="button" style={{ ...styles.saveBtn, background: 'var(--yel)', color: '#0e0a16', opacity: state.busy ? .6 : 1 }} disabled={state.busy} onClick={inject} data-testid="po-inject">
+                {state.busy ? 'Injecting…' : `⚡ Inject ${result.program?.length ?? 0}-Day Program`}
+              </button>
+            ) : null}
+            {state.ok ? <span style={styles.savedFlag}>✓ {state.ok}</span> : null}
+          </div>
+
+          {result ? (
+            <div style={styles.plan} data-testid="po-preview">
+              {(result.program || []).map((d, i) => (
+                <div key={i} style={styles.mealDay}>
+                  <span style={styles.dayLabel}>{d.label}</span>
+                  <span style={styles.rowSub}>
+                    {(d.exercises || []).length} movements · {d.rx?.sets ?? '—'}×{d.rx?.reps ?? '—'}{d.rx?.technique ? ` · ${d.rx.technique}` : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {state.err ? <div style={styles.saveError} role="alert">{state.err}</div> : null}
+        </>
+      )}
+    </Section>
+  );
+}
+
+function ProgramTab({ c, clientId, onRefetch }) {
   const workoutDays = asArray(c.workout_plan);
   const workoutText = !workoutDays && typeof c.workout_plan === 'string' ? c.workout_plan.trim() : '';
 
@@ -379,6 +503,9 @@ function ProgramTab({ c }) {
           <Field label="Cardiac Clearance" value={c.cardiac_clearance} color={cardiacColor(c.cardiac_clearance)} />
         </div>
       </Section>
+
+      {/* Mandate 2 — the Generator lives IN the dossier now. */}
+      <ProgramOverridePanel clientId={clientId} clientName={c.name || c.uid || 'this athlete'} onRefetch={onRefetch} />
     </>
   );
 }
@@ -441,8 +568,78 @@ function FuelHistoryStrip({ clientId }) {
   );
 }
 
+// ── Nutrition Override — centralized beside the LIVE plan it rewrites (Mandate 3).
+//    Same deterministic engine + admin write the Manual Override deck uses
+//    (buildMealPlan → bbf_admin_set_meal_plan, which updates bbf_users AND the
+//    bbf_active_clients mirror), with THIS athlete's allergens auto-armed. ──
+const NUT_FASTS = [['none', 'None'], ['12/12', '12 / 12'], ['14/10', '14 / 10'], ['16/8', '16 / 8']];
+const NUT_DIETS = ['Omnivore', 'Vegetarian', 'Vegan'];
+
+function NutritionOverridePanel({ c, clientId, onRefetch }) {
+  const [tdee, setTdee] = useState(c.tdee_target ?? '');
+  const [diet, setDiet] = useState(c.dietary_profile || 'Omnivore');
+  const [fasting, setFasting] = useState('none');
+  const [state, setState] = useState({ busy: false, ok: null, err: null });
+  const allergens = Array.isArray(c.allergens) ? c.allergens : [];
+
+  async function push() {
+    if (state.busy) return;
+    setState({ busy: true, ok: null, err: null });
+    try {
+      const t = Number(tdee) || 0;
+      if (t <= 0 || t > TARGET_MAX) {
+        setState({ busy: false, ok: null, err: `Enter a calorie target between 1 and ${TARGET_MAX.toLocaleString()}.` });
+        return;
+      }
+      const plan = buildMealPlan({ tdee: t, dietary_profile: diet, fasting_window: fasting, allergens });
+      if (!plan) { setState({ busy: false, ok: null, err: 'No plan could be built (meal database empty?).' }); return; }
+      await setMealPlan(clientId, plan);
+      setState({ busy: false, ok: `Live — ${diet}${fasting !== 'none' ? ` · ${fasting}` : ''} @ ${t.toLocaleString()} kcal pushed to the athlete's profile.`, err: null });
+      onRefetch?.(); // re-hydrate so the plan rendered above IS the new plan
+    } catch (e) {
+      setState({ busy: false, ok: null, err: e.message });
+    }
+  }
+
+  return (
+    <Section title="⚡ Nutrition Override" meta="rewrites the live plan above">
+      <div style={styles.macroGrid}>
+        <label style={styles.field}>
+          <span style={styles.fieldLabel}>Calories (kcal)</span>
+          <input style={OVR_SELECT} type="number" min="0" max={TARGET_MAX} step="1" inputMode="numeric"
+            value={tdee} disabled={state.busy} onChange={(e) => setTdee(e.target.value)} data-testid="no-tdee" />
+        </label>
+        <label style={styles.field}>
+          <span style={styles.fieldLabel}>Dietary Profile</span>
+          <select style={OVR_SELECT} value={diet} disabled={state.busy} onChange={(e) => setDiet(e.target.value)}>
+            {NUT_DIETS.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </label>
+        <label style={styles.field}>
+          <span style={styles.fieldLabel}>Fasting Window</span>
+          <select style={OVR_SELECT} value={fasting} disabled={state.busy} onChange={(e) => setFasting(e.target.value)}>
+            {NUT_FASTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </label>
+      </div>
+      {allergens.length ? (
+        <div style={styles.guardNote}>
+          🛡 Allergen safety net armed: {allergens.join(', ')} — flagged meals never enter the regenerated plan.
+        </div>
+      ) : null}
+      <div style={styles.saveRow}>
+        <button type="button" style={{ ...styles.saveBtn, opacity: state.busy ? .6 : 1 }} disabled={state.busy} onClick={push} data-testid="no-push">
+          {state.busy ? 'Pushing Live…' : '⚡ Regenerate & Push Live'}
+        </button>
+        {state.ok ? <span style={styles.savedFlag}>✓ {state.ok}</span> : null}
+      </div>
+      {state.err ? <div style={styles.saveError} role="alert">{state.err}</div> : null}
+    </Section>
+  );
+}
+
 // ── 7-Day Nutrition — meal plan + dietary profile (macros live in Update Target). ─
-function NutritionTab({ c, clientId }) {
+function NutritionTab({ c, clientId, onRefetch }) {
   const mealDays = asMealDays(c.meal_plan);
   const mealText = !mealDays && typeof c.meal_plan === 'string' ? c.meal_plan.trim() : '';
   const nutritionText = typeof c.nutrition_plan === 'string' ? c.nutrition_plan.trim() : '';
@@ -474,6 +671,9 @@ function NutritionTab({ c, clientId }) {
         ) : null}
         {!nutritionText && !mealDays && !mealText ? <Empty>No nutrition plan on file.</Empty> : null}
       </Section>
+
+      {/* Mandate 3 — the override lives beside the live plan it rewrites. */}
+      <NutritionOverridePanel c={c} clientId={clientId} onRefetch={onRefetch} />
 
       {/* Real logged 7-day adherence (mandate: history, not placeholders). */}
       <FuelHistoryStrip clientId={clientId} />

@@ -42,3 +42,12 @@ export function setMealPlan(id, plan) {
 export function listSportsAthletes() {
   return adminRpc('bbf_admin_list_sports_athletes', {});
 }
+
+// LIVE plan hydration (Centralization fix): the freshest meal_plan /
+// workout_plan / sports_protocol + clinical intake (age · height/weight ·
+// clinical history) for a client — bbf_users first, then the NEWEST
+// bbf_active_clients mirror row (ordered join; the old unordered limit=1
+// could hydrate the dossier from a stale intake row).
+export function getLivePlans(id) {
+  return adminRpc('bbf_admin_client_live_plans', { p_client_id: id });
+}
