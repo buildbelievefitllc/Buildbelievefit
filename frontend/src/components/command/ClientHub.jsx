@@ -25,6 +25,7 @@ import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
 import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import ClientDossier from './ClientDossier.jsx';
+import ForgeAthlete from './ForgeAthlete.jsx';
 import './founderfive.css';
 
 export default function ClientHub() {
@@ -34,6 +35,13 @@ export default function ClientHub() {
   const [error, setError] = useState(null);
   const [activeId, setActiveId] = useState(null); // selected row id | null
   const [filter, setFilter] = useState('');
+  // The Hardwire Gateway — Forge Athlete modal (god-mode onboarding bypass).
+  const [forgeOpen, setForgeOpen] = useState(false);
+  // Optimistic roster injection: the forged athlete's roster-shaped row lands
+  // at the head of the list INSTANTLY; the follow-up fetch reconciles.
+  const onForged = useCallback((client) => {
+    if (client?.id) setData((prev) => [client, ...prev.filter((c) => c.id !== client.id)]);
+  }, []);
 
   const fetchRoster = useCallback(async () => {
     setIsLoading(true);
@@ -142,6 +150,11 @@ export default function ClientHub() {
             </button>
           </div>
 
+          {/* The Hardwire Gateway — god-mode onboarding bypass w/ clinical profiling. */}
+          <button type="button" className="ff-forge" onClick={() => setForgeOpen(true)} data-testid="forge-open">
+            ⚒ Forge Athlete
+          </button>
+
           {isLoading ? (
             <div className="ff-state" role="status" aria-live="polite">
               <span className="ff-dot" /> Loading roster…
@@ -194,6 +207,13 @@ export default function ClientHub() {
           )}
         </section>
       </div>
+
+      {forgeOpen ? (
+        <ForgeAthlete
+          onClose={() => { setForgeOpen(false); fetchRoster(); /* reconcile the optimistic row */ }}
+          onForged={onForged}
+        />
+      ) : null}
     </div>
   );
 }
