@@ -20,7 +20,7 @@ import { useLang } from '../context/LangContext.jsx';
 // were purged — they live only in the Sovereign Client Vault now. Generator, the
 // admin Nutrition Locker, and Access Control fold under the Command Center group;
 // Sports Portal, Language, and Settings get their own entries.
-const COACHING_TABS = ['', 'roster', 'command', 'access', 'telemetry', 'analytics', 'comlink', 'generator', 'nutrition-locker'];
+const COACHING_TABS = ['', 'roster', 'command', 'access', 'telemetry', 'eagle-eye', 'analytics', 'comlink', 'generator', 'nutrition-locker'];
 const NAV_ITEMS = [
   { labelKey: 'vault-command', to: '/command', isActive: (tab) => COACHING_TABS.includes(tab) },
   // The Coach Lab — admin-only Continuous Knowledge Ecosystem (own deep-link).

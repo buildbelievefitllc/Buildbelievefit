@@ -54,6 +54,7 @@ export type UseCase =
   | 'coach_protocol_critique' // Coach Lab · Arena — score the coach's protocol vs NASM/NSCA
   | 'coach_broadcast_synthesis' // Coach Lab · Broadcast — synthesize vault entries into a client newsletter
   | 'sovereign_audio_briefing'  // Sovereign Audio — Day-30 graduation voice briefing (premium narration, mid-complexity → Sonnet)
+  | 'eagle_eye_alignment'       // BBF Eagle Eye — secondary-brain cross-check of daily readiness vs weekly-report coaching-cue buckets (per-client reasoned synthesis)
   // ── OPUS tier · peak reasoning · safety-critical only ─────────────
   // parq_assessment — MIGRATED off the LLM to the deterministic SQL engine
   //   (public.bbf_parq_assess · standardized PAR-Q+ 2014). No LLM route; was
@@ -86,6 +87,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   coach_protocol_critique: MODELS.SONNET, // reasoned scorecard vs NASM/NSCA guidelines
   coach_broadcast_synthesis: MODELS.HAIKU, // reformatting structured summaries into newsletter prose (low-stakes)
   sovereign_audio_briefing: MODELS.SONNET, // Sovereign Audio graduation briefing — premium narration, NOT safety-critical → Sonnet (§4)
+  eagle_eye_alignment:   MODELS.SONNET, // secondary-brain cue-alignment synthesis — reasoned cross-check, NOT a live safety call (deterministic engine owns the verdict) → Sonnet (§4 margin)
   // parq_assessment removed — now deterministic (see public.bbf_parq_assess).
   wellbeing_escalation:  MODELS.OPUS,
   cardiac_intercept:     MODELS.OPUS,

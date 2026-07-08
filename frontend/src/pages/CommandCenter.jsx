@@ -22,6 +22,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ClientHub from '../components/command/ClientHub.jsx';
 // import AccessControl from '../components/command/AccessControl.jsx'; // hidden (declutter) — restore with its TABS entry
 import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
+import EagleEye from '../components/command/EagleEye.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 import NutritionLocker from '../components/command/NutritionLocker.jsx';
 import CoachCave from '../components/command/CoachCave.jsx';
@@ -61,6 +62,10 @@ const TABS = [
   // Executive Access Control — tier visibility + reassignment + the account kill switch.
   // { id: 'access', labelKey: 'cmd-tab-access', Panel: AccessControl },
   { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry },
+  // BBF Eagle Eye — the secondary brain. Oversees all client data and verifies the
+  // coaching cues bucketed for the daily Sovereign readiness message and the weekly
+  // report stay aligned per client (deterministic engine · bbf-eagle-eye).
+  { id: 'eagle-eye', labelKey: 'cmd-tab-eagle-eye', Panel: EagleEye },
   // Client Analytics no longer lives as a standalone surface — the 30/60/90-day
   // analytics + body composition now render INSIDE the Client Database Hub dossier,
   // scoped to the selected athlete (where their data actually lives).

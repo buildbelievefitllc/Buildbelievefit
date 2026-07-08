@@ -633,6 +633,9 @@ const DICT = {
   'cmd-tab-roster': { en: 'Founder Five', es: 'Founder Five', pt: 'Founder Five' },
   'cmd-tab-command': { en: 'Command', es: 'Comando', pt: 'Comando' },
   'cmd-tab-telemetry': { en: 'Risk Telemetry', es: 'Telemetría de Riesgo', pt: 'Telemetria de Risco' },
+  // BBF Eagle Eye — secondary-brain cue-alignment oversight. Proper noun kept
+  // identical across languages (like 'Founder Five' / 'Comlink').
+  'cmd-tab-eagle-eye': { en: 'BBF Eagle Eye', es: 'BBF Eagle Eye', pt: 'BBF Eagle Eye' },
   'cmd-tab-analytics': { en: 'Analytics', es: 'Analíticas', pt: 'Análises' },
   'cmd-tab-comlink': { en: 'Comlink', es: 'Comlink', pt: 'Comlink' },
   'cmd-tab-nutrition-locker': { en: 'Nutrition Locker', es: 'Casillero de Nutrición', pt: 'Cofre Nutricional' },
