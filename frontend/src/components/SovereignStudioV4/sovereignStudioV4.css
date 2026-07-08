@@ -446,3 +446,80 @@
   .preview-wrap-v4 { order: -1; max-height: none; padding: 16px; }
   .stage-host-v4.active { max-width: 320px; }
 }
+
+
+/* ═══ BLANKET FACELIFT — collapsible semantic control sections ═════════════ */
+.ctl-section-v4 {
+  border: 1px solid rgba(139, 26, 191, .3);
+  border-radius: 12px;
+  background: rgba(106, 13, 173, .06);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.ctl-section-head-v4 {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: rgba(9, 9, 9, .55); border: none; cursor: pointer;
+  padding: 11px 14px; text-align: left;
+  font-family: var(--hb, 'Barlow Condensed'), sans-serif;
+  font-size: .78rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--wht, #f9f5ff);
+  transition: background .15s ease;
+}
+.ctl-section-head-v4:hover { background: rgba(106, 13, 173, .22); }
+.ctl-section-head-v4:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: -3px; }
+.ctl-section-ic-v4 { flex: none; font-size: .95rem; }
+.ctl-section-label-v4 { flex: 1; min-width: 0; }
+.ctl-section-chev-v4 { flex: none; color: var(--gold-soft, #d9b64e); font-size: .8rem; }
+.ctl-section-v4.is-open .ctl-section-head-v4 { border-bottom: 1px solid rgba(139, 26, 191, .3); }
+.ctl-section-body-v4 { padding: 14px 14px 4px; }
+.ctl-section-body-v4 > .divider-v4 { display: none; } /* sections replace the old dividers */
+
+/* ═══ KINETIC TEXT — caption_animation_style keyframes (#video-preview) ═════
+   Per-word spans stagger via --word-i. Lightweight: transform/opacity only,
+   no layout thrash; 'static' renders plain text with zero machinery. */
+#video-preview .kin-line-v4 { display: inline; }
+#video-preview .kin-word-v4 {
+  display: inline-block;
+  margin-right: 0.24em;
+  will-change: transform, opacity;
+}
+#video-preview .kin-word-v4:last-child { margin-right: 0; }
+
+/* Word-by-Word Pop — each word scales in on a bounce, staggered. */
+#video-preview .kin-word-v4.kin-pop {
+  opacity: 0;
+  animation: kin-pop-v4 .45s cubic-bezier(.2, 1.4, .4, 1) forwards;
+  animation-delay: calc(var(--word-i, 0) * 130ms);
+}
+@keyframes kin-pop-v4 {
+  0%   { opacity: 0; transform: scale(.2); }
+  70%  { opacity: 1; transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Impact Shoot-In — words slam in from off-canvas left with a skew settle. */
+#video-preview .kin-word-v4.kin-shoot {
+  opacity: 0;
+  animation: kin-shoot-v4 .38s cubic-bezier(.16, 1, .3, 1) forwards;
+  animation-delay: calc(var(--word-i, 0) * 90ms);
+}
+@keyframes kin-shoot-v4 {
+  0%   { opacity: 0; transform: translateX(-130%) skewX(-14deg); }
+  75%  { opacity: 1; transform: translateX(4%) skewX(3deg); }
+  100% { opacity: 1; transform: translateX(0) skewX(0); }
+}
+
+/* Fade-Glide — soft upward glide + fade, gentle stagger. */
+#video-preview .kin-word-v4.kin-glide {
+  opacity: 0;
+  animation: kin-glide-v4 .7s ease-out forwards;
+  animation-delay: calc(var(--word-i, 0) * 110ms);
+}
+@keyframes kin-glide-v4 {
+  0%   { opacity: 0; transform: translateY(38px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #video-preview .kin-word-v4 { animation: none !important; opacity: 1 !important; transform: none !important; }
+}

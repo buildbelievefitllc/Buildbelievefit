@@ -26,6 +26,35 @@ const HOOK_FONT_STACK = {
   barlow: "'Barlow Condensed', sans-serif",
 };
 
+// ── Kinetic Text (caption_animation_style) — split the hook into word spans so
+// per-word keyframes (word-pop / shoot-in / fade-glide, sovereignStudioV4.css
+// §Kinetic Text) can stagger via the --word-i custom property. 'static' skips
+// the machinery entirely — zero DOM overhead on the default path. Line breaks
+// in the hook are preserved (each \n renders a real <br/>). ──
+const KINETIC_CLASS = {
+  'word-pop': 'kin-pop',
+  'shoot-in': 'kin-shoot',
+  'fade-glide': 'kin-glide',
+};
+
+function KineticHook({ text, anim }) {
+  let wordIndex = 0;
+  const lines = String(text).split('\n');
+  return lines.map((line, li) => (
+    <span key={li} className="kin-line-v4">
+      {line.split(/\s+/).filter(Boolean).map((word) => {
+        const i = wordIndex++;
+        return (
+          <span key={`${i}-${word}`} className={`kin-word-v4 ${anim}`} style={{ '--word-i': i }}>
+            {word}
+          </span>
+        );
+      })}
+      {li < lines.length - 1 ? <br /> : null}
+    </span>
+  ));
+}
+
 export default function ReelPreviewEngine({ reelData, stageRef }) {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -139,6 +168,7 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
   };
 
   const overlayClass = OVERLAY_CLASS[reelData.overlayStyle] || 'ovl-scrim';
+  const kineticClass = KINETIC_CLASS[reelData.caption_animation_style] || null;
   const layoutClass = `txt-${reelData.textLayout || 'bottom'}`; // overlay text-placement toggle
   const pct = duration ? (currentTime / duration) * 100 : 0;
 
@@ -147,7 +177,7 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
   ) : null;
 
   return (
-    <div className={`stage-reel-v4 ${overlayClass} ${layoutClass} ${reelData.phoneBackdrop ? 'has-phone-backdrop' : ''}`} ref={stageRef}>
+    <div id="video-preview" className={`stage-reel-v4 ${overlayClass} ${layoutClass} ${reelData.phoneBackdrop ? 'has-phone-backdrop' : ''}`} ref={stageRef}>
       {reelData.phoneBackdrop ? (
         <div
           className={`phone-frame-v4 frame-${reelData.phoneFrame || 'sleek'}`}
@@ -177,13 +207,16 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
       <div className="reel-bottom-v4">
         {reelData.hook && (
           <div
+            // key remount replays the kinetic run whenever the style or copy
+            // changes — the animation is always previewable, never one-shot.
+            key={`${reelData.caption_animation_style || 'static'}::${reelData.hook}`}
             className="reel-hl-v4"
             style={{
               fontFamily: HOOK_FONT_STACK[reelData.hookFont] || undefined,
               fontSize: reelData.hookFontSize ? `${reelData.hookFontSize}px` : undefined,
             }}
           >
-            {reelData.hook}
+            {kineticClass ? <KineticHook text={reelData.hook} anim={kineticClass} /> : reelData.hook}
           </div>
         )}
         {reelData.hookSub && <div className="reel-sub-v4">{reelData.hookSub}</div>}

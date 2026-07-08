@@ -96,6 +96,40 @@ const HOOKS = {
   ],
 };
 
+// Kinetic text animation styles — caption_animation_style values. 'static' is the
+// no-motion default; the other three map to keyframes in sovereignStudioV4.css
+// (§Kinetic Text) that the ReelPreviewEngine executes live on the hook overlay.
+const CAPTION_ANIMATIONS = [
+  ['static', 'STATIC'],
+  ['word-pop', 'WORD POP'],
+  ['shoot-in', 'SHOOT-IN'],
+  ['fade-glide', 'FADE-GLIDE'],
+];
+
+// ── Blanket Facelift: collapsible semantic section (category accordion). All
+// sections default OPEN — the categorized structure + on-demand collapse is the
+// bloat cure, and every control stays reachable (e2e selectors + CEO muscle
+// memory unbroken). Header = emoji + label + chevron; body = the untouched
+// control groups. ──
+function CtlSection({ icon, label, defaultOpen = true, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className={`ctl-section-v4${open ? ' is-open' : ''}`}>
+      <button
+        type="button"
+        className="ctl-section-head-v4"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="ctl-section-ic-v4" aria-hidden="true">{icon}</span>
+        <span className="ctl-section-label-v4">{label}</span>
+        <span className="ctl-section-chev-v4" aria-hidden="true">{open ? '▾' : '▸'}</span>
+      </button>
+      {open ? <div className="ctl-section-body-v4">{children}</div> : null}
+    </section>
+  );
+}
+
 // Hook headline typeface choices — mirrors ReelPreviewEngine's HOOK_FONT_STACK ids.
 const HOOK_FONTS = [
   ['bebas', 'BEBAS'],
@@ -205,6 +239,93 @@ export default function VibeSelector({ reelData, handleReelChange }) {
 
   return (
     <>
+      {/* ── BLANKET FACELIFT: the single-column panel is now four collapsible
+          semantic sections. Every control survives verbatim — regrouped, never
+          removed. All sections default open (collapse on demand). ── */}
+      <CtlSection icon="📂" label="MEDIA & OVERLAYS">
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🎬 Reel Footage (MP4 / MOV)</label>
+        <label className="upload-btn-v4" htmlFor="reel-video-input">UPLOAD VIDEO</label>
+        <input
+          id="reel-video-input"
+          type="file"
+          accept="video/*"
+          ref={videoInputRef}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              // Revoke the previous blob URL before minting a new one — otherwise
+              // each re-upload leaks the old object URL (house pattern, §SovereignStudio).
+              if (reelData.videoFile?.url) URL.revokeObjectURL(reelData.videoFile.url);
+              const url = URL.createObjectURL(file);
+              handleReelChange('videoFile', { file, url });
+            }
+          }}
+          style={{ display: 'none' }}
+        />
+        <div className="hint-v4">Loads moving footage behind the overlay. Video wins over image when both are set.</div>
+      </div>
+
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">📱 Phone Backdrop</label>
+        <div className="seg-v4" data-testid="reel-phone-backdrop">
+          <button type="button" className={!reelData.phoneBackdrop ? 'active' : ''} onClick={() => handleReelChange('phoneBackdrop', false)}>OFF</button>
+          <button type="button" className={reelData.phoneBackdrop ? 'active' : ''} onClick={() => handleReelChange('phoneBackdrop', true)}>ON</button>
+        </div>
+        <div className="hint-v4">Plays the footage INSIDE a phone mock-up instead of full-bleed — same frame as the Phone tab, so you can show a live demo of the app on screen.</div>
+        {reelData.phoneBackdrop && (
+          <select
+            value={reelData.phoneFrame || 'sleek'}
+            onChange={(e) => handleReelChange('phoneFrame', e.target.value)}
+            className="select-v4"
+            data-testid="reel-phone-frame"
+          >
+            <option value="sleek">Sleek Modern</option>
+            <option value="gold">Sovereign Gold</option>
+            <option value="carbon">Matte Black Carbon</option>
+          </select>
+        )}
+      </div>
+
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">Logo (optional corner badge)</label>
+        <label className="upload-btn-v4" htmlFor="reel-logo-input">UPLOAD LOGO</label>
+        <input
+          id="reel-logo-input"
+          type="file"
+          accept="image/*"
+          ref={logoInputRef}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              if (reelData.logoImage?.url) URL.revokeObjectURL(reelData.logoImage.url);
+              const url = URL.createObjectURL(file);
+              handleReelChange('logoImage', { file, url });
+            }
+          }}
+          style={{ display: 'none' }}
+        />
+      </div>
+
+      {/* ── Asset size handle — scales the corner logo badge live in the preview ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🔧 Logo Size — {Math.round((reelData.logoScale ?? 1) * 100)}%</label>
+        <input
+          type="range"
+          className="range-v4"
+          min="0.5"
+          max="2"
+          step="0.05"
+          value={reelData.logoScale ?? 1}
+          onChange={(e) => handleReelChange('logoScale', Number(e.target.value))}
+          aria-label="Logo size"
+          data-testid="reel-logo-size"
+        />
+        <div className="hint-v4">Scales the corner logo badge on the reel canvas (50%–200%).</div>
+      </div>
+      </CtlSection>
+
+      <CtlSection icon="✍️" label="HOOK & TEXT ENGINE">
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">⚡ Hook Spectrum (themed)</label>
         <select value={reelData.spectrum} onChange={handleSpectrumChange} className="select-v4">
@@ -228,8 +349,6 @@ export default function VibeSelector({ reelData, handleReelChange }) {
       {hookNote && (
         <div className="hint-v4" style={{ color: hookNote.ok ? 'var(--green, #4ade80)' : '#fb923c', marginTop: -8 }}>{hookNote.text}</div>
       )}
-
-      <div className="divider-v4"></div>
 
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">Hook Headline</label>
@@ -296,8 +415,45 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         <div className="hint-v4">The ▶ chip label under the hook — only shows once a hook is set.</div>
       </div>
 
-      <div className="divider-v4"></div>
+      {/* ── Overlay text layout toggle — where the hook block sits on the canvas ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">Overlay Text Layout</label>
+        <div className="seg-v4" data-testid="reel-text-layout">
+          {[['bottom', 'BOTTOM'], ['center', 'CENTER'], ['top', 'TOP']].map(([val, label]) => (
+            <button
+              key={val}
+              type="button"
+              className={(reelData.textLayout || 'bottom') === val ? 'active' : ''}
+              onClick={() => handleReelChange('textLayout', val)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="hint-v4">Anchors the hook + sub-line block on the reel canvas.</div>
+      </div>
 
+      {/* ── Kinetic Text Animation — caption_animation_style. Executes live in the
+          #video-preview stage (keyframes: sovereignStudioV4.css §Kinetic Text). ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">✨ Caption Animation</label>
+        <div className="seg-v4" data-testid="reel-caption-animation">
+          {CAPTION_ANIMATIONS.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={(reelData.caption_animation_style || 'static') === id ? 'active' : ''}
+              onClick={() => handleReelChange('caption_animation_style', id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="hint-v4">Kinetic motion for the hook overlay — Word-by-Word Pop, Impact Shoot-In, or Fade-Glide. Replays live in the preview on every change.</div>
+      </div>
+      </CtlSection>
+
+      <CtlSection icon="🔊" label="AUDIO MIX CONSOLE">
       {/* ── FRONT 5 · SOVEREIGN VOICEOVER (lazy-cached) ── */}
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">🎙 Sovereign Voiceover — Akeem clone</label>
@@ -386,107 +542,6 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         </div>
       )}
 
-      <div className="divider-v4"></div>
-
-      <div className="ctl-group-v4">
-        <label className="ctl-label-v4">🎬 Reel Footage (MP4 / MOV)</label>
-        <label className="upload-btn-v4" htmlFor="reel-video-input">UPLOAD VIDEO</label>
-        <input
-          id="reel-video-input"
-          type="file"
-          accept="video/*"
-          ref={videoInputRef}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              // Revoke the previous blob URL before minting a new one — otherwise
-              // each re-upload leaks the old object URL (house pattern, §SovereignStudio).
-              if (reelData.videoFile?.url) URL.revokeObjectURL(reelData.videoFile.url);
-              const url = URL.createObjectURL(file);
-              handleReelChange('videoFile', { file, url });
-            }
-          }}
-          style={{ display: 'none' }}
-        />
-        <div className="hint-v4">Loads moving footage behind the overlay. Video wins over image when both are set.</div>
-      </div>
-
-      <div className="ctl-group-v4">
-        <label className="ctl-label-v4">📱 Phone Backdrop</label>
-        <div className="seg-v4" data-testid="reel-phone-backdrop">
-          <button type="button" className={!reelData.phoneBackdrop ? 'active' : ''} onClick={() => handleReelChange('phoneBackdrop', false)}>OFF</button>
-          <button type="button" className={reelData.phoneBackdrop ? 'active' : ''} onClick={() => handleReelChange('phoneBackdrop', true)}>ON</button>
-        </div>
-        <div className="hint-v4">Plays the footage INSIDE a phone mock-up instead of full-bleed — same frame as the Phone tab, so you can show a live demo of the app on screen.</div>
-        {reelData.phoneBackdrop && (
-          <select
-            value={reelData.phoneFrame || 'sleek'}
-            onChange={(e) => handleReelChange('phoneFrame', e.target.value)}
-            className="select-v4"
-            data-testid="reel-phone-frame"
-          >
-            <option value="sleek">Sleek Modern</option>
-            <option value="gold">Sovereign Gold</option>
-            <option value="carbon">Matte Black Carbon</option>
-          </select>
-        )}
-      </div>
-
-      <div className="ctl-group-v4">
-        <label className="ctl-label-v4">Logo (optional corner badge)</label>
-        <label className="upload-btn-v4" htmlFor="reel-logo-input">UPLOAD LOGO</label>
-        <input
-          id="reel-logo-input"
-          type="file"
-          accept="image/*"
-          ref={logoInputRef}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              if (reelData.logoImage?.url) URL.revokeObjectURL(reelData.logoImage.url);
-              const url = URL.createObjectURL(file);
-              handleReelChange('logoImage', { file, url });
-            }
-          }}
-          style={{ display: 'none' }}
-        />
-      </div>
-
-      {/* ── Asset size handle — scales the corner logo badge live in the preview ── */}
-      <div className="ctl-group-v4">
-        <label className="ctl-label-v4">🔧 Logo Size — {Math.round((reelData.logoScale ?? 1) * 100)}%</label>
-        <input
-          type="range"
-          className="range-v4"
-          min="0.5"
-          max="2"
-          step="0.05"
-          value={reelData.logoScale ?? 1}
-          onChange={(e) => handleReelChange('logoScale', Number(e.target.value))}
-          aria-label="Logo size"
-          data-testid="reel-logo-size"
-        />
-        <div className="hint-v4">Scales the corner logo badge on the reel canvas (50%–200%).</div>
-      </div>
-
-      {/* ── Overlay text layout toggle — where the hook block sits on the canvas ── */}
-      <div className="ctl-group-v4">
-        <label className="ctl-label-v4">Overlay Text Layout</label>
-        <div className="seg-v4" data-testid="reel-text-layout">
-          {[['bottom', 'BOTTOM'], ['center', 'CENTER'], ['top', 'TOP']].map(([val, label]) => (
-            <button
-              key={val}
-              type="button"
-              className={(reelData.textLayout || 'bottom') === val ? 'active' : ''}
-              onClick={() => handleReelChange('textLayout', val)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="hint-v4">Anchors the hook + sub-line block on the reel canvas.</div>
-      </div>
-
       {/* ── Custom Music upload — drops your own track into the reel audio (baked into
           the exported MP4 via the same voUrl path the voiceover uses). ── */}
       <div className="ctl-group-v4">
@@ -559,7 +614,9 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         />
         <div className="hint-v4">The voiceover channel — balance the AI voice against the music so neither overpowers.</div>
       </div>
+      </CtlSection>
 
+      <CtlSection icon="🎨" label="CANVAS & REEL STYLING">
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">🎨 Overlay Style</label>
         <select
@@ -588,6 +645,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           ))}
         </select>
       </div>
+      </CtlSection>
     </>
   );
 }

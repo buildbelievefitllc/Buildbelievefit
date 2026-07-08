@@ -76,6 +76,7 @@ export default function SovereignStudioV4() {
     textLayout: 'bottom',   // overlay text placement toggle (bottom | center | top)
     hookFont: 'bebas',      // hook headline typeface (bebas | anton | barlow)
     hookFontSize: 138,      // hook headline size in px, 1080-design space (matches the old fixed CSS default)
+    caption_animation_style: 'static', // kinetic text motion (static | word-pop | shoot-in | fade-glide) — executes live in the preview
     phoneBackdrop: false,   // show the footage playing INSIDE a phone-frame-v4 mockup instead of full-bleed
     phoneFrame: 'sleek',    // phone-backdrop frame skin (sleek | gold | carbon) — same options as the Phone section
     logoScale: 1,           // asset size handle — scales the corner logo badge
