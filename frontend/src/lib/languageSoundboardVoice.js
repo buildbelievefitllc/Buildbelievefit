@@ -35,6 +35,18 @@ function staticFragmentUrl(key) {
   return `${base}/language-fragments/${key}.mp3`;
 }
 
+// Resolve the pre-baked static clip URL for (lang, text) — the SAME clip
+// speakStatic plays. Used by the background lesson player to build a playlist of
+// baked MP3 URLs it can stream through one <audio> element (lock-screen safe).
+// Does NOT verify the clip exists; the player's <audio> error handler skips a
+// missing clip. Returns null for empty text.
+export async function bakedClipUrl(lang, text) {
+  const cue = String(text ?? '').trim();
+  if (!cue) return null;
+  const key = await staticKeyFor(lang, cue);
+  return staticFragmentUrl(key);
+}
+
 // Try the pre-baked static clip. Rejects (never baked, or the bucket is unreachable)
 // so the caller falls through to the live/cached tier — the HEAD check keeps a
 // missing clip from ever surfacing as a broken <audio> element.

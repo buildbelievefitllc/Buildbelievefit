@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDojoPlayer } from './useDojoPlayer.js';
 import { savePimsleurCheckpoint, getLanguageDashboard, logLanguageAttempt } from '../../lib/languageLabApi.js';
+import { warmUpAudioPlayback } from '../../lib/languageSoundboardVoice.js';
 import { useLang } from '../../context/LangContext.jsx';
 import curriculum from '../../data/audioDojoCurriculum.json';
 import './language.css';
@@ -119,6 +120,7 @@ export default function AudioDojo({ language = 'es' }) {
   useEffect(() => () => releaseWake(), []);
 
   const begin = async () => {
+    warmUpAudioPlayback(); // unlock HTMLMediaElement autoplay INSIDE the tap gesture
     startedAtRef.current = nowMs();
     await acquireWake();
     play(resumeSeq);

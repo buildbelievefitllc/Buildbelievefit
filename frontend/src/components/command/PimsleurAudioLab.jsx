@@ -17,8 +17,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { warmUpSpeech } from '../../lib/speechFallback.js';
-import { speakBaked, warmUpAudioPlayback } from '../../lib/languageSoundboardVoice.js';
+import { speakBaked, warmUpAudioPlayback, bakedClipUrl } from '../../lib/languageSoundboardVoice.js';
 import { getLessonFlow, SPEAKER_VOICE, SPEAKER_LABEL } from '../../lib/pimsleurAudioEngine.js';
+import { createBackgroundLesson, silentWavUri } from '../../lib/backgroundLessonAudio.js';
 import curriculum from '../../data/pimsleurAudioCurriculum.json';
 import './languageRoadmap.css';
 
@@ -40,39 +41,6 @@ function saveCompleted(set) {
 // English narrator stays at natural conversational pace.
 function rateFor(speaker) { return speaker === 'narrator' ? 1 : 0.92; }
 
-function speakStep(entry, isCancelled, controllerRef) {
-  return new Promise((resolve) => {
-    if (isCancelled()) { resolve(); return; }
-    const voice = SPEAKER_VOICE[entry.speaker] || SPEAKER_VOICE.narrator;
-    speakBaked({
-      text: entry.text,
-      lang: voice.lang,
-      voiceGender: voice.voiceGender,
-      rate: rateFor(entry.speaker),
-      onEnd: resolve,
-      onError: resolve,
-    }).then((ctrl) => {
-      controllerRef.current = ctrl;
-      if (isCancelled()) ctrl.stop();
-    }).catch(() => resolve());
-  });
-}
-
-function pauseStep(seconds, isCancelled, onTick, timeoutRef) {
-  return new Promise((resolve) => {
-    let remaining = seconds;
-    onTick(remaining);
-    const tick = () => {
-      if (isCancelled()) { resolve(); return; }
-      remaining -= 1;
-      onTick(Math.max(remaining, 0));
-      if (remaining <= 0) { resolve(); return; }
-      timeoutRef.current = setTimeout(tick, 1000);
-    };
-    timeoutRef.current = setTimeout(tick, 1000);
-  });
-}
-
 // Nearest preceding non-pause line — shown as caption context during a "your
 // turn" pause WITHOUT revealing the pause's own answer (it hasn't played yet).
 function contextBefore(flow, idx) {
@@ -80,72 +48,130 @@ function contextBefore(flow, idx) {
   return null;
 }
 
+// Flatten a lesson flow → a background-safe playlist of baked MP3 URLs. Speech
+// steps resolve to their pre-baked static clip; "your turn" pauses become
+// silent-WAV spacers (audio, not JS timers) so the whole lesson streams through
+// ONE <audio> element that survives a locked screen. `clip` = the flow index the
+// item represents, so the UI + MediaSession next/prev map straight back to the step.
+async function buildLessonPlaylist(flow) {
+  const items = [];
+  for (let j = 0; j < flow.length; j += 1) {
+    const entry = flow[j];
+    if (entry.speaker === 'silent_pause') {
+      const secs = Number(entry.duration_seconds) || 0;
+      const uri = silentWavUri(secs * 1000);
+      if (uri) items.push({ url: uri, silent: true, clip: j, pauseS: secs });
+    } else {
+      const voice = SPEAKER_VOICE[entry.speaker] || SPEAKER_VOICE.narrator;
+      const url = await bakedClipUrl(voice.lang, entry.text);
+      if (url) items.push({ url, clip: j, title: entry.text });
+    }
+  }
+  return items;
+}
+
 // Owns all playback state for exactly ONE lesson's flow. The parent mounts this
 // with `key={lesson.lesson_number}` so switching lessons remounts it — a fresh
-// instance starts at the correct idle state with no reset effect required (an
-// effect calling setState synchronously on every lesson swap would cascade).
+// instance starts at the correct idle state with no reset effect required.
+//
+// Playback runs through the shared background engine (one <audio> element +
+// MediaSession + silent-WAV pauses) so the lesson keeps playing with the screen
+// locked and shows lock-screen transport controls.
 function useLessonPlayer(flow, onComplete) {
   const [status, setStatus] = useState('idle'); // idle | playing | done
   const [stepIndex, setStepIndex] = useState(-1);
   const [pauseRemaining, setPauseRemaining] = useState(0);
-  const runIdRef = useRef(0);
-  const playingRef = useRef(false);
-  const controllerRef = useRef(null);
-  const timeoutRef = useRef(null);
 
-  const hardStop = useCallback(() => {
-    runIdRef.current += 1;
-    playingRef.current = false;
-    if (controllerRef.current) { try { controllerRef.current.stop(); } catch { /* noop */ } controllerRef.current = null; }
-    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
-    try { window.speechSynthesis?.cancel(); } catch { /* noop */ }
+  const engineRef = useRef(null);
+  const playlistRef = useRef([]);
+  const readyRef = useRef(false);
+  const pausedRef = useRef(false);
+  const wantPlayRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+
+  const ensureEngine = () => {
+    if (!engineRef.current) engineRef.current = createBackgroundLesson();
+    return engineRef.current;
+  };
+
+  const startAtStep = useCallback((fromStep) => {
+    const items = playlistRef.current;
+    if (!items.length) return;
+    pausedRef.current = false;
+    let startAt = items.findIndex((it) => it.clip >= fromStep);
+    if (startAt < 0) startAt = 0;
+    ensureEngine().play(startAt, {
+      items,
+      media: {
+        title: 'BBF Pimsleur Audio Lab',
+        artist: 'Coach Akeem · BBF',
+        album: 'BBF Lab · Language Mastery',
+      },
+      hooks: {
+        onItemStart: (_k, item) => {
+          setStepIndex(item.clip);
+          setPauseRemaining(item.silent ? Math.ceil(item.pauseS || 0) : 0);
+          setStatus('playing');
+        },
+        onProgress: (cur, dur, item) => {
+          if (item?.silent && dur > 0) setPauseRemaining(Math.max(0, Math.ceil(dur - cur)));
+        },
+        onEnded: () => {
+          setStatus('done');
+          setStepIndex(-1);
+          setPauseRemaining(0);
+          onCompleteRef.current?.();
+        },
+      },
+    });
   }, []);
 
-  // Stop any in-flight speech/timer the instant this lesson is swapped away from.
-  useEffect(() => () => hardStop(), [hardStop]);
-
-  const runFrom = useCallback((startIdx) => {
-    const myRun = runIdRef.current;
-    const isCancelled = () => myRun !== runIdRef.current || !playingRef.current;
-    playingRef.current = true;
-    setStatus('playing');
-
-    const step = async (i) => {
-      if (isCancelled()) return;
-      if (i >= flow.length) { setStatus('done'); setStepIndex(-1); onComplete?.(); return; }
-      setStepIndex(i);
-      const entry = flow[i];
-      if (entry.speaker === 'silent_pause') {
-        await pauseStep(entry.duration_seconds, isCancelled, setPauseRemaining, timeoutRef);
-      } else {
-        setPauseRemaining(0);
-        await speakStep(entry, isCancelled, controllerRef);
-      }
-      if (!isCancelled()) step(i + 1);
-    };
-    step(startIdx);
-  }, [flow, onComplete]);
+  // Pre-resolve baked URLs whenever the flow changes so play() starts inside the
+  // click gesture (no async hop between the tap and the first audio.play()).
+  useEffect(() => {
+    let cancelled = false;
+    readyRef.current = false;
+    buildLessonPlaylist(flow).then((items) => {
+      if (cancelled) return;
+      playlistRef.current = items;
+      readyRef.current = true;
+      if (wantPlayRef.current) { wantPlayRef.current = false; startAtStep(0); }
+    });
+    return () => { cancelled = true; };
+  }, [flow, startAtStep]);
 
   const play = useCallback(() => {
     warmUpSpeech();
     warmUpAudioPlayback();
-    runIdRef.current += 1;
-    runFrom(stepIndex < 0 ? 0 : stepIndex);
-  }, [runFrom, stepIndex]);
+    // Resume mid-clip if we merely paused; otherwise (re)start from the step head.
+    if (pausedRef.current && engineRef.current && !engineRef.current.isStopped) {
+      pausedRef.current = false;
+      engineRef.current.resume();
+      setStatus('playing');
+      return;
+    }
+    if (!readyRef.current || !playlistRef.current.length) { wantPlayRef.current = true; return; }
+    startAtStep(stepIndex < 0 ? 0 : stepIndex);
+  }, [startAtStep, stepIndex]);
 
   const pause = useCallback(() => {
-    playingRef.current = false;
-    if (controllerRef.current) { try { controllerRef.current.stop(); } catch { /* noop */ } }
-    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+    pausedRef.current = true;
+    try { engineRef.current?.pause(); } catch { /* noop */ }
     setStatus('idle');
   }, []);
 
   const restart = useCallback(() => {
-    hardStop();
+    pausedRef.current = false;
+    wantPlayRef.current = false;
+    try { engineRef.current?.stop(); } catch { /* noop */ }
     setStepIndex(-1);
     setPauseRemaining(0);
     setStatus('idle');
-  }, [hardStop]);
+  }, []);
+
+  // Tear the engine down when the lesson is swapped away from / unmounted.
+  useEffect(() => () => { try { engineRef.current?.destroy(); } catch { /* noop */ } }, []);
 
   return { status, stepIndex, pauseRemaining, play, pause, restart };
 }
