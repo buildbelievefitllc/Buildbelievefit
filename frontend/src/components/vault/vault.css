@@ -1992,3 +1992,38 @@
 
 /* Anchor headroom under the sticky top bar + tab rail (S-03). */
 .cv-container section[id] { scroll-margin-top: 118px; }
+
+
+/* ── Coach Comms — athlete side of the Founder Five messaging bridge ──────── */
+.cc-card { border: 1px solid var(--panel-edge, rgba(139,26,191,.35)); border-radius: 14px; background: var(--panel-grad, linear-gradient(160deg, rgba(106,13,173,.14), rgba(9,9,9,.6))); margin-bottom: 1rem; overflow: hidden; }
+.cc-strip { display: flex; align-items: center; gap: .7rem; width: 100%; background: none; border: none; padding: .7rem .95rem; cursor: pointer; text-align: left; }
+.cc-strip:focus-visible { outline: 2px solid var(--yel); outline-offset: -3px; border-radius: 12px; }
+.cc-ic { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9px; background: rgba(245,200,0,.1); border: 1px solid rgba(245,200,0,.35); font-size: 1rem; }
+.cc-titles { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.cc-title { font-family: var(--hb); font-size: .82rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--wht); }
+.cc-sub { font-family: var(--bd); font-size: .78rem; font-weight: 600; color: var(--mut); }
+.cc-badge {
+  margin-left: auto; flex: none;
+  font-family: var(--hb); font-size: .64rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+  color: #0e0a16; background: linear-gradient(90deg, var(--yel), #ffd83a);
+  border-radius: 999px; padding: .22rem .65rem;
+  box-shadow: 0 0 14px -4px rgba(245,200,0,.8);
+}
+.cc-chev { flex: none; color: var(--mut); font-size: .72rem; margin-left: auto; }
+.cc-badge ~ .cc-chev { margin-left: .5rem; } /* badge already claimed the auto-gap */
+.cc-body { padding: 0 .95rem .85rem; display: flex; flex-direction: column; gap: .7rem; }
+.cc-thread { display: flex; flex-direction: column; gap: .5rem; max-height: 300px; overflow-y: auto; padding: .7rem; border: 1px solid var(--line); border-radius: 12px; background: rgba(5,5,5,.5); }
+.cc-msg { display: flex; flex-direction: column; max-width: 82%; }
+.cc-msg.is-you { align-self: flex-end; align-items: flex-end; }
+.cc-msg.is-pending { opacity: .65; }
+.cc-bubble { font-family: var(--bd); font-size: .92rem; font-weight: 600; line-height: 1.45; white-space: pre-wrap; border-radius: 12px; padding: .5rem .75rem; }
+.cc-msg.is-coach .cc-bubble { color: #0e0a16; background: linear-gradient(90deg, var(--yel), #ffd83a); border-bottom-left-radius: 4px; }
+.cc-msg.is-you .cc-bubble { color: var(--wht); background: rgba(106,13,173,.3); border: 1px solid rgba(139,26,191,.5); border-bottom-right-radius: 4px; }
+.cc-meta { font-family: var(--hb); font-size: .56rem; letter-spacing: 1.2px; text-transform: uppercase; color: var(--mut); margin-top: .18rem; }
+.cc-note { font-family: var(--bd); font-size: .85rem; font-weight: 600; color: var(--mut); text-align: center; padding: .5rem 0; }
+.cc-error { font-family: var(--bd); font-size: .85rem; font-weight: 700; color: #ffb3b3; }
+.cc-composer { display: flex; gap: .5rem; }
+.cc-input { flex: 1; min-width: 0; font-family: var(--bd); font-size: .95rem; font-weight: 600; color: var(--wht); background: #050505; border: 1px solid var(--line); border-radius: 10px; padding: .6rem .8rem; outline: none; }
+.cc-input:focus { border-color: rgba(245,200,0,.55); }
+.cc-send { flex: none; font-family: var(--hb); font-size: .72rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #0e0a16; background: linear-gradient(90deg, var(--yel), #ffd83a); border: none; border-radius: 10px; padding: .6rem 1.1rem; cursor: pointer; }
+.cc-send:disabled { opacity: .55; cursor: default; }

@@ -26,6 +26,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { rosterCall, fetchAnalytics, updateTargets, askCoCoach, toErrorMessage, fetchTiers, reassignTier, setAccessStatus, TARGET_MAX, COACH_MAX } from '../../lib/rosterApi.js';
+import { coachThread, coachSendMessage, adminNutritionHistory, commsErrorMessage } from '../../lib/coachMessagesApi.js';
 import { hasAdminPin, setAdminPin, fetchBodyComposition } from '../../lib/coachAnalyticsApi.js';
 import { BarChart, LineChart, BodyComp } from './charts.jsx';
 import { numOrNull, GOLD, GRN, PURL, GOLD_SOFT } from './chartUtils.js';
@@ -328,7 +329,7 @@ function DossierBody({ c, clientId, clientUid, accountStatus, onRosterRefresh, o
       </nav>
 
       <div key={deck}>
-        {deck === 'nutrition' && <NutritionTab c={c} />}
+        {deck === 'nutrition' && <NutritionTab c={c} clientId={clientId} />}
         {deck === 'workouts' && <ProgramTab c={c} />}
         {deck === 'analytics' && <AnalyticsDeck {...analytics} uid={clientUid} />}
         {deck === 'feed' && <FeedChat clientId={clientId} clientName={c.name || c.uid || 'this athlete'} />}
@@ -382,8 +383,66 @@ function ProgramTab({ c }) {
   );
 }
 
+// ── 7-Day Committed Fueling History — REAL logged adherence rows from
+//    nutrition_daily_sync (the athlete's "Complete & Sync Protocol" ritual),
+//    read via the admin-gated bbf_admin_nutrition_history RPC. Not the plan —
+//    what was actually logged. ─────────────────────────────────────────────────
+const FH_ROW = { display: 'grid', gridTemplateColumns: '86px 1fr auto auto', alignItems: 'center', gap: '.7rem', padding: '.45rem .6rem', border: '1px solid var(--line)', borderRadius: 10, background: 'rgba(5,5,5,.45)' };
+const FH_DAY = { fontFamily: 'var(--hb)', fontSize: '.7rem', letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--gold-soft)' };
+const FH_BAR_TRACK = { position: 'relative', height: 8, borderRadius: 999, background: 'rgba(249,245,255,.08)', overflow: 'hidden' };
+const FH_META = { fontFamily: 'var(--bd)', fontSize: '.8rem', fontWeight: 700, color: 'var(--wht)', whiteSpace: 'nowrap' };
+const FH_SUB = { fontFamily: 'var(--hb)', fontSize: '.58rem', letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--mut)', whiteSpace: 'nowrap' };
+
+function FuelHistoryStrip({ clientId }) {
+  const [rows, setRows] = useState(null);
+  const [state, setState] = useState({ loading: true, error: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(async () => {
+      if (cancelled) return;
+      try {
+        const days = await adminNutritionHistory(clientId, 7);
+        if (!cancelled) { setRows(days); setState({ loading: false, error: null }); }
+      } catch (e) {
+        if (!cancelled) setState({ loading: false, error: commsErrorMessage(e) });
+      }
+    });
+    return () => { cancelled = true; };
+  }, [clientId]);
+
+  return (
+    <Section title="7-Day Committed Fueling History" meta="logged adherence · not the plan">
+      {state.loading ? <Loading label="Reading fueling ledger…" /> : state.error ? (
+        <div style={styles.inlineError} role="alert"><span style={styles.errorMsg}>{state.error}</span></div>
+      ) : !rows?.length ? (
+        <Empty>No committed fueling syncs in the last 7 days — the athlete hasn’t run “Complete &amp; Sync Protocol” yet.</Empty>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '.45rem' }} data-testid="fuel-history">
+          {rows.map((r) => {
+            const pct = Math.max(0, Math.min(140, Number(r.kcal_pct) || 0));
+            const onTarget = pct >= 85 && pct <= 110;
+            const barColor = onTarget ? 'var(--grn)' : pct > 110 ? 'var(--red)' : 'var(--yel)';
+            const dayLbl = (() => { try { return new Date(`${r.day}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); } catch { return r.day; } })();
+            return (
+              <div key={r.day} style={FH_ROW}>
+                <span style={FH_DAY}>{dayLbl}</span>
+                <span style={FH_BAR_TRACK} aria-hidden="true">
+                  <span style={{ position: 'absolute', inset: 0, width: `${Math.min(100, (pct / 140) * 100)}%`, background: barColor, borderRadius: 999 }} />
+                </span>
+                <span style={FH_META}>{(Number(r.consumed_kcal) || 0).toLocaleString()} / {r.target_kcal ? Number(r.target_kcal).toLocaleString() : '—'} kcal · {pct}%</span>
+                <span style={FH_SUB}>{r.consumed_protein_g || 0}g P · {r.meals_logged || 0} meal{(r.meals_logged || 0) === 1 ? '' : 's'}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Section>
+  );
+}
+
 // ── 7-Day Nutrition — meal plan + dietary profile (macros live in Update Target). ─
-function NutritionTab({ c }) {
+function NutritionTab({ c, clientId }) {
   const mealDays = asMealDays(c.meal_plan);
   const mealText = !mealDays && typeof c.meal_plan === 'string' ? c.meal_plan.trim() : '';
   const nutritionText = typeof c.nutrition_plan === 'string' ? c.nutrition_plan.trim() : '';
@@ -415,6 +474,9 @@ function NutritionTab({ c }) {
         ) : null}
         {!nutritionText && !mealDays && !mealText ? <Empty>No nutrition plan on file.</Empty> : null}
       </Section>
+
+      {/* Real logged 7-day adherence (mandate: history, not placeholders). */}
+      <FuelHistoryStrip clientId={clientId} />
 
       {(c.dietary_profile || hasItems(c.allergens) || hasItems(c.food_likes) || hasItems(c.food_dislikes)) ? (
         <Section title="Dietary Profile">
@@ -636,12 +698,80 @@ const BROADCAST_CUES = [
   { label: 'Sleep / CNS Reset', text: 'Broadcast a sleep / CNS-reset protocol to protect recovery before the next high-velocity session.' },
 ];
 
+// Thread bubble chrome — coach = gold-keyed right, athlete = purple-keyed left.
+const MSG_WRAP = { display: 'flex', flexDirection: 'column', gap: '.5rem', maxHeight: 340, overflowY: 'auto', padding: '.75rem', border: '1px solid var(--line)', borderRadius: 12, background: 'rgba(5,5,5,.5)', marginBottom: '.8rem' };
+const MSG_ROW = { display: 'flex', flexDirection: 'column', maxWidth: '78%' };
+const MSG_BUBBLE = { fontFamily: 'var(--bd)', fontSize: '.92rem', fontWeight: 600, lineHeight: 1.45, whiteSpace: 'pre-wrap', borderRadius: 12, padding: '.55rem .8rem' };
+const MSG_COACH = { alignSelf: 'flex-end', alignItems: 'flex-end' };
+const MSG_COACH_BUBBLE = { color: '#0e0a16', background: 'linear-gradient(90deg, var(--yel), #ffd83a)', borderBottomRightRadius: 4 };
+const MSG_ATHLETE_BUBBLE = { color: 'var(--wht)', background: 'rgba(106,13,173,.3)', border: '1px solid rgba(139,26,191,.5)', borderBottomLeftRadius: 4 };
+const MSG_META = { fontFamily: 'var(--hb)', fontSize: '.56rem', letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--mut)', marginTop: '.2rem' };
+const MSG_PENDING = { opacity: .65 };
+
+function fmtMsgTime(iso) {
+  try { return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch { return ''; }
+}
+
+// Athlete Feed Chat — the LIVE messaging bridge (bbf_coach_messages) + the
+// Gemini Co-Coach intelligence console. "Send to Athlete" persists a real row
+// (optimistic bubble; the athlete's app raises an unread flag on next pull);
+// "Co-Coach Intel" keeps the original AI dispatch, cues and telemetry intact.
 function FeedChat({ clientId, clientName }) {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState(null);
   const [telemetry, setTelemetry] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Live thread state (real comms table).
+  const [thread, setThread] = useState([]);
+  const [threadState, setThreadState] = useState({ loading: true, error: null });
+  const [sending, setSending] = useState(false);
+  const threadEndRef = useRef(null);
+
+  const loadThread = useCallback(async () => {
+    setThreadState((s) => ({ ...s, loading: true }));
+    try {
+      const messages = await coachThread(clientId);
+      setThread(messages);
+      setThreadState({ loading: false, error: null });
+    } catch (e) {
+      setThreadState({ loading: false, error: commsErrorMessage(e) });
+    }
+  }, [clientId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) loadThread(); });
+    return () => { cancelled = true; };
+  }, [loadThread]);
+
+  // Keep the newest message in view as the thread grows.
+  useEffect(() => {
+    threadEndRef.current?.scrollIntoView({ block: 'end' });
+  }, [thread.length]);
+
+  // DIRECT SEND — persist to the athlete's inbox (optimistic bubble, server confirm).
+  async function sendToAthlete() {
+    const body = query.trim();
+    if (!body || sending) return;
+    setSending(true);
+    setError(null);
+    const tempId = `tmp-${Date.now()}`;
+    const optimistic = { id: tempId, sender: 'coach', body, created_at: new Date().toISOString(), pending: true };
+    setThread((t) => [...t, optimistic]);
+    setQuery('');
+    try {
+      const saved = await coachSendMessage(clientId, body);
+      setThread((t) => t.map((m) => (m.id === tempId ? saved : m)));
+    } catch (e) {
+      setThread((t) => t.filter((m) => m.id !== tempId)); // roll back the optimistic bubble
+      setQuery(body);                                     // restore the draft — nothing lost
+      setError(commsErrorMessage(e));
+    } finally {
+      setSending(false);
+    }
+  }
 
   async function dispatch(e) {
     e.preventDefault();
@@ -660,14 +790,45 @@ function FeedChat({ clientId, clientName }) {
     }
   }
 
-  const blocked = isLoading || !query.trim();
+  const busy = isLoading || sending;
+  const blocked = busy || !query.trim();
 
   return (
     <div style={styles.coachPanel}>
       <div style={styles.coachHead}>
-        <span style={styles.coachKicker}>Athlete Feed Chat · Co-Coach</span>
+        <span style={styles.coachKicker}>Athlete Feed Chat · Live Bridge + Co-Coach</span>
         <span style={styles.coachOnline}>● Online</span>
       </div>
+
+      {/* ── Live thread (real bbf_coach_messages rows) ── */}
+      {threadState.loading && !thread.length ? (
+        <Loading label="Loading the feed…" />
+      ) : threadState.error ? (
+        <div style={styles.inlineError} role="alert">
+          <span style={styles.errorMsg}>{threadState.error}</span>
+          <button type="button" style={styles.retry} onClick={loadThread}>Retry</button>
+        </div>
+      ) : (
+        <div style={MSG_WRAP} data-testid="feed-thread" aria-label={`Message thread with ${clientName}`}>
+          {thread.length === 0 ? (
+            <span style={{ ...MSG_META, alignSelf: 'center', padding: '.6rem 0' }}>
+              No messages yet — open the channel with a directive below.
+            </span>
+          ) : thread.map((m) => {
+            const coach = m.sender === 'coach';
+            return (
+              <div key={m.id} style={{ ...MSG_ROW, ...(coach ? MSG_COACH : null), ...(m.pending ? MSG_PENDING : null) }}>
+                <span style={{ ...MSG_BUBBLE, ...(coach ? MSG_COACH_BUBBLE : MSG_ATHLETE_BUBBLE) }}>{m.body}</span>
+                <span style={MSG_META}>
+                  {coach ? 'Coach' : clientName} · {m.pending ? 'sending…' : fmtMsgTime(m.created_at)}
+                  {coach && !m.pending ? (m.read_by_athlete_at ? ' · ✓ read' : ' · ● delivered') : ''}
+                </span>
+              </div>
+            );
+          })}
+          <span ref={threadEndRef} />
+        </div>
+      )}
 
       {/* Fast broadcast action cues — pre-load engineered directives. */}
       <div style={styles.cueRow}>
@@ -676,7 +837,7 @@ function FeedChat({ clientId, clientName }) {
             key={cue.label}
             type="button"
             style={styles.cue}
-            disabled={isLoading}
+            disabled={busy}
             onClick={() => { setQuery(cue.text); setError(null); }}
           >
             ⚡ {cue.label}
@@ -691,12 +852,28 @@ function FeedChat({ clientId, clientName }) {
           maxLength={COACH_MAX}
           placeholder={`Message ${clientName} or broadcast a performance directive…`}
           value={query}
-          disabled={isLoading}
+          disabled={busy}
           onChange={(e) => setQuery(e.target.value)}
         />
         <div style={styles.coachActions}>
-          <button type="submit" style={{ ...styles.dispatchBtn, opacity: blocked ? 0.55 : 1 }} disabled={blocked}>
-            {isLoading ? 'Transmitting…' : 'Direct Send'}
+          {/* THE LIVE SEND — persists to the athlete's inbox + raises their unread flag. */}
+          <button
+            type="button"
+            style={{ ...styles.dispatchBtn, opacity: blocked ? 0.55 : 1 }}
+            disabled={blocked}
+            onClick={sendToAthlete}
+            data-testid="feed-send-athlete"
+          >
+            {sending ? 'Transmitting…' : '📤 Send to Athlete'}
+          </button>
+          {/* The original AI console — unchanged wiring (askCoCoach). */}
+          <button
+            type="submit"
+            style={{ ...styles.dispatchBtn, background: 'rgba(106,13,173,.3)', color: 'var(--wht)', border: '1px solid rgba(139,26,191,.6)', opacity: blocked ? 0.55 : 1 }}
+            disabled={blocked}
+            data-testid="feed-cocoach"
+          >
+            {isLoading ? 'Reasoning…' : '✨ Co-Coach Intel'}
           </button>
           <span style={styles.coachCounter}>{query.length}/{COACH_MAX}</span>
         </div>
@@ -709,7 +886,7 @@ function FeedChat({ clientId, clientName }) {
         </div>
       ) : null}
 
-      {!isLoading && error ? <div style={styles.saveError} role="alert">{error}</div> : null}
+      {!busy && error ? <div style={styles.saveError} role="alert">{error}</div> : null}
 
       {!isLoading && !error && response ? (
         <div style={styles.coachAnswer}>

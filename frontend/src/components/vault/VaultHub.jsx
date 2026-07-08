@@ -27,6 +27,7 @@ import { SovereignSequenceAnchor } from './SovereignSequence.jsx';
 import CalibrationProgress from './CalibrationProgress.jsx';
 import LoopBreakerBadge from './LoopBreakerBadge.jsx';
 import EagleEyeNudgeCard from './EagleEyeNudgeCard.jsx';
+import CoachCommsCard from './CoachCommsCard.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import { useProgramDay } from '../../lib/useProgramDay.js';
 import './vault.css';
@@ -70,6 +71,10 @@ export default function VaultHub({ profile, isLoading, error, onSequence }) {
           surfaced first when the secondary brain has flagged this client as drifting
           from the process. Renders nothing when there's no active nudge. */}
       <EagleEyeNudgeCard />
+
+      {/* Coach Comms — the live coach↔athlete bridge (Founder Five dossier ↔
+          this Vault). Gold unread badge = the coach pushed a directive. */}
+      <CoachCommsCard />
       {/* SOVEREIGN AUDIO relocated to the Check-In tab (SovereignClientHub) — it now
           appears once TODAY'S check-in exists instead of sitting here, always
           playable, ahead of the Sequence CTA below. See that file for the mount. */}
