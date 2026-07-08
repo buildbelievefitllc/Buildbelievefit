@@ -16,7 +16,7 @@
 // Empty), and the RiskTelemetry card idiom, so aesthetic parity is guaranteed.
 
 import { useCallback, useEffect, useState } from 'react';
-import { fetchEagleEye, fetchEagleEyeDeepRead } from '../../lib/eagleEyeApi.js';
+import { fetchEagleEye, fetchEagleEyeDeepRead, runEagleEyeCycle } from '../../lib/eagleEyeApi.js';
 import { toErrorMessage } from '../../lib/rosterApi.js';
 import CommandSurface from './CommandSurface.jsx';
 import { Tile, Badge, Loading, Empty } from './primitives.jsx';
@@ -47,6 +47,10 @@ export default function EagleEye() {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [cycle, setCycle] = useState(null);      // last cycle digest (preview or live)
+  const [cycleBusy, setCycleBusy] = useState(false);
+  const [cycleErr, setCycleErr] = useState(null);
+  const [confirmLive, setConfirmLive] = useState(false);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -60,6 +64,23 @@ export default function EagleEye() {
       setIsLoading(false);
     }
   }, []);
+
+  // Autonomous cycle. dryRun previews; live commits (fires nudges, stages founder
+  // proposals, escalates). After a live run we reload the roster so the cards
+  // reflect the freshly-attached intervention state.
+  const doCycle = useCallback(async (dryRun) => {
+    setCycleBusy(true);
+    setCycleErr(null);
+    try {
+      const res = await runEagleEyeCycle(dryRun);
+      setCycle({ ...res.digest, ran_at: res.generated_at, live: !dryRun });
+      if (!dryRun) { setConfirmLive(false); load(); }
+    } catch (e) {
+      setCycleErr(toErrorMessage(e));
+    } finally {
+      setCycleBusy(false);
+    }
+  }, [load]);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,6 +116,53 @@ export default function EagleEye() {
         </div>
       ) : null}
 
+      {/* Autonomous intervention cycle — the closed loop. Preview is a safe dry-run
+          (nothing reaches a client); Run live fires nudges + stages founder-gated
+          proposals + escalates stale nudges. */}
+      {!isLoading && !error && data ? (
+        <div style={styles.cycle}>
+          <div style={styles.cycleHead}>
+            <div>
+              <div style={styles.cycleTitle}>Autonomous Cycle</div>
+              <div style={styles.cycleSub}>
+                Fires re-engagement nudges, stages load corrections into the founder approval queue, and escalates clients who stay dark. Preview is a dry run — nothing reaches a client.
+              </div>
+            </div>
+            <div style={styles.cycleBtns}>
+              <button type="button" style={styles.previewBtn} onClick={() => doCycle(true)} disabled={cycleBusy}>
+                {cycleBusy ? 'Working…' : '⦿ Preview cycle'}
+              </button>
+              {confirmLive ? (
+                <button type="button" style={styles.liveConfirmBtn} onClick={() => doCycle(false)} disabled={cycleBusy}>
+                  ⚡ Confirm — run live
+                </button>
+              ) : (
+                <button type="button" style={styles.liveBtn} onClick={() => setConfirmLive(true)} disabled={cycleBusy}>
+                  ⚡ Run live
+                </button>
+              )}
+            </div>
+          </div>
+
+          {cycleErr ? <div style={styles.cycleErr}>{cycleErr}</div> : null}
+
+          {cycle ? (
+            <div style={styles.digest}>
+              <div style={styles.digestBanner}>
+                {cycle.live ? 'Live cycle committed' : 'Preview — nothing was dispatched'} · {cycle.scanned} client{cycle.scanned === 1 ? '' : 's'} scanned
+              </div>
+              <div style={styles.digestRow}>
+                <DigestStat label={cycle.live ? 'Nudges fired' : 'Nudges'} items={cycle.nudges} color="var(--gold-soft)" />
+                <DigestStat label={cycle.live ? 'Proposals staged' : 'Proposals'} items={cycle.proposals} color="var(--orn)" note="→ founder queue" />
+                <DigestStat label="Escalated" items={cycle.escalated} color="var(--red)" />
+                <DigestStat label="Resolved" items={cycle.resolved} color="var(--grn)" />
+                <DigestStat label="Repairs" items={cycle.repairs} color="var(--mut)" />
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {isLoading ? <Loading label="Cross-checking daily vs weekly cue buckets…" /> : null}
 
       {!isLoading && error ? (
@@ -118,8 +186,35 @@ export default function EagleEye() {
   );
 }
 
+// One digest metric: a count + the affected client slugs.
+function DigestStat({ label, items, color, note }) {
+  const list = Array.isArray(items) ? items : [];
+  return (
+    <div style={{ ...styles.digestStat, borderTopColor: color }}>
+      <span style={styles.digestNum}>{list.length}</span>
+      <span style={styles.digestLbl}>{label}</span>
+      {note ? <span style={styles.digestNote}>{note}</span> : null}
+      {list.length ? (
+        <span style={styles.digestNames}>{list.map((i) => i.uid).filter(Boolean).slice(0, 6).join(', ')}</span>
+      ) : null}
+    </div>
+  );
+}
+
+// Live action state for a client → a compact chip.
+function interventionChip(iv) {
+  if (!iv) return null;
+  if (iv.status === 'escalated') return { label: '⚑ Escalated to client', color: 'var(--red)' };
+  if (iv.status === 'acknowledged') return { label: '✓ Client acknowledged', color: 'var(--grn)' };
+  if (iv.play === 'nudge') return { label: '◉ Nudge sent', color: 'var(--gold-soft)' };
+  if (iv.play === 'load_proposal' || iv.play === 'deload_proposal') return { label: '▹ Correction staged · founder queue', color: 'var(--orn)' };
+  if (iv.play === 'system_repair') return { label: '⚙ Repair queued', color: 'var(--mut)' };
+  return { label: '◉ Action open', color: 'var(--gold-soft)' };
+}
+
 function ClientCard({ c }) {
   const st = STATUS[c.alignment?.status] || STATUS.no_data;
+  const chip = interventionChip(c.intervention);
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState(null);
   const [reading, setReading] = useState(false);
@@ -159,6 +254,10 @@ function ClientCard({ c }) {
       <div style={styles.cardMeta}>
         {[c.subscription_tier, c.current_streak ? `${c.current_streak}-day streak` : null].filter(Boolean).join(' · ') || 'No profile'}
       </div>
+
+      {chip ? (
+        <div style={{ ...styles.ivChip, color: chip.color, borderColor: chip.color }}>{chip.label}</div>
+      ) : null}
 
       {/* The two cue buckets, side by side. */}
       <div style={styles.buckets}>
@@ -235,6 +334,38 @@ const styles = {
   },
 
   summary: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '.7rem', marginBottom: '1.4rem' },
+
+  cycle: { border: '1px solid var(--line)', borderRadius: 12, padding: '1rem 1.1rem', marginBottom: '1.4rem', background: 'rgba(245,200,0,.02)' },
+  cycleHead: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' },
+  cycleTitle: { fontFamily: 'var(--hb)', fontSize: '.95rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--wht)' },
+  cycleSub: { fontFamily: 'var(--bd)', fontSize: '.82rem', fontWeight: 600, color: 'var(--mut)', lineHeight: 1.4, maxWidth: '48ch', marginTop: '.25rem' },
+  cycleBtns: { display: 'flex', gap: '.5rem', flexShrink: 0 },
+  previewBtn: {
+    fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '1.6px', textTransform: 'uppercase',
+    color: 'var(--gold-soft)', background: 'none', border: '1px solid rgba(245,200,0,.35)', borderRadius: 8, padding: '.5rem .85rem', cursor: 'pointer',
+  },
+  liveBtn: {
+    fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '1.6px', textTransform: 'uppercase',
+    color: 'var(--yel)', background: 'none', border: '1px solid var(--yel)', borderRadius: 8, padding: '.5rem .85rem', cursor: 'pointer',
+  },
+  liveConfirmBtn: {
+    fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '1.6px', textTransform: 'uppercase',
+    color: 'var(--blk)', background: 'var(--yel)', border: '1px solid var(--yel)', borderRadius: 8, padding: '.5rem .85rem', cursor: 'pointer', fontWeight: 700,
+  },
+  cycleErr: { fontFamily: 'var(--bd)', fontSize: '.85rem', color: 'var(--red)', marginTop: '.7rem' },
+  digest: { marginTop: '.9rem', paddingTop: '.8rem', borderTop: '1px solid var(--line)' },
+  digestBanner: { fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '1.4px', textTransform: 'uppercase', color: 'var(--gold-deep)', marginBottom: '.6rem' },
+  digestRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '.55rem' },
+  digestStat: { display: 'flex', flexDirection: 'column', border: '1px solid var(--line)', borderTop: '3px solid var(--mut)', borderRadius: 10, padding: '.6rem .7rem', background: 'var(--gry)' },
+  digestNum: { fontFamily: 'var(--display)', fontSize: '1.5rem', lineHeight: 1.05, color: 'var(--wht)' },
+  digestLbl: { fontFamily: 'var(--hb)', fontSize: '.62rem', letterSpacing: '1.4px', textTransform: 'uppercase', color: 'var(--mut)', marginTop: '.1rem' },
+  digestNote: { fontFamily: 'var(--bd)', fontSize: '.66rem', fontWeight: 700, color: 'var(--orn)', marginTop: '.1rem' },
+  digestNames: { fontFamily: 'var(--bd)', fontSize: '.7rem', fontWeight: 600, color: 'var(--mut)', marginTop: '.2rem', lineHeight: 1.3, wordBreak: 'break-word' },
+
+  ivChip: {
+    display: 'inline-block', fontFamily: 'var(--hb)', fontSize: '.62rem', letterSpacing: '1.2px', textTransform: 'uppercase',
+    border: '1px solid var(--mut)', borderRadius: 6, padding: '.22rem .5rem', marginBottom: '.55rem',
+  },
 
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '.85rem' },
   card: { background: 'var(--gry)', border: '1px solid var(--line)', borderRadius: 12, padding: '.95rem 1.1rem' },

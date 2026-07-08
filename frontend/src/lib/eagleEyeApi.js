@@ -52,6 +52,7 @@ async function post(payload) {
 }
 
 // Roster scan → { generated_at, iso_year, iso_week, summary, client_count, clients }.
+// Each client now also carries `intervention` (live action state) when one is open.
 export function fetchEagleEye() {
   return post({});
 }
@@ -59,4 +60,23 @@ export function fetchEagleEye() {
 // Deep read one client → { client, synthesis, synthesis_model }.
 export function fetchEagleEyeDeepRead(uid) {
   return post({ mode: 'deep_read', uid });
+}
+
+// Autonomous cycle. dryRun=true (default) PREVIEWS what would be dispatched without
+// touching a client or the approval queue; dryRun=false commits (fires nudges,
+// stages founder proposals, escalates stale nudges). → { digest }.
+export function runEagleEyeCycle(dryRun = true) {
+  return post({ mode: 'run', dry_run: dryRun });
+}
+
+// Standing ledger digest for the panel → { summary, total, recent }.
+export function fetchEagleEyeDigest() {
+  return post({ mode: 'digest' });
+}
+
+// CLIENT-side: the logged-in client's own active in-app nudge/escalation message.
+// Vault-gated (session token rides along via the shared header helper). Optional
+// ack marks it acknowledged. → { nudge: { message, finding_code, escalated } | null }.
+export function fetchMyEagleEyeNudge(ack = false) {
+  return post({ mode: 'my_nudge', ack });
 }
