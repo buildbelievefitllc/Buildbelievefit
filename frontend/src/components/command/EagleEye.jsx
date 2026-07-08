@@ -166,12 +166,14 @@ function ClientCard({ c }) {
           <div style={styles.bucketLbl}>Daily Readiness</div>
           <div style={styles.bucketVal}>
             {daily.band ? BAND_COPY[daily.band] || humanizeBucket(daily.band) : '—'}
-            {daily.trend ? <span style={styles.trend}> {TREND_GLYPH[daily.trend] || ''}</span> : null}
+            {daily.band && daily.trend ? <span style={styles.trend}> {TREND_GLYPH[daily.trend] || ''}</span> : null}
           </div>
           <div style={styles.bucketSub}>
-            {daily.stale
-              ? `stale · ${daily.days_since_last ?? '?'}d dark`
-              : daily.volume_multiplier != null ? `vol ×${daily.volume_multiplier}` : 'no reading'}
+            {daily.readings === 0
+              ? 'no reading'
+              : daily.stale
+                ? `${daily.days_since_last ?? '?'}d dark`
+                : daily.volume_multiplier != null ? `vol ×${daily.volume_multiplier}` : '—'}
           </div>
         </div>
         <div style={styles.bucket}>
