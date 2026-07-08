@@ -105,3 +105,69 @@
   .dcm-cal-cell { min-height: 72px; }
   .dcm-cal-block-hook { -webkit-line-clamp: 1; }
 }
+
+/* ═══ ALGORITHMIC DISTRIBUTION ENGINE ═══════════════════════════════════════
+   Platform Calibration Matrix + Approval Gateway + Algorithm Health. Clinical,
+   tight-grid, zero bloat — subtle borders, uppercase micro-labels, brand ink. */
+
+/* ── Approval Gateway status chip (Draft → Algorithmic Review → Approved) ── */
+.dcm-approval {
+  font-family: var(--hb, sans-serif); font-size: .62rem; font-weight: 800;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  border-radius: 999px; padding: .18rem .6rem; border: 1px solid var(--dcm-line);
+  color: var(--dcm-mut); background: rgba(9,9,9,.5); white-space: nowrap;
+}
+.dcm-approval--algorithmic_review { color: var(--dcm-ink); border-color: rgba(106,13,173,.65); background: rgba(106,13,173,.22); }
+.dcm-approval--approved { color: #0e0a16; border-color: var(--dcm-gold); background: var(--dcm-gold); }
+
+/* Gateway buttons — Stage (purple key) and Approve Strategy (gold-edged commit) */
+.dcm-btn--review { color: var(--dcm-ink); background: rgba(106,13,173,.28); border: 1px solid rgba(139,26,191,.6); }
+.dcm-btn--review:hover:not(:disabled) { background: rgba(139,26,191,.4); }
+.dcm-btn--approve { color: var(--dcm-gold); background: rgba(9,9,9,.6); border: 1px solid var(--dcm-gold); box-shadow: 0 0 18px -8px rgba(245,200,0,.7); }
+.dcm-btn--approve:hover:not(:disabled) { background: rgba(245,200,0,.12); }
+
+/* ── Platform Calibration Matrix ── */
+.dcm-matrix { border: 1px solid rgba(106,13,173,.45); border-radius: 12px; padding: .75rem .85rem; background: rgba(106,13,173,.08); display: flex; flex-direction: column; gap: .7rem; }
+.dcm-matrix-strip { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem .9rem; padding-bottom: .6rem; border-bottom: 1px dashed rgba(249,245,255,.14); }
+.dcm-matrix-kv { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
+.dcm-matrix-v { font-size: .82rem; line-height: 1.35; color: var(--dcm-ink); }
+/* Container-driven: the matrix lives inside a ~1/3-width bucket card, so the
+   3-up platform grid only engages when the CARD itself is wide (modal/full-row
+   contexts); in the narrow card the panels stack — clinical, never crushed. */
+.dcm-matrix { container-type: inline-size; }
+.dcm-matrix-grid { display: grid; grid-template-columns: 1fr; gap: .6rem; }
+@container (min-width: 640px) { .dcm-matrix-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.dcm-platform { border: 1px solid var(--dcm-line); border-radius: 10px; padding: .6rem .65rem; background: rgba(9,9,9,.45); display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.dcm-platform-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; flex-wrap: wrap; padding-bottom: .35rem; border-bottom: 1px solid var(--dcm-line); }
+.dcm-platform-name { font-family: var(--hb, sans-serif); font-size: .8rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dcm-ink); }
+.dcm-platform-opt { font-size: .6rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--dcm-gold); white-space: nowrap; }
+.dcm-platform-row { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.dcm-platform-k { font-family: var(--hb, sans-serif); font-size: .58rem; letter-spacing: 1.4px; text-transform: uppercase; color: var(--dcm-mut); }
+.dcm-platform-v { margin: 0; font-size: .8rem; line-height: 1.4; color: var(--dcm-ink); }
+@media (max-width: 520px) { .dcm-matrix-strip { grid-template-columns: 1fr; } }
+
+/* ── Algorithm Health (calendar sequencing read-out) ── */
+.dcm-health { display: flex; flex-direction: column; gap: .5rem; margin-bottom: .8rem; }
+.dcm-health-bar {
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  border: 1px solid var(--dcm-line); border-radius: 10px; padding: .5rem .8rem;
+  background: rgba(9,9,9,.5);
+}
+.dcm-health-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.dcm-health-dot.is-optimal { background: #20c997; box-shadow: 0 0 10px rgba(32,201,151,.7); }
+.dcm-health-dot.is-watch { background: var(--dcm-gold); box-shadow: 0 0 10px rgba(245,200,0,.7); }
+.dcm-health-dot.is-strain { background: #ff6b6b; box-shadow: 0 0 10px rgba(255,107,107,.75); }
+.dcm-health-title { font-family: var(--hb, sans-serif); font-size: .68rem; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--dcm-gold); }
+.dcm-health-status { font-family: var(--hb, sans-serif); font-size: .68rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dcm-ink); }
+.dcm-health-mix { margin-left: auto; display: inline-flex; align-items: center; gap: .35rem; font-size: .74rem; color: var(--dcm-ink); }
+.dcm-health-k { font-family: var(--hb, sans-serif); font-size: .58rem; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dcm-mut); }
+.dcm-health-sep { color: rgba(249,245,255,.25); }
+.dcm-health-warn {
+  margin: 0; font-size: .82rem; line-height: 1.45; color: #ffb3b3;
+  border: 1px solid rgba(255,107,107,.45); border-left: 3px solid #ff6b6b;
+  border-radius: 8px; padding: .5rem .75rem; background: rgba(255,107,107,.08);
+}
+
+/* Calendar block — retention-weight tick (right edge): heavy = red, reset = teal. */
+.dcm-cal-block.is-w-heavy { border-right: 3px solid rgba(255,107,107,.75); }
+.dcm-cal-block.is-w-reset { border-right: 3px solid rgba(32,201,151,.75); }

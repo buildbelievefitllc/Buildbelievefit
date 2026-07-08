@@ -140,6 +140,12 @@ export async function approveAndSynthesize(draft, { scheduled_at } = {}) {
     audio_slug: audio?.slug || null,
     scheduled_at,
     source_ref: draft.id,
+    // Algorithmic Distribution Engine metadata (additive; forwarded verbatim —
+    // the server persists what its schema knows and ignores the rest).
+    approval_status: draft.approval_status ?? null,
+    algorithmic_target: draft.algorithmic_target ?? null,
+    pacing_strategy: draft.pacing_strategy ?? null,
+    platform_specifics: draft.platform_specifics ?? null,
   });
   return { item, audio };
 }

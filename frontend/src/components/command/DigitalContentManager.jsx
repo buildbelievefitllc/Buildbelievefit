@@ -24,6 +24,10 @@ import {
   SERIES_META, seriesMeta, readableText,
   approveAndSynthesize, fetchContentQueue, rescheduleContentItem,
 } from '../../lib/contentManagerApi.js';
+import {
+  APPROVAL_STATUS, APPROVAL_LABELS,
+  buildAlgorithmicBrief, contentWeight, assessAlgorithmHealth,
+} from '../../lib/algorithmicBriefEngine.js';
 import './digitalContentManager.css';
 
 // ── date helpers (local-time; the queue stores ISO/UTC) ──────────────────────
@@ -116,6 +120,56 @@ function CardSection({ label, forceOpen = false, children }) {
   );
 }
 
+// ── THE PLATFORM CALIBRATION MATRIX ──────────────────────────────────────────
+// Structured algorithmic brief rendered before approval (Step-In-Approval): the
+// engine formulates per-platform execution rules; the Sovereign green-lights
+// them. Tight 3-up grid, clinical chips, zero visual bloat.
+function PlatformMatrix({ brief, draftId }) {
+  const { tiktok, instagram, youtube } = brief.platform_specifics;
+  return (
+    <div className="dcm-matrix" data-testid={`draft-matrix-${draftId}`}>
+      <div className="dcm-matrix-strip">
+        <span className="dcm-matrix-kv"><span className="dcm-label">Algorithmic Target</span><span className="dcm-matrix-v">{brief.algorithmic_target}</span></span>
+        <span className="dcm-matrix-kv"><span className="dcm-label">Pacing Strategy</span><span className="dcm-matrix-v">{brief.pacing_strategy}</span></span>
+      </div>
+      <div className="dcm-matrix-grid">
+        <div className="dcm-platform" data-platform="tiktok">
+          <div className="dcm-platform-head">
+            <span className="dcm-platform-name">TikTok</span>
+            <span className="dcm-platform-opt">Optimized · {tiktok.optimized}</span>
+          </div>
+          <div className="dcm-platform-row"><span className="dcm-platform-k">3-Second Hook</span><p className="dcm-platform-v">{tiktok.hook_3s}</p></div>
+          <div className="dcm-platform-row"><span className="dcm-platform-k">Pacing Cues</span><p className="dcm-platform-v">{tiktok.pacing_cues}</p></div>
+          <div className="dcm-platform-row">
+            <span className="dcm-platform-k">Sub-Culture Tags</span>
+            <div className="dcm-recipe-chips">{tiktok.subculture_tags.map((t) => <span key={t} className="dcm-chip">{t}</span>)}</div>
+          </div>
+        </div>
+        <div className="dcm-platform" data-platform="instagram">
+          <div className="dcm-platform-head">
+            <span className="dcm-platform-name">Instagram</span>
+            <span className="dcm-platform-opt">Optimized · {instagram.optimized}</span>
+          </div>
+          <div className="dcm-platform-row"><span className="dcm-platform-k">Aesthetic Framing</span><p className="dcm-platform-v">{instagram.framing}</p></div>
+          <div className="dcm-platform-row"><span className="dcm-platform-k">Caption Structure</span><p className="dcm-platform-v">{instagram.caption_structure}</p></div>
+          <div className="dcm-platform-row"><span className="dcm-platform-k">B-Roll Cues</span><p className="dcm-platform-v">{instagram.broll_cues}</p></div>
+        </div>
+        <div className="dcm-platform" data-platform="youtube">
+          <div className="dcm-platform-head">
+            <span className="dcm-platform-name">YouTube Shorts</span>
+            <span className="dcm-platform-opt">Optimized · {youtube.optimized}</span>
+          </div>
+          <div className="dcm-platform-row"><span className="dcm-platform-k">SEO Title</span><p className="dcm-platform-v">{youtube.seo_title}</p></div>
+          <div className="dcm-platform-row">
+            <span className="dcm-platform-k">Search Keywords</span>
+            <div className="dcm-recipe-chips">{youtube.search_keywords.map((k) => <span key={k} className="dcm-chip">{k}</span>)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
   const meta = seriesMeta(draft.series);
   const already = scheduledSourceRefs.has(draft.id);
@@ -128,6 +182,22 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
   });
   const [slot, setSlot] = useState(() => toLocalInput(defaultSlot()));
   const [state, setState] = useState({ phase: already ? 'done' : 'idle', error: null, audioUrl: null });
+
+  // ── APPROVAL GATEWAY (Green Light workflow) ──────────────────────────────
+  // draft → algorithmic_review → approved. Staging compiles the Platform
+  // Calibration Matrix for Sovereign review; Approve Strategy locks the copy
+  // (editing freezes) and green-lights deployment. Already-scheduled rows
+  // rehydrate as approved. Deployment (the untouched ElevenLabs / queue
+  // trigger below) requires the green light — the Step-In-Approval gate.
+  const [approvalStatus, setApprovalStatus] = useState(already ? APPROVAL_STATUS.APPROVED : APPROVAL_STATUS.DRAFT);
+  // The brief compiles from the LIVE form copy, so an edit made during review
+  // re-flows into the strategy the Sovereign is approving.
+  const brief = useMemo(
+    () => buildAlgorithmicBrief({ ...draft, caption: form.caption, cut_sheet: form.cut_sheet }),
+    [draft, form.caption, form.cut_sheet],
+  );
+  const inReview = approvalStatus === APPROVAL_STATUS.REVIEW;
+  const strategyApproved = approvalStatus === APPROVAL_STATUS.APPROVED;
 
   const setField = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -147,6 +217,13 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
         hashtags: draft.hashtags,
         recommended_post_time: draft.recommended_post_time,
         studio_recipe: { mode: draft.mode, background: draft.background },
+        // Algorithmic Distribution Engine metadata — rides the approve payload
+        // so the queue row carries the green-lit strategy (additive; the
+        // backend ignores fields it doesn't persist).
+        approval_status: APPROVAL_STATUS.APPROVED,
+        algorithmic_target: brief.algorithmic_target,
+        pacing_strategy: brief.pacing_strategy,
+        platform_specifics: brief.platform_specifics,
       };
       const scheduledIso = new Date(slot).toISOString();
       const { audio } = await approveAndSynthesize(merged, { scheduled_at: scheduledIso });
@@ -165,12 +242,15 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
       : draft.has_vo ? 'Approve & Synthesize' : 'Schedule · No VO';
 
   return (
-    <article className={`dcm-card${done ? ' is-done' : ''}`} data-testid="draft-card" data-draft-id={draft.id} data-status={state.phase} data-lang={draft.language}>
+    <article className={`dcm-card${done ? ' is-done' : ''}`} data-testid="draft-card" data-draft-id={draft.id} data-status={state.phase} data-approval={approvalStatus} data-lang={draft.language}>
       <header className="dcm-card-head">
         <span className="dcm-series" style={{ background: meta.color, color: readableText(meta.color) }}>{draft.series}</span>
         <span className="dcm-lang">{draft.language}</span>
         {draft.format ? <span className="dcm-format">{draft.format}</span> : null}
         {draft.recommended_post_time ? <span className="dcm-slot-band">🕑 {draft.recommended_post_time}</span> : null}
+        <span className={`dcm-approval dcm-approval--${approvalStatus}`} data-testid={`draft-approval-${draft.id}`}>
+          {strategyApproved ? '◆ ' : ''}{APPROVAL_LABELS[approvalStatus]}
+        </span>
         {done ? <span className="dcm-scheduled-badge">✓ Scheduled</span> : null}
       </header>
 
@@ -223,6 +303,11 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
         )}
       </CardSection>
 
+      {/* Platform Calibration Matrix — compiled on staging, reviewed before the
+          green light. Hidden in Draft (no bloat); persistent once approved so
+          the execution rules stay in view at deployment. */}
+      {(inReview || strategyApproved) ? <PlatformMatrix brief={brief} draftId={draft.id} /> : null}
+
       {state.audioUrl ? (
         <audio className="dcm-audio" src={state.audioUrl} controls data-testid={`draft-audio-${draft.id}`} />
       ) : null}
@@ -245,16 +330,53 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
             type="button"
             className="dcm-btn dcm-btn--ghost"
             onClick={() => setEditing((v) => !v)}
-            disabled={working}
+            disabled={working || strategyApproved}
+            title={strategyApproved ? 'Strategy approved — copy is locked for deployment' : undefined}
             data-testid={`draft-edit-${draft.id}`}
           >
-            {editing ? 'Done Editing' : 'Edit Draft'}
+            {strategyApproved ? '🔒 Locked' : editing ? 'Done Editing' : 'Edit Draft'}
           </button>
+          {/* Green Light workflow: Draft → stage the review; Review → approve the
+              strategy; Approved → the existing deployment trigger unlocks. */}
+          {approvalStatus === APPROVAL_STATUS.DRAFT ? (
+            <button
+              type="button"
+              className="dcm-btn dcm-btn--review"
+              onClick={() => { setEditing(false); setApprovalStatus(APPROVAL_STATUS.REVIEW); }}
+              disabled={working}
+              data-testid={`draft-stage-${draft.id}`}
+            >
+              ⚡ Stage Algorithmic Review
+            </button>
+          ) : null}
+          {inReview ? (
+            <>
+              <button
+                type="button"
+                className="dcm-btn dcm-btn--ghost"
+                onClick={() => setApprovalStatus(APPROVAL_STATUS.DRAFT)}
+                disabled={working}
+                data-testid={`draft-unstage-${draft.id}`}
+              >
+                ← Back to Draft
+              </button>
+              <button
+                type="button"
+                className="dcm-btn dcm-btn--approve"
+                onClick={() => { setEditing(false); setApprovalStatus(APPROVAL_STATUS.APPROVED); }}
+                disabled={working}
+                data-testid={`draft-greenlight-${draft.id}`}
+              >
+                ◆ Approve Strategy
+              </button>
+            </>
+          ) : null}
           <button
             type="button"
             className="dcm-btn dcm-btn--gold"
             onClick={approve}
-            disabled={working}
+            disabled={working || !strategyApproved}
+            title={strategyApproved ? undefined : 'Approve the algorithmic strategy to unlock deployment'}
             data-testid={`draft-approve-${draft.id}`}
           >
             {approveLabel}
@@ -262,6 +384,39 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
         </div>
       </footer>
     </article>
+  );
+}
+
+// ── Algorithm Health — sequencing read-out above the calendar grid ───────────
+// The engine audits the scheduled queue chronologically: content mix (heavy /
+// reset / neutral) + the longest run of consecutive clinical posts. A run ≥ 4
+// surfaces the clinical strain warning with the prescribed reset insertion.
+// Recomputes live as blocks are dragged — rescheduling IS the treatment.
+function AlgorithmHealthBar({ items }) {
+  const health = useMemo(() => assessAlgorithmHealth(items), [items]);
+  const LABEL = { optimal: 'Optimal Pacing', watch: 'Watch · Heavy Density Rising', strain: 'Retention Strain' };
+  return (
+    <div className="dcm-health" data-testid="algorithm-health" data-health={health.status}>
+      <div className="dcm-health-bar">
+        <span className={`dcm-health-dot is-${health.status}`} aria-hidden="true" />
+        <span className="dcm-health-title">Algorithm Health</span>
+        <span className="dcm-health-status">{LABEL[health.status]}</span>
+        <span className="dcm-health-mix">
+          <span className="dcm-health-k">Heavy</span> {health.mix.heavy}
+          <span className="dcm-health-sep">·</span>
+          <span className="dcm-health-k">Reset</span> {health.mix.reset}
+          <span className="dcm-health-sep">·</span>
+          <span className="dcm-health-k">Neutral</span> {health.mix.neutral}
+          <span className="dcm-health-sep">·</span>
+          <span className="dcm-health-k">Max Heavy Run</span> {health.longestHeavyRun}
+        </span>
+      </div>
+      {health.warnings.map((w) => (
+        <p key={w.startsAt} className="dcm-health-warn" role="alert" data-testid="algorithm-health-warning">
+          ⚠ {w.message}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -326,6 +481,8 @@ function DistributionCalendar({ items, onReschedule }) {
         </div>
       </div>
 
+      <AlgorithmHealthBar items={items} />
+
       <SeriesLegend />
 
       <div className="dcm-cal-grid">
@@ -347,18 +504,20 @@ function DistributionCalendar({ items, onReschedule }) {
               <div className="dcm-cal-items">
                 {dayItems.map((it) => {
                   const c = seriesMeta(it.series).color;
+                  const weight = contentWeight(it.series);
                   return (
                     <button
                       key={it.id}
                       type="button"
-                      className="dcm-cal-block"
+                      className={`dcm-cal-block is-w-${weight}`}
                       style={{ '--series': c }}
                       draggable
                       onDragStart={onDragStart(it.id)}
                       data-testid={`cal-item-${it.id}`}
                       data-item-id={it.id}
                       data-series={it.series}
-                      title={`${it.series} · ${it.hook || ''}`}
+                      data-weight={weight}
+                      title={`${it.series} · ${it.hook || ''} · retention weight: ${weight}`}
                     >
                       <span className="dcm-cal-block-top">
                         <span className="dcm-cal-block-series">{it.series}</span>
