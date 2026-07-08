@@ -19,6 +19,20 @@
   color: #160226;
 }
 
+/* V-01 (Repositioning): the not-ready / loading states are a slim gold STRIP —
+   the full band is reserved for an actual brief, so the gold keeps its punch. */
+.wb-card--empty,
+.wb-card--loading {
+  flex-direction: row;
+  align-items: center;
+  min-height: 0;
+  padding: 10px 16px;
+  gap: 10px;
+}
+.wb-card--empty .wb-title { font-size: 1.15rem; }
+.wb-card--empty .wb-head { flex: none; }
+.wb-card--empty .wb-empty-msg { margin: 0; min-width: 0; }
+
 /* ── header row ── */
 .wb-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .wb-mic { font-size: 1.4rem; line-height: 1; }

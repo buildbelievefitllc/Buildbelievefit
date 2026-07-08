@@ -20,20 +20,49 @@ import { useLang } from '../context/LangContext.jsx';
 // were purged — they live only in the Sovereign Client Vault now. Generator, the
 // admin Nutrition Locker, and Access Control fold under the Command Center group;
 // Sports Portal, Language, and Settings get their own entries.
-const COACHING_TABS = ['', 'roster', 'command', 'access', 'telemetry', 'eagle-eye', 'analytics', 'comlink', 'generator', 'nutrition-locker'];
-const NAV_ITEMS = [
-  { labelKey: 'vault-command', to: '/command', isActive: (tab) => COACHING_TABS.includes(tab) },
-  // The Coach Lab — admin-only Continuous Knowledge Ecosystem (own deep-link).
-  { labelKey: 'cmd-tab-coach-lab', to: '/command/coach-lab', isActive: (tab) => tab === 'coach-lab' },
-  // The Coach's Cave — admin-only sport-psychology film library (own deep-link).
-  { labelKey: 'cmd-tab-coach-cave', to: '/command/coach-cave', isActive: (tab) => tab === 'coach-cave' },
-  // Sovereign Studio (FRONT 5) — admin-only ElevenLabs voiceover producer (own deep-link).
-  { labelKey: 'cmd-tab-studio', to: '/command/studio', isActive: (tab) => tab === 'studio' },
-  // Digital Content Manager — Review Bucket + drag-drop Distribution Calendar (own deep-link).
-  { labelKey: 'cmd-tab-content-manager', to: '/command/content-manager', isActive: (tab) => tab === 'content-manager' },
-  { labelKey: 'cmd-tab-sports', to: '/command/sports', isActive: (tab) => tab === 'sports' },
-  { labelKey: 'cmd-tab-language', to: '/command/language', isActive: (tab) => tab === 'language' },
-  { labelKey: 'vault-tab-settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },
+// Repositioning C-01 — the sidebar is now the AUTHORITATIVE nav: all 17 Command
+// Center surfaces appear here, grouped under the same four executive domains the
+// in-page rail uses (Coaching · Content · Knowledge · System). Previously only 10
+// surfaces were listed and the two navs were desynced. The roster item ('' tab)
+// stays the default landing.
+const NAV_GROUPS = [
+  {
+    labelKey: 'cmd-dom-coaching',
+    items: [
+      { labelKey: 'cmd-tab-roster', to: '/command', isActive: (tab) => ['', 'roster', 'command', 'access', 'analytics'].includes(tab) },
+      { labelKey: 'cmd-tab-telemetry', to: '/command/telemetry', isActive: (tab) => tab === 'telemetry' },
+      { labelKey: 'cmd-tab-eagle-eye', to: '/command/eagle-eye', isActive: (tab) => tab === 'eagle-eye' },
+      { labelKey: 'cmd-tab-comlink', to: '/command/comlink', isActive: (tab) => tab === 'comlink' },
+      { labelKey: 'cmd-tab-nutrition-locker', to: '/command/nutrition-locker', isActive: (tab) => tab === 'nutrition-locker' },
+      { labelKey: 'cmd-tab-sports', to: '/command/sports', isActive: (tab) => tab === 'sports' },
+    ],
+  },
+  {
+    labelKey: 'cmd-dom-content',
+    items: [
+      { labelKey: 'cmd-tab-content', to: '/command/content', isActive: (tab) => tab === 'content' },
+      { labelKey: 'cmd-tab-content-manager', to: '/command/content-manager', isActive: (tab) => tab === 'content-manager' },
+      { labelKey: 'cmd-tab-studio', to: '/command/studio', isActive: (tab) => tab === 'studio' },
+      { labelKey: 'cmd-tab-studio-v4', to: '/command/studio-v4', isActive: (tab) => tab === 'studio-v4' },
+      { labelKey: 'cmd-tab-studio-batch', to: '/command/studio-batch', isActive: (tab) => tab === 'studio-batch' },
+    ],
+  },
+  {
+    labelKey: 'cmd-dom-knowledge',
+    items: [
+      { labelKey: 'cmd-tab-coach-lab', to: '/command/coach-lab', isActive: (tab) => tab === 'coach-lab' },
+      { labelKey: 'cmd-tab-coach-cave', to: '/command/coach-cave', isActive: (tab) => tab === 'coach-cave' },
+      { labelKey: 'cmd-tab-language', to: '/command/language', isActive: (tab) => tab === 'language' },
+      { labelKey: 'cmd-tab-language-lab', to: '/command/language-lab', isActive: (tab) => tab === 'language-lab' },
+    ],
+  },
+  {
+    labelKey: 'cmd-dom-system',
+    items: [
+      { labelKey: 'vault-tab-generator', to: '/command/generator', isActive: (tab) => tab === 'generator' },
+      { labelKey: 'vault-tab-settings', to: '/command/settings', isActive: (tab) => tab === 'settings' },
+    ],
+  },
 ];
 
 export default function MasterLayout({ children }) {
@@ -57,32 +86,26 @@ export default function MasterLayout({ children }) {
           BBF<span style={{ color: 'var(--yel)' }}>.</span>
         </div>
 
-        <nav className="bbf-sidebar-nav">
-          {NAV_ITEMS.map((item) => {
-            const active = item.isActive(activeSurface);
-            return (
-              <button
-                key={item.labelKey}
-                type="button"
-                onClick={() => navigate(item.to)}
-                aria-current={active ? 'page' : undefined}
-                style={{ ...styles.navItem, ...(active ? styles.navItemActive : null) }}
-              >
-                {t(item.labelKey)}
-              </button>
-            );
-          })}
-          {/* Content Studio — now the native React "Studio V4" panel (the legacy
-              standalone v3 HTML was removed). In-app navigation to its Command
-              Center tab, same as the other nav items. */}
-          <button
-            type="button"
-            onClick={() => navigate('/command/studio-v4')}
-            aria-current={activeSurface === 'studio-v4' ? 'page' : undefined}
-            style={{ ...styles.navItem, ...(activeSurface === 'studio-v4' ? styles.navItemActive : null) }}
-          >
-            {t('cmd-studio')}
-          </button>
+        <nav className="bbf-sidebar-nav" aria-label={t('vault-command')}>
+          {NAV_GROUPS.map((group) => (
+            <div key={group.labelKey} style={styles.navGroup}>
+              <div style={styles.navGroupHead}>{t(group.labelKey)}</div>
+              {group.items.map((item) => {
+                const active = item.isActive(activeSurface);
+                return (
+                  <button
+                    key={item.labelKey}
+                    type="button"
+                    onClick={() => navigate(item.to)}
+                    aria-current={active ? 'page' : undefined}
+                    style={{ ...styles.navItem, ...(active ? styles.navItemActive : null) }}
+                  >
+                    {t(item.labelKey)}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="bbf-sidebar-foot">
@@ -112,6 +135,15 @@ const styles = {
     fontWeight: 900,
     letterSpacing: '2px',
     padding: '0 .4rem 1.5rem',
+  },
+  navGroup: { display: 'flex', flexDirection: 'column', gap: '.15rem', marginBottom: '.9rem' },
+  navGroupHead: {
+    fontFamily: 'var(--hb)',
+    fontSize: '.6rem',
+    letterSpacing: '2.5px',
+    textTransform: 'uppercase',
+    color: 'var(--gold-deep)',
+    padding: '0 .75rem .35rem',
   },
   navItem: {
     textAlign: 'left',

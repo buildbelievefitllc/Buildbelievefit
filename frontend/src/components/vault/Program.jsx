@@ -114,13 +114,21 @@ export default function Program({ plans, profile, onSequence }) {
         </div>
       </div>
 
-      {/* RPE Education Card — collapsible, text-first education on RPE.
-          Mounted at top of program tab, always visible above analytics and grid. */}
-      <RPEEducationCard preferred_locale={lang} />
+      {/* V-04 (Repositioning): the two collapsible utility strips — What-is-RPE
+          education + the Weekly Analytics dossier — share one half-width row
+          instead of stacking full-width. Both stay collapsed-by-default. */}
+      <div className="pg-utility-row">
+        {/* RPE Education Card — collapsible, text-first education on RPE. */}
+        <RPEEducationCard preferred_locale={lang} />
+        {/* Master visual dashboard — COLLAPSED BY DEFAULT so the Program tab opens
+            straight onto the day's protocol (action over analysis). The toggle
+            reveals the Hypertrophy Balance Analyzer (admin) or the Sovereign
+            Sentinel blueprint (client). */}
+        <AnalyticsDossier isAdmin={isAdmin} tr={tr} />
+      </div>
 
       {/* ── CONTEXTUAL VOICEOVER — Coach Akeem walks "Enter the Floor": how to read
-          the rep ranges + RPE for today. Sits directly below the What-is-RPE
-          accordion. Static clip, paused by default. ── */}
+          the rep ranges + RPE for today. Compact strip (S-02); expands on play. ── */}
       <ContextualVoiceover
         audioKey={AUDIO_CTX_PROGRAM_RPE}
         testId="ctx-vo-program-rpe"
@@ -131,12 +139,6 @@ export default function Program({ plans, profile, onSequence }) {
           pt: 'Como ler as faixas de repetições e o RPE para bater a intensidade prescrita — não só cumprir o movimento.',
         }}
       />
-
-      {/* Master visual dashboard — COLLAPSED BY DEFAULT so the Program tab opens
-          straight onto the day's protocol (action over analysis). The toggle reveals
-          the Hypertrophy Balance Analyzer (admin) or the Sovereign Sentinel blueprint
-          (client). Athletes execute first; the weekly dossier is one tap away. */}
-      <AnalyticsDossier isAdmin={isAdmin} tr={tr} />
 
       <ProgramGrid uid={uid} programKey={user?.programKey} dynamicPlan={dynamicPlan} />
 

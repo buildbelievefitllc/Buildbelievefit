@@ -147,6 +147,9 @@ export default function MarketingLanding() {
   // module (was a tall vertical stack below the deck). Default to the Science Hub;
   // the nav Science/Audit links flip the tab and bring the module into view.
   const [knowledgeTab, setKnowledgeTab] = useState('science');
+  // Get The App deck (P-01): Google Play funnel vs the store-free PWA install —
+  // one deck, two tabs, only the active panel mounts (§10).
+  const [appTab, setAppTab] = useState('play');
   const goToKnowledge = (key) => {
     setKnowledgeTab(key);
     document.getElementById('knowledge')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -303,6 +306,9 @@ export default function MarketingLanding() {
                   <p style={s.secSub}>{t('prog-sub')}</p>
                   <PricingMatrix onSelectTier={startCheckout} />
 
+                  {/* P-01: the local-training call-out and the Financial Integrity
+                      promise ride one responsive row instead of stacking. */}
+                  <div style={s.localPromiseRow}>
                   {/* Local Weekly Ongoing Training — custom-quote call-out (mailto) */}
                   <div style={s.localCallout}>
                     <div style={s.localKicker}>Local · In-Person · Ongoing</div>
@@ -323,6 +329,7 @@ export default function MarketingLanding() {
                     <p style={s.promiseText}>
                       “{t('promise-text')}” <span style={{ color: GOLD }}>{t('founder-sig-name')}</span>
                     </p>
+                  </div>
                   </div>
                 </div>
               )}
@@ -450,7 +457,15 @@ export default function MarketingLanding() {
             );
           })}
         </div>
-        <div role="tabpanel">
+        {/* P-01: the Science Hub is a browse surface — it scrolls inside its own
+            frame instead of inflating the landing's page height (~1,500px). All
+            content remains reachable within the capped reader. */}
+        <div
+          role="tabpanel"
+          style={knowledgeTab === 'science'
+            ? { maxHeight: 'min(78vh, 820px)', overflowY: 'auto', overscrollBehavior: 'contain', borderRadius: 14 }
+            : undefined}
+        >
           {knowledgeTab === 'science'
             ? <ScienceHub />
             : <Interrogator onChooseTier={goToPathfinder} />}
@@ -459,49 +474,79 @@ export default function MarketingLanding() {
 
       <Divider />
 
-      {/* ── COMPANION APP (Google Play funnel + PWA direct install) ── */}
+      {/* ── COMPANION APP — "Get The App" tab-deck (Repositioning P-01, §10).
+          The formerly-stacked Google Play band + PWA install section collapse into
+          one switchable deck (same s.tab design system as Brand Engine/Knowledge):
+          01 Google Play · 02 Install From Browser. Only the active panel mounts;
+          both sections' full content survives inside its tab. ── */}
       <section id="app" style={s.appBand}>
-        <div style={s.appTop}>
-          <div style={s.appText}>
-            <div style={s.secLbl}>Google Play</div>
-            <h2 style={s.secH}>{t('app-band-h')}</h2>
-            <p style={s.secSub}>{t('app-band-sub')}</p>
-          </div>
-          <a
-            href="https://play.google.com/store/apps/details?id=com.buildbelievefit.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={s.appBadge}
-            aria-label={t('app-badge-alt')}
-          >
-            <img
-              src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-              alt={t('app-badge-alt')}
-              style={{ height: '64px', width: 'auto', display: 'block' }}
-              loading="lazy"
-            />
-          </a>
+        <div style={s.knowledgeTabs} role="tablist" aria-label="Get the app">
+          {[
+            { key: 'play', idx: '01', label: 'Google Play' },
+            { key: 'pwa', idx: '02', label: 'Install From Browser' },
+          ].map((d) => {
+            const on = appTab === d.key;
+            return (
+              <button
+                key={d.key}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => setAppTab(d.key)}
+                style={{ ...s.tab, ...(on ? s.tabActive : null) }}
+              >
+                <span style={{ ...s.tabIdx, ...(on ? s.tabIdxActive : null) }}>{d.idx}</span>
+                <span style={s.tabLabel}>{d.label}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Direct Web App (PWA) install — store-free alternative for iOS + Android */}
-        <div style={s.pwaBlock}>
-          <div style={s.pwaHead}>
-            <span style={s.pwaTag}>{t('app-pwa-tag')}</span>
-            <h3 style={s.pwaH}>{t('app-pwa-h')}</h3>
-            <p style={s.pwaSub}>{t('app-pwa-sub')}</p>
-          </div>
-          <div style={s.pwaCols}>
-            <PwaCard
-              platform=""
-              title={t('app-ios-h')}
-              steps={[t('app-ios-1'), t('app-ios-2'), t('app-ios-3')]}
-            />
-            <PwaCard
-              platform="🤖"
-              title={t('app-android-h')}
-              steps={[t('app-android-1'), t('app-android-2'), t('app-android-3')]}
-            />
-          </div>
+        <div role="tabpanel" style={s.appPanel}>
+          {appTab === 'play' ? (
+            <div style={s.appTop}>
+              <div style={s.appText}>
+                <div style={s.secLbl}>Google Play</div>
+                <h2 style={s.secH}>{t('app-band-h')}</h2>
+                <p style={s.secSub}>{t('app-band-sub')}</p>
+              </div>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.buildbelievefit.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={s.appBadge}
+                aria-label={t('app-badge-alt')}
+              >
+                <img
+                  src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                  alt={t('app-badge-alt')}
+                  style={{ height: '64px', width: 'auto', display: 'block' }}
+                  loading="lazy"
+                />
+              </a>
+            </div>
+          ) : (
+            /* Direct Web App (PWA) install — store-free alternative for iOS + Android */
+            <div style={s.pwaBlockDeck}>
+              <div style={s.pwaHead}>
+                <span style={s.pwaTag}>{t('app-pwa-tag')}</span>
+                <h3 style={s.pwaH}>{t('app-pwa-h')}</h3>
+                <p style={s.pwaSub}>{t('app-pwa-sub')}</p>
+              </div>
+              <div style={s.pwaCols}>
+                <PwaCard
+                  platform=""
+                  title={t('app-ios-h')}
+                  steps={[t('app-ios-1'), t('app-ios-2'), t('app-ios-3')]}
+                />
+                <PwaCard
+                  platform="🤖"
+                  title={t('app-android-h')}
+                  steps={[t('app-android-1'), t('app-android-2'), t('app-android-3')]}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -826,6 +871,11 @@ const s = {
 
   // Direct Web App (PWA) install — store-free alternative.
   pwaBlock: { borderTop: `1px dashed rgba(157,39,201,.3)`, paddingTop: 'clamp(24px,3.5vw,36px)' },
+  // Deck variant (P-01): inside the Get The App tab-deck the divider border is
+  // the deck frame's job, so the panel drops the dashed top rule.
+  pwaBlockDeck: {},
+  localPromiseRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 'clamp(14px,2vw,22px)', alignItems: 'stretch' },
+  appPanel: { paddingTop: 'clamp(18px,2.5vw,28px)' },
   pwaHead: { marginBottom: 'clamp(18px,2.5vw,26px)' },
   pwaTag: { fontFamily: HEAD, fontSize: '.72rem', fontWeight: 700, letterSpacing: '2.5px', textTransform: 'uppercase', color: GOLD },
   pwaH: { fontFamily: HEAD, fontSize: 'clamp(1.5rem,3vw,2rem)', letterSpacing: '1px', color: '#fff', margin: '8px 0 6px' },

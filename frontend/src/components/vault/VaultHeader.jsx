@@ -201,27 +201,12 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
 
   return (
     <section className="cv-head" aria-label={t('vh-head-aria')}>
-      {/* ── 1 · Portal ── */}
-      <div className="cv-portal">
-        <div className="cv-portal-main">
-          <span className="cv-pill">◇ {accessLabel}</span>
-          <h1 className="cv-portal-title"><CrestIcon className="cv-portal-mark" size={20} /> {t('vh-portal-title').toUpperCase()}</h1>
-          <p className="cv-portal-sub">{t('vh-portal-sub')}</p>
-        </div>
-        <div className="cv-portal-stats">
-          <div className="cv-readout">
-            <span className="cv-readout-k">{t('vh-sessions')}</span>
-            <span className="cv-readout-v">{sessions} <em>{t('vh-done')}</em></span>
-          </div>
-          <div className="cv-readout">
-            <span className="cv-readout-k">{t('vh-hydration')}</span>
-            <span className="cv-readout-v">{hydrDisplay} <em>/ {hydrTargetDisplay}</em></span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 2 · Identity ── */}
-      <div className="cv-identity">
+      {/* ── 1 · Command strip — Portal + Identity merged (Repositioning S-01).
+          One hero instead of two: the portal title demotes to a crested kicker,
+          the portal sub-line rides under the welcome, and the Sessions/Hydration
+          readouts join the four macros in a single 6-cell rail. Every data point
+          of the former two cards survives — repositioned, not removed. ── */}
+      <div className="cv-identity cv-identity--merged">
         <div className="cv-identity-l">
           <div className="cv-avatar">
             {avatar
@@ -235,21 +220,31 @@ function VaultHeader({ profile, plans = null, displayName = 'Athlete', slug = ''
             {isAdmin ? <span className="cv-avatar-badge" aria-hidden="true">ADMIN</span> : null}
           </div>
           <div className="cv-identity-meta">
-            <h2 className="cv-identity-name">{t('vh-welcome').toUpperCase()} {displayName.toUpperCase()}</h2>
+            <span className="cv-portal-kicker"><CrestIcon className="cv-portal-mark" size={13} /> {t('vh-portal-title').toUpperCase()}</span>
+            <h1 className="cv-identity-name">{t('vh-welcome').toUpperCase()} {displayName.toUpperCase()}</h1>
+            <p className="cv-portal-sub">{t('vh-portal-sub')}</p>
             {personal ? (
               <p style={{ fontFamily: 'var(--bd, "Barlow Condensed")', fontSize: '.82rem', fontStyle: 'italic', color: '#f5c800', margin: '5px 0 0', lineHeight: 1.3 }}>
                 {personal.tagline}
               </p>
             ) : null}
-            <span className="cv-pill cv-pill-sm">{accessLabel}</span>
             <div className="cv-identity-focus">
+              <span className="cv-pill cv-pill-sm">◇ {accessLabel}</span>
               <span className="cv-identity-slug">@{slug || 'athlete'}</span>
               <span className="cv-dotsep">•</span>
               <span className="cv-identity-phase">{focus.toUpperCase()}</span>
             </div>
           </div>
         </div>
-        <div className="cv-identity-macros">
+        <div className="cv-readout-rail">
+          <div className="cv-readout">
+            <span className="cv-readout-k">{t('vh-sessions')}</span>
+            <span className="cv-readout-v">{sessions} <em>{t('vh-done')}</em></span>
+          </div>
+          <div className="cv-readout">
+            <span className="cv-readout-k">{t('vh-hydration')}</span>
+            <span className="cv-readout-v">{hydrDisplay} <em>/ {hydrTargetDisplay}</em></span>
+          </div>
           {macros.map((m) => (
             <div key={m.key} className="cv-macro">
               <span className="cv-macro-k">{t(m.labelKey)}</span>

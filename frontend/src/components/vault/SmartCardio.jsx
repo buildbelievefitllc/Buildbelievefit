@@ -349,14 +349,9 @@ export default function SmartCardio() {
       {/* Metabolic Pacer — the rebuilt configuration layer (kcal hero · slider ·
           apparatus grid) wired straight into the live bbf-agentic-cardio engine.
           onLogged refreshes the History queue after a one-tap "Complete & Sync". */}
-      <CardioConfigurator onLogged={refetch} />
-
-      {/* Machine cardio PRESET LIBRARY — pick a coach-prescribed protocol → sets it
-          as the athlete's active protocol via the existing token-gated write. The
-          configurator + bbf-agentic-cardio auto-gen above are untouched. */}
-      <CardioPresets onAssigned={refetch} />
-
-      {/* Zone legend */}
+      {/* Zone legend — V-05 (Repositioning): rides ABOVE the configurator so the
+          three protocol modes annotate the pacing decision they inform, instead of
+          trailing below the terminal sync action. */}
       <div className="bbf-cardio__zones">
         {Object.entries(CARDIO_ZONES).map(([id, z]) => (
           <div key={id} className="bbf-cardio__zone" style={{ '--zone-accent': z.accent }}>
@@ -365,6 +360,13 @@ export default function SmartCardio() {
           </div>
         ))}
       </div>
+
+      <CardioConfigurator onLogged={refetch} />
+
+      {/* Machine cardio PRESET LIBRARY — pick a coach-prescribed protocol → sets it
+          as the athlete's active protocol via the existing token-gated write. The
+          configurator + bbf-agentic-cardio auto-gen above are untouched. */}
+      <CardioPresets onAssigned={refetch} />
 
       {isLoading ? <div className="bbf-cardio__loading">{tr.loading}</div> : null}
       {!isLoading && error ? <div className="bbf-cardio__error" role="alert">{error}</div> : null}

@@ -611,6 +611,9 @@
   gap: 1rem;
   align-items: start;
 }
+/* V-03 (Repositioning): the left cell is a column — Fasting Pace + Fueling
+   Status + Periodized Timing stack to match the Today's Fuel wheel's height. */
+.nl-fastfuel-left { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
 @media (min-width: 760px) {
   .nl-fastfuel { grid-template-columns: 1fr 1fr; }
 }

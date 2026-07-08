@@ -713,6 +713,11 @@ function ProtocolDeck() {
   const region = manualRegion
     || (symptomRegion && PROTOCOLS[symptomRegion] ? symptomRegion : REGIONS[0].id);
   const [done, setDone] = useState(() => new Set());
+  // Protocol accordion — one movement expanded at a time (spatial consolidation).
+  // null ⇒ default to the first movement of the active protocol; marking a movement
+  // done auto-advances the rail to the next one. All cues/videos stay intact —
+  // they reveal at the moment of use.
+  const [openKey, setOpenKey] = useState(null);
 
   // Live Recovery Matrix override (bbf-agentic-prehab via prehabApi). null ⇒ render the
   // static catalog protocol for the selected region; an array ⇒ the personalized,
@@ -733,6 +738,7 @@ function ProtocolDeck() {
     setManualRegion(id);
     setDone(new Set());
     setLiveMatrix(null);
+    setOpenKey(null);
     setScan({ loading: false, error: null });
   };
   const toggle = (key) => setDone((prev) => {
@@ -756,6 +762,7 @@ function ProtocolDeck() {
       if (matrix.length) {
         setLiveMatrix(liveMatrixToExercises(matrix));
         setDone(new Set());
+        setOpenKey(null);
         setScan({ loading: false, error: null });
       } else {
         setScan({ loading: false, error: s.scanEmpty });
@@ -829,49 +836,68 @@ function ProtocolDeck() {
 
       {exercises.map((ex, i) => {
         const isDone = done.has(ex.key);
+        // Accordion rail: openKey null defaults the first movement open; marking a
+        // movement done collapses it and advances to the next in the protocol.
+        const isOpen = (openKey ?? exercises[0]?.key) === ex.key;
         return (
           <article
             key={ex.key}
-            className={`pde-ex${isDone ? ' is-done' : ''}`}
+            className={`pde-ex${isDone ? ' is-done' : ''}${isOpen ? ' is-open' : ''}`}
             data-testid="prehab-routine"
           >
-            <div className="pde-ex-main">
-              <div className="pde-ex-top">
+            <div className="pde-ex-row">
+              <button
+                type="button"
+                className="pde-ex-toggle"
+                aria-expanded={isOpen}
+                onClick={() => setOpenKey(isOpen ? '' : ex.key)}
+              >
                 <span className="pde-ex-idx">{i + 1}</span>
                 <span className="pde-ex-name" data-testid="prehab-routine-name">{ex.name}</span>
-                <button
-                  type="button"
-                  className="pde-mark"
-                  aria-pressed={isDone}
-                  onClick={() => toggle(ex.key)}
-                >
-                  {isDone ? s.done : s.mark}
-                </button>
-              </div>
-
-              <div className="pde-chips">
-                {ex.sets != null ? <span className="pde-chip" data-testid="prehab-routine-sets">{s.sets(ex.sets)}</span> : null}
-                {ex.reps ? <span className="pde-chip" data-testid="prehab-routine-reps">{ex.reps}</span> : null}
-                {ex.focus ? <span className="pde-chip" style={SCAN_STYLES.focusChip}>{ex.focus}</span> : null}
-                {ex.duration ? <span className="pde-chip">{ex.duration}</span> : null}
-              </div>
-
-              {ex.desc ? <p className="pde-ex-desc" data-testid="prehab-routine-cue">{ex.desc}</p> : null}
-
-              {ex.cues?.length ? (
-                <div className="pde-cues">
-                  <div className="pde-cues-head">{s.cues}</div>
-                  {ex.cues.map((c, ci) => (
-                    <div className="pde-cue" key={ci}>
-                      <span className="pde-cue-arrow" aria-hidden="true">›</span>
-                      <span>{c}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
+                <span className="pde-chips">
+                  {ex.sets != null ? <span className="pde-chip" data-testid="prehab-routine-sets">{s.sets(ex.sets)}</span> : null}
+                  {ex.reps ? <span className="pde-chip" data-testid="prehab-routine-reps">{ex.reps}</span> : null}
+                  {ex.focus ? <span className="pde-chip" style={SCAN_STYLES.focusChip}>{ex.focus}</span> : null}
+                  {ex.duration ? <span className="pde-chip">{ex.duration}</span> : null}
+                </span>
+                <span className="pde-chev" aria-hidden="true">{isOpen ? '▴' : '▾'}</span>
+              </button>
+              <button
+                type="button"
+                className="pde-mark"
+                aria-pressed={isDone}
+                onClick={() => {
+                  const wasDone = done.has(ex.key);
+                  toggle(ex.key);
+                  // Auto-advance: completing the open movement opens the next one.
+                  if (!wasDone && isOpen) setOpenKey(exercises[i + 1]?.key ?? '');
+                }}
+              >
+                {isDone ? s.done : s.mark}
+              </button>
             </div>
 
-            <VideoSlot ex={ex} s={s} />
+            {isOpen ? (
+              <div className="pde-ex-body">
+                <div className="pde-ex-main">
+                  {ex.desc ? <p className="pde-ex-desc" data-testid="prehab-routine-cue">{ex.desc}</p> : null}
+
+                  {ex.cues?.length ? (
+                    <div className="pde-cues">
+                      <div className="pde-cues-head">{s.cues}</div>
+                      {ex.cues.map((c, ci) => (
+                        <div className="pde-cue" key={ci}>
+                          <span className="pde-cue-arrow" aria-hidden="true">›</span>
+                          <span>{c}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
+                <VideoSlot ex={ex} s={s} />
+              </div>
+            ) : null}
           </article>
         );
       })}

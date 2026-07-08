@@ -50,6 +50,11 @@ export default function ContextualVoiceover({
   const [playing, setPlaying] = useState(false);
   const [ended, setEnded] = useState(false);
   const [autoplayFired, setAutoplayFired] = useState(false); // observable mount-fire signal
+  // Spatial compaction (Repositioning S-02): the card renders as a single-row
+  // voice STRIP until first engagement — the native transport mounts only after
+  // play is requested (or immediately under autoPlay). Full chrome is the
+  // engaged state; nothing is removed, it reveals at the moment of use.
+  const [engaged, setEngaged] = useState(autoPlay);
 
   // AUTO-PLAY: fire strictly once on INITIAL MOUNT. Because the host (e.g. the
   // Post-Workout modal) returns null while closed and re-mounts on open, an empty-dep
@@ -69,6 +74,7 @@ export default function ContextualVoiceover({
   if (!url) return null;
 
   function toggle() {
+    setEngaged(true); // first engagement expands the strip + mounts the transport
     const el = audioRef.current;
     if (!el) return;
     if (el.paused) el.play().catch(() => {});
@@ -86,31 +92,49 @@ export default function ContextualVoiceover({
       data-testid={testId}
       data-audiokey={audioKey}
       data-playing={playing ? '1' : '0'}
+      data-engaged={engaged ? '1' : '0'}
       data-autoplay={autoPlay ? (autoplayFired ? 'fired' : 'pending') : 'off'}
-      style={compact ? { ...WRAP, ...WRAP_COMPACT } : WRAP}
+      style={engaged ? (compact ? { ...WRAP, ...WRAP_COMPACT } : WRAP) : { ...WRAP, ...WRAP_STRIP }}
     >
       <div style={GLOW} aria-hidden="true" />
-      <div style={{ position: 'relative' }}>
-        <span style={KICKER}>★ {kick}</span>
-        {heading ? <h3 style={TITLE}>{heading}</h3> : null}
-        {subline ? <p style={SUB}>{subline}</p> : null}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '.7rem', flexWrap: 'wrap', marginTop: '.7rem' }}>
-          <button type="button" onClick={toggle} style={BTN} data-testid={`${testId}-play`}>
+      {engaged ? (
+        <div style={{ position: 'relative' }}>
+          <span style={KICKER}>★ {kick}</span>
+          {heading ? <h3 style={TITLE}>{heading}</h3> : null}
+          {subline ? <p style={SUB}>{subline}</p> : null}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '.7rem', flexWrap: 'wrap', marginTop: '.7rem' }}>
+            <button type="button" onClick={toggle} style={BTN} data-testid={`${testId}-play`}>
+              {label}
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* Single-row strip — same copy (kicker · title · sub), one line each,
+           play pill left. Engaging expands to the full card + transport. */
+        <div style={STRIP_ROW}>
+          <button type="button" onClick={toggle} style={{ ...BTN, ...BTN_STRIP }} data-testid={`${testId}-play`}>
             {label}
           </button>
+          <div style={{ minWidth: 0 }}>
+            <span style={KICKER}>★ {kick}</span>
+            {heading ? <h3 style={{ ...TITLE, ...TITLE_STRIP }}>{heading}</h3> : null}
+            {subline ? <p style={{ ...SUB, ...SUB_STRIP }}>{subline}</p> : null}
+          </div>
         </div>
-        <audio
-          ref={audioRef}
-          src={url}
-          controls
-          preload={autoPlay ? 'auto' : 'none'}
-          style={{ width: '100%', marginTop: '.7rem' }}
-          data-testid={`${testId}-audio`}
-          onPlay={() => { setPlaying(true); setEnded(false); }}
-          onPause={() => setPlaying(false)}
-          onEnded={() => { setPlaying(false); setEnded(true); }}
-        />
-      </div>
+      )}
+      {/* The audio element always mounts (the ref + autoplay hook depend on it);
+          the visible transport appears once engaged. */}
+      <audio
+        ref={audioRef}
+        src={url}
+        controls={engaged}
+        preload={autoPlay ? 'auto' : 'none'}
+        style={engaged ? { position: 'relative', width: '100%', marginTop: '.7rem' } : { display: 'none' }}
+        data-testid={`${testId}-audio`}
+        onPlay={() => { setPlaying(true); setEnded(false); }}
+        onPause={() => setPlaying(false)}
+        onEnded={() => { setPlaying(false); setEnded(true); }}
+      />
     </section>
   );
 }
@@ -118,6 +142,12 @@ export default function ContextualVoiceover({
 // Brand-locked styling — mirrors the Sovereign Briefing tile (WRAP/GLOW/etc.).
 const WRAP = { position: 'relative', overflow: 'hidden', margin: '0 0 1rem', padding: '1rem 1.1rem', borderRadius: 16, border: '1px solid rgba(245,200,0,.45)', background: 'linear-gradient(135deg, rgba(106,13,173,.30), rgba(9,9,9,.55))' };
 const WRAP_COMPACT = { padding: '.8rem .9rem', margin: '0 0 .85rem' };
+// Pre-engagement strip chrome (S-02): one ~64px row until the athlete presses play.
+const WRAP_STRIP = { padding: '.6rem .9rem', margin: '0 0 .85rem' };
+const STRIP_ROW = { position: 'relative', display: 'flex', alignItems: 'center', gap: '.8rem' };
+const BTN_STRIP = { flexShrink: 0, padding: '.5rem .95rem', fontSize: '.72rem' };
+const TITLE_STRIP = { fontSize: '1.05rem', margin: '.1rem 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
+const SUB_STRIP = { fontSize: '.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
 const GLOW = { position: 'absolute', inset: 0, background: 'radial-gradient(120% 80% at 100% 0%, rgba(245,200,0,.14), transparent 60%)', pointerEvents: 'none' };
 const KICKER = { fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#f5c800' };
 const TITLE = { fontFamily: 'var(--hb)', fontSize: '1.5rem', margin: '.25rem 0 .2rem', color: '#fff', letterSpacing: '.5px', lineHeight: 1.1 };

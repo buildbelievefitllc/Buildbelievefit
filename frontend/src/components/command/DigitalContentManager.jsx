@@ -97,6 +97,25 @@ function SeriesLegend() {
 }
 
 // ── Review Bucket · one draft card ────────────────────────────────────────────
+// C-02 (Repositioning): in-card disclosure — the verbose verification blocks
+// (Full Caption / Cut Sheet / Voiceover Script) collapse behind their labeled
+// headers so the review bucket reads as a scannable wall. Editing force-opens
+// every section so the textareas are always reachable. Zero deletion — the
+// full content lives one tap away.
+function CardSection({ label, forceOpen = false, children }) {
+  const [open, setOpen] = useState(false);
+  const shown = open || forceOpen;
+  return (
+    <div className="dcm-field dcm-sec">
+      <button type="button" className="dcm-sec-head" aria-expanded={shown} onClick={() => setOpen((v) => !v)}>
+        <span className="dcm-label">{label}</span>
+        <span className="dcm-sec-chev" aria-hidden="true">{shown ? '▴' : '▾'}</span>
+      </button>
+      {shown ? children : null}
+    </div>
+  );
+}
+
 function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
   const meta = seriesMeta(draft.series);
   const already = scheduledSourceRefs.has(draft.id);
@@ -167,12 +186,11 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
         <p className="dcm-hook">{draft.hook}</p>
       </div>
 
-      <div className="dcm-field">
-        <span className="dcm-label">Full Caption</span>
+      <CardSection label="Full Caption" forceOpen={editing}>
         {editing
           ? <textarea className="dcm-textarea" rows={5} value={form.caption} onChange={setField('caption')} data-testid={`draft-caption-${draft.id}`} />
           : <p className="dcm-caption">{form.caption}</p>}
-      </div>
+      </CardSection>
 
       {draft.hashtags ? (
         <div className="dcm-field">
@@ -189,15 +207,13 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
         </div>
       </div>
 
-      <div className="dcm-field">
-        <span className="dcm-label">Cut Sheet · Visuals</span>
+      <CardSection label="Cut Sheet · Visuals" forceOpen={editing}>
         {editing
           ? <textarea className="dcm-textarea" rows={3} value={form.cut_sheet} onChange={setField('cut_sheet')} data-testid={`draft-cutsheet-${draft.id}`} />
           : <p className="dcm-recipe">{form.cut_sheet || '—'}</p>}
-      </div>
+      </CardSection>
 
-      <div className="dcm-field">
-        <span className="dcm-label">🎙 Voiceover Script <em>(Coach Akeem)</em></span>
+      <CardSection label={<>🎙 Voiceover Script <em>(Coach Akeem)</em></>} forceOpen={editing}>
         {draft.has_vo ? (
           editing
             ? <textarea className="dcm-textarea dcm-textarea--script" rows={5} value={form.voiceover_script} onChange={setField('voiceover_script')} data-testid={`draft-script-${draft.id}`} />
@@ -205,7 +221,7 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
         ) : (
           <p className="dcm-novo">No reel kit — outreach post. Schedules as text/visual only (no synthesis).</p>
         )}
-      </div>
+      </CardSection>
 
       {state.audioUrl ? (
         <audio className="dcm-audio" src={state.audioUrl} controls data-testid={`draft-audio-${draft.id}`} />

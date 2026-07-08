@@ -1454,14 +1454,29 @@ export default function Nutrition({ plans, profile }) {
         ))}
       </div>
 
-      {/* Fasting Pace selector + daily macro tracking, side by side. */}
+      {/* Fasting Pace selector + daily macro tracking, side by side. Repositioning
+          V-03: the left column stacks Fasting Pace + Daily Fueling Status +
+          Periodized Fuel Timing so it rides the same height as the Today's Fuel
+          wheel — the ~400px dead hole under Fasting Pace fills with content that
+          previously stacked full-width below the grid. Nothing removed. */}
       <div className="nl-fastfuel">
-        <FastingPaceCard
-          now={now}
-          paceId={paceId}
-          onSelectPace={selectPace}
-          tier={profile?.metabolicTier}
-        />
+        <div className="nl-fastfuel-left">
+          <FastingPaceCard
+            now={now}
+            paceId={paceId}
+            onSelectPace={selectPace}
+            tier={profile?.metabolicTier}
+          />
+          {/* Daily Fueling Status — Fuel Performance+ (adherence vs the canonical
+              target + 7-day trend). Lower tiers see the upgrade padlock. */}
+          <TierGate feature="nutrition_fueling_status" featureLabel={tr.fsLock} testId="nutrition-fueling-status-lock">
+            <FuelingStatus consumed={consumed} target={targetMacros} weekAdherence={weekAdherence} />
+          </TierGate>
+          {/* Periodized Fuel Timing — Fuel Sovereign (Tier-3 timing_plan). */}
+          <TierGate feature="nutrition_periodization" featureLabel={tr.perLock} testId="nutrition-periodization-lock">
+            <PeriodizedPlan timingPlan={targets?.timing_plan} />
+          </TierGate>
+        </div>
         <DailyFuel
           consumed={consumed}
           totals={targetMacros}
@@ -1469,18 +1484,6 @@ export default function Nutrition({ plans, profile }) {
           mealCount={day.meals.length}
         />
       </div>
-
-      {/* Daily Fueling Status — Fuel Performance+ (adherence vs the canonical target
-          + 7-day trend). Lower tiers see the upgrade padlock (justifies the ladder). */}
-      <TierGate feature="nutrition_fueling_status" featureLabel={tr.fsLock} testId="nutrition-fueling-status-lock">
-        <FuelingStatus consumed={consumed} target={targetMacros} weekAdherence={weekAdherence} />
-      </TierGate>
-
-      {/* Periodized Fuel Timing — Fuel Sovereign (Tier-3 timing_plan). Lower tiers
-          see the upgrade padlock. */}
-      <TierGate feature="nutrition_periodization" featureLabel={tr.perLock} testId="nutrition-periodization-lock">
-        <PeriodizedPlan timingPlan={targets?.timing_plan} />
-      </TierGate>
 
       {/* Layer 1/2 "why this fuels you" note — appears on a log, auto-dismisses. */}
       <MealBenefitNote note={benefitNote} />

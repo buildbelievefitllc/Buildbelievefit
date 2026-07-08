@@ -6,10 +6,16 @@
 // view, directly above COMPLETE & SYNC PROTOCOL, so the athlete can cue their
 // soundtrack right before the protocol starts.
 //
+// Repositioning V-05: renders as a slim strip (header row + chevron) until the
+// athlete engages — the embed iframe mounts on demand, killing the ~260px idle
+// shelf between the protocol builder and its terminal action (and skipping the
+// third-party iframe load entirely until it's wanted). Same content on expand.
+//
 // The embed is forced into Spotify's dark mode (theme=0) and is fully mobile
 // responsive (100% width, compact player height). The playlist is prop-driven with
 // a sensible high-energy default so the CEO can swap the source without code surgery.
 
+import { useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 
 // Trilingual header chrome — structural, not optional (EN / ES / PT).
@@ -33,12 +39,18 @@ export default function SpotifyEmbed({
 }) {
   const { lang } = useLang();
   const tr = SPOTIFY_STR[lang] || SPOTIFY_STR.en;
+  const [open, setOpen] = useState(false);
   // theme=0 forces the embed's dark mode so it sits inside the matte Vault canvas.
   const src = `https://open.spotify.com/embed/${embedType}/${embedId}?utm_source=generator&theme=0`;
 
   return (
-    <section className="bbf-spotify" data-testid="cardio-spotify">
-      <div className="bbf-spotify__head">
+    <section className={`bbf-spotify${open ? ' is-open' : ''}`} data-testid="cardio-spotify">
+      <button
+        type="button"
+        className="bbf-spotify__head bbf-spotify__toggle"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
         <span className="bbf-spotify__glyph" aria-hidden="true">
           {/* Geometric equalizer mark (gold, currentColor) — no emoji in the dossier */}
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
@@ -52,19 +64,22 @@ export default function SpotifyEmbed({
           <span className="bbf-spotify__kicker">{tr.kicker}</span>
           <span className="bbf-spotify__sub">{tr.sub}</span>
         </div>
-      </div>
-      <div className="bbf-spotify__frame">
-        <iframe
-          title={tr.title}
-          src={src}
-          width="100%"
-          height={height}
-          style={{ border: 0 }}
-          loading="lazy"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          allowFullScreen
-        />
-      </div>
+        <span className="bbf-spotify__chev" aria-hidden="true">{open ? '▴' : '▾'}</span>
+      </button>
+      {open ? (
+        <div className="bbf-spotify__frame">
+          <iframe
+            title={tr.title}
+            src={src}
+            width="100%"
+            height={height}
+            style={{ border: 0 }}
+            loading="lazy"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -373,25 +373,52 @@
   margin: 0;
 }
 
-/* ── Exercise / protocol cards ────────────────────────────────────────────── */
+/* ── Exercise / protocol cards — accordion rail (spatial consolidation) ─────
+   Collapsed: one ~72px row (index · name · chips · mark-done · chevron).
+   Open: the original two-column body (desc + cues | video) mounts beneath.
+   Marking the open movement done auto-advances the rail (see Prehab.jsx). */
 .pde-ex {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 1.1rem;
+  display: block;
   background: linear-gradient(180deg, #0c0c0e, #070708);
   border: 1px solid #1a1a1e;
   border-radius: 16px;
-  padding: 1.1rem 1.15rem;
+  padding: 0;
   margin-top: .85rem;
+  transition: border-color .18s ease;
 }
 .pde-ex.is-done { border-color: rgba(34, 197, 94, .45); }
-.pde-ex-main { min-width: 0; }
-.pde-ex-top {
+.pde-ex.is-open { border-color: rgba(245, 200, 0, .4); }  /* gold ignition on the active movement */
+.pde-ex-row {
   display: flex;
   align-items: center;
   gap: .6rem;
-  margin-bottom: .6rem;
+  padding: .75rem 1.15rem .75rem .9rem;
 }
+.pde-ex-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.pde-ex-toggle:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; border-radius: 8px; }
+.pde-chev {
+  flex-shrink: 0;
+  font-size: .7rem;
+  color: var(--mut);
+}
+.pde-ex-body {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 1.1rem;
+  padding: 0 1.15rem 1.1rem;
+}
+.pde-ex-main { min-width: 0; }
 .pde-ex-idx {
   flex-shrink: 0;
   width: 26px; height: 26px;
@@ -430,7 +457,7 @@
 .pde-mark:focus-visible { outline: 2px solid var(--yel); outline-offset: 2px; }
 .pde-ex.is-done .pde-mark { color: var(--grn); border-color: rgba(34, 197, 94, .45); background: rgba(34, 197, 94, .08); }
 
-.pde-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .7rem; }
+.pde-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
 .pde-chip {
   font-family: var(--hb);
   font-size: .64rem;
@@ -648,7 +675,8 @@
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 720px) {
   .pde-grid3 { grid-template-columns: 1fr; }
-  .pde-ex { grid-template-columns: 1fr; }
+  .pde-ex-body { grid-template-columns: 1fr; }
+  .pde-ex-toggle { flex-wrap: wrap; }  /* phone: chips wrap under the name — nothing hidden */
   .pde-transport { grid-template-columns: 1fr; }
   .pdx-drill-vol { max-width: none; text-align: left; }
 }

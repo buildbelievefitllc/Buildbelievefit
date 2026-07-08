@@ -66,10 +66,14 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
+  /* V-01 (Repositioning): the 4 homework steps ride a horizontal rail on wide
+     screens (4-up → 2-up → stacked) instead of a tall vertical list. */
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: .75rem;
 }
+@media (max-width: 980px) { .svs-steps { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .svs-steps { grid-template-columns: 1fr; } }
 .svs-step {
   display: flex;
   align-items: flex-start;

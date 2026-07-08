@@ -36,6 +36,13 @@
 .dcm-novo { margin: 0; font-size: .78rem; font-style: italic; color: var(--dcm-mut); }
 
 .dcm-field { display: flex; flex-direction: column; gap: .2rem; }
+/* C-02 (Repositioning): collapsible verification sections inside a draft card. */
+.dcm-sec-head {
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  width: 100%; background: none; border: none; padding: 0; cursor: pointer; text-align: left;
+}
+.dcm-sec-head:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; border-radius: 6px; }
+.dcm-sec-chev { color: rgba(249, 245, 255, .45); font-size: .7rem; flex: none; }
 .dcm-label { font-family: var(--hb, sans-serif); font-size: .62rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dcm-gold); }
 .dcm-label em { color: var(--dcm-mut); font-style: normal; }
 .dcm-angle { margin: 0; font-size: .82rem; color: var(--dcm-mut); }

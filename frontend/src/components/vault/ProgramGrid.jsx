@@ -576,30 +576,37 @@ function ExerciseCard({ uid, dayIdx, index, ex, rpeCap, tr }) {
               play. Only the dynamic ElevenLabs fallback (a movement outside the
               static library, e.g. a bespoke AI plan) stays gated to voice_coach so
               free users can never trigger a paid synth. */}
-          {(() => {
-            const slug = programSlug(ex.name);
-            if (slug) {
-              return <CoachVoiceNote slug={slug} title={ex.name} topic={staticTopic(slug, lang)} />;
-            }
-            return (
-              <TierGate feature="voice_coach" render="hide">
-                <CoachAudioButton
-                  exerciseName={ex.name}
-                  targetReps={ex.reps}
-                  targetSets={setCount}
-                  formCues={[ex.notes, ...(Array.isArray(ex.cues) ? ex.cues : [])].filter(Boolean)}
-                  equipment={ex.equipment}
-                />
-              </TierGate>
-            );
-          })()}
+          {/* V-04 (Repositioning): the voice coach and the form-demo embed share
+              one media row — the demo's height is absorbed by content beside it
+              instead of riding a mostly-empty full-width band. */}
+          <div className="pg-ex-media-row">
+            <div className="pg-ex-media-voice">
+              {(() => {
+                const slug = programSlug(ex.name);
+                if (slug) {
+                  return <CoachVoiceNote slug={slug} title={ex.name} topic={staticTopic(slug, lang)} />;
+                }
+                return (
+                  <TierGate feature="voice_coach" render="hide">
+                    <CoachAudioButton
+                      exerciseName={ex.name}
+                      targetReps={ex.reps}
+                      targetSets={setCount}
+                      formCues={[ex.notes, ...(Array.isArray(ex.cues) ? ex.cues : [])].filter(Boolean)}
+                      equipment={ex.equipment}
+                    />
+                  </TierGate>
+                );
+              })()}
+            </div>
 
-          {/* Form-demo video — tap-to-play INLINE embed inside the execution
-              card (session retention: the athlete never leaves the app). Only
-              rendered when the movement resolves to a mapped video. */}
-          {videoId ? (
-            <FormDemoPlayer videoId={videoId} title={tr.watchDemo(ex.name)} label={tr.formDemo} />
-          ) : null}
+            {/* Form-demo video — tap-to-play INLINE embed inside the execution
+                card (session retention: the athlete never leaves the app). Only
+                rendered when the movement resolves to a mapped video. */}
+            {videoId ? (
+              <FormDemoPlayer videoId={videoId} title={tr.watchDemo(ex.name)} label={tr.formDemo} />
+            ) : null}
+          </div>
 
           {/* Coach-prescribed target — reps × prescribed load from the assigned
               plan. Always rendered when the plan carries a load, so the athlete

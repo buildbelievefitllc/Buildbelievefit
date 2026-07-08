@@ -111,6 +111,19 @@ const TABS = [
 
 const DEFAULT_TAB = TABS[0].id;
 
+// ── Executive domain rail (Repositioning C-01) ──────────────────────────────
+// 17 tabs overflowed the single strip (10 invisible at 1440px, no affordance).
+// The tabs now group under four executive domains rendered as an always-visible
+// pill rail; the strip below shows only the active domain's tabs, so both tiers
+// always fit. Deep links keep working — the active tab resolves its domain.
+// Every tab survives; this is grouping, not removal.
+const DOMAINS = [
+  { id: 'coaching', labelKey: 'cmd-dom-coaching', tabs: ['roster', 'telemetry', 'eagle-eye', 'comlink', 'nutrition-locker', 'sports'] },
+  { id: 'content', labelKey: 'cmd-dom-content', tabs: ['content', 'content-manager', 'studio', 'studio-v4', 'studio-batch'] },
+  { id: 'knowledge', labelKey: 'cmd-dom-knowledge', tabs: ['coach-lab', 'coach-cave', 'language', 'language-lab'] },
+  { id: 'system', labelKey: 'cmd-dom-system', tabs: ['generator', 'settings'] },
+];
+
 export default function CommandCenter() {
   // The URL segment is the source of truth for the active surface — deep-linkable,
   // and the left sidebar (MasterLayout) + the segmented tabs both push here so the
@@ -140,8 +153,26 @@ export default function CommandCenter() {
         <div style={styles.kicker}>{t('cmd-kicker')}</div>
       </header>
 
+      <nav style={styles.domainRail} role="tablist" aria-label="Command domains">
+        {DOMAINS.map((d) => {
+          const on = d.tabs.includes(activeTab);
+          return (
+            <button
+              key={d.id}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              onClick={() => selectTab(d.tabs[0])}
+              style={{ ...styles.domainPill, ...(on ? styles.domainPillActive : null) }}
+            >
+              {t(d.labelKey)}
+            </button>
+          );
+        })}
+      </nav>
+
       <nav style={styles.tabs} role="tablist" aria-label="Command Center surfaces">
-        {TABS.map((item) => {
+        {TABS.filter((item) => (DOMAINS.find((d) => d.tabs.includes(activeTab)) ?? DOMAINS[0]).tabs.includes(item.id)).map((item) => {
           const active = item.id === activeTab;
           return (
             <button
@@ -184,6 +215,21 @@ const styles = {
     marginBottom: '.35rem',
   },
   title: { fontFamily: 'var(--display)', fontSize: '2.6rem', letterSpacing: '1px', margin: 0 },
+  domainRail: { display: 'flex', gap: '.5rem', marginBottom: '.7rem', flexWrap: 'wrap' },
+  domainPill: {
+    fontFamily: 'var(--hb)',
+    fontSize: '.68rem',
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    color: 'rgba(249,245,255,.55)',
+    background: 'rgba(106,13,173,.14)',
+    border: '1px solid var(--line)',
+    borderRadius: 999,
+    padding: '.45rem .95rem',
+    cursor: 'pointer',
+    transition: 'color .15s ease, background .15s ease, border-color .15s ease',
+  },
+  domainPillActive: { color: '#090909', background: 'var(--yel)', borderColor: 'var(--yel)' },
   tabs: {
     display: 'flex',
     gap: '.4rem',

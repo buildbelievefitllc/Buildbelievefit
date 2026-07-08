@@ -630,6 +630,12 @@ const DICT = {
   // Command Center (admin) — header kicker + console tab labels. 'Founder Five'
   // and 'Comlink' are product proper nouns (kept identical across languages).
   'cmd-kicker': { en: 'Build Believe Fit · Admin', es: 'Build Believe Fit · Administración', pt: 'Build Believe Fit · Administração' },
+  // Executive domain rail (Repositioning C-01) — the 17 console tabs group under
+  // four always-visible domains so no surface hides off-canvas.
+  'cmd-dom-coaching': { en: 'Coaching', es: 'Coaching', pt: 'Coaching' },
+  'cmd-dom-content': { en: 'Content', es: 'Contenido', pt: 'Conteúdo' },
+  'cmd-dom-knowledge': { en: 'Knowledge', es: 'Conocimiento', pt: 'Conhecimento' },
+  'cmd-dom-system': { en: 'System', es: 'Sistema', pt: 'Sistema' },
   'cmd-tab-roster': { en: 'Founder Five', es: 'Founder Five', pt: 'Founder Five' },
   'cmd-tab-command': { en: 'Command', es: 'Comando', pt: 'Comando' },
   'cmd-tab-telemetry': { en: 'Risk Telemetry', es: 'Telemetría de Riesgo', pt: 'Telemetria de Risco' },

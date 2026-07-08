@@ -72,6 +72,16 @@
 }
 
 /* ── 2 · Daily Vault Affirmation ───────────────────────────────────────────── */
+/* V-07 (Repositioning): the two affirmation units share one responsive band. */
+.cm-affirm-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+.cm-affirm-row > * { min-width: 0; margin-bottom: 0 !important; }
+
 .cm-affirm {
   position: relative;
   overflow: hidden;

@@ -137,7 +137,10 @@ export default function ChampionMindset() {
         <p className="cm-sub">{L.sub}</p>
       </section>
 
-      {/* ── 2 · Daily Affirmation Coach (voice-coached, trilingual) ───────── */}
+      {/* ── 2 · Affirmation row (Repositioning V-07): the voice-coached daily
+          affirmation and the static Vault affirmation are sibling content — they
+          share one responsive band instead of stacking two full-width banners. ── */}
+      <div className="cm-affirm-row">
       <DailyAffirmationCoach />
 
       {/* ── 2b · Daily Vault Affirmation (static quote block) ─────────────── */}
@@ -146,6 +149,7 @@ export default function ChampionMindset() {
         <div className="cm-affirm-lbl">{L.affirmLabel}</div>
         <blockquote className="cm-affirm-quote">&ldquo;{L.affirmation}&rdquo;</blockquote>
       </section>
+      </div>
 
       {/* ── 3 · Championship Mindset Cinema ───────────────────────────────── */}
       <section className="cm-cinema">

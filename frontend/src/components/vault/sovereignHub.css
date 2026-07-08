@@ -133,7 +133,11 @@
 .sch-mi-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.1rem;
   margin: 1.15rem 0 .2rem;
+  align-items: end; /* V-06: rows align by baseline — no ragged top-right void */
 }
+/* V-06: the odd fifth field (CNS stress) spans the full row instead of leaving
+   an empty right cell. */
+.sch-mi-grid > .sch-field:nth-child(odd):last-child { grid-column: 1 / -1; }
 .sch-field { display: grid; gap: .4rem; align-content: start; min-width: 0; }
 .sch-field--range { align-content: end; }
 .sch-field-k {
@@ -174,7 +178,7 @@
 
 /* Save Baseline CTA — purple/gold, same weight as the Android sync trigger */
 .sch-save {
-  cursor: pointer; width: 100%; max-width: 420px; margin-top: .5rem; padding: .85rem 1.4rem;
+  cursor: pointer; width: 100%; margin-top: .5rem; padding: .85rem 1.4rem;  /* V-06: full-width commit bar — one terminal-action grammar across the Vault */
   border-radius: 12px; border: 1px solid rgba(245, 200, 0, .55);
   background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 72%); color: var(--yel);
   font-family: var(--display); font-size: 1.2rem; letter-spacing: 2.2px; text-transform: uppercase;

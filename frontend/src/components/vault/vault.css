@@ -686,10 +686,42 @@
 
 .cv-container { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.2rem 0; }
 
-/* top-bar tab navigation */
+/* V-04 (Repositioning): Program-tab utility strips share a responsive row. */
+.pg-utility-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: .8rem;
+  align-items: start;
+  margin-bottom: .85rem;
+}
+.pg-utility-row > * { min-width: 0; }
+
+/* V-04 (Repositioning): inside an expanded exercise card the voice coach and
+   the form-demo embed share one row on wide screens. */
+.pg-ex-media-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .9rem;
+  align-items: start;
+}
+.pg-ex-media-voice { min-width: 0; }
+@media (max-width: 760px) { .pg-ex-media-row { grid-template-columns: 1fr; } }
+
+/* top-bar tab navigation — sticky under the top bar (Repositioning S-03) so the
+   athlete keeps orientation + a one-tap escape three screens deep in a protocol.
+   The right-edge fade (S-04) signals the rail scrolls when tabs overflow. */
 .cv-tabs {
   display: flex; gap: .3rem; border-bottom: 1px solid var(--line); margin-bottom: 1.6rem;
   overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  position: sticky;
+  top: calc(58px + var(--st, 0px));
+  z-index: 15;
+  background: linear-gradient(180deg, rgba(12, 7, 20, .97), rgba(9, 9, 9, .9));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  scroll-snap-type: x proximity;
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 48px), transparent);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 48px), transparent);
 }
 .cv-tabs::-webkit-scrollbar { display: none; }
 .cv-tab {
@@ -698,6 +730,7 @@
   color: rgba(249, 245, 255, .5); background: none; border: none; border-bottom: 3px solid transparent;
   padding: .8rem 1.1rem; margin-bottom: -1px; transition: color .15s ease, border-color .15s ease;
 }
+.cv-tab { scroll-snap-align: start; }
 .cv-tab:hover { color: rgba(249, 245, 255, .85); }
 .cv-tab.is-active { color: var(--wht); border-bottom-color: var(--yel); text-shadow: 0 0 16px rgba(245, 200, 0, .4); }
 .cv-tab:focus-visible { outline: 2px solid var(--yel); outline-offset: -4px; }
@@ -785,8 +818,28 @@
 .cv-readout-v { display: block; font-family: var(--display); font-size: 1.5rem; color: var(--wht); margin-top: .25rem; line-height: 1; }
 .cv-readout-v em { font-style: normal; font-family: var(--bd); font-size: .8rem; font-weight: 700; color: var(--gold-soft); }
 
-/* 2 · Identity */
+/* 2 · Identity — since S-01 (Repositioning) this is the MERGED command strip:
+   Portal + Identity in one card. The portal headline demotes to a crested
+   kicker; Sessions/Hydration join the four macros in one 6-cell readout rail. */
 .cv-identity { display: flex; align-items: center; justify-content: space-between; gap: 1.4rem; }
+.cv-portal-kicker {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-family: var(--hb); font-size: .64rem; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--gold-deep);
+}
+.cv-readout-rail {
+  display: grid;
+  /* Bounded 3×2 grid (Sessions · Hydration · Calories / Protein · Carbs · Fats):
+     a fixed track basis stops the widest cell's max-content from starving the
+     identity column across the flex row. */
+  grid-template-columns: repeat(3, minmax(0, 118px));
+  gap: .55rem;
+  flex-shrink: 0;
+  align-items: stretch;
+}
+.cv-readout-rail .cv-readout,
+.cv-readout-rail .cv-macro { min-width: 0; padding: .55rem .7rem; }
+.cv-readout-rail .cv-readout-v { font-size: 1.3rem; margin-top: .15rem; white-space: nowrap; }
 .cv-identity-l { display: flex; align-items: center; gap: 1rem; min-width: 0; }
 .cv-avatar {
   position: relative; flex-shrink: 0;
@@ -1024,6 +1077,7 @@
   .cv-portal-stats { width: 100%; }
   .cv-readout { flex: 1; }
   .cv-identity-macros { width: 100%; }
+  .cv-readout-rail { width: 100%; grid-template-columns: repeat(3, 1fr); }
   .cv-blueprint-streak { text-align: left; }
   .cv-adm-grid-3, .cv-adm-grid-4 { grid-template-columns: repeat(2, 1fr); }
 }
@@ -1031,6 +1085,7 @@
   .cv-portal-title { font-size: 1.6rem; }
   .cv-identity-name { font-size: 1.3rem; }
   .cv-identity-macros { grid-template-columns: repeat(2, 1fr); }
+  .cv-readout-rail { grid-template-columns: repeat(2, 1fr); }
   .cv-adm-grid-2, .cv-adm-grid-3, .cv-adm-grid-4 { grid-template-columns: 1fr; }
 }
 
@@ -1040,13 +1095,19 @@
      WRAP instead of overflowing off-screen. (Was a single nowrap flex row —
      LangToggle + "Centro de Comando" + "Cerrar Sesión" could not fit a phone
      viewport, pushing the admin's Command Center return toggle past the edge.) */
-  .cv-topbar { flex-direction: column; align-items: stretch; gap: .7rem; padding-left: 1rem; padding-right: 1rem; }
-  .cv-logo { font-size: 1.2rem; }
+  /* S-05 (Repositioning): tighter two-row bar — the action row shares one line
+     (lang toggle + Command Center + Sign Out as compact chips), reclaiming the
+     third row the old stack spent. Same actions, same reachability. */
+  .cv-topbar { flex-direction: column; align-items: stretch; gap: .45rem; padding: calc(.6rem + var(--st)) 1rem .6rem; }
+  .cv-logo { font-size: 1.1rem; letter-spacing: 2px; }
+  .cv-kicker { display: none; } /* the brand line carries the identity; kicker yields the row */
   .cv-greet { display: none; } /* @slug is redundant with the Hub identity card on mobile */
-  .cv-who { width: 100%; flex-wrap: wrap; justify-content: flex-start; gap: .5rem; }
-  .cv-command, .cv-signout { flex: 1 1 auto; text-align: center; }
+  .cv-who { width: 100%; flex-wrap: nowrap; justify-content: flex-start; gap: .45rem; }
+  .cv-command, .cv-signout { flex: 1 1 auto; text-align: center; padding: .45rem .5rem; font-size: .62rem; letter-spacing: 1.2px; }
   .cv-container { padding: 1.2rem 1rem 0; }
   .cv-tab { padding: .75rem .9rem; font-size: .8rem; }
+  /* the two-row mobile bar is taller — retune the sticky rail's seat */
+  .cv-tabs { top: calc(78px + var(--st, 0px)); }
 }
 @media (max-width: 360px) {
   .vh-hero-v { font-size: 3rem; }
@@ -1913,3 +1974,21 @@
     font-size: 12px;
   }
 }
+
+
+/* ── Part 5 (Repositioning) — premium polish layer. CSS-only: transform /
+   border-color / box-shadow transitions, no layout thrash. ── */
+.cv-identity, .cv-blueprint, .pg-card {
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.cv-blueprint:hover, .pg-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(245, 200, 0, .35);
+  box-shadow: 0 10px 28px -18px rgba(106, 13, 173, .8);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cv-blueprint:hover, .pg-card:hover { transform: none; }
+}
+
+/* Anchor headroom under the sticky top bar + tab rail (S-03). */
+.cv-container section[id] { scroll-margin-top: 118px; }
