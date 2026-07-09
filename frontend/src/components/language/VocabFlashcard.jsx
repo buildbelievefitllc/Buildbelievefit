@@ -19,6 +19,7 @@
 
 import { useRef, useState } from 'react';
 import { useVocabGym } from './useVocabGym.js';
+import { useLanguageLab } from './LanguageLabContext.jsx';
 import { useLangUiStr } from './languageStrings.js';
 import { useLang } from '../../context/LangContext.jsx';
 import { violatesGramStandard } from '../../lib/gramGuard.js';
@@ -65,6 +66,7 @@ export default function VocabFlashcard({ language = 'es' }) {
   const { lang } = useLang();
   const fstr = FORGE_STR[lang] || FORGE_STR.en;
   const { loading, error, queue, reviewTerm, flagTerm, reload } = useVocabGym(language);
+  const { logModuleProgress } = useLanguageLab(); // Guided Track dose counter (inert off-provider)
 
   const [flipped, setFlipped] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -96,6 +98,7 @@ export default function VocabFlashcard({ language = 'es' }) {
     const nextHits = hits + (correct ? 1 : 0);
     setHits(nextHits);
     setDone((d) => d + 1);
+    logModuleProgress('vocab', 1); // every graded card advances the daily dose
     if (isLast) {
       // Queue cleared — append the Forge session to the closed-loop ledger.
       logLanguageAttempt({ language, module: 'vocab_gym', itemsTotal: done + 1, itemsCorrect: nextHits });

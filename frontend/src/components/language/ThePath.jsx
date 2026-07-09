@@ -10,6 +10,7 @@
 
 import { useMemo, useState } from 'react';
 import { logLanguageAttempt } from '../../lib/languageLabApi.js';
+import { useLanguageLab } from './LanguageLabContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import './language.css';
 
@@ -43,6 +44,7 @@ function scramble(words) {
 
 export default function ThePath({ language = 'es' }) {
   const { lang } = useLang();
+  const { logModuleProgress } = useLanguageLab(); // Guided Track dose counter (inert off-provider)
   const tr = TP_STR[lang] || TP_STR.en;
   const bank = SENTENCES[language === 'pt' ? 'pt' : 'es'];
 
@@ -77,6 +79,7 @@ export default function ThePath({ language = 'es' }) {
     if (!good) return;
     const nextScore = score + 1;
     setScore(nextScore);
+    logModuleProgress('syntax', 1); // each correct build advances the daily dose
     if (si + 1 >= bank.length) {
       setFinished(true);
       // Append the run to the closed-loop ledger (streak + EWMA update server-side).

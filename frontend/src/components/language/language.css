@@ -198,6 +198,78 @@
 .tp-verdict.is-wrong { color: #ff5d5d; }
 .tp-done { color: #4ade80; font-size: .95rem; }
 
+/* ── GUIDED TRACK (Curriculum Engine daily checklist strip) ──────────────────── */
+.gt-shell {
+  padding: .85rem 1.1rem; border-radius: 16px;
+  border: 1px solid var(--panel-edge, rgba(106, 13, 173, .3));
+  background: linear-gradient(168deg, rgba(26, 11, 46, .55), rgba(9, 6, 14, .92));
+  position: relative; overflow: hidden;
+}
+.gt-shell::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--pur, #6a0dad), var(--yel, #f5c800)); }
+.gt-shell.is-unlocked { border-color: rgba(245, 200, 0, .55); }
+.gt-head { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; }
+.gt-head-main { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; }
+.gt-kicker { font-family: var(--hb); font-size: .66rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+.gt-day { font-family: var(--display); font-size: 1.5rem; line-height: 1; color: #fff; text-transform: uppercase; }
+.gt-collapse { font-family: var(--bd); font-size: .72rem; letter-spacing: .5px; text-transform: uppercase; color: #9c92b5; background: none; border: none; cursor: pointer; padding: .2rem 0; white-space: nowrap; }
+.gt-collapse:hover { color: var(--gold-soft, #f5cf60); }
+.gt-unlocked { font-family: var(--bd); font-weight: 700; font-size: .9rem; color: #0e0a16; background: linear-gradient(90deg, var(--yel, #f5c800), #ffd83a); border-radius: 10px; padding: .45rem .7rem; margin-top: .6rem; }
+.gt-items { display: flex; gap: .5rem; margin-top: .7rem; flex-wrap: wrap; }
+.gt-item {
+  display: inline-flex; align-items: center; gap: .45rem; flex: 1; min-width: 150px;
+  padding: .45rem .7rem; border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .14); background: rgba(9, 9, 9, .4);
+}
+.gt-item.is-done { border-color: rgba(245, 200, 0, .6); background: rgba(245, 200, 0, .1); }
+.gt-item-mark { display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; height: 1.1rem; border-radius: 50%; font-size: .66rem; color: #0e0a16; background: rgba(255, 255, 255, .14); flex: none; }
+.gt-item.is-done .gt-item-mark { background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60)); }
+.gt-item-label { font-family: var(--bd); font-size: .8rem; letter-spacing: .3px; color: #e6ddf5; white-space: nowrap; }
+.gt-item-count { font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; color: var(--gold-soft, #f5cf60); margin-left: auto; }
+.gt-item.is-done .gt-item-count { color: var(--yel, #f5c800); }
+.gt-bar { height: .35rem; border-radius: 999px; background: rgba(255, 255, 255, .08); margin-top: .7rem; overflow: hidden; }
+.gt-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--pur, #6a0dad), var(--yel, #f5c800)); transition: width .4s ease; }
+.gt-free-note { font-family: var(--bd); font-size: .7rem; letter-spacing: .3px; color: #9c92b5; margin-top: .45rem; }
+
+/* ── VIDEO VAULT (curated native input · the daily VVF review) ───────────────── */
+.vv-shell { padding: 1rem 1.1rem; border-radius: 16px; border: 1px solid rgba(106, 13, 173, .5); background: linear-gradient(135deg, rgba(106, 13, 173, .18), rgba(9, 9, 9, .55)); }
+.vv-sub { font-family: var(--bd); font-size: .9rem; color: #c9bfe0; margin: 0 0 .9rem; }
+.vv-empty { font-family: var(--bd); font-size: .92rem; color: #ffb547; }
+.vv-list { display: flex; flex-direction: column; gap: .55rem; max-height: 52vh; overflow-y: auto; padding-right: .2rem; }
+.vv-row {
+  display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+  padding: .6rem .8rem; border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .12); background: rgba(9, 9, 9, .4);
+}
+.vv-row.is-reviewed { border-color: rgba(245, 200, 0, .5); background: rgba(245, 200, 0, .06); }
+.vv-meta { display: flex; flex-direction: column; gap: .12rem; min-width: 0; }
+.vv-level { font-family: var(--hb); font-size: .64rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+.vv-name { font-family: var(--bd); font-weight: 700; font-size: .92rem; color: #fff; }
+.vv-channel { font-family: var(--bd); font-size: .76rem; color: #9c92b5; }
+.vv-actions { display: flex; gap: .45rem; flex: none; }
+.vv-watch { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, #6a0dad, #4a0979); border: 1px solid rgba(245, 200, 0, .35); border-radius: 999px; padding: .4rem .85rem; text-decoration: none; white-space: nowrap; }
+.vv-mark { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: #0e0a16; background: linear-gradient(90deg, #f5c800, #ffd83a); border: none; border-radius: 999px; padding: .4rem .85rem; cursor: pointer; white-space: nowrap; }
+.vv-mark:disabled { cursor: default; }
+.vv-mark.is-done { background: none; border: 1px solid rgba(245, 200, 0, .6); color: var(--yel, #f5c800); }
+@media (max-width: 560px) { .vv-row { flex-direction: column; align-items: stretch; } .vv-actions { justify-content: flex-end; } }
+
+/* ── IMMERSION SCAFFOLD (guided A/B dialogue options) ────────────────────────── */
+.im-scaffold {
+  display: flex; flex-direction: column; gap: .45rem;
+  padding: .65rem .8rem; border-radius: 12px;
+  border: 1px dashed rgba(245, 200, 0, .4); background: rgba(106, 13, 173, .08);
+}
+.im-scaffold-title { font-family: var(--hb); font-size: .7rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+.im-scaffold-chips { display: flex; flex-direction: column; gap: .4rem; }
+.im-sc-chip {
+  display: inline-flex; align-items: center; gap: .55rem; text-align: left;
+  font-family: var(--bd); font-size: .92rem; color: #fff; line-height: 1.3;
+  background: rgba(9, 9, 9, .5); border: 1px solid var(--panel-edge, rgba(106, 13, 173, .3));
+  border-radius: 12px; padding: .5rem .7rem; cursor: pointer;
+}
+.im-sc-chip:hover { border-color: var(--yel, #f5c800); }
+.im-sc-tag { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 1.25rem; height: 1.25rem; border-radius: 50%; font-family: var(--hb); font-size: .72rem; color: #0e0a16; background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60)); }
+.im-scaffold-hint { font-family: var(--bd); font-size: .7rem; color: #9c92b5; }
+
 /* ── Audio Dojo (screen-locked Pimsleur stitch player) ───────────────────────── */
 .dojo-shell { padding: 1rem 1.1rem; border-radius: 16px; border: 1px solid rgba(245,200,0,.45); background: linear-gradient(135deg, rgba(106,13,173,.3), rgba(9,9,9,.55)); }
 .dojo-lesson { font-family: var(--hb); color: rgba(244,238,251,.85); letter-spacing: 1px; margin-bottom: .6rem; }

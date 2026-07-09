@@ -20,7 +20,12 @@
 // error-cluster names localize the closed §4.4 taxonomy. The roleplay itself is in
 // the target language (es/pt) — that is data, never localized away.
 //
-// @param {{ uid?:string, scenario?:string, scenarioKey?:string, targetLanguage?:'es'|'pt', phase?:number }} props
+// SCAFFOLDING (Curriculum Engine · friction reduction): with scaffold=true (early
+// curriculum days), the module offers GUIDED DIALOGUE options — static A/B openers
+// before the first turn, then the engine's suggested_replies (v3) after every AI
+// turn. Tapping an option sends it; the free-form composer stays available always.
+//
+// @param {{ uid?:string, scenario?:string, scenarioKey?:string, targetLanguage?:'es'|'pt', phase?:number, scaffold?:boolean }} props
 
 import { useEffect, useRef, useState } from 'react';
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from '../../lib/supabaseClient.js';
@@ -30,6 +35,20 @@ import { useLangUiStr } from './languageStrings.js';
 import './language.css';
 
 const DEFAULT_SCENARIO = 'At the front desk of a gym, asking about membership and class times.';
+
+// Guided-dialogue OPENERS (scaffold mode, before the first turn) — natural
+// in-scenario first lines per target language: A simpler, B slightly more advanced.
+// Target-language data, never localized away (same contract as the roleplay).
+const STARTER_OPENERS = {
+  es: [
+    'Hola, buenas. Quiero información sobre la membresía.',
+    'Buenos días. ¿Qué horarios tienen para las clases y cuánto cuesta el mes?',
+  ],
+  pt: [
+    'Olá, tudo bem? Quero informações sobre o plano da academia.',
+    'Bom dia. Quais são os horários das aulas e quanto custa a mensalidade?',
+  ],
+};
 
 // Admin-token-gated POST to the immersion edge function (rosterApi gateway pattern).
 async function callImmersion(body) {
@@ -49,7 +68,7 @@ async function callImmersion(body) {
   }
 }
 
-export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLanguage = 'es', phase = 1 }) {
+export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLanguage = 'es', phase = 1, scaffold = false }) {
   const { ls, clusters, targetName } = useLangUiStr();
   const { user } = useAuth();
   const effUid = uid || user?.username || user?.id || '';
@@ -62,6 +81,7 @@ export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLan
   const [sessionId, setSessionId] = useState(null);
   const [correction, setCorrection] = useState(null); // { grammar, errors[], fluency, injected }
   const [notice, setNotice] = useState(null);         // transient engine-offline notice
+  const [suggested, setSuggested] = useState([]);     // scaffold: engine A/B next-reply options
   const endRef = useRef(null);
 
   // Auto-scroll the thread on new turns (DOM side-effect only — no setState).
@@ -69,19 +89,21 @@ export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLan
 
   const authed = hasAdminToken();
 
-  async function send() {
-    const text = input.trim();
+  async function send(textOverride) {
+    const text = (typeof textOverride === 'string' ? textOverride : input).trim();
     if (!text || sending || !authed) return;
     const history = messages.slice(-24); // prior turns only (this message is sent separately)
     setMessages((m) => [...m, { role: 'user', content: text }]);
     setInput('');
     setSending(true);
     setNotice(null);
+    setSuggested([]);
 
     const res = await callImmersion({
       uid: effUid, scenario: scen, scenario_key: scenarioKey || scen.slice(0, 60),
       target_language: target, user_message: text,
       conversation_history: history, session_id: sessionId, phase,
+      guided: scaffold === true,
     });
     setSending(false);
 
@@ -92,6 +114,9 @@ export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLan
 
     setMessages((m) => [...m, { role: 'assistant', content: d.ai_reply }]);
     if (d.session_id) setSessionId(d.session_id);
+    if (scaffold && Array.isArray(d.suggested_replies)) {
+      setSuggested(d.suggested_replies.filter((s) => typeof s === 'string' && s.trim()).slice(0, 2));
+    }
     setCorrection({
       grammar: String(d.grammar_correction || ''),
       errors: Array.isArray(d.errors) ? d.errors : [],
@@ -169,6 +194,30 @@ export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLan
               )}
 
               {correction.injected > 0 ? <div className="im-injected">{ls.injectedNote(correction.injected)}</div> : null}
+            </div>
+          ) : null}
+
+          {/* ── GUIDED DIALOGUE SCAFFOLD — A/B structural replies (early days).
+                 Openers before the first turn; engine suggestions after each AI
+                 turn. Tap to send; the free-form composer below stays live. ── */}
+          {scaffold && !sending && (messages.length === 0 || suggested.length > 0) ? (
+            <div className="im-scaffold" data-testid="im-scaffold" role="group" aria-label={ls.scaffoldTitle}>
+              <span className="im-scaffold-title">{ls.scaffoldTitle}</span>
+              <div className="im-scaffold-chips">
+                {(messages.length === 0 ? (STARTER_OPENERS[target] || STARTER_OPENERS.es) : suggested).map((opt, i) => (
+                  <button
+                    key={`${i}-${opt.slice(0, 24)}`}
+                    type="button"
+                    className="im-sc-chip"
+                    onClick={() => send(opt)}
+                    data-testid="im-scaffold-chip"
+                  >
+                    <span className="im-sc-tag">{i === 0 ? 'A' : 'B'}</span>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+              <span className="im-scaffold-hint">{ls.scaffoldHint}</span>
             </div>
           ) : null}
 

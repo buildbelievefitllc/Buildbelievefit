@@ -56,6 +56,7 @@ export const LANG_STR = {
     engineOffline: 'The engine is offline for a moment. Try again.',
     locked: 'Immersion is a Command Center surface — unlock admin access to run it.',
     endSession: 'End session', you: 'You', partner: 'Partner',
+    scaffoldTitle: 'Guided replies', scaffoldHint: 'Tap an option to send it — or type your own reply below.',
   },
   es: {
     gymKicker: 'Gimnasio de Vocabulario', gymTitle: 'Repetición Espaciada',
@@ -80,6 +81,7 @@ export const LANG_STR = {
     engineOffline: 'El motor está fuera de línea un momento. Inténtalo de nuevo.',
     locked: 'La inmersión es una superficie del Centro de Comando — desbloquea el acceso de administrador para usarla.',
     endSession: 'Terminar sesión', you: 'Tú', partner: 'Interlocutor',
+    scaffoldTitle: 'Respuestas guiadas', scaffoldHint: 'Toca una opción para enviarla — o escribe tu propia respuesta abajo.',
   },
   pt: {
     gymKicker: 'Academia de Vocabulário', gymTitle: 'Repetição Espaçada',
@@ -104,6 +106,7 @@ export const LANG_STR = {
     engineOffline: 'O motor está offline por um momento. Tente novamente.',
     locked: 'A imersão é uma superfície do Centro de Comando — desbloqueie o acesso de administrador para usá-la.',
     endSession: 'Encerrar sessão', you: 'Você', partner: 'Interlocutor',
+    scaffoldTitle: 'Respostas guiadas', scaffoldHint: 'Toque em uma opção para enviá-la — ou digite sua própria resposta abaixo.',
   },
 };
 

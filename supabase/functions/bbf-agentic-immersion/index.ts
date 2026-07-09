@@ -14,8 +14,13 @@
 //     roll bbf_language_profiles fluency_ewma + streak + weak_clusters.
 // Persistence is best-effort: the roleplay reply never blocks on a DB write.
 //
+// v3 addition (Curriculum Engine · Immersion Scaffolding):
+//   • guided:true — early-curriculum friction reduction. Each turn ALSO returns
+//     suggested_replies: exactly two candidate next replies the athlete could say
+//     (A = simpler, B = more advanced), in the target language. [] when guided off.
+//
 // Request: { uid, scenario, scenario_key?, target_language, user_message,
-//            conversation_history?, session_id?, phase?, end?, admin_override? }
+//            conversation_history?, session_id?, phase?, end?, guided?, admin_override? }
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
@@ -52,6 +57,7 @@ const SYSTEM_PROMPT = [
   '- grammar_correction — analyze the athlete\'s user_message. If they made a grammar / vocabulary / register error, state the corrected version + a one-sentence explanation IN ENGLISH. If the message was clean, return literally "Perfect." (one word).',
   '- fluency_score — integer 0-100 (90-100 native · 70-89 competent · 50-69 developing · 30-49 early · 0-29 minimal/wrong/blank).',
   '- errors — an ARRAY of the reviewable mistakes in the athlete\'s message. Each item: { term (the word/short phrase the athlete got wrong, in the target language), cluster (EXACTLY one of the fixed taxonomy below), severity ("major" | "minor") }. Return [] (empty) when grammar_correction is "Perfect." Classify strictly against the CLOSED taxonomy — never invent a cluster name.',
+  '- suggested_replies — SCAFFOLDING for early-stage fluency. When the session context says "Guided scaffold mode: ON", return EXACTLY TWO short candidate replies the athlete could plausibly say next to YOUR ai_reply, in the target language: item 1 simpler/beginner register, item 2 slightly more advanced. Each ≤ 12 words, natural, in-scenario. When guided mode is OFF, return [] (empty array).',
   '',
   '# ERROR CLUSTER TAXONOMY (closed — pick exactly one per error):',
   '  ' + ERROR_CLUSTERS.join(' · '),
@@ -84,13 +90,18 @@ const RESPONSE_SCHEMA = {
         required: ['term', 'cluster', 'severity'], additionalProperties: false,
       },
     },
+    suggested_replies: {
+      type: 'array',
+      description: 'Guided-scaffold candidate next replies (target language). Exactly 2 when guided mode is ON (simpler first, then more advanced); [] when OFF.',
+      items: { type: 'string' },
+    },
   },
-  required: ['ai_reply', 'grammar_correction', 'fluency_score', 'errors'],
+  required: ['ai_reply', 'grammar_correction', 'fluency_score', 'errors', 'suggested_replies'],
   additionalProperties: false,
 };
 
-function adminOverrideMock() { return { ai_reply: 'ADMIN BYPASS: [Simulated Reply]', grammar_correction: 'Perfect execution.', fluency_score: 100, errors: [] }; }
-function defaultImmersionResponse(reason: string) { return { ai_reply: '...', grammar_correction: 'Engine offline (' + reason + '). Try again in a moment.', fluency_score: 0, errors: [] }; }
+function adminOverrideMock() { return { ai_reply: 'ADMIN BYPASS: [Simulated Reply]', grammar_correction: 'Perfect execution.', fluency_score: 100, errors: [], suggested_replies: [] }; }
+function defaultImmersionResponse(reason: string) { return { ai_reply: '...', grammar_correction: 'Engine offline (' + reason + '). Try again in a moment.', fluency_score: 0, errors: [], suggested_replies: [] }; }
 function normalizeLanguage(lang: string): string {
   const t = String(lang || '').trim().toLowerCase();
   if (t === 'es' || t.startsWith('span'))                     return 'Spanish';
@@ -223,7 +234,7 @@ serve(async (req: Request) => {
   let payload: any;
   try { payload = await req.json(); } catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const { uid, scenario, scenario_key, target_language, user_message, conversation_history, session_id, phase, end, admin_override } = payload || {};
+  const { uid, scenario, scenario_key, target_language, user_message, conversation_history, session_id, phase, end, guided, admin_override } = payload || {};
 
   if (admin_override === true) return jsonResponse(adminOverrideMock(), 200);
 
@@ -242,7 +253,7 @@ serve(async (req: Request) => {
 
   const systemMessages = [
     { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-    { type: 'text', text: '# THIS SESSION\nScenario: ' + safeScenario + '\nTarget language: ' + languageLabel + '\nStay in character as a native speaker the athlete is interacting with in this scenario.' },
+    { type: 'text', text: '# THIS SESSION\nScenario: ' + safeScenario + '\nTarget language: ' + languageLabel + '\nGuided scaffold mode: ' + (guided === true ? 'ON' : 'OFF') + '\nStay in character as a native speaker the athlete is interacting with in this scenario.' },
   ];
   const cleanHistory = history.filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').map((m: any) => ({ role: m.role, content: String(m.content).slice(0, MAX_MSG_LEN) }));
   const messages = cleanHistory.concat([{ role: 'user', content: safeMessage }]);
@@ -263,6 +274,12 @@ serve(async (req: Request) => {
   }
 
   const clampedScore = Math.max(0, Math.min(100, Math.round(parsed.fluency_score)));
+  // Guided scaffolding: sanitize to at most 2 short target-language reply options,
+  // and only when the caller actually asked for them.
+  const suggestedReplies: string[] = (guided === true && Array.isArray(parsed.suggested_replies))
+    ? parsed.suggested_replies.filter((s: unknown) => typeof s === 'string' && (s as string).trim())
+        .map((s: string) => s.trim().slice(0, 160)).slice(0, 2)
+    : [];
   // Normalize errors[] to the closed taxonomy; "Perfect." forces [].
   const perfect = parsed.grammar_correction.trim().toLowerCase() === 'perfect.';
   const errors: TurnError[] = (!perfect && Array.isArray(parsed.errors))
@@ -285,6 +302,6 @@ serve(async (req: Request) => {
     } catch (e) { console.error('[bbf-agentic-immersion] persistence failed (non-fatal):', e instanceof Error ? e.message : String(e)); }
   }
 
-  console.log(`[bbf-agentic-immersion] uid=${uid} · lang=${lang} · turns=${cleanHistory.length} · score=${clampedScore} · errors=${errors.length} · injected=${injected} · end=${end === true} · model=${respBody.model} · duration=${dur}ms`);
-  return jsonResponse({ ai_reply: parsed.ai_reply, grammar_correction: parsed.grammar_correction, fluency_score: clampedScore, errors, session_id: sessionOut, injected }, 200);
+  console.log(`[bbf-agentic-immersion] uid=${uid} · lang=${lang} · turns=${cleanHistory.length} · score=${clampedScore} · errors=${errors.length} · injected=${injected} · guided=${guided === true} · end=${end === true} · model=${respBody.model} · duration=${dur}ms`);
+  return jsonResponse({ ai_reply: parsed.ai_reply, grammar_correction: parsed.grammar_correction, fluency_score: clampedScore, errors, suggested_replies: suggestedReplies, session_id: sessionOut, injected }, 200);
 });

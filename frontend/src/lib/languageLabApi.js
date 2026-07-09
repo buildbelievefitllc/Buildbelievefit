@@ -42,3 +42,15 @@ export function savePimsleurCheckpoint({ language, lesson, fragmentSeq = 0, posi
 export function getLanguageDashboard(language) {
   return rpc('bbf_get_language_dashboard', { p_language: language });
 }
+
+// ── Curriculum Engine (Guided Track) ─────────────────────────────────────────
+//   bbf_get_curriculum_track    — active day + dose requirements + live counters
+//   bbf_log_curriculum_progress — bump one dose metric; completing the daily
+//                                 checklist stamps the unlock flag for day N+1
+export function getCurriculumTrack(language) {
+  return rpc('bbf_get_curriculum_track', { p_language: language });
+}
+
+export function logCurriculumProgress({ language, metric, count = 1 }) {
+  return rpc('bbf_log_curriculum_progress', { p_language: language, p_metric: metric, p_count: count });
+}
