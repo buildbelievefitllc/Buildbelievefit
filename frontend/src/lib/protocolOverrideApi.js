@@ -43,6 +43,15 @@ export function listSportsAthletes() {
   return adminRpc('bbf_admin_list_sports_athletes', {});
 }
 
+// TELEMETRY & ADHERENCE RADAR — one batch call scoring the WHOLE roster's
+// trailing-7-day adherence + tonnage (bbf_admin_roster_telemetry). Returns the
+// telemetry array; the hub merges it onto the roster rows by id. One round-trip
+// for every card — never N per-client fetches.
+export async function getRosterTelemetry() {
+  const body = await adminRpc('bbf_admin_roster_telemetry', {});
+  return Array.isArray(body.telemetry) ? body.telemetry : [];
+}
+
 // LIVE plan hydration (Centralization fix): the freshest meal_plan /
 // workout_plan / sports_protocol + clinical intake (age · height/weight ·
 // clinical history) for a client — bbf_users first, then the NEWEST

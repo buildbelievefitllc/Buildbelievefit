@@ -22,11 +22,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
+import { getRosterTelemetry } from '../../lib/protocolOverrideApi.js';
 import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import ClientDossier from './ClientDossier.jsx';
 import ForgeAthlete from './ForgeAthlete.jsx';
 import './founderfive.css';
+
+// Roster sort modes. Adherence Low→High is the intervention view — slipping
+// clients bubble to the top (insufficient/no-score sink to the bottom).
+const SORTS = [
+  ['name', 'Name'],
+  ['adherence', 'Adherence ↑'],
+  ['tonnage', 'Tonnage ↓'],
+];
 
 export default function ClientHub() {
   const { user } = useAuth();
@@ -35,6 +44,10 @@ export default function ClientHub() {
   const [error, setError] = useState(null);
   const [activeId, setActiveId] = useState(null); // selected row id | null
   const [filter, setFilter] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  // Telemetry & Adherence Radar — { [id]: telemetryRow }. Loaded AFTER the
+  // roster paints (one batch call), so the radar never blocks first render.
+  const [telemetry, setTelemetry] = useState({});
   // The Hardwire Gateway — Forge Athlete modal (god-mode onboarding bypass).
   const [forgeOpen, setForgeOpen] = useState(false);
   // Optimistic roster injection: the forged athlete's roster-shaped row lands
@@ -72,14 +85,23 @@ export default function ClientHub() {
     }
   }, []);
 
+  // Telemetry radar — a SEPARATE, non-blocking batch pull (one call for the whole
+  // roster). Runs after the roster loads so cards paint immediately, then light up.
+  const fetchTelemetry = useCallback(async () => {
+    try {
+      const rows = await getRosterTelemetry();
+      setTelemetry(Object.fromEntries(rows.map((r) => [r.id, r])));
+    } catch { /* radar is an overlay — a failure just leaves the cards un-lit */ }
+  }, []);
+
   // Auto-load on mount (the admin token is hydrated by the Command Center gate).
   // Deferred via microtask so the initial setState lands outside the synchronous
   // effect body (satisfies react-hooks/set-state-in-effect); cancel-guarded.
   useEffect(() => {
     let cancelled = false;
-    queueMicrotask(() => { if (!cancelled) fetchRoster(); });
+    queueMicrotask(() => { if (!cancelled) { fetchRoster(); fetchTelemetry(); } });
     return () => { cancelled = true; };
-  }, [fetchRoster]);
+  }, [fetchRoster, fetchTelemetry]);
 
   const rowKey = (c) => c.id ?? c.uid ?? c.email;
   const activeClient = data.find((c) => rowKey(c) === activeId) || null;
@@ -92,12 +114,28 @@ export default function ClientHub() {
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
-    if (!q) return data;
-    return data.filter((c) => {
+    const base = !q ? data : data.filter((c) => {
       const hay = `${c.name || ''} ${c.uid || ''} ${c.email || ''} ${division(c)}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [data, filter]);
+    if (sortBy === 'name') return base;
+    const rk = (c) => c.id ?? c.uid ?? c.email;
+    const rows = [...base];
+    if (sortBy === 'adherence') {
+      // Low→High: real scores ascending (slipping clients first); rows with no
+      // score (insufficient / radar not yet loaded) sink to the bottom.
+      rows.sort((a, b) => {
+        const sa = telemetry[rk(a)]?.adherence_score;
+        const sb = telemetry[rk(b)]?.adherence_score;
+        const na = sa == null ? Infinity : sa;
+        const nb = sb == null ? Infinity : sb;
+        return na - nb;
+      });
+    } else if (sortBy === 'tonnage') {
+      rows.sort((a, b) => (telemetry[rk(b)]?.tonnage_week || 0) - (telemetry[rk(a)]?.tonnage_week || 0));
+    }
+    return rows;
+  }, [data, filter, sortBy, telemetry]);
 
   const execName = (user?.displayName || user?.username || 'Sovereign').toUpperCase();
 
@@ -145,9 +183,27 @@ export default function ClientHub() {
             <span className="ff-count">
               {isLoading ? 'Loading…' : `${filtered.length} of ${total} athlete${total === 1 ? '' : 's'}`}
             </span>
-            <button type="button" className="ff-refresh" onClick={fetchRoster} disabled={isLoading}>
+            <button type="button" className="ff-refresh" onClick={() => { fetchRoster(); fetchTelemetry(); }} disabled={isLoading}>
               ↻ Refresh
             </button>
+          </div>
+
+          {/* Telemetry & Adherence Radar — sort control. Adherence ↑ floats the
+              slipping clients to the top for immediate intervention. */}
+          <div className="ff-sortbar" role="tablist" aria-label="Sort roster">
+            {SORTS.map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={sortBy === id}
+                className={`ff-sortchip${sortBy === id ? ' is-on' : ''}`}
+                onClick={() => setSortBy(id)}
+                data-testid={`roster-sort-${id}`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           {/* The Hardwire Gateway — god-mode onboarding bypass w/ clinical profiling. */}
@@ -185,6 +241,7 @@ export default function ClientHub() {
                   client={c}
                   active={rowKey(c) === activeId}
                   onSelect={() => setActiveId(rowKey(c))}
+                  tel={telemetry[rowKey(c)] || null}
                 />
               ))}
             </ul>
@@ -218,26 +275,75 @@ export default function ClientHub() {
   );
 }
 
-// ── One roster row — clickable, active glass border, division + compliance dot. ─
-function ClientRow({ client, active, onSelect }) {
+// ── Telemetry radar chrome ──────────────────────────────────────────────────
+// status → dot color + left-border accent + human label. 'insufficient' is a
+// neutral gray (a freshly-forged athlete with no data — not a false flight risk).
+const STATUS_META = {
+  green: { dot: '#22c55e', edge: 'rgba(34,197,94,.55)', label: 'On Track' },
+  yellow: { dot: '#f5c800', edge: 'rgba(245,200,0,.5)', label: 'Warning' },
+  red: { dot: '#ff5470', edge: 'rgba(255,84,112,.6)', label: 'Flight Risk' },
+  insufficient: { dot: 'rgba(249,245,255,.35)', edge: 'var(--line)', label: 'New · No Data' },
+};
+
+function fmtTonnage(lbs) {
+  const n = Number(lbs) || 0;
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
+  return String(Math.round(n));
+}
+
+// Lightweight inline-SVG sparkline — 7 daily tonnage points, gold stroke. Pure
+// geometry, no chart lib. Flat baseline when every point is zero.
+function Sparkline({ points, color = 'var(--yel)' }) {
+  const pts = Array.isArray(points) && points.length ? points.map(Number) : [0, 0, 0, 0, 0, 0, 0];
+  const w = 56, h = 16, max = Math.max(...pts, 1);
+  const step = pts.length > 1 ? w / (pts.length - 1) : w;
+  const d = pts.map((v, i) => `${i === 0 ? 'M' : 'L'}${(i * step).toFixed(1)},${(h - (v / max) * (h - 2) - 1).toFixed(1)}`).join(' ');
+  return (
+    <svg className="ff-spark" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true" preserveAspectRatio="none">
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// ── One roster row — clickable, active glass border, division + telemetry radar. ─
+function ClientRow({ client, active, onSelect, tel }) {
   const name = client.name || client.uid || 'Unnamed';
   const div = division(client);
   const tier = client.subscription_tier || client.role || null;
   const color = tierColor(client.subscription_tier);
   const cal = calBadge(client);
+  const sm = tel ? (STATUS_META[tel.status] || STATUS_META.insufficient) : null;
+  const hasTon = tel && (tel.tonnage_week > 0 || tel.tonnage_prev > 0);
+  const trendGlyph = { up: '📈', down: '📉', flat: '➡️' }[tel?.tonnage_trend] || '';
   return (
     <li>
       <button
         type="button"
-        className={`ff-row${active ? ' is-active' : ''}`}
+        className={`ff-row${active ? ' is-active' : ''}${sm ? ` ff-row--${tel.status}` : ''}`}
         onClick={onSelect}
         aria-pressed={active}
-        aria-label={`Open dossier for ${name}`}
+        aria-label={`Open dossier for ${name}${sm ? ` — ${sm.label}${tel.adherence_score != null ? ` ${tel.adherence_score}%` : ''}` : ''}`}
       >
         <span className="ff-avatar" style={{ borderColor: color }}>{initials(name)}</span>
         <span className="ff-row-main">
           <span className="ff-row-name">{name}</span>
           <span className="ff-row-sub">{div}</span>
+          {/* Telemetry chip row — clinical, single line. */}
+          {sm ? (
+            <span className="ff-tel">
+              <span className="ff-tel-status" style={{ color: sm.dot }}>
+                <span className="ff-tel-dot" style={{ background: sm.dot }} aria-hidden="true" />
+                {sm.label}{tel.adherence_score != null ? ` · ${tel.adherence_score}%` : ''}
+              </span>
+              {tel.workout_assigned > 0 ? (
+                <span className="ff-tel-chip">{tel.workout_completed}/{tel.workout_assigned} wk</span>
+              ) : null}
+              {hasTon ? (
+                <span className="ff-tel-chip">{fmtTonnage(tel.tonnage_week)} lbs {trendGlyph}</span>
+              ) : null}
+              {hasTon ? <Sparkline points={tel.sparkline} /> : null}
+            </span>
+          ) : null}
           {cal ? <span className="ff-cal" style={{ ...CAL_BASE, ...CAL_TONE[cal.tone] }}>{cal.text}</span> : null}
         </span>
         <span className="ff-row-meta">
