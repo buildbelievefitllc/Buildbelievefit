@@ -5,10 +5,14 @@
 // code paths for the four go-live UI fixes — not reimplementations. This file lives
 // outside the production index.html graph and is never shipped by `vite build`.
 
+import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { LangProvider } from '../../src/context/LangContext.jsx';
 import AuthContext from '../../src/context/AuthContext.jsx';
+import { RosterProvider } from '../../src/components/command/RosterProvider.jsx';
+import ClientHub from '../../src/components/command/ClientHub.jsx';
+import NutritionLocker from '../../src/components/command/NutritionLocker.jsx';
 import NutritionCard from '../../src/components/hub/NutritionCard.jsx';
 import Nutrition from '../../src/components/vault/Nutrition.jsx';
 import ProvisionGate from '../../src/components/vault/ProvisionGate.jsx';
@@ -55,8 +59,40 @@ const delayedAudioRequest = () => new Promise((resolve) => {
   setTimeout(() => resolve(silentWavUrl(3000)), Number(props.delayMs) || 300);
 });
 
+// R1 proof rig — Founder Five (ClientHub) and Nutrition Locker mounted under ONE
+// shared RosterProvider, with a tab toggle that unmounts/remounts the active sibling
+// via `key` (exactly mirroring CommandCenter's `key={activeTab}` remount boundary).
+// The provider lives OUTSIDE that boundary, so the base roster is fetched a single
+// time no matter how many times the spec swaps between the two panels — the network
+// count is the proof that the duplicate pull is gone.
+function RosterShareProbe() {
+  const [tab, setTab] = useState('founder');
+  return (
+    <RosterProvider>
+      <div>
+        <div role="tablist">
+          <button type="button" data-testid="probe-tab-founder" aria-selected={tab === 'founder'} onClick={() => setTab('founder')}>Founder Five</button>
+          <button type="button" data-testid="probe-tab-locker" aria-selected={tab === 'locker'} onClick={() => setTab('locker')}>Nutrition Locker</button>
+        </div>
+        <div data-testid="probe-panel" key={tab}>
+          {tab === 'founder' ? <ClientHub /> : <NutritionLocker />}
+        </div>
+      </div>
+    </RosterProvider>
+  );
+}
+
 function pick() {
   switch (which) {
+    case 'roster-share':
+      // Admin session so the roster/telemetry calls fire the way they do in prod.
+      return (
+        <MemoryRouter>
+          <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' }, session: { vaultToken: 'test-vault-token' } }}>
+            <RosterShareProbe />
+          </AuthMock>
+        </MemoryRouter>
+      );
     case 'nutrition':
       return <NutritionCard data={props.data ?? null} defaults={props.defaults ?? null} />;
     case 'provision-gate':

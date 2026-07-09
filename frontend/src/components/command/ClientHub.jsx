@@ -21,8 +21,8 @@
 // keys on the `id` PK, and the row gives instant header context.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
 import { getRosterTelemetry } from '../../lib/protocolOverrideApi.js';
+import { useRoster } from './RosterProvider.jsx';
 import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import ClientDossier from './ClientDossier.jsx';
@@ -39,50 +39,36 @@ const SORTS = [
 
 export default function ClientHub() {
   const { user } = useAuth();
-  const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // R1 — the base roster is now owned by the shared RosterProvider (one fetch,
+  // cached across Coaching tab switches). ClientHub layers its OWN enrichments
+  // on top: the 30-day calibration overlay + the adherence-radar telemetry.
+  const { roster, loading: isLoading, error, refresh: refreshRoster, injectClient } = useRoster();
   const [activeId, setActiveId] = useState(null); // selected row id | null
   const [filter, setFilter] = useState('');
   const [sortBy, setSortBy] = useState('name');
   // Telemetry & Adherence Radar — { [id]: telemetryRow }. Loaded AFTER the
   // roster paints (one batch call), so the radar never blocks first render.
   const [telemetry, setTelemetry] = useState({});
+  // 30-Day Calibration overlay — { [id]: { calibration_day, calibration_phase } }.
+  // A ClientHub-only enrichment (Nutrition Locker doesn't need it), kept separate
+  // from the shared roster so it never re-triggers the base fetch.
+  const [calMap, setCalMap] = useState({});
   // The Hardwire Gateway — Forge Athlete modal (god-mode onboarding bypass).
   const [forgeOpen, setForgeOpen] = useState(false);
-  // Optimistic roster injection: the forged athlete's roster-shaped row lands
-  // at the head of the list INSTANTLY; the follow-up fetch reconciles.
-  const onForged = useCallback((client) => {
-    if (client?.id) setData((prev) => [client, ...prev.filter((c) => c.id !== client.id)]);
-  }, []);
+  // Optimistic roster injection now routes through the shared provider so the
+  // forged athlete appears in EVERY consumer instantly.
+  const onForged = useCallback((client) => injectClient(client), [injectClient]);
 
-  const fetchRoster = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  // Calibration overlay — its own admin RPC, fetched once. Non-fatal.
+  const fetchCalibration = useCallback(async () => {
     try {
-      const body = await rosterCall('roster');
-      let clients = Array.isArray(body.clients) ? body.clients : [];
-      // Overlay each athlete's 30-Day Calibration day/phase (admin-gated RPC), merged by
-      // id. Non-fatal: if it fails, the roster still loads — the badge just hides.
-      try {
-        const { data: cal } = await supabase.rpc('bbf_admin_roster_calibration', {
-          p_session_token: getStoredVaultToken(),
-        });
-        if (Array.isArray(cal) && cal.length) {
-          const byId = new Map(cal.map((r) => [r.id, r]));
-          clients = clients.map((c) => {
-            const m = byId.get(c.id);
-            return m ? { ...c, calibration_day: m.calibration_day, calibration_phase: m.calibration_phase } : c;
-          });
-        }
-      } catch { /* calibration overlay is non-fatal */ }
-      setData(clients);
-    } catch (e) {
-      setError(toErrorMessage(e));
-      setData([]);
-    } finally {
-      setIsLoading(false);
-    }
+      const { data: cal } = await supabase.rpc('bbf_admin_roster_calibration', {
+        p_session_token: getStoredVaultToken(),
+      });
+      if (Array.isArray(cal) && cal.length) {
+        setCalMap(Object.fromEntries(cal.map((r) => [r.id, r])));
+      }
+    } catch { /* calibration overlay is non-fatal */ }
   }, []);
 
   // Telemetry radar — a SEPARATE, non-blocking batch pull (one call for the whole
@@ -94,16 +80,29 @@ export default function ClientHub() {
     } catch { /* radar is an overlay — a failure just leaves the cards un-lit */ }
   }, []);
 
-  // Auto-load on mount (the admin token is hydrated by the Command Center gate).
-  // Deferred via microtask so the initial setState lands outside the synchronous
-  // effect body (satisfies react-hooks/set-state-in-effect); cancel-guarded.
+  // The base roster loads via the provider. ClientHub only fires its own
+  // enrichments (calibration + telemetry) on mount. Deferred via microtask.
   useEffect(() => {
     let cancelled = false;
-    queueMicrotask(() => { if (!cancelled) { fetchRoster(); fetchTelemetry(); } });
+    queueMicrotask(() => { if (!cancelled) { fetchCalibration(); fetchTelemetry(); } });
     return () => { cancelled = true; };
-  }, [fetchRoster, fetchTelemetry]);
+  }, [fetchCalibration, fetchTelemetry]);
+
+  // A manual refresh re-pulls the shared roster AND both local overlays.
+  const refreshAll = useCallback(() => {
+    refreshRoster();
+    fetchCalibration();
+    fetchTelemetry();
+  }, [refreshRoster, fetchCalibration, fetchTelemetry]);
 
   const rowKey = (c) => c.id ?? c.uid ?? c.email;
+  // Merge the calibration overlay onto the shared roster (derived, memoized) so the
+  // row badges render without ever mutating the shared base list.
+  const data = useMemo(() => (
+    roster.map((c) => (calMap[c.id]
+      ? { ...c, calibration_day: calMap[c.id].calibration_day, calibration_phase: calMap[c.id].calibration_phase }
+      : c))
+  ), [roster, calMap]);
   const activeClient = data.find((c) => rowKey(c) === activeId) || null;
 
   // Live, real stats derived from the roster payload (no fabricated numbers): the
@@ -183,7 +182,7 @@ export default function ClientHub() {
             <span className="ff-count">
               {isLoading ? 'Loading…' : `${filtered.length} of ${total} athlete${total === 1 ? '' : 's'}`}
             </span>
-            <button type="button" className="ff-refresh" onClick={() => { fetchRoster(); fetchTelemetry(); }} disabled={isLoading}>
+            <button type="button" className="ff-refresh" onClick={refreshAll} disabled={isLoading}>
               ↻ Refresh
             </button>
           </div>
@@ -221,7 +220,7 @@ export default function ClientHub() {
             <div className="ff-error" role="alert">
               <div className="ff-error-title">Roster fetch failed</div>
               <div className="ff-error-msg">{error}</div>
-              <button type="button" className="ff-retry" onClick={fetchRoster}>Retry</button>
+              <button type="button" className="ff-retry" onClick={refreshAll}>Retry</button>
             </div>
           ) : null}
 
@@ -251,7 +250,7 @@ export default function ClientHub() {
         {/* ── DETAIL: drill-in dossier for the selected athlete ── */}
         <section className={`ff-detail${activeClient ? ' is-open' : ''}`} aria-label="Athlete dossier">
           {activeClient ? (
-            <ClientDossier client={activeClient} onBack={() => setActiveId(null)} onRosterRefresh={fetchRoster} />
+            <ClientDossier client={activeClient} onBack={() => setActiveId(null)} onRosterRefresh={refreshAll} />
           ) : (
             <div className="ff-placeholder">
               <span className="ff-placeholder-mark" aria-hidden="true">◎</span>
@@ -267,7 +266,7 @@ export default function ClientHub() {
 
       {forgeOpen ? (
         <ForgeAthlete
-          onClose={() => { setForgeOpen(false); fetchRoster(); /* reconcile the optimistic row */ }}
+          onClose={() => { setForgeOpen(false); refreshRoster(); /* reconcile the optimistic row */ }}
           onForged={onForged}
         />
       ) : null}

@@ -20,6 +20,7 @@ import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 // import CommandRoster from '../components/command/CommandRoster.jsx'; // hidden (declutter) — restore with its TABS entry
 import ClientHub from '../components/command/ClientHub.jsx';
+import { RosterProvider } from '../components/command/RosterProvider.jsx';
 // import AccessControl from '../components/command/AccessControl.jsx'; // hidden (declutter) — restore with its TABS entry
 // ── DEPRECATED (Coaching module optimization pass): "Risk Telemetry / The
 // Sovereign Panopticon" (28-day ACWR injury-risk grid) is retired from the
@@ -170,6 +171,10 @@ export default function CommandCenter() {
   const plans = useMemo(() => selectPlans(session), [session]);
 
   return (
+    // R1 — the shared roster provider wraps the whole Command Center render and
+    // lives OUTSIDE the per-tab remount boundary below, so Founder Five and
+    // Nutrition Locker consume ONE cached roster fetch across tab switches.
+    <RosterProvider>
     <div style={styles.page}>
       {/* Slim brand strip — each tab owns its own hero heading (the Command tab
           renders the "SOVEREIGN COMMAND CENTER" header), so no duplicate title. */}
@@ -224,6 +229,7 @@ export default function CommandCenter() {
           testing surface, e.g. "Simulate CNS Breach (Health Connect)". */}
       <DevToolsPanel />
     </div>
+    </RosterProvider>
   );
 }
 

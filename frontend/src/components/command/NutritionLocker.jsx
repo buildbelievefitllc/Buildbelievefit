@@ -21,15 +21,17 @@
 //                                 assigned blueprint + AMPLIFY override inputs +
 //                                 PUSH OVERSIGHT DIRECT PROTOCOL.
 //
-// Data path: lib/rosterApi — rosterCall('roster') for the live scholar list; the
+// Data path: the live scholar list comes from the shared RosterProvider (R1) — one
+// memoized rosterCall('roster') shared with Founder Five, not a duplicate pull; the
 // compiled plan persists via lib/protocolOverrideApi setMealPlan() →
 // bbf_admin_set_meal_plan RPC (writes bbf_users.meal_plan + the active-clients
 // mirror — the SAME write path the Client Dossier uses). The earlier
 // assign_nutrition edge action was never built; it 400'd and the plan was lost.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { toErrorMessage } from '../../lib/rosterApi.js';
 import { setMealPlan } from '../../lib/protocolOverrideApi.js';
+import { useRoster } from './RosterProvider.jsx';
 import {
   DIET_STYLES, ALLERGY_OPTIONS, PHASE_OPTIONS, ENERGY_PRESETS, DEFAULT_ENERGY,
   ENERGY_MIN, ENERGY_MAX, DAYS, MEAL_SLOTS, VOLUME_MULTIPLIERS, ADAPT_BANDS,
@@ -60,10 +62,11 @@ export default function NutritionLocker() {
   const [showScience, setShowScience] = useState(false);
   const [showIngList, setShowIngList] = useState(false);
 
-  // ── Roster (live scholar list) ──
-  const [clients, setClients] = useState([]);
-  const [rosterLoading, setRosterLoading] = useState(true);
-  const [rosterError, setRosterError] = useState(null);
+  // ── Roster (live scholar list) — SHARED via RosterProvider (R1) ──
+  // Was a local rosterCall('roster') fetch that duplicated Founder Five's identical
+  // pull. Now both siblings read the one provider-owned, memoized roster: opening
+  // Founder Five then Nutrition Locker triggers exactly ONE roster round-trip.
+  const { roster: clients, loading: rosterLoading, error: rosterError, refresh: refreshRoster } = useRoster();
   const mounted = useRef(true);
   useEffect(() => () => { mounted.current = false; }, []);
 
@@ -75,28 +78,6 @@ export default function NutritionLocker() {
   const [phase, setPhase] = useState(PHASE_OPTIONS[0]);
   const [directive, setDirective] = useState('');
   const [pushState, setPushState] = useState({ busy: false, ok: null, err: null });
-
-  const fetchRoster = useCallback(async () => {
-    setRosterLoading(true);
-    setRosterError(null);
-    try {
-      const body = await rosterCall('roster');
-      if (mounted.current) setClients(Array.isArray(body.clients) ? body.clients : []);
-    } catch (e) {
-      if (mounted.current) { setRosterError(toErrorMessage(e)); setClients([]); }
-    } finally {
-      if (mounted.current) setRosterLoading(false);
-    }
-  }, []);
-
-  // Auto-load on mount (the Command Center unlock gate hydrates the admin token).
-  // Deferred to a microtask so the initial setState lands outside the effect body
-  // (matches ClientHub — satisfies react-hooks/set-state-in-effect).
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => { if (!cancelled) fetchRoster(); });
-    return () => { cancelled = true; };
-  }, [fetchRoster]);
 
   const scholar = useMemo(() => clients.find((c) => clientId(c) === scholarId) || null, [clients, scholarId]);
   // Memoized so the `meal` snapshot below stays referentially stable per band.
@@ -234,7 +215,7 @@ export default function NutritionLocker() {
             <div className="nl-banner nl-banner--err" role="alert">
               <span className="nl-banner-mark" aria-hidden="true">⚠</span>
               <span>{rosterError}{' '}
-                <button type="button" className="nl-link-btn" onClick={fetchRoster}>Retry</button>
+                <button type="button" className="nl-link-btn" onClick={refreshRoster}>Retry</button>
               </span>
             </div>
           ) : (
@@ -551,7 +532,7 @@ export default function NutritionLocker() {
             {rosterLoading ? (
               <div className="nl-state"><span className="nl-spinner" aria-hidden="true" /> Loading roster…</div>
             ) : rosterError ? (
-              <div className="nl-state is-error">{rosterError}<button type="button" className="nl-btn nl-btn--ghost" onClick={fetchRoster}>Retry</button></div>
+              <div className="nl-state is-error">{rosterError}<button type="button" className="nl-btn nl-btn--ghost" onClick={refreshRoster}>Retry</button></div>
             ) : !clients.length ? (
               <div className="nl-state">No athletes on the roster yet.</div>
             ) : (
