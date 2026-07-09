@@ -52,7 +52,9 @@ const NAV_GROUPS = [
     items: [
       { labelKey: 'cmd-tab-coach-lab', to: '/command/coach-lab', isActive: (tab) => tab === 'coach-lab' },
       { labelKey: 'cmd-tab-coach-cave', to: '/command/coach-cave', isActive: (tab) => tab === 'coach-cave' },
-      { labelKey: 'cmd-tab-language', to: '/command/language', isActive: (tab) => tab === 'language' },
+      // STRUCTURAL MERGE: the standalone Language tab is fused into the Language
+      // Lab ("Coach Akeem's Voice Studio & Audio Lab") — the Lab is the sole portal.
+      // { labelKey: 'cmd-tab-language', to: '/command/language', isActive: (tab) => tab === 'language' },
       { labelKey: 'cmd-tab-language-lab', to: '/command/language-lab', isActive: (tab) => tab === 'language-lab' },
     ],
   },

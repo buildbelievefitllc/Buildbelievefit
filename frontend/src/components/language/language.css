@@ -278,6 +278,12 @@
 .im-sc-tag { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 1.25rem; height: 1.25rem; border-radius: 50%; font-family: var(--hb); font-size: .72rem; color: #0e0a16; background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60)); }
 .im-scaffold-hint { font-family: var(--bd); font-size: .7rem; color: #9c92b5; }
 
+/* ── COACH AKEEM'S VOICE STUDIO & AUDIO LAB (fused legacy module wrapper) ────── */
+.vs-shell { display: flex; flex-direction: column; gap: .3rem; }
+.vs-sub { font-family: var(--bd); font-size: .9rem; color: #c9bfe0; margin: 0 0 1rem; }
+/* The legacy module carries its own hero/nav (languageRoadmap.css) — the wrapper
+   only frames it with the Lab's segment kicker; no legacy style is overridden. */
+
 /* ── Audio Dojo (screen-locked Pimsleur stitch player) ───────────────────────── */
 .dojo-shell { padding: 1rem 1.1rem; border-radius: 16px; border: 1px solid rgba(245,200,0,.45); background: linear-gradient(135deg, rgba(106,13,173,.3), rgba(9,9,9,.55)); }
 .dojo-lesson { font-family: var(--hb); color: rgba(244,238,251,.85); letter-spacing: 1px; margin-bottom: .6rem; }

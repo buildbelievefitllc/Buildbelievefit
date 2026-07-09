@@ -27,7 +27,7 @@ import Comlink from '../components/command/Comlink.jsx';
 import NutritionLocker from '../components/command/NutritionLocker.jsx';
 import CoachCave from '../components/command/CoachCave.jsx';
 import CoachLab from '../components/command/CoachLab.jsx';
-import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx';
+// import AdminLanguageRoadmap from '../components/command/AdminLanguageRoadmap.jsx'; // fused into the Language Lab (VoiceStudioLab) — restore with its TABS entry
 import ContentEngine from '../components/command/ContentEngine.jsx';
 import DigitalContentManager from '../components/command/DigitalContentManager.jsx';
 import SovereignStudio from '../components/command/SovereignStudio.jsx';
@@ -77,11 +77,16 @@ const TABS = [
   // Admin tools that remain in the executive workspace.
   { id: 'generator', labelKey: 'vault-tab-generator', Panel: Generator },
   { id: 'settings', labelKey: 'vault-tab-settings', Panel: Settings },
-  // CEO-only Language Mastery Protocol. Static content (no token gate); the whole
-  // /command route is AdminGuard-gated, so this tab never renders for an athlete.
-  { id: 'language', labelKey: 'cmd-tab-language', Panel: AdminLanguageRoadmap },
-  // Phase 3.2 — Language Mastery Lab: the Vocab Gym SRS drill (vault-token) + the
-  // Immersion chat (admin-token). CEO-only via the AdminGuard /command route.
+  // ── STRUCTURAL MERGE (Language consolidation): the standalone Language Mastery
+  // Protocol tab is hidden — the ENTIRE legacy module (Pimsleur Audio Lab · Voice
+  // Studio · Vocab Gym soundboards · every ElevenLabs audio asset) now mounts
+  // INSIDE the Language Lab as "Coach Akeem's Voice Studio & Audio Lab"
+  // (VoiceStudioLab → AdminLanguageRoadmap, fully intact). Restore the standalone
+  // tab by uncommenting the line here AND its import above. ──
+  // { id: 'language', labelKey: 'cmd-tab-language', Panel: AdminLanguageRoadmap },
+  // The Language Lab — the SOLE unified language portal: Guided Track curriculum +
+  // Vocab Forge + The Path + Audio Dojo + Video Vault + Immersion + the fused
+  // legacy Voice Studio & Audio Lab. CEO-only via the AdminGuard /command route.
   { id: 'language-lab', labelKey: 'cmd-tab-language-lab', Panel: LanguageMasteryPanel },
   // Content Engine — operator-editable marketing CTA cards (the calibration deck); the
   // public landing reads these live. Admin-only via the AdminGuard /command route.
@@ -120,7 +125,7 @@ const DEFAULT_TAB = TABS[0].id;
 const DOMAINS = [
   { id: 'coaching', labelKey: 'cmd-dom-coaching', tabs: ['roster', 'telemetry', 'eagle-eye', 'comlink', 'nutrition-locker', 'sports'] },
   { id: 'content', labelKey: 'cmd-dom-content', tabs: ['content', 'content-manager', 'studio', 'studio-v4', 'studio-batch'] },
-  { id: 'knowledge', labelKey: 'cmd-dom-knowledge', tabs: ['coach-lab', 'coach-cave', 'language', 'language-lab'] },
+  { id: 'knowledge', labelKey: 'cmd-dom-knowledge', tabs: ['coach-lab', 'coach-cave', 'language-lab'] },
   { id: 'system', labelKey: 'cmd-dom-system', tabs: ['generator', 'settings'] },
 ];
 
