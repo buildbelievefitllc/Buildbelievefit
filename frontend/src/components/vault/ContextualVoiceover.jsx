@@ -146,8 +146,18 @@ const WRAP_COMPACT = { padding: '.8rem .9rem', margin: '0 0 .85rem' };
 const WRAP_STRIP = { padding: '.6rem .9rem', margin: '0 0 .85rem' };
 const STRIP_ROW = { position: 'relative', display: 'flex', alignItems: 'center', gap: '.8rem' };
 const BTN_STRIP = { flexShrink: 0, padding: '.5rem .95rem', fontSize: '.72rem' };
-const TITLE_STRIP = { fontSize: '1.05rem', margin: '.1rem 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
-const SUB_STRIP = { fontSize: '.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
+// Mobile overflow fix: nowrap here forced the FULL unwrapped sentence width as
+// this element's min-content. Harmless in a plain block context (the outer
+// section's overflow:hidden clips it visually) — but this component also lands
+// inside single-column CSS Grid containers (e.g. Check-In's `.sch`), where a
+// grid item's min-content sets the shared track's floor. A long nowrap subline
+// there was inflating the ENTIRE track — and every sibling card with it —
+// to ~740px wide inside a 384px viewport (the "renders like desktop" bug).
+// Wrapping to 2 lines costs a few px of height and is invisible on desktop
+// (these titles/sublines already fit on one line at normal widths); it just
+// stops the strip from ever demanding more width than it's given.
+const TITLE_STRIP = { fontSize: '1.05rem', margin: '.1rem 0 0', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' };
+const SUB_STRIP = { fontSize: '.82rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' };
 const GLOW = { position: 'absolute', inset: 0, background: 'radial-gradient(120% 80% at 100% 0%, rgba(245,200,0,.14), transparent 60%)', pointerEvents: 'none' };
 const KICKER = { fontFamily: 'var(--hb)', fontSize: '.66rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#f5c800' };
 const TITLE = { fontFamily: 'var(--hb)', fontSize: '1.5rem', margin: '.25rem 0 .2rem', color: '#fff', letterSpacing: '.5px', lineHeight: 1.1 };
