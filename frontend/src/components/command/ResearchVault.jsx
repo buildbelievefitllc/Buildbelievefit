@@ -2,14 +2,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Coach Lab · Pillar 1 — The Research Vault.
 //
-// Paste a PubMed abstract / lecture / textbook passage → the bbf-coach-vault edge
-// function asks Claude (via the model router) for a structured coaching summary →
-// it's saved to coach_knowledge_base and rendered as a glassmorphism "Research
-// Card" that flips between the Coaching Application (front) and the Physiology
-// Takeaways + Scientific Pitfalls (back). Founder-only (the /command route gates it).
+// TWO layers, top to bottom:
+//   1. THE CURATED ACADEMIC LIBRARY (ResearchLibrary) — the static exercise-
+//      science payload: the academic-criteria progression checklist + the
+//      100-study evidence grid with Web Speech audio narration. Client-side.
+//   2. THE LIVE INGEST FLOW — paste a PubMed abstract / lecture / textbook
+//      passage → the bbf-coach-vault edge function asks Claude (via the model
+//      router) for a structured coaching summary → saved to coach_knowledge_base
+//      and rendered as a glassmorphism flip "Research Card" (Coaching Application
+//      front · Physiology Takeaways + Scientific Pitfalls back).
+// Founder-only (the /command route gates it).
 
 import { useEffect, useState } from 'react';
 import { listResearch, ingestResearch, deleteResearch, RESEARCH_CATEGORIES } from '../../lib/coachLabApi.js';
+import ResearchLibrary from './ResearchLibrary.jsx';
 import { CloseIcon } from '../vault/icons.jsx';
 
 export default function ResearchVault({ L }) {
@@ -67,6 +73,9 @@ export default function ResearchVault({ L }) {
 
   return (
     <div className="cl-vault" data-testid="research-vault">
+      {/* Curated academic library — criteria checklist + narrated study grid */}
+      <ResearchLibrary />
+
       {/* Ingestion composer */}
       <div className="cl-composer">
         <label className="cl-composer-lbl" htmlFor="cl-ingest">{V.composerLabel}</label>
