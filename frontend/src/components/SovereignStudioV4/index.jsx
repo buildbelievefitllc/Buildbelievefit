@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import StudioLayout from './StudioLayout';
+import StudioCompilerPanel from './StudioCompilerPanel';
 import './sovereignStudioV4.css';
 
 // Card catalog — copy ported verbatim from the v3 reference banks (each entry is
@@ -159,6 +160,7 @@ export default function SovereignStudioV4() {
             ['cta', '🃏 CTA CARDS'],
             ['phone', '📱 PHONE'],
             ['reel', '🎬 VIDEO ENGINE'],
+            ['compiler', '⚙ AD COMPILER'],
             ['queue', '📡 QUEUE'],
           ].map(([id, label]) => (
             <button
@@ -175,16 +177,22 @@ export default function SovereignStudioV4() {
         </div>
       </div>
 
-      <StudioLayout
-        mode={mode}
-        ctaData={ctaData}
-        handleCtaChange={handleCtaChange}
-        spinCard={spinCard}
-        phoneData={phoneData}
-        handlePhoneChange={handlePhoneChange}
-        reelData={reelData}
-        handleReelChange={handleReelChange}
-      />
+      {mode === 'compiler' ? (
+        // Standalone URL-driven pipeline — no ctaData/phoneData/reelData editor
+        // state to thread through; it's self-contained like QueueMonitor.
+        <div className="sc-shell"><StudioCompilerPanel /></div>
+      ) : (
+        <StudioLayout
+          mode={mode}
+          ctaData={ctaData}
+          handleCtaChange={handleCtaChange}
+          spinCard={spinCard}
+          phoneData={phoneData}
+          handlePhoneChange={handlePhoneChange}
+          reelData={reelData}
+          handleReelChange={handleReelChange}
+        />
+      )}
     </div>
   );
 }

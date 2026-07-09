@@ -6,6 +6,7 @@ import VibeSelector from './VibeSelector';
 import ReelPreviewEngine from './ReelPreviewEngine';
 import StageScaler from './StageScaler';
 import QueueMonitor from './QueueMonitor';
+import CompilerQueue from './CompilerQueue';
 import { renderMarkup } from './markup.jsx';
 import { REEL_PHONE_FRAME, REEL_PHONE_SCREEN } from '../../lib/reelPhoneBackdrop.js';
 import { seriesLabel } from '../../lib/reelSeriesLabels.js';
@@ -684,7 +685,7 @@ export default function StudioLayout({
           <div className="panel-v4 active">
             <div className="ctl-group-v4">
               <label className="ctl-label-v4">📡 Supabase Auto-Post Queue</label>
-              <div className="hint-v4">Live monitor of cards &amp; reels queued or posted to IG/FB — the right pane lists active &amp; pending jobs and auto-refreshes every 15s.</div>
+              <div className="hint-v4">Live monitor of cards &amp; reels queued or posted to IG/FB, plus every Ad Compiler render — the right pane lists active &amp; pending jobs and auto-refreshes every 15s.</div>
             </div>
           </div>
         )}
@@ -796,6 +797,7 @@ export default function StudioLayout({
         {mode === 'queue' && (
           <div className="queue-host-v4">
             <QueueMonitor />
+            <CompilerQueue />
           </div>
         )}
       </div>

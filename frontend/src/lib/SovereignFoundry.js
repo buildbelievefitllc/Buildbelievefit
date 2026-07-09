@@ -139,7 +139,7 @@ export class SovereignFoundry {
    * Render the reel.
    * @returns {Promise<{blob:Blob, ext:'mp4', mime:'video/mp4', audio:boolean, frames:number, durationSec:number}>}
    */
-  async render({ videoUrl, voUrl = null, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, onProgress } = {}) {
+  async render({ videoUrl, voUrl = null, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
     if (!videoUrl) throw new Error('no_footage');
 
@@ -165,7 +165,14 @@ export class SovereignFoundry {
       }
       const voDur = audioBuffer ? (audioBuffer.length / audioBuffer.sampleRate) : 0;
 
-      const naturalDur = Math.max(footageDur, voDur) || footageDur || voDur || durationCap;
+      // Ad Compiler contract (audioIsDurationMaster): the final MP4 runs EXACTLY
+      // the audio track's length — shorter footage loops beneath it (unchanged),
+      // LONGER footage is simply cut short, rather than the default reel-export
+      // behavior of always running the max of the two. Falls back to the default
+      // max-based duration when no audio was supplied (there's nothing to master to).
+      const naturalDur = (audioIsDurationMaster && voDur > 0)
+        ? voDur
+        : (Math.max(footageDur, voDur) || footageDur || voDur || durationCap);
       const d = Math.max(0.1, Math.min(naturalDur, durationCap));
 
       // ── Codec selection (decided BEFORE the muxer, since the muxer is told the

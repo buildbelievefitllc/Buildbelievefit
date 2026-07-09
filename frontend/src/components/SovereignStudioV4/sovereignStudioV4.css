@@ -239,6 +239,24 @@
 .qmon-kind { flex-shrink: 0; }
 .qmon-row-sub { font-size: 0.72rem; color: var(--mut); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ===== AD COMPILER (StudioCompilerPanel) ===== */
+.sc-shell { width: 100%; max-width: 520px; margin: 0 auto; padding: 24px 18px; }
+.sc-panel { display: flex; flex-direction: column; }
+.sc-render-status { margin-top: 6px; }
+.sc-render-bar { height: 7px; border-radius: 999px; background: var(--gry2); border: 1px solid var(--gry3); overflow: hidden; margin-bottom: 8px; }
+.sc-render-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--pur), var(--yel)); transition: width 0.25s ease; }
+.sc-error { margin-top: 10px; padding: 11px 13px; border-radius: 8px; background: rgba(251, 146, 60, 0.1); border: 1px solid rgba(251, 146, 60, 0.4); color: #fb923c; font-size: 0.88rem; }
+.sc-result { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.sc-result-video { width: 100%; max-width: 260px; border-radius: 12px; border: 1px solid var(--gry3); align-self: center; background: #000; }
+
+/* ===== Ad Compiler queue rows (CompilerQueue, mounted alongside QueueMonitor) ===== */
+.cq-wrap { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--gry3); width: 100%; color: var(--wht); }
+.cq-list { display: flex; flex-direction: column; gap: 10px; }
+.cq-row { background: var(--gry2); border: 1px solid var(--gry3); border-radius: 8px; padding: 12px 13px; }
+.cq-row-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cq-row-copy { font-size: 0.82rem; color: var(--mut); margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cq-video { width: 100%; max-width: 220px; margin-top: 10px; border-radius: 10px; border: 1px solid var(--gry3); background: #000; }
+
 /* ===== EXERCISE COMBOBOX (grouped, type-to-filter topic picker) ===== */
 .excb { position: relative; }
 .excb .input-v4 { padding-right: 30px; }
