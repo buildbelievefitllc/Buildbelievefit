@@ -17,6 +17,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calcTDEE } from '../components/vault/nutritionEngine.js';
+import TdeeLeadCapture from '../components/TdeeLeadCapture.jsx';
 
 const GOLD = '#F5C800';
 const GOLD_SOFT = '#F5CF60';
@@ -150,6 +151,23 @@ export default function DailyBurnCalculator() {
                 gold
               />
             </div>
+
+            {/* Phase 21 — capture the micro-intent lead right here, at the moment
+                they see a real number, instead of only at the (much bigger)
+                Pathfinder ask below. No macros computed on this surface (calcTDEE
+                only), so those fields ride as null — the schema is nullable. */}
+            <TdeeLeadCapture
+              source="daily_burn"
+              payload={{
+                age: parseInt(age, 10) || null,
+                sex,
+                weight_lbs: parseFloat(weight) || null,
+                height_ft: parseInt(ft, 10) || null,
+                height_in: parseInt(inch, 10) || null,
+                activity_factor: parseFloat(act) || null,
+                tdee_maintenance: burn,
+              }}
+            />
 
             {/* The Hook → the only forward exit. */}
             <div style={st.hook}>

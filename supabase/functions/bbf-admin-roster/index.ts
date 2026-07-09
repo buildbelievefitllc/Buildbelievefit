@@ -26,6 +26,12 @@
 //   compile        → { ok, plan:{name,cal,goal,days[]}, meta, persisted }
 //                    (relays to Render /api/rotate-nutrition + writes the plan back)
 //
+//   ── Comlink (Command Center · Comlink tab) ──
+//   leads_list     → { ok, total, provisioned, pending, leads:[...] }  (Pathfinder apps)
+//   concierge_log  → { ok, runs:[{run_id, sent, failed, skipped, actions:[...]}] }
+//   tdee_leads_list → { ok, total, converted, leads:[...] }  (TDEE/Daily Burn micro-leads,
+//                    bbf_tdee_leads — a separate, unscreened lane from leads_list)
+//
 //   ── Executive Access Control (Command Center · Access Control tab) ──
 //   tiers          → { ok, tiers:[{slug,display_name,category,price_cents,billing_type}] }
 //                    (the pricing matrix from bbf_tiers — powers the tier dropdown)
@@ -869,6 +875,27 @@ serve(async (req) => {
       }
       const runList = Object.values(runs).sort((a: any, b: any) => (b.started_at > a.started_at ? 1 : -1));
       return jsonResponse({ ok: true, total: acts.length, runs: runList });
+    }
+
+    // ── tdee_leads_list (Comlink "TDEE Signals") — read DIRECTLY via the service
+    // role, same pattern as leads_list. bbf_tdee_leads is a calculator-only
+    // micro-lead: no PAR-Q / liability on file, so it is DELIBERATELY kept out of
+    // leads_list — this is a separate lane, never merged into "Applications".
+    if (action === 'tdee_leads_list') {
+      const limit = Math.max(1, Math.min(200, Number(body?.limit) || 100));
+      const rows = await pgGet(
+        `bbf_tdee_leads?select=id,source,email,full_name,age,sex,weight_lbs,height_ft,` +
+        `height_in,activity_factor,goal,tdee_maintenance,tdee_target,macro_p,macro_c,` +
+        `macro_f,converted_lead_id,created_at` +
+        `&order=created_at.desc&limit=${limit}`,
+      );
+      const list = Array.isArray(rows) ? rows : [];
+      return jsonResponse({
+        ok: true,
+        total: list.length,
+        converted: list.filter((l: any) => l.converted_lead_id).length,
+        leads: list,
+      });
     }
 
     // ── tiers (pricing matrix → tier-reassignment dropdown) ──────────────────────

@@ -106,6 +106,51 @@ function buildAdminEmailHtml(source, email, fullName, tier, phone, payload) {
   </div>`;
 }
 
+// ── TDEE / Daily Burn calculator micro-leads (Comlink "TDEE Signals") ──────────
+// Phase 21. A calculator-only prospect has given NO PAR-Q / liability disclosure,
+// so it lives in its own table (bbf_tdee_leads) — never bbf_leads, never
+// bbf_active_clients — so Comlink's "Applications" queue never mixes a screened
+// intake with an unscreened calculator bounce.
+const TDEE_SOURCES = new Set(['tdee_calculator', 'daily_burn']);
+
+function toIntOrNull(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.round(n) : null;
+}
+function toNumOrNull(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Best-effort insert: a failure here must never surface to the visitor as an
+// error — the calculator result is already rendered client-side regardless of
+// whether the capture succeeds.
+async function insertTdeeLead(supabase, { source, email, fullName, payload }) {
+  const p = payload || {};
+  const row = {
+    source,
+    email,
+    full_name: fullName || null,
+    age: toIntOrNull(p.age),
+    sex: p.sex ? String(p.sex) : null,
+    weight_lbs: toNumOrNull(p.weight_lbs),
+    height_ft: toIntOrNull(p.height_ft),
+    height_in: toIntOrNull(p.height_in),
+    activity_factor: toNumOrNull(p.activity_factor),
+    goal: p.goal ? String(p.goal) : null,
+    tdee_maintenance: toIntOrNull(p.tdee_maintenance),
+    tdee_target: toIntOrNull(p.tdee_target),
+    macro_p: toIntOrNull(p.macro_p),
+    macro_c: toIntOrNull(p.macro_c),
+    macro_f: toIntOrNull(p.macro_f),
+  };
+  const { data, error } = await supabase.from('bbf_tdee_leads').insert(row).select('id').single();
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, id: data.id };
+}
+
 function buildLiteWelcomeEmailHtml(fullName, payload) {
   const name = escapeHtml(fullName || 'there');
   const tdee = escapeHtml(payload?.tdee_target ?? '');
@@ -297,6 +342,32 @@ serve(async (req) => {
   const persistPayload = { ...payload };
   delete persistPayload.turnstile_token;
 
+  // ── TDEE / Daily Burn calculator micro-lead — routes to bbf_tdee_leads, NOT
+  // bbf_leads (Phase 21). Returns early: no stageActiveClient, no admin Brevo
+  // notify (Comlink's TDEE Signals view already gives visibility), just a
+  // best-effort snapshot email to the lead.
+  if (TDEE_SOURCES.has(source)) {
+    const result = await insertTdeeLead(supabase, { source, email, fullName, payload: persistPayload });
+    if (!result.ok) {
+      console.error(`[bbf-lead-capture] bbf_tdee_leads insert failed:`, result.error);
+      return jsonResponse({ ok: false, error: 'lead_insert_failed', detail: result.error }, 500, origin);
+    }
+    console.log(`[bbf-lead-capture] tdee lead stored id=${result.id} source=${source} email=${email}`);
+
+    let liteWelcomeOk = false;
+    if (BREVO_API_KEY) {
+      try {
+        const welcomeHtml = buildLiteWelcomeEmailHtml(fullName, persistPayload);
+        const r = await fireBrevoEmail(BREVO_API_KEY, BREVO_FROM_NAME, BREVO_FROM_EMAIL, email, fullName || email, 'Your free BBF Nutrition Snapshot — TDEE + Macros', welcomeHtml, ['bbf-lead-capture', `source:${source}`, 'tdee-welcome']);
+        liteWelcomeOk = r.ok;
+      } catch (e) {
+        console.error(`[bbf-lead-capture] tdee welcome email threw:`, e instanceof Error ? e.message : String(e));
+      }
+    }
+
+    return jsonResponse({ ok: true, tdee_lead_id: result.id, source, lite_welcome_sent: liteWelcomeOk }, 200, origin);
+  }
+
   // 1. Persist lead
   const { data: leadRow, error: leadErr } = await supabase
     .from('bbf_leads')
@@ -315,6 +386,23 @@ serve(async (req) => {
     return jsonResponse({ ok: false, error: 'lead_insert_failed', detail: leadErr.message }, 500, origin);
   }
   console.log(`[bbf-lead-capture] lead stored id=${leadRow.id} source=${source} email=${email}`);
+
+  // 1.2 Best-effort conversion breadcrumb: if this email previously ran the TDEE /
+  // Daily Burn calculator (bbf_tdee_leads, no PAR-Q/liability on file) and is now
+  // completing a full screened application, link it — Comlink's TDEE Signals view
+  // surfaces this as a "Converted" badge. Never blocks the lead insert above.
+  if (source === 'pathfinder') {
+    try {
+      const { error: convErr } = await supabase
+        .from('bbf_tdee_leads')
+        .update({ converted_lead_id: leadRow.id })
+        .eq('email', email)
+        .is('converted_lead_id', null);
+      if (convErr) console.error(`[bbf-lead-capture] tdee conversion backfill failed:`, convErr.message);
+    } catch (e) {
+      console.error(`[bbf-lead-capture] tdee conversion backfill threw:`, e instanceof Error ? e.message : String(e));
+    }
+  }
 
   // 1.5 Stage the prospect into bbf_active_clients (pre-checkout). Best-effort:
   // a staging miss must NEVER drop the captured lead (already persisted above).

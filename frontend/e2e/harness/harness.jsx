@@ -27,6 +27,9 @@ import Recovery from '../../src/components/vault/Recovery.jsx';
 import { lockScoreDigits } from '../../src/lib/scoreLock.js';
 import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
+import Comlink from '../../src/components/command/Comlink.jsx';
+import TDEECalculator from '../../src/components/TDEECalculator.jsx';
+import DailyBurnCalculator from '../../src/pages/DailyBurnCalculator.jsx';
 
 const props = (typeof window !== 'undefined' && window.__HARNESS_PROPS__) || {};
 const which = new URLSearchParams(window.location.search).get('c') || '';
@@ -84,6 +87,22 @@ function RosterShareProbe() {
 
 function pick() {
   switch (which) {
+    case 'comlink':
+      return (
+        <MemoryRouter>
+          <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' }, session: { vaultToken: 'test-vault-token' } }}>
+            <Comlink />
+          </AuthMock>
+        </MemoryRouter>
+      );
+    case 'tdee-calculator':
+      return <TDEECalculator onUseResults={() => {}} />;
+    case 'daily-burn':
+      return (
+        <MemoryRouter>
+          <DailyBurnCalculator />
+        </MemoryRouter>
+      );
     case 'roster-share':
       // Admin session so the roster/telemetry calls fire the way they do in prod.
       return (

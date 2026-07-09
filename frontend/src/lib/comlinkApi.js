@@ -14,6 +14,11 @@
 // Response shapes are unchanged (Render's bodies are returned verbatim):
 //   leads_list     → { ok, total, provisioned, pending, leads:[…] }
 //   concierge_log  → { ok, runs:[{ run_id, started_at, sent, failed, skipped, actions:[…] }] }
+//
+// Phase 21 — TDEE / Daily Burn calculator micro-leads (bbf_tdee_leads). A separate,
+// unscreened lane: no PAR-Q/liability on file, so it is DELIBERATELY never merged
+// into leads_list — Comlink renders it as its own "TDEE Signals" view.
+//   tdee_leads_list → { ok, total, converted, leads:[…] }
 
 import { rosterCall } from './rosterApi.js';
 
@@ -26,4 +31,9 @@ export function fetchLeads(limit = 100) {
 // trigger (which AUTONOMOUSLY SENDS emails) is intentionally NOT wired here.
 export function fetchConciergeLog(limit = 80) {
   return rosterCall('concierge_log', { limit });
+}
+
+// TDEE / Daily Burn calculator micro-leads (most recent first).
+export function fetchTdeeLeads(limit = 100) {
+  return rosterCall('tdee_leads_list', { limit });
 }

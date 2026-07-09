@@ -16,12 +16,18 @@
 // transient errors render in-place with a Retry.
 
 import { useCallback, useEffect, useState } from 'react';
-import { fetchLeads, fetchConciergeLog } from '../../lib/comlinkApi.js';
+import { fetchLeads, fetchConciergeLog, fetchTdeeLeads } from '../../lib/comlinkApi.js';
 import { toErrorMessage } from '../../lib/rosterApi.js';
 import CommandSurface from './CommandSurface.jsx';
 import { Tile, Badge, Loading, Empty } from './primitives.jsx';
 
 export default function Comlink() {
+  // Phase 21 — "Applications" (Pathfinder, existing) vs "TDEE Signals" (new,
+  // calculator-only micro-leads). Two separate lanes by design: TDEE Signals
+  // carry no PAR-Q/liability disclosure, so they never mix into the Pathfinder
+  // triage queue below.
+  const [view, setView] = useState('applications');
+
   const [leads, setLeads] = useState(null);
   const [leadsLoading, setLeadsLoading] = useState(true);
   const [leadsError, setLeadsError] = useState(null);
@@ -29,6 +35,10 @@ export default function Comlink() {
   const [concierge, setConcierge] = useState(null);
   const [conciergeLoading, setConciergeLoading] = useState(true);
   const [conciergeError, setConciergeError] = useState(null);
+
+  const [tdee, setTdee] = useState(null);
+  const [tdeeLoading, setTdeeLoading] = useState(true);
+  const [tdeeError, setTdeeError] = useState(null);
 
   const loadLeads = useCallback(async () => {
     setLeadsLoading(true);
@@ -56,17 +66,31 @@ export default function Comlink() {
     }
   }, []);
 
-  // Auto-load both feeds on mount. Deferred so the initial setState lands outside
-  // the synchronous effect body.
+  const loadTdee = useCallback(async () => {
+    setTdeeLoading(true);
+    setTdeeError(null);
+    try {
+      setTdee(await fetchTdeeLeads(100));
+    } catch (e) {
+      setTdee(null);
+      setTdeeError(toErrorMessage(e));
+    } finally {
+      setTdeeLoading(false);
+    }
+  }, []);
+
+  // Auto-load all three feeds on mount. Deferred so the initial setState lands
+  // outside the synchronous effect body.
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
       loadLeads();
       loadConcierge();
+      loadTdee();
     });
     return () => { cancelled = true; };
-  }, [loadLeads, loadConcierge]);
+  }, [loadLeads, loadConcierge, loadTdee]);
 
   return (
     <CommandSurface
@@ -74,58 +98,117 @@ export default function Comlink() {
       title="The Comlink"
       lede="Incoming Pathfinder leads and the autonomous Concierge log. Unconverted (PENDING) leads and Concierge failures surface first."
     >
-      <div style={styles.toolbar}>
-        <span style={styles.count}>
-          {leadsLoading ? 'Loading…' : leads ? `${leads.total} lead${leads.total === 1 ? '' : 's'}` : '—'}
-        </span>
+      {/* ── Applications vs TDEE Signals — two deliberately separate lanes. ── */}
+      <div role="tablist" aria-label="Comlink views" style={styles.viewToggle}>
         <button
           type="button"
-          style={styles.refresh}
-          onClick={() => { loadLeads(); loadConcierge(); }}
-          disabled={leadsLoading || conciergeLoading}
+          role="tab"
+          aria-selected={view === 'applications'}
+          style={{ ...styles.viewTab, ...(view === 'applications' ? styles.viewTabActive : null) }}
+          onClick={() => setView('applications')}
         >
-          ↻ Refresh
+          Applications
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'tdee-signals'}
+          style={{ ...styles.viewTab, ...(view === 'tdee-signals' ? styles.viewTabActive : null) }}
+          onClick={() => setView('tdee-signals')}
+        >
+          TDEE Signals
         </button>
       </div>
 
-      {/* ── Leads summary (shared Tile primitive). ── */}
-      {!leadsLoading && !leadsError && leads ? (
-        <div style={styles.summary}>
-          <Tile label="Total" value={leads.total} unit="leads" accent="var(--gold-soft)" />
-          <Tile label="Pending" value={leads.pending} unit="to convert" accent="var(--orn)" />
-          <Tile label="Provisioned" value={leads.provisioned} unit="onboarded" accent="var(--grn)" />
-        </div>
-      ) : null}
-
-      {/* ── Incoming leads (primary feed). ── */}
-      <Section title="Incoming Leads">
-        {leadsLoading ? <Loading label="Loading leads…" /> : null}
-        {!leadsLoading && leadsError ? (
-          <ErrorBox message={leadsError} onRetry={loadLeads} />
-        ) : null}
-        {!leadsLoading && !leadsError && leads && (leads.leads || []).length === 0 ? (
-          <Empty>No leads in the queue yet. New Pathfinder submissions land here.</Empty>
-        ) : null}
-        {!leadsLoading && !leadsError && leads && (leads.leads || []).length > 0 ? (
-          <div style={styles.list}>
-            {leads.leads.map((lead) => <LeadRow key={lead.id ?? lead.email} lead={lead} />)}
+      {view === 'applications' ? (
+        <>
+          <div style={styles.toolbar}>
+            <span style={styles.count}>
+              {leadsLoading ? 'Loading…' : leads ? `${leads.total} lead${leads.total === 1 ? '' : 's'}` : '—'}
+            </span>
+            <button
+              type="button"
+              style={styles.refresh}
+              onClick={() => { loadLeads(); loadConcierge(); }}
+              disabled={leadsLoading || conciergeLoading}
+            >
+              ↻ Refresh
+            </button>
           </div>
-        ) : null}
-      </Section>
 
-      {/* ── Concierge log (secondary, read-only). ── */}
-      <Section title="Concierge Activity">
-        {conciergeLoading ? <Loading label="Loading Concierge log…" /> : null}
-        {!conciergeLoading && conciergeError ? (
-          <div style={styles.inlineErr} role="alert">
-            <span style={styles.errMsg}>{conciergeError}</span>
-            <button type="button" style={styles.retry} onClick={loadConcierge}>Retry</button>
+          {/* ── Leads summary (shared Tile primitive). ── */}
+          {!leadsLoading && !leadsError && leads ? (
+            <div style={styles.summary}>
+              <Tile label="Total" value={leads.total} unit="leads" accent="var(--gold-soft)" />
+              <Tile label="Pending" value={leads.pending} unit="to convert" accent="var(--orn)" />
+              <Tile label="Provisioned" value={leads.provisioned} unit="onboarded" accent="var(--grn)" />
+            </div>
+          ) : null}
+
+          {/* ── Incoming leads (primary feed). ── */}
+          <Section title="Incoming Leads">
+            {leadsLoading ? <Loading label="Loading leads…" /> : null}
+            {!leadsLoading && leadsError ? (
+              <ErrorBox message={leadsError} onRetry={loadLeads} />
+            ) : null}
+            {!leadsLoading && !leadsError && leads && (leads.leads || []).length === 0 ? (
+              <Empty>No leads in the queue yet. New Pathfinder submissions land here.</Empty>
+            ) : null}
+            {!leadsLoading && !leadsError && leads && (leads.leads || []).length > 0 ? (
+              <div style={styles.list}>
+                {leads.leads.map((lead) => <LeadRow key={lead.id ?? lead.email} lead={lead} />)}
+              </div>
+            ) : null}
+          </Section>
+
+          {/* ── Concierge log (secondary, read-only). ── */}
+          <Section title="Concierge Activity">
+            {conciergeLoading ? <Loading label="Loading Concierge log…" /> : null}
+            {!conciergeLoading && conciergeError ? (
+              <div style={styles.inlineErr} role="alert">
+                <span style={styles.errMsg}>{conciergeError}</span>
+                <button type="button" style={styles.retry} onClick={loadConcierge}>Retry</button>
+              </div>
+            ) : null}
+            {!conciergeLoading && !conciergeError && concierge ? (
+              <ConciergeLog runs={concierge.runs || []} />
+            ) : null}
+          </Section>
+        </>
+      ) : (
+        <>
+          <div style={styles.toolbar}>
+            <span style={styles.count}>
+              {tdeeLoading ? 'Loading…' : tdee ? `${tdee.total} signal${tdee.total === 1 ? '' : 's'}` : '—'}
+            </span>
+            <button type="button" style={styles.refresh} onClick={loadTdee} disabled={tdeeLoading}>
+              ↻ Refresh
+            </button>
           </div>
-        ) : null}
-        {!conciergeLoading && !conciergeError && concierge ? (
-          <ConciergeLog runs={concierge.runs || []} />
-        ) : null}
-      </Section>
+
+          {!tdeeLoading && !tdeeError && tdee ? (
+            <div style={styles.summary}>
+              <Tile label="Total" value={tdee.total} unit="signals" accent="var(--gold-soft)" />
+              <Tile label="Converted" value={tdee.converted} unit="→ applied" accent="var(--grn)" />
+            </div>
+          ) : null}
+
+          <Section title="TDEE / Daily Burn Signals">
+            {tdeeLoading ? <Loading label="Loading TDEE signals…" /> : null}
+            {!tdeeLoading && tdeeError ? (
+              <ErrorBox message={tdeeError} onRetry={loadTdee} />
+            ) : null}
+            {!tdeeLoading && !tdeeError && tdee && (tdee.leads || []).length === 0 ? (
+              <Empty>No calculator signals yet. TDEE Calculator + Daily Burn captures land here.</Empty>
+            ) : null}
+            {!tdeeLoading && !tdeeError && tdee && (tdee.leads || []).length > 0 ? (
+              <div style={styles.list}>
+                {tdee.leads.map((lead) => <TdeeLeadRow key={lead.id} lead={lead} />)}
+              </div>
+            ) : null}
+          </Section>
+        </>
+      )}
     </CommandSurface>
   );
 }
@@ -156,6 +239,42 @@ function LeadRow({ lead }) {
       {bits.length ? <div style={styles.bits}>{bits.join(' · ')}</div> : null}
       {lead.email ? (
         <a style={styles.mailto} href={`mailto:${lead.email}?subject=${encodeURIComponent('Build Believe Fit — Next Steps')}`}>✉ Email lead</a>
+      ) : null}
+    </div>
+  );
+}
+
+// ── One TDEE / Daily Burn calculator signal. A "Converted" badge shows once the
+// same email later completes a full Pathfinder application (converted_lead_id
+// backfilled server-side) — the intent-to-conversion timeline for the coach. ──
+function TdeeLeadRow({ lead }) {
+  const converted = !!lead.converted_lead_id;
+  const color = converted ? 'var(--grn)' : 'var(--gold-soft)';
+  const bits = [
+    lead.goal ? `Goal: ${lead.goal}` : null,
+    Number.isFinite(lead.tdee_maintenance) ? `${lead.tdee_maintenance.toLocaleString()} maintenance kcal` : null,
+    Number.isFinite(lead.tdee_target) ? `${lead.tdee_target.toLocaleString()} target kcal` : null,
+    (Number.isFinite(lead.macro_p) || Number.isFinite(lead.macro_c) || Number.isFinite(lead.macro_f))
+      ? `P${lead.macro_p ?? '–'} · C${lead.macro_c ?? '–'} · F${lead.macro_f ?? '–'}`
+      : null,
+    lead.source === 'daily_burn' ? 'Daily Burn (/burn)' : 'TDEE Calculator',
+  ].filter(Boolean);
+
+  return (
+    <div style={{ ...styles.row, borderLeft: `3px solid ${color}` }}>
+      <div style={styles.rowHead}>
+        <span style={styles.rowMain}>
+          <span style={styles.rowName}>{lead.full_name || '(no name)'}</span>
+          <span style={styles.rowSub}>{lead.email || '—'}</span>
+        </span>
+        <span style={styles.rowMeta}>
+          {converted ? <Badge label="Converted" color={color} /> : null}
+          <span style={styles.when}>{timeAgo(lead.created_at)}</span>
+        </span>
+      </div>
+      {bits.length ? <div style={styles.bits}>{bits.join(' · ')}</div> : null}
+      {lead.email ? (
+        <a style={styles.mailto} href={`mailto:${lead.email}?subject=${encodeURIComponent('Build Believe Fit — Your Numbers')}`}>✉ Email lead</a>
       ) : null}
     </div>
   );
@@ -226,6 +345,14 @@ function timeAgo(iso) {
 }
 
 const styles = {
+  viewToggle: { display: 'flex', gap: '.5rem', marginBottom: '1.2rem' },
+  viewTab: {
+    fontFamily: 'var(--hb)', fontSize: '.72rem', letterSpacing: '2px', textTransform: 'uppercase',
+    color: 'var(--mut)', background: 'var(--gry)', border: '1px solid var(--line)',
+    borderRadius: 8, padding: '.55rem 1rem', cursor: 'pointer',
+  },
+  viewTabActive: { color: 'var(--wht)', borderColor: 'rgba(245,200,0,.5)', background: 'rgba(245,200,0,.08)' },
+
   toolbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' },
   count: { fontFamily: 'var(--hb)', fontSize: '.78rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--mut)' },
   refresh: {

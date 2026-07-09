@@ -15,6 +15,12 @@ import { useLang } from '../context/LangContext.jsx';
 // TDEE + macro math lives in the shared Native Nutrition Engine (single source of
 // truth) so the calculator and the Pathfinder intake stage identical numbers.
 import { calcTDEE, calcMacros } from './vault/nutritionEngine.js';
+import TdeeLeadCapture from './TdeeLeadCapture.jsx';
+
+// adj → the canonical goal slug persisted with the lead (bbf_tdee_leads.goal).
+function goalSlug(adj) {
+  return adj < 0 ? 'cut' : adj > 0 ? 'gain' : 'maintain';
+}
 
 const GOLD = '#F5C800';
 const GOLD_SOFT = '#F5CF60';
@@ -126,6 +132,26 @@ export default function TDEECalculator({ onUseResults }) {
           >
             {t('tdee-cta')}
           </button>
+
+          {/* Phase 21 — capture the micro-intent lead right here, at the moment they
+              see a real number, instead of only at the (much bigger) Pathfinder ask. */}
+          <TdeeLeadCapture
+            source="tdee_calculator"
+            payload={{
+              age: parseInt(age, 10) || null,
+              sex,
+              weight_lbs: parseFloat(weight) || null,
+              height_ft: parseInt(ft, 10) || null,
+              height_in: parseInt(inch, 10) || null,
+              activity_factor: parseFloat(act) || null,
+              goal: goalSlug(parseInt(goal, 10)),
+              tdee_maintenance: result.base,
+              tdee_target: result.target,
+              macro_p: result.p,
+              macro_c: result.c,
+              macro_f: result.f,
+            }}
+          />
         </div>
       ) : null}
     </div>
