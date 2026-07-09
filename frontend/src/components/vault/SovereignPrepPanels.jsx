@@ -14,19 +14,19 @@
 // actionable friction, TODAY's program muscles (maintenance). emphasis_flag === true
 // items get a gold ring + "Essential" tag and arrive sorted to the top by the edge.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { recoveryVideosFor } from '../../data/recoveryVideos.js';
-import { thumbURL } from './exerciseVideos.js';
-import { PlayIcon } from './icons.jsx';
 import CoachAudioButton from './CoachAudioButton.jsx';
 import { cueToText } from './coachNarrative.js';
 import { fetchSectionCoachAudio } from '../../lib/forecastApi.js';
 
-// Privacy-enhanced (no-cookie) autoplay embed — built ONLY after the athlete taps
-// the branded cover, so nothing streams on initial render (same as Prehab/Program).
-function ytEmbedAutoplay(id) {
-  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
+// Privacy-enhanced (no-cookie) embed — built ONLY inside the pop-up modal, so
+// nothing streams (not even a thumbnail request) while the card sits collapsed.
+// `autoplay` distinguishes the two entry points: WATCH presses play immediately,
+// PREVIEW opens the same mini player paused on the athlete's own YouTube controls.
+function ytEmbedModal(id, autoplay) {
+  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=${autoplay ? 1 : 0}&rel=0&modestbranding=1&playsinline=1`;
 }
 
 // CEO accessibility reorder: equipment-free movements LEAD; foam rolling (needs a
@@ -73,44 +73,89 @@ function groupLabel(g) {
   return String(g || '').split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
-// In-app mini-player — same branded pattern as Program / Prehab: a thumbnail
-// cover with a purple/gold press-play button that swaps to an autoplay embed ON
-// TAP (nothing streams on render; a phase can hold 26 cards). Stays in-app — never
-// sends the athlete out to YouTube. Current language, EN fallback.
+// In-app mini-player pop-up — same proven pattern as the Recovery Prescription
+// card's demo modal (PrescriptionMoveModal): a backdrop + centered player, Esc
+// and backdrop-click both close it, background scroll locks while open. Nothing
+// streams until the athlete explicitly opens it.
+function PrepVideoModal({ videoId, title, autoplay, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+
+  return (
+    <div className="sp-modal-backdrop" role="dialog" aria-modal="true" aria-label={title} onClick={onClose} data-testid="sp-video-modal">
+      <div className="sp-modal" onClick={(e) => e.stopPropagation()}>
+        <header className="sp-modal-head">
+          <span className="sp-modal-title">{title}</span>
+          <button type="button" className="sp-modal-x" onClick={onClose} aria-label="Close" data-testid="sp-video-modal-close">✕</button>
+        </header>
+        <div className="sp-modal-video">
+          <iframe
+            key={`${videoId}-${autoplay ? 1 : 0}`}
+            className="sp-modal-frame"
+            src={ytEmbedModal(videoId, autoplay)}
+            title={title}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// COLLAPSED demo row — the zero-bloat replacement for the always-mounted inline
+// thumbnail: a slim bar (title + WATCH / PREVIEW) that opens the mini player
+// pop-up ONLY on tap. WATCH presses play immediately; PREVIEW opens the same
+// player paused so the athlete can peek the form cue before committing. Nothing
+// (not even a thumbnail image) renders until one of the two is pressed — a phase
+// can hold 26 cards with zero permanent video weight. Current language, EN fallback.
 function PrepVideo({ id, lang, t }) {
-  const [playing, setPlaying] = useState(false);
+  const [modal, setModal] = useState(null); // null | { autoplay: boolean }
   const vids = recoveryVideosFor(id, lang);
   if (!vids.length) return null;
   const v = vids[0];
-  if (playing) {
-    return (
-      <div className="sp-player is-playing">
-        <iframe
-          key={v.id}
-          className="sp-player-frame"
-          src={ytEmbedAutoplay(v.id)}
-          title={v.t}
-          loading="lazy"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-        />
-      </div>
-    );
-  }
   return (
-    <button
-      type="button"
-      className="sp-player bbf-video-cover"
-      onClick={() => setPlaying(true)}
-      aria-label={t('sp-watch')}
-      data-testid="sp-watch"
-    >
-      <img className="sp-player-thumb" src={thumbURL(v.id)} alt="" loading="lazy" referrerPolicy="no-referrer" />
-      <span className="bbf-video-overlay" aria-hidden="true">
-        <span className="bbf-video-play"><PlayIcon size={24} /></span>
-      </span>
-    </button>
+    <>
+      <div className="sp-video-row" data-testid="sp-video-row">
+        <span className="sp-video-label">
+          <span className="sp-video-ic" aria-hidden="true">🎬</span>
+          {t('sp-video-label')}
+        </span>
+        <span className="sp-video-actions">
+          <button
+            type="button"
+            className="sp-video-preview"
+            onClick={() => setModal({ autoplay: false })}
+            data-testid="sp-preview"
+          >
+            {t('sp-preview')}
+          </button>
+          <button
+            type="button"
+            className="sp-video-watch"
+            onClick={() => setModal({ autoplay: true })}
+            data-testid="sp-watch"
+          >
+            ▶ {t('sp-watch')}
+          </button>
+        </span>
+      </div>
+      {modal ? (
+        <PrepVideoModal
+          videoId={v.id}
+          title={v.t}
+          autoplay={modal.autoplay}
+          onClose={() => setModal(null)}
+        />
+      ) : null}
+    </>
   );
 }
 

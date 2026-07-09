@@ -499,6 +499,8 @@ const DICT = {
   'sp-essential': { en: 'Essential', es: 'Esencial', pt: 'Essencial' },
   'sp-watch': { en: 'Watch demo', es: 'Ver demo', pt: 'Ver demo' },
   'sp-watch-hide': { en: 'Hide demo', es: 'Ocultar demo', pt: 'Ocultar demo' },
+  'sp-video-label': { en: 'Form demo', es: 'Demo de técnica', pt: 'Demo de técnica' },
+  'sp-preview': { en: 'Preview', es: 'Vista previa', pt: 'Prévia' },
   'sp-more': { en: 'More:', es: 'Más:', pt: 'Mais:' },
   'sp-phase1': { en: 'Tissue Release', es: 'Liberación de Tejido', pt: 'Liberação de Tecido' },
   'sp-phase1-sub': { en: 'Foam rolling & soft-tissue', es: 'Rodillo y tejido blando', pt: 'Rolo e tecido mole' },

@@ -32,6 +32,7 @@ import TDEECalculator from '../../src/components/TDEECalculator.jsx';
 import DailyBurnCalculator from '../../src/pages/DailyBurnCalculator.jsx';
 import PremiumSessionPlayer from '../../src/components/vault/PremiumSessionPlayer.jsx';
 import LiveCheckinCoach from '../../src/components/vault/LiveCheckinCoach.jsx';
+import SovereignPrepPanels from '../../src/components/vault/SovereignPrepPanels.jsx';
 
 const props = (typeof window !== 'undefined' && window.__HARNESS_PROPS__) || {};
 const which = new URLSearchParams(window.location.search).get('c') || '';
@@ -209,6 +210,28 @@ function pick() {
         <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' } }}>
           <SovereignStudioV4 />
         </AuthMock>
+      );
+    case 'sovereign-prep-panels':
+      // Direct-prop mount of the shared Sovereign Prep renderer (bypasses
+      // Recovery.jsx's live bbf-agentic-recovery fetch) — exercises the REAL
+      // collapsed video row + mini-player pop-up on a static prep envelope.
+      // 'stat_calf_001' is a real key in data/recoveryVideos.js (a demo IS
+      // available); 'no_demo_item' matches nothing (a card with no video row).
+      return (
+        <SovereignPrepPanels
+          data={{
+            prep_drills: [{
+              id: 'stat_calf_001', name: 'Wall Calf Stretch', muscle_group: 'calf',
+              prescription: { reps: '10', tempo: 'controlled' },
+              cues: { form: 'Keep the back heel grounded.' },
+            }],
+            recovery_stretches: [],
+            foam_rolling: [{
+              id: 'no_demo_item', name: 'Undemoed Movement', muscle_group: 'back',
+              prescription: { passes: '3' }, cues: {},
+            }],
+          }}
+        />
       );
     case 'client-hub':
       // Coaching Velocity rig — the REAL ClientHub + RosterProvider under an
