@@ -71,8 +71,10 @@ function LabHub() {
         ))}
       </div>
 
-      {/* ── THE GUIDED TRACK — the day's dosed checklist (never a gate) ── */}
-      <GuidedTrack />
+      {/* ── THE GUIDED TRACK — the day's dosed checklist (never a gate).
+             The video item names the day's Sequence-Mapper lesson and routes
+             straight into the Vault, where that lesson renders featured. ── */}
+      <GuidedTrack onOpenVault={() => setMode('vault')} />
 
       {/* the four Mastery Views + Immersion — one surface at a time */}
       <div className="lm-mode-tabs" role="tablist" aria-label="mastery modes">

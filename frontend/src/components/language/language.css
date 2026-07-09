@@ -224,6 +224,10 @@
 .gt-item-mark { display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; height: 1.1rem; border-radius: 50%; font-size: .66rem; color: #0e0a16; background: rgba(255, 255, 255, .14); flex: none; }
 .gt-item.is-done .gt-item-mark { background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60)); }
 .gt-item-label { font-family: var(--bd); font-size: .8rem; letter-spacing: .3px; color: #e6ddf5; white-space: nowrap; }
+/* The Sequence-Mapper video item — a real button carrying the day's lesson title. */
+.gt-item--assigned { cursor: pointer; min-width: 0; flex: 1.4; text-align: left; font: inherit; color: inherit; }
+.gt-item--assigned:hover { border-color: var(--yel, #f5c800); }
+.gt-item--assigned .gt-item-label { overflow: hidden; text-overflow: ellipsis; }
 .gt-item-count { font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; color: var(--gold-soft, #f5cf60); margin-left: auto; }
 .gt-item.is-done .gt-item-count { color: var(--yel, #f5c800); }
 .gt-bar { height: .35rem; border-radius: 999px; background: rgba(255, 255, 255, .08); margin-top: .7rem; overflow: hidden; }
@@ -241,6 +245,10 @@
   border: 1px solid rgba(255, 255, 255, .12); background: rgba(9, 9, 9, .4);
 }
 .vv-row.is-reviewed { border-color: rgba(245, 200, 0, .5); background: rgba(245, 200, 0, .06); }
+/* The day's assigned lesson (Sequence Mapper) — featured, purple→gold framed. */
+.vv-row.is-assigned { border-color: rgba(245, 200, 0, .6); background: linear-gradient(135deg, rgba(106, 13, 173, .28), rgba(9, 9, 9, .6)); margin-bottom: .9rem; }
+.vv-assigned-tag { font-family: var(--hb); font-size: .68rem; letter-spacing: 1.5px; text-transform: uppercase; color: #0e0a16; background: linear-gradient(90deg, var(--yel, #f5c800), #ffd83a); border-radius: 999px; padding: .16rem .6rem; align-self: flex-start; margin-bottom: .2rem; }
+.vv-library-label { font-family: var(--hb); font-size: .68rem; letter-spacing: 2px; text-transform: uppercase; color: #9c92b5; margin: .2rem 0 .45rem; }
 .vv-meta { display: flex; flex-direction: column; gap: .12rem; min-width: 0; }
 .vv-level { font-family: var(--hb); font-size: .64rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
 .vv-name { font-family: var(--bd); font-weight: 700; font-size: .92rem; color: #fff; }

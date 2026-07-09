@@ -9,6 +9,10 @@
 // Completing all three stamps the server unlock flag; the strip flips to the
 // gold "Day N+1 unlocked" state.
 //
+// SEQUENCE MAPPER BINDING: the Video Vault item is not generic — it names the
+// day's ASSIGNED lesson (Day N → chronological index N−1, per language) and
+// clicking it routes straight to that lesson in the Vault (onOpenVault).
+//
 // FREE ROAM by design: nothing below is ever locked — the strip is telemetry,
 // not a gate — and the collapse chevron tucks it away entirely for pure
 // free-roam sessions (persisted, so the preference survives refreshes).
@@ -19,6 +23,7 @@
 import { useState } from 'react';
 import { useLanguageLab } from './LanguageLabContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
+import { getAssignedVideo } from './sequenceMapper.js';
 import './language.css';
 
 const COLLAPSE_KEY = 'bbf_lab_track_collapsed';
@@ -28,6 +33,7 @@ const GT_STR = {
     kicker: 'Guided Track · Curriculum Engine',
     day: (n) => `Day ${n}`,
     items: { vocab: 'Vocab Cards', syntax: 'Syntax Rule', video: 'Video Vault' },
+    review: 'Review:',
     complete: (n) => `Day ${n - 1} complete — Day ${n} unlocked.`,
     freeRoam: 'The modular tools below stay open — the track fills as you train.',
     collapse: 'Hide track', expand: 'Show track',
@@ -36,6 +42,7 @@ const GT_STR = {
     kicker: 'Ruta Guiada · Motor de Currículo',
     day: (n) => `Día ${n}`,
     items: { vocab: 'Tarjetas de Vocabulario', syntax: 'Regla de Sintaxis', video: 'Bóveda de Video' },
+    review: 'Repaso:',
     complete: (n) => `Día ${n - 1} completo — Día ${n} desbloqueado.`,
     freeRoam: 'Las herramientas modulares siguen abiertas — la ruta se llena mientras entrenas.',
     collapse: 'Ocultar ruta', expand: 'Mostrar ruta',
@@ -44,6 +51,7 @@ const GT_STR = {
     kicker: 'Trilha Guiada · Motor de Currículo',
     day: (n) => `Dia ${n}`,
     items: { vocab: 'Cartões de Vocabulário', syntax: 'Regra de Sintaxe', video: 'Cofre de Vídeo' },
+    review: 'Revisão:',
     complete: (n) => `Dia ${n - 1} completo — Dia ${n} desbloqueado.`,
     freeRoam: 'As ferramentas modulares continuam abertas — a trilha se preenche enquanto você treina.',
     collapse: 'Ocultar trilha', expand: 'Mostrar trilha',
@@ -56,14 +64,17 @@ function readCollapsed() {
 
 const ITEM_ORDER = ['vocab', 'syntax', 'video'];
 
-export default function GuidedTrack() {
+export default function GuidedTrack({ onOpenVault }) {
   const { lang } = useLang();
-  const { curriculum } = useLanguageLab();
+  const { target, curriculum } = useLanguageLab();
   const tr = GT_STR[lang] || GT_STR.en;
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
   // No session / RPC unreachable → the lab stays a pure free-roam toolset.
   if (!curriculum.ready) return null;
+
+  // Sequence Mapper: the day's assigned Video Vault lesson for this language.
+  const assignedVideo = getAssignedVideo(target, curriculum.day);
 
   const toggle = () => {
     setCollapsed((c) => {
@@ -101,6 +112,25 @@ export default function GuidedTrack() {
               const req = requirements[k];
               const done = Math.min(progress[k], req);
               const isDone = done >= req;
+              // The video item carries its Sequence-Mapper assignment: the day's
+              // specific lesson title, click-through into the Vault.
+              if (k === 'video' && assignedVideo) {
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    className={`gt-item gt-item--assigned${isDone ? ' is-done' : ''}`}
+                    role="listitem"
+                    data-testid="gt-item-video"
+                    onClick={onOpenVault}
+                    title={`${tr.items.video} — ${assignedVideo.title}`}
+                  >
+                    <span className="gt-item-mark" aria-hidden="true">{isDone ? '✓' : ''}</span>
+                    <span className="gt-item-label">{tr.review} {assignedVideo.title}</span>
+                    <span className="gt-item-count">{done}/{req}</span>
+                  </button>
+                );
+              }
               return (
                 <div key={k} className={`gt-item${isDone ? ' is-done' : ''}`} role="listitem" data-testid={`gt-item-${k}`}>
                   <span className="gt-item-mark" aria-hidden="true">{isDone ? '✓' : ''}</span>
