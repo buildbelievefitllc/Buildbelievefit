@@ -28,6 +28,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { warmUpSpeech } from '../../lib/speechFallback.js';
 import { speakBaked, warmUpAudioPlayback } from '../../lib/languageSoundboardVoice.js';
+import { useNarrator } from '../language/useNarrator.js';
 import { useSpeechEvaluator, comparePhrases } from '../../lib/useSpeechEvaluator.js';
 import { loadLanguageProgress, saveLanguageScore, recordVocabAttempt } from '../../lib/languageProgressApi.js';
 import languageVideoLibrary from '../../data/languageVideoLibrary.json';
@@ -365,17 +366,14 @@ function CopyBtn({ text }) {
   );
 }
 
-// Voice button — Coach Akeem's ElevenLabs voice, played from the pre-baked static
-// clip library (speakBaked; see scripts/build-language-soundboard-cues.mjs), with a
-// live-synth-then-browser-voice fallback chain if a cue is ever missing/unavailable.
-// The lang prop is a BBF code ('es' | 'pt'); the warm-up calls prime iOS's speech +
-// audio engines inside the click gesture so the first cue is never swallowed.
+// The soundboard 🔊 — now routed through the unified SYSTEM NARRATION ENGINE
+// toggle (useNarrator): Coach Akeem's pre-baked ElevenLabs clip when that persona
+// is selected, or the premium Natural Synthesizer (Web Speech) otherwise. Both
+// paths keep their own fallback floor, so the button is never dead. The lang prop
+// is a BBF code ('es' | 'pt').
 function SpeakBtn({ text, lang = 'es', label = '🔊' }) {
-  const speak = () => {
-    warmUpSpeech();
-    warmUpAudioPlayback();
-    speakBaked({ text, lang }).catch(() => { /* both voice paths unavailable — silent */ });
-  };
+  const { narrate } = useNarrator();
+  const speak = () => narrate({ text, lang });
   return (
     <button type="button" className="lr-speak" onClick={speak} aria-label={`Listen: ${text}`}>
       {label}
@@ -1486,7 +1484,9 @@ function VoiceDrill({ drill }) {
   );
 }
 
-function TabVoiceStudio() {
+// Exported so the unified Language Lab can mount the Voice Studio as its OWN
+// dedicated sub-tab (not buried inside the full hub) — same component, no fork.
+export function TabVoiceStudio() {
   const [i, setI] = useState(0);
   const groups = [...new Set(VOICE_DRILLS.map((d) => d.group))];
   return (

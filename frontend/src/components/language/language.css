@@ -6,6 +6,28 @@
 
 /* ═══ Command Center panel (LanguageMasteryPanel) ═══ */
 .lm-panel { display: flex; flex-direction: column; gap: 1.2rem; }
+
+/* ── SYSTEM NARRATION ENGINE — the global voice-persona toggle (top header) ── */
+.lm-engine {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding: .7rem .9rem; border-radius: 14px;
+  border: 1px solid var(--panel-edge, rgba(106, 13, 173, .35));
+  background: linear-gradient(135deg, rgba(106, 13, 173, .22), rgba(9, 6, 14, .92));
+  position: relative; overflow: hidden;
+}
+.lm-engine::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--pur, #6a0dad), var(--yel, #f5c800)); }
+.lm-engine-label { font-family: var(--hb); font-size: .74rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+.lm-engine-seg { display: inline-flex; gap: .35rem; background: rgba(9, 6, 14, .5); border: 1px solid var(--line, rgba(255,255,255,.12)); border-radius: 999px; padding: .25rem; }
+.lm-engine-chip {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--gold-soft, #f5cf60); background: transparent; border: none;
+  border-radius: 999px; padding: .45rem 1.1rem; cursor: pointer; white-space: nowrap;
+}
+.lm-engine-chip.is-active { color: var(--blk, #090909); background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60)); }
+.lm-engine-chip-dot { width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; opacity: .55; }
+.lm-engine-chip.is-active .lm-engine-chip-dot { opacity: 1; box-shadow: 0 0 0 3px rgba(9, 6, 14, .25); }
+@media (max-width: 560px) { .lm-engine { flex-direction: column; align-items: stretch; } .lm-engine-seg { justify-content: center; } }
 .lm-target-toggle { display: inline-flex; gap: .4rem; }
 .lm-target-chip {
   font-family: var(--hb); font-size: .9rem; letter-spacing: 1.5px; text-transform: uppercase;
@@ -255,6 +277,8 @@
 .vv-channel { font-family: var(--bd); font-size: .76rem; color: #9c92b5; }
 .vv-actions { display: flex; gap: .45rem; flex: none; }
 .vv-watch { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, #6a0dad, #4a0979); border: 1px solid rgba(245, 200, 0, .35); border-radius: 999px; padding: .4rem .85rem; text-decoration: none; white-space: nowrap; }
+.vv-hear { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); background: transparent; border: 1px solid var(--panel-edge, rgba(106, 13, 173, .3)); border-radius: 999px; padding: .4rem .85rem; cursor: pointer; white-space: nowrap; }
+.vv-hear:hover { color: var(--yel, #f5c800); border-color: var(--yel, #f5c800); }
 .vv-mark { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: #0e0a16; background: linear-gradient(90deg, #f5c800, #ffd83a); border: none; border-radius: 999px; padding: .4rem .85rem; cursor: pointer; white-space: nowrap; }
 .vv-mark:disabled { cursor: default; }
 .vv-mark.is-done { background: none; border: 1px solid rgba(245, 200, 0, .6); color: var(--yel, #f5c800); }
@@ -287,6 +311,8 @@
 /* ── Audio Dojo (screen-locked Pimsleur stitch player) ───────────────────────── */
 .dojo-shell { padding: 1rem 1.1rem; border-radius: 16px; border: 1px solid rgba(245,200,0,.45); background: linear-gradient(135deg, rgba(106,13,173,.3), rgba(9,9,9,.55)); }
 .dojo-lesson { font-family: var(--hb); color: rgba(244,238,251,.85); letter-spacing: 1px; margin-bottom: .6rem; }
+.dojo-engine { font-family: var(--bd); font-size: .78rem; line-height: 1.4; color: #c9bfe0; background: rgba(9,9,9,.4); border: 1px solid var(--line, rgba(255,255,255,.12)); border-left: 3px solid var(--pur, #6a0dad); border-radius: 8px; padding: .5rem .7rem; margin-bottom: .7rem; }
+.dojo-engine.is-akeem { border-left-color: var(--yel, #f5c800); color: #f5cf60; }
 .dojo-controls { margin: .4rem 0 .6rem; }
 .dojo-btn { font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; color: #0e0a16; background: linear-gradient(90deg, #f5c800, #ffd83a); border: none; border-radius: 999px; padding: .6rem 1.25rem; cursor: pointer; }
 .dojo-btn--stop { background: none; border: 1px solid rgba(255,255,255,.3); color: #fff; }

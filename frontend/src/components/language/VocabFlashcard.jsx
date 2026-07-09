@@ -17,14 +17,14 @@
 //
 // @param {{ language?: 'es'|'pt' }} props
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useVocabGym } from './useVocabGym.js';
 import { useLanguageLab } from './LanguageLabContext.jsx';
+import { useNarrator } from './useNarrator.js';
 import { useLangUiStr } from './languageStrings.js';
 import { useLang } from '../../context/LangContext.jsx';
 import { violatesGramStandard } from '../../lib/gramGuard.js';
 import { logLanguageAttempt } from '../../lib/languageLabApi.js';
-import { fragmentUrl } from './useDojoPlayer.js';
 import './language.css';
 
 // Purple (Learning) → Gold (Mastered) ramp across the five Leitner boxes.
@@ -74,8 +74,8 @@ export default function VocabFlashcard({ language = 'es' }) {
   const [hits, setHits] = useState(0);
   const [flaggedTerm, setFlaggedTerm] = useState(null);
   const [typed, setTyped] = useState('');
-  const [clipDead, setClipDead] = useState(false); // fragment unbaked → hide the button
-  const clipRef = useRef(null);
+  const [clipDead, setClipDead] = useState(false); // Akeem chain fully failed → hide the button
+  const { narrate } = useNarrator();               // routes 🔊 through the global engine toggle
 
   // The hook removes each reviewed term from the queue, so the active card is
   // always queue[0]. `done` drives the progress denominator (stable across a session).
@@ -113,11 +113,20 @@ export default function VocabFlashcard({ language = 'es' }) {
     if (res && res.ok) setFlaggedTerm(card.term);
   }
 
+  // Routed through the global SYSTEM NARRATION ENGINE toggle (useNarrator):
+  //   Coach Akeem → the term's pre-baked native VOC clip (its exact clipKey);
+  //   Natural     → the term spoken by the premium Web Speech voice.
+  // Both paths carry their own fallback floor, so the 🔊 is never dead — the
+  // old "unbaked fragment hides the button" behavior only trips if Akeem's whole
+  // chain fails, never in Natural mode.
   function playClip() {
-    const el = clipRef.current;
-    if (!el || !card) return;
-    el.src = fragmentUrl(termClipKey(card.term));
-    el.play().catch(() => setClipDead(true));
+    if (!card) return;
+    narrate({
+      text: card.term,
+      lang: language,
+      clipKey: termClipKey(card.term),
+      onError: () => setClipDead(true),
+    });
   }
 
   // ── states ──
@@ -173,8 +182,6 @@ export default function VocabFlashcard({ language = 'es' }) {
                 {fstr.clip}
               </button>
             ) : null}
-            {/* hidden clip element — an unbaked fragment silently retires the button */}
-            <audio ref={clipRef} preload="none" style={{ display: 'none' }} onError={() => setClipDead(true)} />
 
             {clusterLabel ? <div className="lg-cluster-tag" title={ls.injectedFrom}>{clusterLabel}</div> : null}
 

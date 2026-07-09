@@ -10,6 +10,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDojoPlayer } from './useDojoPlayer.js';
+import { useNarrator } from './useNarrator.js';
 import { savePimsleurCheckpoint, getLanguageDashboard, logLanguageAttempt } from '../../lib/languageLabApi.js';
 import { warmUpAudioPlayback } from '../../lib/languageSoundboardVoice.js';
 import { useLang } from '../../context/LangContext.jsx';
@@ -17,9 +18,9 @@ import curriculum from '../../data/audioDojoCurriculum.json';
 import './language.css';
 
 const DOJO_STR = {
-  en: { kicker: 'Audio Dojo · Pimsleur', title: 'The Stitch Loop', lesson: (n) => `Lesson ${n}`, start: '▶ Start Lesson', resume: (n) => `▶ Resume at fragment ${n + 1}`, stop: '■ Stop', playing: (i, t) => `Fragment ${i + 1} of ${t} — anticipation pauses run on the audio clock.`, locked: '🔒 Screen lock held for the session', done: '✓ Lesson complete — checkpoint saved.', calibrating: 'Calibrating — the native fragment library for this lesson is still baking. Check back soon.' },
-  es: { kicker: 'Dojo de Audio · Pimsleur', title: 'El Bucle Cosido', lesson: (n) => `Lección ${n}`, start: '▶ Iniciar Lección', resume: (n) => `▶ Continuar en fragmento ${n + 1}`, stop: '■ Detener', playing: (i, t) => `Fragmento ${i + 1} de ${t} — las pausas corren en el reloj de audio.`, locked: '🔒 Pantalla activa durante la sesión', done: '✓ Lección completa — punto de control guardado.', calibrating: 'Calibrando — la biblioteca de fragmentos nativos de esta lección aún se está preparando. Vuelve pronto.' },
-  pt: { kicker: 'Dojo de Áudio · Pimsleur', title: 'O Loop Costurado', lesson: (n) => `Lição ${n}`, start: '▶ Iniciar Lição', resume: (n) => `▶ Retomar no fragmento ${n + 1}`, stop: '■ Parar', playing: (i, t) => `Fragmento ${i + 1} de ${t} — as pausas correm no relógio de áudio.`, locked: '🔒 Tela ativa durante a sessão', done: '✓ Lição completa — ponto de controle salvo.', calibrating: 'Calibrando — a biblioteca de fragmentos nativos desta lição ainda está sendo preparada. Volte em breve.' },
+  en: { kicker: 'Audio Dojo · Pimsleur', title: 'The Stitch Loop', lesson: (n) => `Lesson ${n}`, start: '▶ Start Lesson', resume: (n) => `▶ Resume at fragment ${n + 1}`, stop: '■ Stop', playing: (i, t) => `Fragment ${i + 1} of ${t} — anticipation pauses run on the audio clock.`, locked: '🔒 Screen lock held for the session', done: '✓ Lesson complete — checkpoint saved.', calibrating: 'Calibrating — the native fragment library for this lesson is still baking. Check back soon.', engAkeem: '🎙 Coach Akeem — native baked pronunciation', engNatural: '🎙 The stitch drill always uses Coach Akeem’s native baked voices (native pronunciation is required for recall). The Natural Synthesizer drives the other modules.' },
+  es: { kicker: 'Dojo de Audio · Pimsleur', title: 'El Bucle Cosido', lesson: (n) => `Lección ${n}`, start: '▶ Iniciar Lección', resume: (n) => `▶ Continuar en fragmento ${n + 1}`, stop: '■ Detener', playing: (i, t) => `Fragmento ${i + 1} de ${t} — las pausas corren en el reloj de audio.`, locked: '🔒 Pantalla activa durante la sesión', done: '✓ Lección completa — punto de control guardado.', calibrating: 'Calibrando — la biblioteca de fragmentos nativos de esta lección aún se está preparando. Vuelve pronto.', engAkeem: '🎙 Coach Akeem — pronunciación nativa pregrabada', engNatural: '🎙 El bucle siempre usa las voces nativas pregrabadas de Coach Akeem (la pronunciación nativa es esencial para el recuerdo). El Sintetizador Natural gobierna los otros módulos.' },
+  pt: { kicker: 'Dojo de Áudio · Pimsleur', title: 'O Loop Costurado', lesson: (n) => `Lição ${n}`, start: '▶ Iniciar Lição', resume: (n) => `▶ Retomar no fragmento ${n + 1}`, stop: '■ Parar', playing: (i, t) => `Fragmento ${i + 1} de ${t} — as pausas correm no relógio de áudio.`, locked: '🔒 Tela ativa durante a sessão', done: '✓ Lição completa — ponto de controle salvo.', calibrating: 'Calibrando — a biblioteca de fragmentos nativos desta lição ainda está sendo preparada. Volte em breve.', engAkeem: '🎙 Coach Akeem — pronúncia nativa pré-gravada', engNatural: '🎙 O loop sempre usa as vozes nativas pré-gravadas do Coach Akeem (a pronúncia nativa é essencial para a memorização). O Sintetizador Natural comanda os outros módulos.' },
 };
 
 // Wall-clock read, hoisted to module scope (the render-purity rule forbids a bare
@@ -65,6 +66,7 @@ function lessonFragments(language, lessonNumber) {
 
 export default function AudioDojo({ language = 'es' }) {
   const { lang } = useLang();
+  const { engine } = useNarrator(); // reflect the global SYSTEM NARRATION ENGINE state
   const tr = DOJO_STR[lang] || DOJO_STR.en;
   const [lesson, setLesson] = useState(1);
   const [resumeSeq, setResumeSeq] = useState(0);
@@ -134,6 +136,13 @@ export default function AudioDojo({ language = 'es' }) {
       <span className="lm-kicker">{tr.kicker}</span>
       <h3 className="lm-title">{tr.title}</h3>
       <div className="dojo-lesson">{tr.lesson(lesson)}</div>
+
+      {/* Engine awareness: the stitch drill is intrinsically native-baked (Zero-API
+          law + native-pronunciation pedagogy), so it reflects the toggle honestly
+          rather than degrading to a synthetic voice reading foreign text. */}
+      <div className={`dojo-engine${engine === 'akeem' ? ' is-akeem' : ''}`} data-testid="dojo-engine-note">
+        {engine === 'akeem' ? tr.engAkeem : tr.engNatural}
+      </div>
 
       {status === 'calibrating' ? (
         <div className="dojo-status dojo-status--calibrating" data-testid="dojo-calibrating">{tr.calibrating}</div>

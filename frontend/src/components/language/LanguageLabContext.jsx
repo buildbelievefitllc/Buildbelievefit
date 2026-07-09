@@ -2,11 +2,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // THE BILINGUAL STATE MATRIX + CURRICULUM ENGINE — the Language Lab's global state.
 //
-// One provider owns BOTH lab-wide concerns:
+// One provider owns the lab-wide concerns:
 //   • target — the ACTIVE LEARNING LANGUAGE ('es' | 'pt'). Persisted to
 //     localStorage ('bbf_lab_target') so the state survives unmounts and page
 //     refreshes — a PT session can never accidentally log into the ES ledger.
 //     Every module below the provider keys its DB reads/writes on this value.
+//   • narrationEngine — THE SYSTEM NARRATION ENGINE ('natural' | 'akeem'). The
+//     global voice-persona toggle that meshes the two voice systems into one:
+//       'natural' → the premium native Web Speech player (speechNarrator.js)
+//       'akeem'   → Coach Akeem's pre-baked ElevenLabs clips (speakBaked chain)
+//     Persisted to 'bbf_lab_narration_engine'; every 🔊 across the Lab reads it
+//     through useNarrator so a single toggle re-routes ALL playback at once.
 //   • curriculum — the Guided Track state for the active target: current day,
 //     the daily dose requirements, live counters, and logModuleProgress — the
 //     single write path the modules call (Forge → 'vocab', Path → 'syntax',
@@ -22,6 +28,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { getCurriculumTrack, logCurriculumProgress } from '../../lib/languageLabApi.js';
 
 const TARGET_KEY = 'bbf_lab_target';
+const ENGINE_KEY = 'bbf_lab_narration_engine';
 const FALLBACK_REQ = { vocab: 10, syntax: 1, video: 1 };
 
 function readStoredTarget() {
@@ -29,6 +36,13 @@ function readStoredTarget() {
     const t = localStorage.getItem(TARGET_KEY);
     return t === 'pt' ? 'pt' : 'es';
   } catch { return 'es'; }
+}
+
+// Default 'natural' — the premium native Web Speech output (per the toggle spec).
+function readStoredEngine() {
+  try {
+    return localStorage.getItem(ENGINE_KEY) === 'akeem' ? 'akeem' : 'natural';
+  } catch { return 'natural'; }
 }
 
 const INERT_CURRICULUM = {
@@ -42,6 +56,8 @@ const INERT_CURRICULUM = {
 const LanguageLabContext = createContext({
   target: 'es',
   setTarget: () => {},
+  narrationEngine: 'natural',
+  setNarrationEngine: () => {},
   curriculum: INERT_CURRICULUM,
   logModuleProgress: () => Promise.resolve({ ok: false, error: 'no_provider' }),
 });
@@ -53,6 +69,7 @@ export function useLanguageLab() {
 
 export function LanguageLabProvider({ children }) {
   const [target, setTargetState] = useState(readStoredTarget);
+  const [narrationEngine, setEngineState] = useState(readStoredEngine);
   const [curr, setCurr] = useState({ ...INERT_CURRICULUM, loading: true });
   const alive = useRef(true);
 
@@ -60,6 +77,14 @@ export function LanguageLabProvider({ children }) {
     const next = tg === 'pt' ? 'pt' : 'es';
     setTargetState(next);
     try { localStorage.setItem(TARGET_KEY, next); } catch { /* quota / private mode */ }
+  }, []);
+
+  // THE SYSTEM NARRATION ENGINE toggle — persisted so the chosen voice persona
+  // survives refreshes/unmounts, exactly like the target-language matrix.
+  const setNarrationEngine = useCallback((eng) => {
+    const next = eng === 'akeem' ? 'akeem' : 'natural';
+    setEngineState(next);
+    try { localStorage.setItem(ENGINE_KEY, next); } catch { /* quota / private mode */ }
   }, []);
 
   // Shared shape mapper for both RPC responses (get + log return the same envelope).
@@ -106,8 +131,8 @@ export function LanguageLabProvider({ children }) {
   }, [target, applyTrack]);
 
   const value = useMemo(
-    () => ({ target, setTarget, curriculum: curr, logModuleProgress }),
-    [target, setTarget, curr, logModuleProgress],
+    () => ({ target, setTarget, narrationEngine, setNarrationEngine, curriculum: curr, logModuleProgress }),
+    [target, setTarget, narrationEngine, setNarrationEngine, curr, logModuleProgress],
   );
 
   return <LanguageLabContext.Provider value={value}>{children}</LanguageLabContext.Provider>;

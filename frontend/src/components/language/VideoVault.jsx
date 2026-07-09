@@ -13,19 +13,21 @@
 
 import { useMemo, useState } from 'react';
 import { useLanguageLab } from './LanguageLabContext.jsx';
+import { useNarrator } from './useNarrator.js';
 import { useLang } from '../../context/LangContext.jsx';
 import { getVideoSequence, getAssignedVideo } from './sequenceMapper.js';
 import './language.css';
 
 const VV_STR = {
-  en: { kicker: 'Video Vault · Immersion Media', title: 'Curated native input', sub: 'One assigned lesson a day — no subtitles when you can hold it. Mark it reviewed to clear the track item.', assigned: (n) => `Today's assignment · Day ${n}`, watch: '▶ Watch', mark: 'Mark reviewed', marked: '✓ Reviewed', library: 'Full sequence', empty: 'The vault for this language is still being curated.' },
-  es: { kicker: 'Bóveda de Video · Medios de Inmersión', title: 'Contenido nativo curado', sub: 'Una lección asignada al día — sin subtítulos cuando puedas sostenerlo. Márcala como revisada para completar el punto de la ruta.', assigned: (n) => `Lección de hoy · Día ${n}`, watch: '▶ Ver', mark: 'Marcar revisado', marked: '✓ Revisado', library: 'Secuencia completa', empty: 'La bóveda para este idioma aún se está curando.' },
-  pt: { kicker: 'Cofre de Vídeo · Mídia de Imersão', title: 'Conteúdo nativo curado', sub: 'Uma lição designada por dia — sem legendas quando conseguir sustentar. Marque como revisada para completar o item da trilha.', assigned: (n) => `Lição de hoje · Dia ${n}`, watch: '▶ Assistir', mark: 'Marcar revisado', marked: '✓ Revisado', library: 'Sequência completa', empty: 'O cofre para este idioma ainda está sendo curado.' },
+  en: { kicker: 'Video Vault · Immersion Media', title: 'Curated native input', sub: 'One assigned lesson a day — no subtitles when you can hold it. Mark it reviewed to clear the track item.', assigned: (n) => `Today's assignment · Day ${n}`, watch: '▶ Watch', hear: '🔊 Preview', mark: 'Mark reviewed', marked: '✓ Reviewed', library: 'Full sequence', empty: 'The vault for this language is still being curated.' },
+  es: { kicker: 'Bóveda de Video · Medios de Inmersión', title: 'Contenido nativo curado', sub: 'Una lección asignada al día — sin subtítulos cuando puedas sostenerlo. Márcala como revisada para completar el punto de la ruta.', assigned: (n) => `Lección de hoy · Día ${n}`, watch: '▶ Ver', hear: '🔊 Escuchar', mark: 'Marcar revisado', marked: '✓ Revisado', library: 'Secuencia completa', empty: 'La bóveda para este idioma aún se está curando.' },
+  pt: { kicker: 'Cofre de Vídeo · Mídia de Imersão', title: 'Conteúdo nativo curado', sub: 'Uma lição designada por dia — sem legendas quando conseguir sustentar. Marque como revisada para completar o item da trilha.', assigned: (n) => `Lição de hoje · Dia ${n}`, watch: '▶ Assistir', hear: '🔊 Ouvir', mark: 'Marcar revisado', marked: '✓ Revisado', library: 'Sequência completa', empty: 'O cofre para este idioma ainda está sendo curado.' },
 };
 
 export default function VideoVault({ language = 'es' }) {
   const { lang } = useLang();
   const { curriculum, logModuleProgress } = useLanguageLab();
+  const { narrate } = useNarrator(); // 🔊 title preview through the global engine toggle
   const tr = VV_STR[lang] || VV_STR.en;
   const [reviewed, setReviewed] = useState(() => new Set());
   const [busyId, setBusyId] = useState(null);
@@ -60,6 +62,16 @@ export default function VideoVault({ language = 'es' }) {
         </div>
         <div className="vv-actions">
           <a className="vv-watch" href={v.url} target="_blank" rel="noopener noreferrer">{tr.watch}</a>
+          {/* Title preview in the active narration engine — the video itself is the
+              native immersion audio; this just previews what the lesson covers. */}
+          <button
+            type="button"
+            className="vv-hear"
+            onClick={() => narrate({ text: v.title, lang: 'en' })}
+            data-testid="vv-hear"
+          >
+            {tr.hear}
+          </button>
           <button
             type="button"
             className={`vv-mark${done ? ' is-done' : ''}`}

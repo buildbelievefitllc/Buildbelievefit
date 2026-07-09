@@ -11,6 +11,7 @@
 import { useMemo, useState } from 'react';
 import { logLanguageAttempt } from '../../lib/languageLabApi.js';
 import { useLanguageLab } from './LanguageLabContext.jsx';
+import { useNarrator } from './useNarrator.js';
 import { useLang } from '../../context/LangContext.jsx';
 import './language.css';
 
@@ -29,9 +30,9 @@ const SENTENCES = {
 };
 
 const TP_STR = {
-  en: { kicker: 'The Path · Syntax', title: 'Build the sentence', drop: 'Drag the chips here — in order', check: 'Check', next: 'Next sentence', reset: 'Reset', correct: '✓ Correct — locked in.', wrong: '✗ Not quite — reset and rebuild.', doneTitle: 'Path complete', done: (c, t) => `${c}/${t} sentences correct — logged to your ledger.` },
-  es: { kicker: 'La Senda · Sintaxis', title: 'Construye la frase', drop: 'Arrastra las fichas aquí — en orden', check: 'Comprobar', next: 'Siguiente frase', reset: 'Reiniciar', correct: '✓ Correcto — asegurado.', wrong: '✗ Casi — reinicia y reconstruye.', doneTitle: 'Senda completa', done: (c, t) => `${c}/${t} frases correctas — registrado en tu historial.` },
-  pt: { kicker: 'A Trilha · Sintaxe', title: 'Monte a frase', drop: 'Arraste as fichas aqui — em ordem', check: 'Verificar', next: 'Próxima frase', reset: 'Reiniciar', correct: '✓ Correto — garantido.', wrong: '✗ Quase — reinicie e remonte.', doneTitle: 'Trilha completa', done: (c, t) => `${c}/${t} frases corretas — registrado no seu histórico.` },
+  en: { kicker: 'The Path · Syntax', title: 'Build the sentence', drop: 'Drag the chips here — in order', check: 'Check', next: 'Next sentence', reset: 'Reset', hear: '🔊 Hear it', correct: '✓ Correct — locked in.', wrong: '✗ Not quite — reset and rebuild.', doneTitle: 'Path complete', done: (c, t) => `${c}/${t} sentences correct — logged to your ledger.` },
+  es: { kicker: 'La Senda · Sintaxis', title: 'Construye la frase', drop: 'Arrastra las fichas aquí — en orden', check: 'Comprobar', next: 'Siguiente frase', reset: 'Reiniciar', hear: '🔊 Escúchala', correct: '✓ Correcto — asegurado.', wrong: '✗ Casi — reinicia y reconstruye.', doneTitle: 'Senda completa', done: (c, t) => `${c}/${t} frases correctas — registrado en tu historial.` },
+  pt: { kicker: 'A Trilha · Sintaxe', title: 'Monte a frase', drop: 'Arraste as fichas aqui — em ordem', check: 'Verificar', next: 'Próxima frase', reset: 'Reiniciar', hear: '🔊 Ouça', correct: '✓ Correto — garantido.', wrong: '✗ Quase — reinicie e remonte.', doneTitle: 'Trilha completa', done: (c, t) => `${c}/${t} frases corretas — registrado no seu histórico.` },
 };
 
 // Deterministic scramble (rotate + interleave) — stable per sentence, never the
@@ -45,6 +46,7 @@ function scramble(words) {
 export default function ThePath({ language = 'es' }) {
   const { lang } = useLang();
   const { logModuleProgress } = useLanguageLab(); // Guided Track dose counter (inert off-provider)
+  const { narrate } = useNarrator();              // 🔊 routes through the global engine toggle
   const tr = TP_STR[lang] || TP_STR.en;
   const bank = SENTENCES[language === 'pt' ? 'pt' : 'es'];
 
@@ -145,6 +147,16 @@ export default function ThePath({ language = 'es' }) {
 
       <div className="tp-actions">
         <button type="button" className="tp-btn tp-btn--ghost" onClick={reset}>{tr.reset}</button>
+        {/* Hear the model sentence in the active narration engine (Coach Akeem's
+            baked native voice, or the premium Web Speech synthesizer). */}
+        <button
+          type="button"
+          className="tp-btn tp-btn--ghost"
+          onClick={() => narrate({ text: sentence.words.join(' '), lang: language })}
+          data-testid="path-hear"
+        >
+          {tr.hear}
+        </button>
         {verdict === 'correct' && si + 1 < bank.length ? (
           <button type="button" className="tp-btn" onClick={advance} data-testid="path-next">{tr.next}</button>
         ) : (

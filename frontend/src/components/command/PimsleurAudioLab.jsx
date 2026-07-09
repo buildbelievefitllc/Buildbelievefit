@@ -17,7 +17,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { warmUpSpeech } from '../../lib/speechFallback.js';
-import { speakBaked, warmUpAudioPlayback, bakedClipUrl } from '../../lib/languageSoundboardVoice.js';
+import { warmUpAudioPlayback, bakedClipUrl } from '../../lib/languageSoundboardVoice.js';
+import { useNarrator } from '../language/useNarrator.js';
 import { getLessonFlow, SPEAKER_VOICE, SPEAKER_LABEL } from '../../lib/pimsleurAudioEngine.js';
 import { createBackgroundLesson, silentWavUri } from '../../lib/backgroundLessonAudio.js';
 import curriculum from '../../data/pimsleurAudioCurriculum.json';
@@ -182,12 +183,11 @@ function SpeakerDot({ speaker }) {
   return <span className={`lr-audio-dot ${cls}`} aria-hidden="true" />;
 }
 
+// The vocabulary-grid 🔊 respects the global SYSTEM NARRATION ENGINE toggle:
+// Coach Akeem's baked native clip, or the premium Natural Synthesizer voice.
 function PreviewSpeakBtn({ text, voice }) {
-  const speak = () => {
-    warmUpSpeech();
-    warmUpAudioPlayback();
-    speakBaked({ text, lang: voice.lang, voiceGender: voice.voiceGender, rate: rateFor('pt') }).catch(() => { /* silent */ });
-  };
+  const { narrate } = useNarrator();
+  const speak = () => narrate({ text, lang: voice.lang, rate: rateFor('pt') });
   return <button type="button" className="lr-speak" onClick={speak} aria-label={`Listen: ${text}`}>🔊</button>;
 }
 
