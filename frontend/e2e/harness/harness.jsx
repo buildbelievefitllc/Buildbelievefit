@@ -30,6 +30,8 @@ import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx'
 import Comlink from '../../src/components/command/Comlink.jsx';
 import TDEECalculator from '../../src/components/TDEECalculator.jsx';
 import DailyBurnCalculator from '../../src/pages/DailyBurnCalculator.jsx';
+import PremiumSessionPlayer from '../../src/components/vault/PremiumSessionPlayer.jsx';
+import LiveCheckinCoach from '../../src/components/vault/LiveCheckinCoach.jsx';
 
 const props = (typeof window !== 'undefined' && window.__HARNESS_PROPS__) || {};
 const which = new URLSearchParams(window.location.search).get('c') || '';
@@ -207,6 +209,63 @@ function pick() {
         <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' } }}>
           <SovereignStudioV4 />
         </AuthMock>
+      );
+    case 'premium-session': {
+      // Product 1 rig — the REAL player + engine + inflection governor, driven by
+      // a synthetic play contract of decodable silent-WAV clips (no network) and a
+      // spec-controlled HR feed (window.__pushHr). Governor timing comes from the
+      // manifest policy, so the spec compresses hysteresis/cooldown to test scale.
+      const clip = () => silentWavUrl(500);
+      const manifest = {
+        day: '2026-01-01', locale: 'en', category: 'strength', zone: 'green',
+        total_duration_ms: 30_000,
+        music: null, // voice-only — the bed is an enhancement layer (blueprint §2.6)
+        timeline: [
+          { slot: 'W0_INTRO', path: 'seg/a.mp3', url: clip(), start_ms: 0, duration_ms: 500, gap_after_ms: 200 },
+          { slot: 'B1_S1_CALL', path: 'seg/b.mp3', url: clip(), start_ms: 1500, duration_ms: 500, gap_after_ms: 200 },
+        ],
+        degraded_slots: [],
+        blocks: [{
+          id: 'B1', exercise: 'Lateral Pull-Down', sets: 3, reps: '8-10', rest_target_s: 90,
+          hr_band: { floor: 110, ceiling: 150 }, work_window_ms: [0, 30_000],
+        }],
+        inflections: {
+          variants: {
+            INF_HR_LOW: { path: 'inf/low.mp3', url: clip(), duration_ms: 500 },
+            INF_HR_HIGH: { path: 'inf/high.mp3', url: clip(), duration_ms: 500 },
+            INF_ON_TARGET: { path: 'inf/on.mp3', url: clip(), duration_ms: 500 },
+          },
+          policy: { hysteresis_s: 0.2, cooldown_s: 0.5, inject_at: 'seam_only' },
+        },
+      };
+      const hrSource = (cb) => {
+        window.__pushHr = (bpm) => cb(bpm);
+        return () => { delete window.__pushHr; };
+      };
+      return (
+        <PremiumSessionPlayer
+          plan={null}
+          fetchManifest={async () => manifest}
+          hrSource={hrSource}
+        />
+      );
+    }
+    case 'live-checkin':
+      // Product 2 rig — the REAL component state machine over a scripted fake
+      // session (no ElevenLabs/network): connect → agent turn → commitment →
+      // client-driven end. Mirrors the hooks contract of lib/convaiSession.js.
+      return (
+        <LiveCheckinCoach
+          mode={props.mode || 'mindset'}
+          sessionFactory={async ({ hooks }) => {
+            setTimeout(() => hooks.onStatus?.('connected'), 30);
+            setTimeout(() => hooks.onModeChange?.('speaking'), 60);
+            setTimeout(() => hooks.onAgentResponse?.("There he is. Talk to me — where's your head at today?"), 90);
+            setTimeout(() => hooks.onTranscript?.('Locked in. Three fasted walks this week.'), 140);
+            setTimeout(() => hooks.onCommitment?.({ text: 'Three fasted walks', due: 'this week' }), 180);
+            return { end: async () => hooks.onDisconnect?.(), sessionId: 'harness-session', capMin: 8 };
+          }}
+        />
       );
     default:
       return <div data-testid="harness-unknown">unknown component: {which}</div>;

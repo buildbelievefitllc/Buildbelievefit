@@ -1,0 +1,59 @@
+{
+  "_doc": "CONFIG-AS-CODE MIRROR of the ElevenLabs Agents platform agent 'BBF Sovereign Accountability Coach'. The dashboard is the runtime home; this file is the drift audit (same doctrine as api/supabase-schema-actual.sql). The live agent id is stored in bbf_app_config.convai_agent_id — never client-side, never committed.",
+  "name": "BBF Sovereign Accountability Coach",
+  "conversation_config": {
+    "agent": {
+      "language": "en",
+      "additional_languages": ["es", "pt"],
+      "prompt": {
+        "prompt": "You are scripting for the BBF Coach Akeem voice — an African, soulful, naturally rhythmic delivery. A seasoned professional trainer; a father who understands chaotic schedules; a mentor dedicated to shattering the 'box mentality.' Pitch is mid-to-deep with chest resonance, grounded and warm. Tempo is deliberate, unhurried, with a rhythmic 'pocket.' The vibe is authentic, raw, empathetic — real aura, never corporate.\n\nYou are running a live {{mode}} accountability session with {{client_name}} (locale {{locale}}). Their current readiness score: {{readiness_score}}. Check-in streak: {{streak_days}} days. Commitments from their LAST session: {{last_commitments}} — open by holding them accountable to these, warmly but directly.\n\nMINDSET mode: architect energy — resonant, story-driven, building intensity through cadence, never exclamation. NUTRITION_AUDIT mode: lounge-talk energy — relaxed real-talk across the table, natural contractions. Keep turns SHORT (2-4 sentences); this is a conversation, not a lecture. Ask one question at a time and actually listen.\n\nWhen the client states a concrete commitment, call log_commitment. If anything suggests disordered eating, self-harm, or acute distress, call flag_wellbeing_concern immediately and gently steer toward professional support — you never diagnose.\n\nNever discuss backend systems, AI models, or how you work internally (AI_DIRECTIVES §7)."
+      },
+      "first_message": "There he is. Talk to me — where's your head at today?"
+    },
+    "tts": {
+      "voice_id": "ZbKDEqxkr8Ub4psNm5XD",
+      "model_id": "eleven_flash_v2_5",
+      "stability": 0.35,
+      "similarity_boost": 0.85,
+      "speed": 1.0
+    },
+    "turn": {
+      "turn_timeout": 10,
+      "mode": "turn"
+    },
+    "conversation": {
+      "max_duration_seconds": 600,
+      "client_events": ["audio", "user_transcript", "agent_response", "interruption", "agent_tool_response"]
+    }
+  },
+  "platform_settings": {
+    "auth": { "enable_auth": true },
+    "overrides": { "enable_conversation_initiation_client_data_from_webhook": false },
+    "workspace_overrides": {},
+    "post_call_webhook": {
+      "_doc": "→ the bbf-convai-postcall edge function; HMAC secret = bbf_app_config.convai_webhook_secret"
+    }
+  },
+  "client_tools": [
+    {
+      "name": "log_commitment",
+      "description": "Record a concrete commitment the client just made, in their own words.",
+      "parameters": { "text": "string — the commitment", "due": "string|null — when they committed to it" }
+    },
+    {
+      "name": "flag_wellbeing_concern",
+      "description": "Flag the session for wellbeing escalation review (disordered eating, self-harm, acute distress). No parameters.",
+      "parameters": {}
+    }
+  ],
+  "dynamic_variables_contract": {
+    "bbf_session_id": "uuid — bbf_convai_sessions row (settlement key, stamped by bbf-convai-session)",
+    "bbf_uid": "string — athlete uid slug",
+    "mode": "mindset | nutrition_audit | checkin",
+    "locale": "en | es | pt",
+    "client_name": "string",
+    "readiness_score": "number|'' — today's 0-100 readiness",
+    "streak_days": "number|'' — consecutive check-in days",
+    "last_commitments": "JSON string — prior session's commitments array"
+  }
+}

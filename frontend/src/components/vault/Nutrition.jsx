@@ -37,6 +37,7 @@ import { resolveMealArt, MEAL_ART } from './mealArt.js';
 import CoachVoiceNote from './CoachVoiceNote.jsx';
 import ContextualVoiceover from './ContextualVoiceover.jsx';
 import { AUDIO_CTX_NUTRITION } from '../../lib/contextualVoiceover.js';
+import LiveCheckinCoach from './LiveCheckinCoach.jsx';
 import { useNutritionSync } from '../../lib/useNutritionSync.js';
 import { syncMealLog } from '../../lib/mealLogApi.js';
 import NutritionSyncCard from './NutritionSyncCard.jsx';
@@ -1384,6 +1385,13 @@ export default function Nutrition({ plans, profile }) {
           pt: 'Por que esses macros são calculados a partir do seu GEDT — e por que bater os números, não a receita exata, é o que traz resultados.',
         }}
       />
+
+      {/* ── LIVE NUTRITION AUDIT — Product 2 (Apex band). Real-time spoken audit
+          with the Akeem persona (ConvAI 2.0 / WebRTC). Hidden for locked tiers —
+          the Nutrition tab already carries its own Apex upsell surfaces. ── */}
+      <TierGate feature="mindset_live" render="hide">
+        <LiveCheckinCoach mode="nutrition_audit" />
+      </TierGate>
 
       {/* ── PERSONAL NUTRITION NOTE — account-specific (gated); warm "why" over the plan ── */}
       {personal?.nutrition ? (

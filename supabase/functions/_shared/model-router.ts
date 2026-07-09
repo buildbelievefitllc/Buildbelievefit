@@ -41,6 +41,8 @@ export type UseCase =
   // forecast_1rm — MIGRATED off the LLM to the deterministic engine
   //   (_shared/forecast-engine.mjs · Epley + Brzycki + OLS regression). No LLM route.
   | 'sport_immersion_seed'    // Immersion · static sport-immersion seed
+  | 'premium_inflection_scripts' // Premium Audio Engine · short pre-baked biometric inflection cue variants (low-stakes narration)
+  | 'convai_dynamic_brief'    // Live Mindset Coach · pre-session dynamic-variable packaging (low-stakes)
   // ── SONNET tier · vision + mid-complexity reasoning ───────────────
   | 'kinematic_form_score'    // Single-image biomechanics scoring (vision)
   | 'novel_form_correction'   // Comlink · novel deviation correction (vision-adjacent)
@@ -54,6 +56,7 @@ export type UseCase =
   | 'coach_protocol_critique' // Coach Lab · Arena — score the coach's protocol vs NASM/NSCA
   | 'coach_broadcast_synthesis' // Coach Lab · Broadcast — synthesize vault entries into a client newsletter
   | 'sovereign_audio_briefing'  // Sovereign Audio — Day-30 graduation voice briefing (premium narration, mid-complexity → Sonnet)
+  | 'premium_session_script'    // Premium Audio Engine — full-session segmented narration plan (per-athlete, mid-complexity → Sonnet)
   | 'eagle_eye_alignment'       // BBF Eagle Eye — secondary-brain cross-check of daily readiness vs weekly-report coaching-cue buckets (per-client reasoned synthesis)
   | 'eagle_eye_intervention'    // BBF Eagle Eye — client-facing empathetic, intrinsic-motivation escalation script when a client stays dark on a re-engagement nudge
   // ── OPUS tier · peak reasoning · safety-critical only ─────────────
@@ -88,6 +91,9 @@ const MODEL_MAP: Record<UseCase, Model> = {
   coach_protocol_critique: MODELS.SONNET, // reasoned scorecard vs NASM/NSCA guidelines
   coach_broadcast_synthesis: MODELS.HAIKU, // reformatting structured summaries into newsletter prose (low-stakes)
   sovereign_audio_briefing: MODELS.SONNET, // Sovereign Audio graduation briefing — premium narration, NOT safety-critical → Sonnet (§4)
+  premium_session_script: MODELS.SONNET, // Premium Audio Engine session narration — parity with sovereign_audio_briefing, NOT safety-critical → Sonnet
+  premium_inflection_scripts: MODELS.HAIKU, // short fixed-slot inflection cues — low-stakes narration (margin protection)
+  convai_dynamic_brief:  MODELS.HAIKU, // packaging structured facts for the live agent's context — low-stakes
   eagle_eye_alignment:   MODELS.SONNET, // secondary-brain cue-alignment synthesis — reasoned cross-check, NOT a live safety call (deterministic engine owns the verdict) → Sonnet (§4 margin)
   eagle_eye_intervention: MODELS.SONNET, // client-facing empathetic escalation script — warmth/nuance/trilingual matter (parity with sovereign_audio_briefing), NOT safety-critical → Sonnet
   // parq_assessment removed — now deterministic (see public.bbf_parq_assess).

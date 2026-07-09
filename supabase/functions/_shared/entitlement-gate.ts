@@ -96,6 +96,8 @@ export const FEATURE_ACCESS: Record<string, Group[]> = {
   nutrition_periodization: APEX_BAND, // Fuel Sovereign — periodized / meal-timing (timing_plan) UI
   sovereign_comlink:  APEX_BAND,
   coach_orchestration:APEX_BAND,
+  premium_audio:      APEX_BAND, // Biometric Narration & Music Engine (premium session tracks)
+  mindset_live:       APEX_BAND, // Live Mindset & Accountability Coach (ConvAI, metered by bbf_voice_token_ledger)
   // Youth band only (+ God) — the Athlete Portal suite.
   sports_hub:         YOUTH_BAND,
   roster:             YOUTH_BAND,

@@ -43,6 +43,8 @@ import DailyAffirmationCoach from './DailyAffirmationCoach.jsx';
 import { L10N, readLocked, writeLocked } from './championMindsetData.js';
 import { isParent } from '../../lib/personalTouches.js';
 import { PARENTS_WELLBEING, parentsBucket } from './parentsWellbeingData.js';
+import TierGate from '../TierGate.jsx';
+import LiveCheckinCoach from './LiveCheckinCoach.jsx';
 import './championMindset.css';
 
 export default function ChampionMindset() {
@@ -136,6 +138,13 @@ export default function ChampionMindset() {
         </h2>
         <p className="cm-sub">{L.sub}</p>
       </section>
+
+      {/* ── 1b · LIVE MINDSET CHECK-IN — Product 2 (Apex band). Real-time spoken
+          accountability session with the Akeem persona (ConvAI 2.0 / WebRTC).
+          Locked tiers see the upsell overlay (visibility-as-sales). ── */}
+      <TierGate feature="mindset_live" featureLabel="Live Mindset Check-In" testId="mindset-live-gate">
+        <LiveCheckinCoach mode="mindset" />
+      </TierGate>
 
       {/* ── 2 · Affirmation row (Repositioning V-07): the voice-coached daily
           affirmation and the static Vault affirmation are sibling content — they

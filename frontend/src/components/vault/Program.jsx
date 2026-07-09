@@ -26,6 +26,8 @@ import { AUDIO_CTX_PROGRAM_RPE } from '../../lib/contextualVoiceover.js';
 import TierGate from '../TierGate.jsx';
 import { buildCoachCue } from './coachCue.js';
 import { SequenceCTA } from './SovereignSequence.jsx';
+import PremiumSessionPlayer from './PremiumSessionPlayer.jsx';
+import { createHrSource } from '../../lib/liveHeartRate.js';
 
 // Trilingual UI chrome (EN verbatim to the prior hardcoded copy so the default
 // language keeps the vault-logging E2E selectors green). Module-local dictionary
@@ -139,6 +141,13 @@ export default function Program({ plans, profile, onSequence }) {
           pt: 'Como ler as faixas de repetições e o RPE para bater a intensidade prescrita — não só cumprir o movimento.',
         }}
       />
+
+      {/* ── PREMIUM SESSION AUDIO — Product 1 (Apex band). Akeem narrates today's
+          protocol over a composed music bed; live HR splices pacing cues at seams.
+          Locked tiers see the upsell overlay (visibility-as-sales). ── */}
+      <TierGate feature="premium_audio" featureLabel="Premium Session Audio" testId="premium-audio-gate">
+        <PremiumSessionPlayer plan={dynamicPlan} hrSource={createHrSource()} />
+      </TierGate>
 
       <ProgramGrid uid={uid} programKey={user?.programKey} dynamicPlan={dynamicPlan} />
 
