@@ -210,6 +210,16 @@ function pick() {
           <SovereignStudioV4 />
         </AuthMock>
       );
+    case 'client-hub':
+      // Coaching Velocity rig — the REAL ClientHub + RosterProvider under an
+      // admin session; the spec intercepts the roster edge fn + telemetry RPCs.
+      return (
+        <MemoryRouter>
+          <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' }, session: { vaultToken: 'test-vault-token' } }}>
+            <RosterProvider><ClientHub /></RosterProvider>
+          </AuthMock>
+        </MemoryRouter>
+      );
     case 'premium-session': {
       // Product 1 rig — the REAL player + engine + inflection governor, driven by
       // a synthetic play contract of decodable silent-WAV clips (no network) and a

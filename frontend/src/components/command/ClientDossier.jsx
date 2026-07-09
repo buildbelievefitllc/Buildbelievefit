@@ -35,6 +35,7 @@ import { buildMealPlan } from '../../lib/nutritionEngine.js';
 import { getSportsProtocol, setSportsProtocol, setMealPlan, getLivePlans } from '../../lib/protocolOverrideApi.js';
 import { generateProgram, toAssignedPlan, GOALS, LEVELS, LOCATIONS, DAY_OPTIONS } from '../vault/generatorEngine.js';
 import SovereignAthlete from './SovereignAthlete.jsx';
+import DossierPulse from './DossierPulse.jsx';
 import { useAthleteWearable } from '../../lib/wearableApi.js';
 import './analytics.css';
 
@@ -198,6 +199,11 @@ export default function ClientDossier({ client, onBack, onRosterRefresh }) {
 
       {data ? (
         <div ref={opsRef}>
+          {/* R2 CONSOLIDATION — one bbf_athlete_dossier RPC hydrates the whole
+              pulse band (readiness/vitals/protocols/last-touch), replacing the
+              five separate per-athlete reads these tiles previously required.
+              Remaining fragmented reads below migrate onto useAthleteDossier. */}
+          <DossierPulse athleteId={client.id} />
           {isAthlete ? (
             <div style={styles.opsDivider}>
               <span style={styles.opsKicker}>Operational Decks · Live Controls</span>

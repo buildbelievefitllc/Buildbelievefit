@@ -32,7 +32,9 @@ const BODY = "'Barlow Condensed',sans-serif";
 // lead (age, sex, weight_lbs, height_ft, height_in, activity_factor, goal,
 // tdee_maintenance, tdee_target, macro_p, macro_c, macro_f) — whatever the
 // calling calculator actually has. `source` is 'tdee_calculator' | 'daily_burn'.
-export default function TdeeLeadCapture({ source, payload }) {
+// `onCaptured` (optional): fires ONCE on successful capture — the Explorer Mode
+// guest-token mint hangs off this moment (the visitor just submitted details).
+export default function TdeeLeadCapture({ source, payload, onCaptured }) {
   const { lang } = useLang();
   const { containerRef, obtainToken } = useTurnstile(TURNSTILE_SITE_KEY);
   const [name, setName] = useState('');
@@ -62,6 +64,7 @@ export default function TdeeLeadCapture({ source, payload }) {
         lang,
       );
       setState({ busy: false, done: true, err: null });
+      try { onCaptured?.(); } catch { /* the capture itself already succeeded */ }
     } catch (err) {
       setState({ busy: false, done: false, err: err?.message || 'Could not save — please try again.' });
     }

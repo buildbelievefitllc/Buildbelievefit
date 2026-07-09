@@ -16,6 +16,7 @@ import { useLang } from '../context/LangContext.jsx';
 // truth) so the calculator and the Pathfinder intake stage identical numbers.
 import { calcTDEE, calcMacros } from './vault/nutritionEngine.js';
 import TdeeLeadCapture from './TdeeLeadCapture.jsx';
+import { startExplorerSession } from '../lib/explorerSession.js';
 
 // adj → the canonical goal slug persisted with the lead (bbf_tdee_leads.goal).
 function goalSlug(adj) {
@@ -39,6 +40,7 @@ export default function TDEECalculator({ onUseResults }) {
   const [act, setAct] = useState('1.55');
   const [goal, setGoal] = useState('-500'); // adj: cut -500 / maintain 0 / gain +300
   const [result, setResult] = useState(null);
+  const [explorerReady, setExplorerReady] = useState(false);
   const [error, setError] = useState(null);
 
   function calculate(e) {
@@ -151,7 +153,36 @@ export default function TDEECalculator({ onUseResults }) {
               macro_c: result.c,
               macro_f: result.f,
             }}
+            onCaptured={() => {
+              // EXPLORER MODE gateway — the guest token initializes the moment the
+              // visitor submits their details (conversion funnel upgrade).
+              startExplorerSession({
+                source: 'tdee_calculator',
+                profile: {
+                  age: parseInt(age, 10) || null,
+                  sex,
+                  weight_lbs: parseFloat(weight) || null,
+                  height_ft: parseInt(ft, 10) || null,
+                  height_in: parseInt(inch, 10) || null,
+                  activity_factor: parseFloat(act) || null,
+                },
+                targets: {
+                  goal: goalSlug(parseInt(goal, 10)),
+                  tdee_maintenance: result.base,
+                  tdee_target: result.target,
+                  macro_p: result.p,
+                  macro_c: result.c,
+                  macro_f: result.f,
+                },
+              });
+              setExplorerReady(true);
+            }}
           />
+          {explorerReady ? (
+            <a href="/explore" style={st.exploreCta} data-testid="enter-explorer">
+              ◇ Enter Explorer Mode →
+            </a>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -176,6 +207,13 @@ function Macro({ label, value }) {
 }
 
 const st = {
+  exploreCta: {
+    display: 'block', marginTop: 10, textAlign: 'center', textDecoration: 'none',
+    fontFamily: "'Bebas Neue',sans-serif", fontSize: '1rem', letterSpacing: '2px',
+    textTransform: 'uppercase', color: '#1B1106',
+    background: 'linear-gradient(180deg, #F5C800, #D4AF37)', borderRadius: 8,
+    padding: '.65rem 1rem', boxShadow: '0 10px 30px rgba(245,200,0,.28)',
+  },
   widget: { background: `linear-gradient(160deg, rgba(30,3,64,.5), rgba(13,1,26,.85))`, border: `1px solid rgba(157,39,201,.3)`, borderRadius: 20, padding: 'clamp(20px,4vw,32px)', maxWidth: 680, margin: '0 auto' },
   head: { textAlign: 'center', marginBottom: 20 },
   lbl: { fontFamily: BODY, fontSize: '.66rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL },

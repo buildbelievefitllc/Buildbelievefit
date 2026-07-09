@@ -26,6 +26,7 @@ import { useRoster } from './RosterProvider.jsx';
 import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import ClientDossier from './ClientDossier.jsx';
+import { velocityMap, floatCriticalFirst, VELOCITY_BANDS } from '../../lib/coachingVelocity.js';
 import ForgeAthlete from './ForgeAthlete.jsx';
 import './founderfive.css';
 
@@ -33,6 +34,7 @@ import './founderfive.css';
 // clients bubble to the top (insufficient/no-score sink to the bottom).
 const SORTS = [
   ['name', 'Name'],
+  ['velocity', 'Velocity ↑'],
   ['adherence', 'Adherence ↑'],
   ['tonnage', 'Tonnage ↓'],
 ];
@@ -105,6 +107,13 @@ export default function ClientHub() {
   ), [roster, calMap]);
   const activeClient = data.find((c) => rowKey(c) === activeId) || null;
 
+  // COACHING VELOCITY INDEX — one pass over roster × telemetry (pure client-side
+  // ranking, lib/coachingVelocity.js). Rows without radar data grade CALIBRATING.
+  const velMap = useMemo(
+    () => velocityMap(data, telemetry, (c) => c.id ?? c.uid ?? c.email),
+    [data, telemetry],
+  );
+
   // Live, real stats derived from the roster payload (no fabricated numbers): the
   // active head-count and the share of athletes with a configured macro target.
   const total = data.length;
@@ -117,7 +126,7 @@ export default function ClientHub() {
       const hay = `${c.name || ''} ${c.uid || ''} ${c.email || ''} ${division(c)}`.toLowerCase();
       return hay.includes(q);
     });
-    if (sortBy === 'name') return base;
+    if (sortBy === 'name') return base; // critical-first float applies downstream
     const rk = (c) => c.id ?? c.uid ?? c.email;
     const rows = [...base];
     if (sortBy === 'adherence') {
@@ -132,9 +141,24 @@ export default function ClientHub() {
       });
     } else if (sortBy === 'tonnage') {
       rows.sort((a, b) => (telemetry[rk(b)]?.tonnage_week || 0) - (telemetry[rk(a)]?.tonnage_week || 0));
+    } else if (sortBy === 'velocity') {
+      // Low→High: the slowest coaching velocity (most outreach-urgent) first;
+      // calibrating rows (no score) sink to the bottom.
+      rows.sort((a, b) => {
+        const va = velMap[rk(a)]?.score;
+        const vb = velMap[rk(b)]?.score;
+        return (va == null ? Infinity : va) - (vb == null ? Infinity : vb);
+      });
     }
     return rows;
-  }, [data, filter, sortBy, telemetry]);
+  }, [data, filter, sortBy, telemetry, velMap]);
+
+  // CRITICAL OUTREACH ALERTS float to the ABSOLUTE TOP of the grid regardless
+  // of the active sort — the intervention surface is never buried.
+  const displayed = useMemo(
+    () => floatCriticalFirst(filtered, velMap, (c) => c.id ?? c.uid ?? c.email),
+    [filtered, velMap],
+  );
 
   const execName = (user?.displayName || user?.username || 'Sovereign').toUpperCase();
 
@@ -180,7 +204,7 @@ export default function ClientHub() {
           />
           <div className="ff-toolbar">
             <span className="ff-count">
-              {isLoading ? 'Loading…' : `${filtered.length} of ${total} athlete${total === 1 ? '' : 's'}`}
+              {isLoading ? 'Loading…' : `${displayed.length} of ${total} athlete${total === 1 ? '' : 's'}`}
             </span>
             <button type="button" className="ff-refresh" onClick={refreshAll} disabled={isLoading}>
               ↻ Refresh
@@ -228,19 +252,20 @@ export default function ClientHub() {
             <div className="ff-state">No athletes on the roster yet.</div>
           ) : null}
 
-          {!isLoading && !error && total > 0 && filtered.length === 0 ? (
+          {!isLoading && !error && total > 0 && displayed.length === 0 ? (
             <div className="ff-state">No athletes match “{filter}”.</div>
           ) : null}
 
-          {!isLoading && !error && filtered.length > 0 ? (
+          {!isLoading && !error && displayed.length > 0 ? (
             <ul className="ff-list">
-              {filtered.map((c) => (
+              {displayed.map((c) => (
                 <ClientRow
                   key={rowKey(c)}
                   client={c}
                   active={rowKey(c) === activeId}
                   onSelect={() => setActiveId(rowKey(c))}
                   tel={telemetry[rowKey(c)] || null}
+                  vel={velMap[rowKey(c)] || null}
                 />
               ))}
             </ul>
@@ -305,27 +330,42 @@ function Sparkline({ points, color = 'var(--yel)' }) {
 }
 
 // ── One roster row — clickable, active glass border, division + telemetry radar. ─
-function ClientRow({ client, active, onSelect, tel }) {
+function ClientRow({ client, active, onSelect, tel, vel }) {
   const name = client.name || client.uid || 'Unnamed';
   const div = division(client);
   const tier = client.subscription_tier || client.role || null;
   const color = tierColor(client.subscription_tier);
   const cal = calBadge(client);
   const sm = tel ? (STATUS_META[tel.status] || STATUS_META.insufficient) : null;
+  // Coaching Velocity badge — calibrating rows stay chip-free (no false flags).
+  const velMeta = vel && vel.band !== 'calibrating' ? VELOCITY_BANDS[vel.band] : null;
   const hasTon = tel && (tel.tonnage_week > 0 || tel.tonnage_prev > 0);
   const trendGlyph = { up: '📈', down: '📉', flat: '➡️' }[tel?.tonnage_trend] || '';
   return (
     <li>
       <button
         type="button"
-        className={`ff-row${active ? ' is-active' : ''}${sm ? ` ff-row--${tel.status}` : ''}`}
+        className={`ff-row${active ? ' is-active' : ''}${sm ? ` ff-row--${tel.status}` : ''}${velMeta && vel.band === 'critical' ? ' ff-row--outreach' : ''}`}
+        data-testid={`roster-row-${client.id ?? client.uid ?? client.email}`}
         onClick={onSelect}
         aria-pressed={active}
         aria-label={`Open dossier for ${name}${sm ? ` — ${sm.label}${tel.adherence_score != null ? ` ${tel.adherence_score}%` : ''}` : ''}`}
       >
         <span className="ff-avatar" style={{ borderColor: color }}>{initials(name)}</span>
         <span className="ff-row-main">
-          <span className="ff-row-name">{name}</span>
+          <span className="ff-row-name">
+            {name}
+            {velMeta ? (
+              <span
+                className={`ff-vel ff-vel--${velMeta.tone}`}
+                data-testid="velocity-badge"
+                data-band={vel.band}
+                title={`Coaching Velocity ${vel.score} — ${velMeta.label}`}
+              >
+                {vel.score} · {velMeta.label}
+              </span>
+            ) : null}
+          </span>
           <span className="ff-row-sub">{div}</span>
           {/* Telemetry chip row — clinical, single line. */}
           {sm ? (

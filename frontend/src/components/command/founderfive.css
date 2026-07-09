@@ -295,3 +295,18 @@
   padding: .08rem .4rem; white-space: nowrap;
 }
 .ff-spark { display: block; opacity: .85; }
+
+/* ── Coaching Velocity Index — priority badge + critical-outreach row float ── */
+.ff-vel {
+  display: inline-block; margin-left: .45rem; vertical-align: middle;
+  font-family: var(--bd); font-size: .6rem; font-weight: 700;
+  letter-spacing: .8px; text-transform: uppercase; white-space: nowrap;
+  border: 1px solid var(--line); border-radius: 999px; padding: .1rem .45rem;
+  color: var(--mut);
+}
+.ff-vel--critical { color: #ff5470; border-color: rgba(255, 84, 112, .65); background: rgba(255, 84, 112, .12); }
+.ff-vel--watch { color: var(--yel); border-color: rgba(245, 200, 0, .5); background: rgba(245, 200, 0, .08); }
+.ff-vel--steady { color: rgba(249, 245, 255, .8); border-color: var(--line); }
+.ff-vel--locked { color: #22c55e; border-color: rgba(34, 197, 94, .5); background: rgba(34, 197, 94, .08); }
+/* Floated critical-outreach rows get a hot left edge + faint pulse wash. */
+.ff-row--outreach { border-left: 3px solid rgba(255, 84, 112, .85); background: rgba(255, 84, 112, .06); }

@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calcTDEE } from '../components/vault/nutritionEngine.js';
 import TdeeLeadCapture from '../components/TdeeLeadCapture.jsx';
+import { startExplorerSession } from '../lib/explorerSession.js';
 
 const GOLD = '#F5C800';
 const GOLD_SOFT = '#F5CF60';
@@ -47,6 +48,7 @@ export default function DailyBurnCalculator() {
   const [inch, setInch] = useState('');
   const [act, setAct] = useState('1.55');
   const [burn, setBurn] = useState(null);
+  const [explorerReady, setExplorerReady] = useState(false);
   const [error, setError] = useState(null);
 
   function calculate(e) {
@@ -167,6 +169,24 @@ export default function DailyBurnCalculator() {
                 activity_factor: parseFloat(act) || null,
                 tdee_maintenance: burn,
               }}
+              onCaptured={() => {
+                // EXPLORER MODE gateway — guest token mints the moment the visitor
+                // submits their details (no macros on this surface; the sandbox
+                // recomputes them live from the stored biometrics).
+                startExplorerSession({
+                  source: 'daily_burn',
+                  profile: {
+                    age: parseInt(age, 10) || null,
+                    sex,
+                    weight_lbs: parseFloat(weight) || null,
+                    height_ft: parseInt(ft, 10) || null,
+                    height_in: parseInt(inch, 10) || null,
+                    activity_factor: parseFloat(act) || null,
+                  },
+                  targets: { tdee_maintenance: burn },
+                });
+                setExplorerReady(true);
+              }}
             />
 
             {/* The Hook → the only forward exit. */}
@@ -177,6 +197,16 @@ export default function DailyBurnCalculator() {
               <button type="button" style={st.hookBtn} onClick={enterPathfinder}>
                 ENTER THE PATHFINDER →
               </button>
+              {explorerReady ? (
+                <button
+                  type="button"
+                  style={{ ...st.hookBtn, marginTop: 8 }}
+                  onClick={() => navigate('/explore')}
+                  data-testid="enter-explorer"
+                >
+                  ◇ ENTER EXPLORER MODE →
+                </button>
+              ) : null}
             </div>
           </div>
         ) : null}
