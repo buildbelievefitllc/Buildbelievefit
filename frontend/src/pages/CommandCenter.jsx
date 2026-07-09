@@ -16,12 +16,20 @@
 // components and the same auth-session data source (selectPlans + useVaultProfile),
 // so the admin's own training view stays 1:1 with what a client sees.
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 // import CommandRoster from '../components/command/CommandRoster.jsx'; // hidden (declutter) — restore with its TABS entry
 import ClientHub from '../components/command/ClientHub.jsx';
 // import AccessControl from '../components/command/AccessControl.jsx'; // hidden (declutter) — restore with its TABS entry
-import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
+// ── DEPRECATED (Coaching module optimization pass): "Risk Telemetry / The
+// Sovereign Panopticon" (28-day ACWR injury-risk grid) is retired from the
+// Command Center to eliminate feature bloat. The component + its data layer
+// (telemetryApi.js → intelCore.js) remain on disk, orphaned & reversible.
+// Restore by uncommenting this import AND its TABS entry + DOMAINS 'telemetry'
+// id below AND the MasterLayout nav item. Backend load tables are NOT dropped —
+// they still feed the live bbf-workload-sentinel nightly cron (see the staged,
+// un-applied deprecation migration + the architecture report). ──
+// import RiskTelemetry from '../components/command/RiskTelemetry.jsx';
 import EagleEye from '../components/command/EagleEye.jsx';
 import Comlink from '../components/command/Comlink.jsx';
 import NutritionLocker from '../components/command/NutritionLocker.jsx';
@@ -61,7 +69,8 @@ const TABS = [
   // { id: 'command', labelKey: 'cmd-tab-command', Panel: CommandRoster },
   // Executive Access Control — tier visibility + reassignment + the account kill switch.
   // { id: 'access', labelKey: 'cmd-tab-access', Panel: AccessControl },
-  { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry },
+  // ── DEPRECATED — Risk Telemetry / Sovereign Panopticon retired (see import note). ──
+  // { id: 'telemetry', labelKey: 'cmd-tab-telemetry', Panel: RiskTelemetry },
   // BBF Eagle Eye — the secondary brain. Oversees all client data and verifies the
   // coaching cues bucketed for the daily Sovereign readiness message and the weekly
   // report stay aligned per client (deterministic engine · bbf-eagle-eye).
@@ -123,7 +132,8 @@ const DEFAULT_TAB = TABS[0].id;
 // always fit. Deep links keep working — the active tab resolves its domain.
 // Every tab survives; this is grouping, not removal.
 const DOMAINS = [
-  { id: 'coaching', labelKey: 'cmd-dom-coaching', tabs: ['roster', 'telemetry', 'eagle-eye', 'comlink', 'nutrition-locker', 'sports'] },
+  // 'telemetry' removed from the Coaching rail — Risk Telemetry deprecated (see TABS note).
+  { id: 'coaching', labelKey: 'cmd-dom-coaching', tabs: ['roster', 'eagle-eye', 'comlink', 'nutrition-locker', 'sports'] },
   { id: 'content', labelKey: 'cmd-dom-content', tabs: ['content', 'content-manager', 'studio', 'studio-v4', 'studio-batch'] },
   { id: 'knowledge', labelKey: 'cmd-dom-knowledge', tabs: ['coach-lab', 'coach-cave', 'language-lab'] },
   { id: 'system', labelKey: 'cmd-dom-system', tabs: ['generator', 'settings'] },
@@ -139,6 +149,15 @@ export default function CommandCenter() {
   const activeDef = TABS.find((item) => item.id === tab) ?? TABS[0];
   const activeTab = activeDef.id;
   const ActivePanel = activeDef.Panel;
+
+  // Route disable: a deep link to a RETIRED/unknown surface (e.g. the deprecated
+  // /command/telemetry) normalizes to the default roster URL instead of silently
+  // rendering the fallback under a stale path. Replace so Back doesn't loop.
+  useEffect(() => {
+    if (tab && !TABS.some((item) => item.id === tab)) {
+      navigate('/command', { replace: true });
+    }
+  }, [tab, navigate]);
 
   const selectTab = (id) => navigate(id === DEFAULT_TAB ? '/command' : `/command/${id}`);
 

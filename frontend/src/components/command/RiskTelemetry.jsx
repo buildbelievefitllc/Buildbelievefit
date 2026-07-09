@@ -1,5 +1,15 @@
 // src/components/command/RiskTelemetry.jsx
 // ─────────────────────────────────────────────────────────────────────────────
+// ⚠️ DEPRECATED & ORPHANED (Coaching module optimization pass). This view — Risk
+// Telemetry / The Sovereign Panopticon — has been RETIRED from the Command
+// Center. Nothing imports this file (or its data layer telemetryApi.js →
+// intelCore.js) anymore; the chain is kept on disk, reversible. To restore:
+// uncomment the RiskTelemetry import + TABS entry + DOMAINS 'telemetry' id in
+// CommandCenter.jsx and the nav item in MasterLayout.jsx. NOTE: the backend
+// ACWR load tables (bbf_athlete_load_logs / _bouts) are NOT dropped — they
+// still feed the live bbf-workload-sentinel nightly cron (see the staged
+// deprecation migration + COACHING_MODULE_AUDIT.md).
+// ─────────────────────────────────────────────────────────────────────────────
 // Phase 9 — The Sovereign Panopticon, live-wired.
 //
 // Data path (lib/telemetryApi → service-role roster via the token-gated

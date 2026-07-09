@@ -30,7 +30,10 @@ const NAV_GROUPS = [
     labelKey: 'cmd-dom-coaching',
     items: [
       { labelKey: 'cmd-tab-roster', to: '/command', isActive: (tab) => ['', 'roster', 'command', 'access', 'analytics'].includes(tab) },
-      { labelKey: 'cmd-tab-telemetry', to: '/command/telemetry', isActive: (tab) => tab === 'telemetry' },
+      // ── DEPRECATED — Risk Telemetry / Sovereign Panopticon retired from the
+      // Coaching group (module optimization pass). Restore by uncommenting this
+      // AND its CommandCenter TABS entry + DOMAINS 'telemetry' id. ──
+      // { labelKey: 'cmd-tab-telemetry', to: '/command/telemetry', isActive: (tab) => tab === 'telemetry' },
       { labelKey: 'cmd-tab-eagle-eye', to: '/command/eagle-eye', isActive: (tab) => tab === 'eagle-eye' },
       { labelKey: 'cmd-tab-comlink', to: '/command/comlink', isActive: (tab) => tab === 'comlink' },
       { labelKey: 'cmd-tab-nutrition-locker', to: '/command/nutrition-locker', isActive: (tab) => tab === 'nutrition-locker' },

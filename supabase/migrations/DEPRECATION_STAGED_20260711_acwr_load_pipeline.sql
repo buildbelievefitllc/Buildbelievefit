@@ -1,0 +1,54 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+-- ⚠️  STAGED · NOT APPLIED · REQUIRES CEO SIGN-OFF BEFORE EXECUTION  ⚠️
+--
+-- FILENAME PREFIX `DEPRECATION_STAGED_` is deliberate — it does NOT match the
+-- `<timestamp>_name.sql` convention the Supabase CLI / apply_migration picks up,
+-- so this file will NOT auto-run. It is a FLAG + a ready-to-review drop plan,
+-- per the Coaching-module optimization mandate ("flag for schema dropping or
+-- structural isolation"). Nothing here has been executed against the live DB.
+--
+-- SUBJECT: the ACWR (28-day acute:chronic workload ratio) load-telemetry pipeline
+--   created by 20260504031745_phase5_telemetry_pipeline.sql:
+--     • public.bbf_athlete_load_logs   (macro session telemetry; srpe × duration)
+--     • public.bbf_athlete_load_bouts  (intra-session bouts, FK → load_logs)
+--
+-- WHY THIS IS STAGED, NOT EXECUTED (live-fact findings, 2026-07-09):
+--   1. These tables are NOT frontend-exclusive. Beyond the now-retired Risk
+--      Telemetry / Panopticon view (frontend), they are read by the LIVE edge
+--      function `bbf-workload-sentinel`, invoked by the ACTIVE nightly cron
+--      `bbf-workload-sentinel-nightly` (0 1 * * *). Dropping the tables would
+--      break that automation every night.
+--   2. DB-load benefit is ~zero: bbf_athlete_load_logs = 2 rows, _bouts = 2 rows,
+--      frozen since 2026-05-16 (no writes in ~2 months). There is no meaningful
+--      "lighten the database" gain from dropping a 4-row dormant pipeline.
+--   3. bbf_athlete_progression (also touched by telemetryApi) is HEAVILY SHARED
+--      (Sports Portal, the Referee, bbf-admin-roster, bbf-evaluate-athlete-
+--      progress, bbf-sentinel) and is EXPLICITLY OUT OF SCOPE — never drop it.
+--
+-- PREREQUISITE BEFORE ANY EXECUTION (must happen first, in order):
+--   [ ] Decommission the nightly workload-sentinel automation:
+--         SELECT cron.unschedule('bbf-workload-sentinel-nightly');
+--       (and confirm no other consumer of the load tables remains).
+--   [ ] Confirm with the CEO that the workload/ACWR product line is being
+--       retired wholesale (not just the admin view) — otherwise the tables stay
+--       as the substrate for a future re-enablement of the Panopticon.
+--   [ ] Optionally export the 4 rows for archival before drop.
+--
+-- ONLY AFTER the checklist above is satisfied, rename this file to a real
+-- migration timestamp and apply the block below.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ▼▼▼ PROPOSED DROP — DO NOT UNCOMMENT/APPLY WITHOUT THE CHECKLIST ABOVE ▼▼▼
+--
+-- -- bouts first (FK dependent on load_logs)
+-- DROP TABLE IF EXISTS public.bbf_athlete_load_bouts CASCADE;
+-- DROP TABLE IF EXISTS public.bbf_athlete_load_logs  CASCADE;
+-- -- the updated_at trigger fn is orphaned once load_logs is gone:
+-- DROP FUNCTION IF EXISTS public.bbf_athlete_load_logs_set_updated_at();
+--
+-- ▲▲▲ END PROPOSED DROP ▲▲▲
+
+-- No-op guard so an accidental apply of this staged file changes nothing:
+DO $$ BEGIN
+  RAISE NOTICE 'DEPRECATION_STAGED file — no changes applied. See header checklist.';
+END $$;
