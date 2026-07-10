@@ -30,6 +30,7 @@ import EagleEyeNudgeCard from './EagleEyeNudgeCard.jsx';
 import CoachCommsCard from './CoachCommsCard.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import { useProgramDay } from '../../lib/useProgramDay.js';
+import { GuideLauncher } from '../BbfMediaPortal.jsx';
 import './vault.css';
 
 // Intel-rail indices (labels + units resolve through the dictionary in render).
@@ -145,6 +146,9 @@ function HubDossier({ profile, t }) {
           ))}
         </div>
       </div>
+
+      {/* 4K module guide — flush below the lifestyle habit streak counters. */}
+      <GuideLauncher module="daily_protocol" testId="protocol-guide" />
 
       {/* ── 30-day consistency strip ── */}
       <h2 className="vh-subhead">{t('vh-last30')}</h2>

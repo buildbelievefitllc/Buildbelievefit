@@ -33,6 +33,7 @@ import DailyBurnCalculator from '../../src/pages/DailyBurnCalculator.jsx';
 import PremiumSessionPlayer from '../../src/components/vault/PremiumSessionPlayer.jsx';
 import LiveCheckinCoach from '../../src/components/vault/LiveCheckinCoach.jsx';
 import SovereignPrepPanels from '../../src/components/vault/SovereignPrepPanels.jsx';
+import { GuideLauncher } from '../../src/components/BbfMediaPortal.jsx';
 
 const props = (typeof window !== 'undefined' && window.__HARNESS_PROPS__) || {};
 const which = new URLSearchParams(window.location.search).get('c') || '';
@@ -299,6 +300,15 @@ function pick() {
             return { end: async () => hooks.onDisconnect?.(), sessionId: 'harness-session', capMin: 8 };
           }}
         />
+      );
+    case 'guide-launcher':
+      // The BBF Media Portal dual-media launcher, wrapped in a real AuthMock so the
+      // TierGate around it fail-opens (soft/resolving) and the triggers render — the
+      // exact production path the four module hosts embed.
+      return (
+        <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>
+          <GuideLauncher module={props.module || 'program_tracker'} testId="guide" />
+        </AuthMock>
       );
     default:
       return <div data-testid="harness-unknown">unknown component: {which}</div>;

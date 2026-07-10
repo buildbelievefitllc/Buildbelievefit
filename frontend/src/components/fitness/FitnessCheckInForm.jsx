@@ -18,6 +18,7 @@ import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { useFitnessStr, computeLoadG, formatGrams, MOVEMENT_VECTORS } from './fitnessStrings.js';
+import { GuideLauncher } from '../BbfMediaPortal.jsx';
 import './fitness.css';
 
 function todayISO() { return new Date().toISOString().slice(0, 10); }
@@ -89,6 +90,9 @@ export default function FitnessCheckInForm() {
         <span className="ft-kicker">{fs.fitKicker}</span>
         <h3 className="ft-title">{fs.fitTitle}</h3>
       </header>
+
+      {/* 4K module guide — high-visibility intro banner before the screening fields. */}
+      <GuideLauncher module="weekly_checkin" testId="checkin-guide" />
 
       <div className="ft-inputs">
         <label className="ft-field ft-field--vector">

@@ -42,6 +42,7 @@ import { useNutritionSync } from '../../lib/useNutritionSync.js';
 import { syncMealLog } from '../../lib/mealLogApi.js';
 import NutritionSyncCard from './NutritionSyncCard.jsx';
 import { mealBenefit } from './mealBenefit.js';
+import { GuideLauncher } from '../BbfMediaPortal.jsx';
 import './vault.css';
 import './nutrition.css';
 
@@ -1461,6 +1462,9 @@ export default function Nutrition({ plans, profile }) {
           </button>
         ))}
       </div>
+
+      {/* 4K module guide — sits cleanly adjacent to the macro wheel layout below. */}
+      <GuideLauncher module="nutrition_locker" testId="nutrition-guide" />
 
       {/* Fasting Pace selector + daily macro tracking, side by side. Repositioning
           V-03: the left column stacks Fasting Pace + Daily Fueling Status +

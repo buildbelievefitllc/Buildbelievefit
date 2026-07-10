@@ -28,6 +28,7 @@ import { buildCoachCue } from './coachCue.js';
 import { SequenceCTA } from './SovereignSequence.jsx';
 import PremiumSessionPlayer from './PremiumSessionPlayer.jsx';
 import { createHrSource } from '../../lib/liveHeartRate.js';
+import { GuideLauncher } from '../BbfMediaPortal.jsx';
 
 // Trilingual UI chrome (EN verbatim to the prior hardcoded copy so the default
 // language keeps the vault-logging E2E selectors green). Module-local dictionary
@@ -115,6 +116,9 @@ export default function Program({ plans, profile, onSequence }) {
           ) : null}
         </div>
       </div>
+
+      {/* 4K module guide — sits right under the phase/protocol selection header. */}
+      <GuideLauncher module="program_tracker" testId="program-guide" />
 
       {/* V-04 (Repositioning): the two collapsible utility strips — What-is-RPE
           education + the Weekly Analytics dossier — share one half-width row

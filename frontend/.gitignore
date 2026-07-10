@@ -27,3 +27,9 @@ dist-ssr
 test-results
 playwright-report
 .playwright
+
+# 4K module guide videos — served from Supabase Storage (bbf-media-vault), never
+# from source control. Paths are relative to this file (frontend/), so the rule is
+# public/assets/media/guides/*.mp4 — NOT frontend/public/... which would resolve to
+# frontend/frontend/... and match nothing.
+public/assets/media/guides/*.mp4
