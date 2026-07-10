@@ -24,6 +24,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../context/LangContext.jsx';
 import TierGate from './TierGate.jsx';
+import WatchGuideButton from './WatchGuideButton.jsx';
 import './bbfMediaPortal.css';
 
 // The 4K guides live in Supabase Storage (public bucket `bbf-media-vault/guides`),
@@ -217,14 +218,13 @@ export function GuideLauncher({ module: moduleId, testId, className }) {
   return (
     <TierGate feature={mod.feature} render="hide">
       <div className={`bmp-launch${className ? ` ${className}` : ''}`} data-testid={testId || `guide-launch-${moduleId}`}>
-        <button
-          type="button"
-          className="bmp-trigger bmp-trigger--watch"
-          onClick={() => setOpen('watch')}
-          data-testid={`${testId || `guide-${moduleId}`}-watch`}
-        >
-          <span aria-hidden="true">📺</span> {S.watch}
-        </button>
+        {/* Premium gold→purple capsule pill — the high-visibility primary trigger. */}
+        <WatchGuideButton
+          onPress={() => setOpen('watch')}
+          label={S.watch}
+          testId={`${testId || `guide-${moduleId}`}-watch`}
+        />
+        {/* Listen Only — complementary secondary capsule (keeps the dual-media design). */}
         <button
           type="button"
           className="bmp-trigger bmp-trigger--listen"
