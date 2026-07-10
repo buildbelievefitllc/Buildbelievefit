@@ -92,8 +92,14 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
   });
 
   if (!res.ok) {
+    // `error` is the CODED slug VibeSelector's humanizeVoErr() keys on
+    // (not_admin, tts_failed, …); `detail` is a human-readable sentence the
+    // Edge Function also sends for its own logs. Prefer `error` — `detail` was
+    // being read first, so it ALWAYS won (every branch sets both) and
+    // humanizeVoErr() never matched anything, silently masking the real cause
+    // behind the generic "Voiceover generation failed" fallback.
     let detail = `voiceover_failed_${res.status}`;
-    try { const j = await res.json(); detail = j.detail || j.error || detail; } catch { /* non-JSON */ }
+    try { const j = await res.json(); detail = j.error || j.detail || detail; } catch { /* non-JSON */ }
     throw new Error(detail);
   }
   const j = await res.json().catch(() => null);
@@ -116,8 +122,10 @@ export async function generateHook({ topic, spectrum, lang }) {
     body: JSON.stringify({ action: 'hook', topic, spectrum: spectrum || '', lang: lang || 'en', vault_token: token }),
   });
   if (!res.ok) {
+    // Same fix as generateStudioVoiceover — prefer the coded `error` slug over
+    // the human-readable `detail` sentence (see comment above).
     let detail = `hook_failed_${res.status}`;
-    try { const j = await res.json(); detail = j.detail || j.error || detail; } catch { /* non-JSON */ }
+    try { const j = await res.json(); detail = j.error || j.detail || detail; } catch { /* non-JSON */ }
     throw new Error(detail);
   }
   const j = await res.json().catch(() => null);
