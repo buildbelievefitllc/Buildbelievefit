@@ -220,7 +220,7 @@ export function GuideLauncher({ module: moduleId, testId, className }) {
       <div className={`bmp-launch${className ? ` ${className}` : ''}`} data-testid={testId || `guide-launch-${moduleId}`}>
         {/* Premium gold→purple capsule pill — the high-visibility primary trigger. */}
         <WatchGuideButton
-          onPress={() => setOpen('watch')}
+          onClick={() => setOpen('watch')}
           label={S.watch}
           testId={`${testId || `guide-${moduleId}`}-watch`}
         />

@@ -11,42 +11,8 @@
   margin: .6rem 0 1rem;
 }
 
-/* ── WATCH GUIDE — premium, high-visibility gold→purple CAPSULE PILL ─────────── */
-.wg-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  font-family: var(--hb, 'Bebas Neue'), sans-serif;
-  font-weight: 800;
-  font-size: .8rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  color: #090909;                 /* black ink on gold — matches .bmp-mode.is-active */
-  padding: .5rem 1.05rem;
-  border: none;
-  border-radius: 999px;           /* full capsule */
-  /* gold-dominant so the label/icon sit on high-contrast gold; purple trailing accent */
-  background: linear-gradient(90deg, #f5cf60 0%, #f5c800 46%, #8a1fd0 82%, #6a0dad 100%);
-  box-shadow: 0 0 15px rgba(245, 200, 0, .32), inset 0 1px 0 rgba(255, 255, 255, .35);
-  transition: transform .3s ease, box-shadow .3s ease, filter .3s ease;
-  animation: wg-pulse 2.6s ease-in-out infinite;
-}
-.wg-pill:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
-  box-shadow: 0 0 25px rgba(106, 13, 173, .55), inset 0 1px 0 rgba(255, 255, 255, .45);
-}
-.wg-pill:active { transform: scale(.95); }
-.wg-pill:focus-visible { outline: 2px solid #f5c800; outline-offset: 2px; }
-.wg-pill-ic { flex: none; }
-.wg-pill-label { line-height: 1; }
-
-/* Subtle breathing glow — draws the eye without shouting. */
-@keyframes wg-pulse {
-  0%, 100% { box-shadow: 0 0 12px rgba(245, 200, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .35); }
-  50%      { box-shadow: 0 0 20px rgba(245, 200, 0, .5),  inset 0 1px 0 rgba(255, 255, 255, .35); }
-}
+/* WATCH GUIDE — the premium gold→purple capsule pill — is a self-contained
+   inline-styled component (WatchGuideButton.jsx). See that file for its styles. */
 
 /* ── LISTEN ONLY — complementary secondary capsule (outlined purple) ─────────── */
 .bmp-trigger {
@@ -72,10 +38,6 @@
 }
 .bmp-trigger:active { transform: scale(.96); }
 .bmp-trigger:focus-visible { outline: 2px solid #f5c800; outline-offset: 2px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .wg-pill { animation: none; }
-}
 
 /* ── Modal backdrop + gold→purple gradient envelope ─────────────────────────── */
 .bmp-backdrop {
