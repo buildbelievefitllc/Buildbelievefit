@@ -543,14 +543,18 @@ export default function VibeSelector({ reelData, handleReelChange }) {
       )}
 
       {/* ── Custom Music upload — drops your own track into the reel audio (baked into
-          the exported MP4 via the same voUrl path the voiceover uses). ── */}
+          the exported MP4 via the same voUrl path the voiceover uses). Accepts VIDEO
+          files too: on mobile that opens the SAME gallery picker as the footage
+          upload, and we ride the clip's soundtrack — the preview <audio> element
+          plays a video container's audio track, and the export's _decodeVo
+          (decodeAudioData) demuxes audio out of any container. ── */}
       <div className="ctl-group-v4">
-        <label className="ctl-label-v4">🎵 Custom Music / Audio (MP3 / WAV)</label>
+        <label className="ctl-label-v4">🎵 Custom Music / Audio (MP3 / WAV / video sound)</label>
         <label className="upload-btn-v4" htmlFor="reel-music-input">UPLOAD MUSIC</label>
         <input
           id="reel-music-input"
           type="file"
-          accept="audio/*"
+          accept="audio/*,video/*"
           data-testid="reel-music-input"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -561,7 +565,13 @@ export default function VibeSelector({ reelData, handleReelChange }) {
             // AI voice and the backing track are independent channels with their own
             // volume sliders below.
             handleReelChange('musicFile', { file, url });
-            setVoNote({ ok: true, text: `Loaded custom track “${file.name}” — balance it against the voice with the mix sliders.` });
+            const isVideo = String(file.type || '').startsWith('video');
+            setVoNote({
+              ok: true,
+              text: isVideo
+                ? `Pulled the soundtrack from “${file.name}” — the video's own audio now rides the music channel.`
+                : `Loaded custom track “${file.name}” — balance it against the voice with the mix sliders.`,
+            });
           }}
           style={{ display: 'none' }}
         />
@@ -577,7 +587,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
             ✕ Remove custom track
           </button>
         )}
-        <div className="hint-v4">Your own backing track — plays under the voiceover; bakes into the export when no voiceover is set.</div>
+        <div className="hint-v4">Your own backing track — an audio file, or pick a VIDEO (same gallery as the footage upload) and its sound becomes the music. Plays under the voiceover; bakes into the export when no voiceover is set.</div>
       </div>
 
       {/* ── Audio Mix — TWO independent channels (0–100% each), bound live to the reel

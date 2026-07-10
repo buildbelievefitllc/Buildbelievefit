@@ -16,10 +16,13 @@ test.describe('Defect 4 — Studio V4 reel panels restored', () => {
   test('reel sidebar exposes music upload, layout toggle, and asset-size slider', async ({ page }) => {
     await openReel(page);
 
-    // (1) custom music upload input (hidden native input + visible label)
+    // (1) custom music upload input (hidden native input + visible label).
+    // Accepts VIDEO too: on mobile that opens the same gallery picker as the
+    // footage upload, and the clip's soundtrack rides the music channel.
     const music = page.getByTestId('reel-music-input');
     await expect(music).toHaveCount(1);
     await expect(music).toHaveAttribute('accept', /audio/);
+    await expect(music).toHaveAttribute('accept', /video/);
     await expect(page.getByText('UPLOAD MUSIC')).toBeVisible();
 
     // (2) overlay text layout toggle

@@ -10,6 +10,7 @@ import CompilerQueue from './CompilerQueue';
 import { renderMarkup } from './markup.jsx';
 import { REEL_PHONE_FRAME, REEL_PHONE_SCREEN } from '../../lib/reelPhoneBackdrop.js';
 import { seriesLabel } from '../../lib/reelSeriesLabels.js';
+import { saveBlobToDevice, isMobileish } from '../../lib/exportDelivery.js';
 
 const PLATFORMS = [
   ['instagram', 'Instagram'],
@@ -102,6 +103,32 @@ export default function StudioLayout({
   // Reel MediaRecorder state (drives the hard UI lock + progress overlay).
   const [recording, setRecording] = useState(false);
   const [recordPct, setRecordPct] = useState(0);
+  // The last finished export, kept alive so a FRESH tap can re-deliver it. On
+  // Android (S25-class), the auto blob-anchor dies silently in the installed PWA
+  // and navigator.share() needs transient activation the long render already
+  // burned — so the file's guaranteed exit is the ⬇ SAVE TO PHONE button below,
+  // whose own tap drives the share sheet (see lib/exportDelivery.js).
+  const [lastExport, setLastExport] = useState(null); // { blob, name }
+  const saveLastExport = async () => {
+    if (!lastExport) return;
+    const how = await saveBlobToDevice(lastExport.blob, lastExport.name);
+    if (how === 'cancelled') return; // user closed the share sheet on purpose
+    setPostNote({
+      ok: how !== 'failed',
+      text: how === 'shared'
+        ? '✓ Share sheet opened — pick “Save to Files” / Gallery, or send it straight to IG/TikTok.'
+        : how === 'downloaded'
+          ? `✓ ${lastExport.name} downloaded — check your Downloads.`
+          : how === 'opened'
+            ? 'Opened in a new tab — long-press the file to save it.'
+            : 'Could not hand the file to this device — try again.',
+    });
+  };
+  const saveToPhoneBtn = lastExport ? (
+    <button type="button" className="queue-btn-v4" onClick={saveLastExport} data-testid="save-to-phone">
+      ⬇ SAVE TO PHONE
+    </button>
+  ) : null;
   // PRE-EXPORT CODEC PROBE — runs once on mount, BEFORE any render. Warns
   // (non-blocking) when this browser has no H.264 encoder and the reel would export
   // via the VP9/AV1 fallback (which IG/TikTok/YouTube recompress hard → softer post).
@@ -156,14 +183,14 @@ export default function StudioLayout({
       const canvas = await renderStageCanvas();
       if (!canvas) return;
       const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.92));
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `bbf-${slug}-${canvas.width}x${canvas.height}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      const name = `bbf-${slug}-${canvas.width}x${canvas.height}.jpg`;
+      // Keep the finished blob so ⬇ SAVE TO PHONE can re-deliver it from a fresh
+      // tap even if this immediate attempt dies silently (Android PWA anchors do).
+      setLastExport({ blob, name });
+      // Image renders are fast enough that the click's activation is usually still
+      // live — share-first on mobile lands the file in the sheet right away; the
+      // ladder falls back to the classic anchor on desktop (exportDelivery.js).
+      await saveBlobToDevice(blob, name);
     } catch (e) {
       console.error('[StudioV4] image export failed:', e);
     } finally {
@@ -273,6 +300,7 @@ export default function StudioLayout({
       {postNote && (
         <div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>
       )}
+      {saveToPhoneBtn}
     </>
   );
 
@@ -345,12 +373,6 @@ export default function StudioLayout({
 
       exportSeqRef.current += 1;
       const stamp = `${SESSION_STAMP}-${exportSeqRef.current}`;
-      const downloadBlob = (blob, name) => {
-        const u = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = u; a.download = name;
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(u), 120000);
-      };
 
       // Audio status line — explicit, never silent (CEO order: bubble the reason).
       const audioMsg = result.audio
@@ -359,16 +381,29 @@ export default function StudioLayout({
             ? `⚠ Audio failed: ${result.audioError || 'unknown'} — video exported without sound.`
             : 'No voiceover, music, or footage audio was available — video exported silent.');
 
-      // EXPORT ONLY (no targets) → download the clean MP4.
+      // EXPORT ONLY (no targets) → deliver the clean MP4.
       if (!target) {
-        downloadBlob(result.blob, `bbf-reel-${stamp}.mp4`);
+        const name = `bbf-reel-${stamp}.mp4`;
+        setLastExport({ blob: result.blob, name });
         const dur = result.durationSec ? `${result.durationSec}s` : '';
         const frm = result.frames ? `${result.frames} real frames` : '';
         const stats = [dur, frm].filter(Boolean).join(', ');
-        setPostNote({
-          ok: !!result.audio || !audioUrl,
-          text: `✓ Exported bbf-reel-${stamp}.mp4 — clean MP4${stats ? ` (${stats})` : ''}, plays everywhere. ${audioMsg}`,
-        });
+        if (isMobileish()) {
+          // The multi-second render burned the tap's transient activation, so an
+          // auto share() would be refused AND the blob anchor dies silently in the
+          // installed PWA (the S25 failure). Don't fake a download — hand the user
+          // the guaranteed exit: a fresh tap on ⬇ SAVE TO PHONE (share sheet).
+          setPostNote({
+            ok: !!result.audio || !audioUrl,
+            text: `✓ ${name} rendered${stats ? ` (${stats})` : ''}. Tap ⬇ SAVE TO PHONE below to save it. ${audioMsg}`,
+          });
+        } else {
+          await saveBlobToDevice(result.blob, name, { preferShare: false });
+          setPostNote({
+            ok: !!result.audio || !audioUrl,
+            text: `✓ Exported ${name} — clean MP4${stats ? ` (${stats})` : ''}, plays everywhere. ${audioMsg}`,
+          });
+        }
         return;
       }
 
@@ -724,6 +759,7 @@ export default function StudioLayout({
               {postNote && (
                 <div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>
               )}
+              {saveToPhoneBtn}
             </div>
           </div>
         )}
