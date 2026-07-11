@@ -20,6 +20,12 @@ const PLATFORMS = [
 
 const stripMarkup = (s) => String(s || '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').trim();
 
+// TikTok has no connected posting API yet (Meta only) — this is the manual
+// bridge: export the reel and jump straight to TikTok's own upload screen so
+// the operator just picks the file that's about to land in Downloads/the
+// share sheet. @build.believe.fit is the BBF TikTok handle.
+const TIKTOK_UPLOAD_URL = 'https://www.tiktok.com/upload?lang=en';
+
 // Auto-caption — v3 parity restore: headline/body, a one-line "advertisement" (CTA /
 // link-in-bio / series tag), then hashtags. Every mode shares the brand + local-area
 // tags so IG/FB discovery always includes the service area, on top of a mode-flavored
@@ -339,6 +345,64 @@ export default function StudioLayout({
     };
   };
 
+  // Bake the reel via SovereignFoundry — the shared core behind the plain
+  // EXPORT/POST flow and the TikTok bridge (which always renders a full,
+  // un-posted export regardless of the IG/FB toggle state). Throws on failure
+  // (no_webcodecs / record_failed) — callers catch it themselves.
+  const renderReelMp4 = async ({ durationCapSec }) => {
+    // THE ISOLATION PROTOCOL (CEO order): the export runs in a pure Vanilla JS class
+    // (SovereignFoundry) that operates 100% independently of the React virtual DOM —
+    // it owns its own off-DOM <video>, SEEKS the footage frame-by-frame, composites the
+    // branded overlay, encodes (H.264+AAC, VP9+Opus fallback) and muxes one clean,
+    // UNFRAGMENTED, faststart MP4. React just hands it { videoUrl, voUrl, overlay,
+    // container } and steps out of the way.
+    const { SovereignFoundry } = await import('../../lib/SovereignFoundry.js');
+    if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
+    const videoUrl = stageRef.current?.querySelector('.reel-video-v4')?.src || reelData.videoFile?.url;
+    // THE REAL AUDIO MIX: voice and music ride as SEPARATE tracks with the Audio
+    // Mix Console's slider levels — the foundry mixes them (music looped + ducked
+    // under the voice) so the export sounds like the preview, instead of the old
+    // single-track collapse that silently dropped the music whenever a voiceover
+    // existed. With neither voice nor music, fall back to the uploaded footage's
+    // OWN audio track (if it has one) — the capture <video> is muted (Chrome
+    // suspends decode on inaudible elements otherwise), so without this fallback
+    // a clip's native sound was silently dropped.
+    const voiceUrl = reelData.voUrl || null;
+    const musicUrl = reelData.musicFile?.url || null;
+    const fallbackAudioUrl = (!voiceUrl && !musicUrl) ? (reelData.videoFile?.url || null) : null;
+    const audioUrl = voiceUrl || musicUrl || fallbackAudioUrl;
+    const overlay = await SovereignFoundry.captureOverlay(stageRef.current);
+    const foundry = new SovereignFoundry(document.body);
+    const result = await foundry.render({
+      videoUrl,
+      voUrl: voiceUrl || fallbackAudioUrl,
+      musicUrl,
+      // Footage-audio fallback plays at full level; the voice slider only governs
+      // an actual voiceover track.
+      voGain: voiceUrl ? Number(reelData.voiceVolume ?? 100) / 100 : 1,
+      musicGain: Number(reelData.musicVolume ?? 80) / 100,
+      overlay,
+      // Phone backdrop → clip the footage into the same rect the DOM preview used, and
+      // have the export draw the matching bezel/notch itself (reelPhoneBackdrop.js —
+      // shared with ReelPreviewEngine so preview and export can't drift apart).
+      videoRect: reelData.phoneBackdrop ? REEL_PHONE_SCREEN : null,
+      frameRect: reelData.phoneBackdrop ? REEL_PHONE_FRAME : null,
+      phoneFrame: reelData.phoneFrame || 'sleek',
+      durationCap: durationCapSec,
+      onProgress: (p) => setRecordPct(Math.round(p * 100)),
+    });
+    if (!result || !result.blob) throw new Error('record_failed');
+    // Audio status line — explicit, never silent (CEO order: bubble the reason).
+    const audioMsg = result.audio
+      ? (voiceUrl && musicUrl
+          ? '🎙 Voice + music mix baked in (console levels, music ducked under the voice).'
+          : '🎙 Audio baked in.')
+      : (audioUrl
+          ? `⚠ Audio failed: ${result.audioError || 'unknown'} — video exported without sound.`
+          : 'No voiceover, music, or footage audio was available — video exported silent.');
+    return { result, audioUrl, audioMsg };
+  };
+
   const exportOrPostReel = async () => {
     if (recording || posting) return;
     const target = platformTarget();
@@ -355,64 +419,11 @@ export default function StudioLayout({
     setRecording(true);
     setRecordPct(0);
     try {
-      // THE ISOLATION PROTOCOL (CEO order): the export runs in a pure Vanilla JS class
-      // (SovereignFoundry) that operates 100% independently of the React virtual DOM —
-      // it owns its own off-DOM <video>, SEEKS the footage frame-by-frame, composites the
-      // branded overlay, encodes (H.264+AAC, VP9+Opus fallback) and muxes one clean,
-      // UNFRAGMENTED, faststart MP4. React just hands it { videoUrl, voUrl, overlay,
-      // container } and steps out of the way.
-      const { SovereignFoundry } = await import('../../lib/SovereignFoundry.js');
-      if (!SovereignFoundry.isSupported()) {
-        setPostNote({ ok: false, text: 'This browser lacks WebCodecs — use a recent Chrome/Edge (desktop).' });
-        return;
-      }
       setPostNote({ ok: true, text: 'Rendering reel (seeking + encoding frames + voiceover)…' });
-      const videoUrl = stageRef.current?.querySelector('.reel-video-v4')?.src || reelData.videoFile?.url;
-      // THE REAL AUDIO MIX: voice and music ride as SEPARATE tracks with the Audio
-      // Mix Console's slider levels — the foundry mixes them (music looped + ducked
-      // under the voice) so the export sounds like the preview, instead of the old
-      // single-track collapse that silently dropped the music whenever a voiceover
-      // existed. With neither voice nor music, fall back to the uploaded footage's
-      // OWN audio track (if it has one) — the capture <video> is muted (Chrome
-      // suspends decode on inaudible elements otherwise), so without this fallback
-      // a clip's native sound was silently dropped.
-      const voiceUrl = reelData.voUrl || null;
-      const musicUrl = reelData.musicFile?.url || null;
-      const fallbackAudioUrl = (!voiceUrl && !musicUrl) ? (reelData.videoFile?.url || null) : null;
-      const audioUrl = voiceUrl || musicUrl || fallbackAudioUrl; // for the status line below
-      const overlay = await SovereignFoundry.captureOverlay(stageRef.current);
-      const foundry = new SovereignFoundry(document.body);
-      const result = await foundry.render({
-        videoUrl,
-        voUrl: voiceUrl || fallbackAudioUrl,
-        musicUrl,
-        // Footage-audio fallback plays at full level; the voice slider only governs
-        // an actual voiceover track.
-        voGain: voiceUrl ? Number(reelData.voiceVolume ?? 100) / 100 : 1,
-        musicGain: Number(reelData.musicVolume ?? 80) / 100,
-        overlay,
-        // Phone backdrop → clip the footage into the same rect the DOM preview used, and
-        // have the export draw the matching bezel/notch itself (reelPhoneBackdrop.js —
-        // shared with ReelPreviewEngine so preview and export can't drift apart).
-        videoRect: reelData.phoneBackdrop ? REEL_PHONE_SCREEN : null,
-        frameRect: reelData.phoneBackdrop ? REEL_PHONE_FRAME : null,
-        phoneFrame: reelData.phoneFrame || 'sleek',
-        durationCap: target ? 90 : 1200,
-        onProgress: (p) => setRecordPct(Math.round(p * 100)),
-      });
-      if (!result || !result.blob) throw new Error('record_failed');
+      const { result, audioUrl, audioMsg } = await renderReelMp4({ durationCapSec: target ? 90 : 1200 });
 
       exportSeqRef.current += 1;
       const stamp = `${SESSION_STAMP}-${exportSeqRef.current}`;
-
-      // Audio status line — explicit, never silent (CEO order: bubble the reason).
-      const audioMsg = result.audio
-        ? (voiceUrl && musicUrl
-            ? '🎙 Voice + music mix baked in (console levels, music ducked under the voice).'
-            : '🎙 Audio baked in.')
-        : (audioUrl
-            ? `⚠ Audio failed: ${result.audioError || 'unknown'} — video exported without sound.`
-            : 'No voiceover, music, or footage audio was available — video exported silent.');
 
       // EXPORT ONLY (no targets) → deliver the clean MP4.
       if (!target) {
@@ -464,6 +475,59 @@ export default function StudioLayout({
     } finally {
       setRecording(false);
       setPosting(false);
+    }
+  };
+
+  // TIKTOK MANUAL BRIDGE — there's no connected TikTok posting API for video yet
+  // (Meta only), so this is the honest interim: export the reel and jump straight
+  // to TikTok's own upload screen, so the operator just has to pick the file that's
+  // about to land in Downloads / the share sheet.
+  const exportForTikTok = async () => {
+    if (recording || posting) return;
+    if (!reelData.videoFile?.url) {
+      setPostNote({ ok: false, text: 'Upload reel footage first — TikTok needs a rendered video, not the cover image.' });
+      return;
+    }
+    // Open TikTok's upload tab FIRST — synchronously, in direct response to this
+    // tap. The render below takes 10-60s; opening AFTER it finished would burn the
+    // tap's transient activation and most browsers block that as an unrequested
+    // popup (the same physics exportDelivery.js documents for navigator.share). A
+    // blocked/failed open is non-fatal — the render and save still proceed.
+    try { window.open(TIKTOK_UPLOAD_URL, '_blank', 'noopener'); } catch { /* popup blocked — non-fatal */ }
+
+    setRecording(true);
+    setRecordPct(0);
+    setPostNote({ ok: true, text: 'Opened TikTok in a new tab — rendering your reel now (seeking + encoding + audio mix)…' });
+    try {
+      const { result, audioUrl, audioMsg } = await renderReelMp4({ durationCapSec: 1200 });
+      exportSeqRef.current += 1;
+      const stamp = `${SESSION_STAMP}-${exportSeqRef.current}`;
+      const name = `bbf-reel-tiktok-${stamp}.mp4`;
+      setLastExport({ blob: result.blob, name });
+      vaultDraft('video', result.blob, {
+        file_name: name,
+        mode: 'reel',
+        caption: reelFields().caption,
+        duration_sec: result.durationSec || null,
+        frames: result.frames || null,
+      });
+      const dur = result.durationSec ? `${result.durationSec}s` : '';
+      if (isMobileish()) {
+        setPostNote({
+          ok: !!result.audio || !audioUrl,
+          text: `✓ ${name} rendered${dur ? ` (${dur})` : ''}. Tap ⬇ SAVE TO PHONE, then switch to the TikTok tab and pick it from your Downloads/Gallery. ${audioMsg}`,
+        });
+      } else {
+        await saveBlobToDevice(result.blob, name, { preferShare: false });
+        setPostNote({
+          ok: !!result.audio || !audioUrl,
+          text: `✓ Downloaded ${name}${dur ? ` (${dur})` : ''} — switch to the TikTok tab and select it from your Downloads. ${audioMsg}`,
+        });
+      }
+    } catch (e) {
+      setPostNote({ ok: false, text: humanizeReelErr(e?.message) });
+    } finally {
+      setRecording(false);
     }
   };
 
@@ -781,12 +845,20 @@ export default function StudioLayout({
               <label className="ctl-label-v4">📤 Distribute Reel</label>
               {captionBox(reelFields().caption)}
               {socialToggles()}
-              {targets.tiktok && (
-                <div className="hint-v4" style={{ color: '#fb923c' }}>
-                  ⚠ TikTok direct-posting isn’t connected for video yet — IG/FB post automatically;
-                  for TikTok, export the reel and share it from ⬇ SAVE TO PHONE.
-                </div>
-              )}
+              <button
+                type="button"
+                className="queue-btn-v4"
+                onClick={exportForTikTok}
+                disabled={recording || posting}
+                data-testid="tiktok-bridge-btn"
+              >
+                {recording ? '🎬 RENDERING…' : '🎵 EXPORT & OPEN TIKTOK'}
+              </button>
+              <div className="hint-v4">
+                Direct TikTok posting isn’t connected yet — this renders the reel, opens
+                @build.believe.fit’s upload screen in a new tab, and saves the file so you
+                can drop it straight in.
+              </div>
               {/* VP9 fallback guardrail — non-blocking, shown BEFORE the render when
                   this browser has no H.264 encoder (Linux/headless/some Chromium). */}
               {codecProbe && codecProbe.willFallback ? (
