@@ -31,6 +31,15 @@ function StatusChip({ status }) {
 function VaultCard({ row }) {
   const [bridge, setBridge] = useState(null); // null | 'run' | 'ok' | 'err'
   const [bgmName, setBgmName] = useState('');
+  // ── LAZY MEDIA THROTTLE ────────────────────────────────────────────────────
+  // Rendering 36 seated <video> nodes at once saturates the main thread + client
+  // memory. The clip element is NOT mounted until the card is intentionally
+  // activated (tap / hover / keyboard focus). Until then the media area is a
+  // matte-black poster with a play glyph — zero network, zero decode. On activation
+  // the <video> mounts with preload="none", so even then no binary fragment
+  // downloads until the user hits play.
+  const [active, setActive] = useState(false);
+  const activate = useCallback(() => setActive(true), []);
 
   const onBridge = useCallback(() => {
     setBridge('run');
@@ -50,15 +59,37 @@ function VaultCard({ row }) {
 
   return (
     <article className="cv-card" data-testid={`vault-card-${row.id}`}>
-      <div className="cv-media">
-        <video
-          className="cv-video"
-          src={`${row.video_url}#t=0.1`}
-          preload="metadata"
-          muted
-          playsInline
-          controls
-        />
+      <div
+        className="cv-media"
+        onMouseEnter={activate}
+        onFocus={activate}
+      >
+        {active ? (
+          <video
+            className="cv-video"
+            src={`${row.video_url}#t=0.1`}
+            preload="none"
+            muted
+            playsInline
+            controls
+            autoPlay
+          />
+        ) : (
+          <button
+            type="button"
+            className="cv-poster"
+            onClick={activate}
+            data-testid={`vault-poster-${row.id}`}
+            aria-label={`Load and play ${row.title}`}
+          >
+            <span className="cv-poster-play" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </span>
+            <span className="cv-poster-label">Tap to load</span>
+          </button>
+        )}
       </div>
       <div className="cv-body">
         <div className="cv-row-top">

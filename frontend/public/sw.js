@@ -15,7 +15,7 @@
 //   • Dynamic hosts (Supabase REST/functions, Render proxy /api/*, PostgREST,
 //     direct AI/mail) → NEVER cached. Always network. Prevents clients getting
 //     pinned to stale workout sets / meal plans / dietary fields.
-var CACHE = 'bbf-react-v249';
+var CACHE = 'bbf-react-v250';
 var SHELL = '/';
 var CORE = [
   '/',
@@ -50,6 +50,22 @@ function isDynamic(url) {
   } catch { return false; }
 }
 
+// ─── MARKETING MEDIA STREAM EXEMPTION ────────────────────────
+// Supabase Storage serves the marketing clips as chunked HTTP 206 Partial Content
+// (video byte-range streaming). The SW must NEVER intercept, buffer, or cache these:
+//   • cache.put() of a 206 partial response throws → rejects the respondWith chain
+//     → media panic + broken seeking on the client.
+//   • Buffering large mp4 chunks into Cache Storage saturates the worker thread.
+// So we bail on (a) any Range request, and (b) the public marketing videos path —
+// both go straight to the browser's native media loader, untouched by the worker.
+function isMediaStream(req) {
+  try {
+    if (req.headers && req.headers.get('range')) return true;   // 206 byte-range stream
+    var p = new URL(req.url).pathname;
+    return p.indexOf('/storage/v1/object/public/videos/marketing/') !== -1;
+  } catch { return false; }
+}
+
 // ─── INSTALL ─────────────────────────────────────────────────
 // Fetch the shell network-first (cache:'reload') so a version bump can never
 // seed the new cache with a stale index.html; add the rest of CORE best-effort.
@@ -79,6 +95,7 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;                 // never cache mutations
+  if (isMediaStream(req)) return;                   // 206 video streams → native loader, never buffered
   if (isDynamic(req.url)) return;                   // dynamic data → straight to network
 
   // SPA navigations → network-first, fall back to the cached shell when offline.
