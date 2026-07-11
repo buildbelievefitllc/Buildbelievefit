@@ -29,7 +29,57 @@ import {
   buildAlgorithmicBrief, contentWeight, assessAlgorithmHealth,
 } from '../../lib/algorithmicBriefEngine.js';
 import ContentVaultGrid from './ContentVaultGrid.jsx';
+import { fetchMetaTokenStatus } from '../../lib/contentVaultApi.js';
 import './digitalContentManager.css';
+
+// ── Meta distribution-token health light ──────────────────────────────────────
+// Passive read of the bbf_meta_token_watchdog flag. Renders NOTHING until the
+// watchdog raises CRITICAL_RENEWAL (< 7 days to expiry) — an elegant, zero-noise
+// header indicator that only appears when the Dispatch-to-Meta pipeline is about to
+// lose its credential. Click reveals the exact expiry date so it's never a surprise.
+function MetaKeyStatus() {
+  const [status, setStatus] = useState(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      // Never block the panel on a status read — a missing/failed flag just hides.
+      try { const s = await fetchMetaTokenStatus(); if (alive) setStatus(s); } catch { /* passive */ }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  if (!status || status.state !== 'CRITICAL_RENEWAL') return null;
+
+  const iso = status.detail?.expires_at_iso;
+  const days = status.detail?.days_remaining;
+  const dateLabel = iso
+    ? new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    : 'Aug 5, 2026';
+  const daysLabel = typeof days === 'number' ? ` · ~${Math.max(0, Math.round(days))}d left` : '';
+
+  return (
+    <div className="dcm-metakey" data-testid="meta-key-status">
+      <button
+        type="button"
+        className="dcm-metakey-btn"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        data-testid="meta-key-warning"
+      >
+        <span className="dcm-metakey-dot" aria-hidden="true" />
+        Meta Key Refresh Required
+      </button>
+      {open ? (
+        <div className="dcm-metakey-pop" role="status">
+          Meta distribution token expires <strong>{dateLabel}</strong>{daysLabel}. Re-mint the
+          long-lived system-user token before then to avoid an IG&nbsp;/&nbsp;FB publish outage.
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 // ── date helpers (local-time; the queue stores ISO/UTC) ──────────────────────
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -613,6 +663,7 @@ export default function DigitalContentManager() {
             (Approve &amp; Synthesize) is the only external call.
           </p>
         </div>
+        <MetaKeyStatus />
         <div className="dcm-tabs" role="tablist" aria-label="Content Manager surfaces">
           <button
             type="button" role="tab" aria-selected={tab === 'bucket'}

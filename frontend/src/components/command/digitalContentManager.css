@@ -8,6 +8,34 @@
 .dcm-title { font-family: var(--display, 'Bebas Neue', sans-serif); font-size: 2rem; letter-spacing: 1px; margin: 0; }
 .dcm-sub { margin: .25rem 0 0; color: var(--dcm-mut); font-size: .85rem; max-width: 44ch; line-height: 1.4; }
 
+/* Meta distribution-token health light — only rendered on CRITICAL_RENEWAL.
+   Warning red, quietly pulsing; click reveals the expiry date. */
+.dcm-metakey { position: relative; align-self: center; }
+.dcm-metakey-btn {
+  display: inline-flex; align-items: center; gap: .45rem; cursor: pointer;
+  font-family: var(--hb, 'Barlow Condensed', sans-serif); font-size: .74rem; letter-spacing: 1px;
+  text-transform: uppercase; color: #ff8f8f; white-space: nowrap;
+  padding: .4rem .75rem; border-radius: 999px;
+  border: 1px solid rgba(255, 77, 79, .55); background: rgba(255, 77, 79, .1);
+  transition: border-color .18s ease, background .18s ease, color .18s ease;
+}
+.dcm-metakey-btn:hover { border-color: #ff4d4f; color: #ffb3b3; background: rgba(255, 77, 79, .16); }
+.dcm-metakey-btn:focus-visible { outline: 2px solid #ff4d4f; outline-offset: 2px; }
+.dcm-metakey-dot {
+  width: 8px; height: 8px; border-radius: 999px; background: #ff4d4f; flex: none;
+  box-shadow: 0 0 6px rgba(255, 77, 79, .9); animation: dcm-metakey-pulse 1.6s ease-in-out infinite;
+}
+.dcm-metakey-pop {
+  position: absolute; top: calc(100% + .5rem); right: 0; z-index: 20; width: max-content; max-width: 300px;
+  font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .82rem; line-height: 1.45;
+  color: var(--dcm-ink); padding: .6rem .75rem; border-radius: 10px;
+  background: #090909; border: 1px solid rgba(255, 77, 79, .5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+}
+.dcm-metakey-pop strong { color: var(--dcm-gold); }
+@keyframes dcm-metakey-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .dcm-metakey-dot { animation: none; } }
+
 .dcm-tabs { display: inline-flex; gap: .3rem; border: 1px solid var(--dcm-line); border-radius: 999px; padding: .25rem; }
 .dcm-tab { font-family: var(--hb, 'Barlow Condensed', sans-serif); font-size: .8rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dcm-mut); background: none; border: none; border-radius: 999px; padding: .5rem 1rem; cursor: pointer; transition: background .15s, color .15s; }
 .dcm-tab.is-on { color: #0e0a16; background: linear-gradient(90deg, var(--dcm-purple), var(--dcm-gold)); font-weight: 700; }

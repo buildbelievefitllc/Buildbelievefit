@@ -51,6 +51,20 @@ export async function purgeVaultItem({ id, video_url }) {
   return callManager({ action: 'vault_purge', id, video_url });
 }
 
+// Passive read of the Meta distribution-token health flag (public-read status row
+// written by the bbf_meta_token_watchdog cron). Returns the row (or null if the
+// watchdog hasn't seeded yet). No secrets — just { state, detail:{ expires_at_iso,
+// days_remaining, ... } }. Reads with the anon client; never blocks the panel.
+export async function fetchMetaTokenStatus() {
+  const { data, error } = await supabase
+    .from('bbf_system_status')
+    .select('key,state,detail,updated_at')
+    .eq('key', 'meta_token')
+    .maybeSingle();
+  if (error) throw new Error(error.message || 'status_read_failed');
+  return data || null;
+}
+
 // One-shot fetch — newest first.
 export async function fetchContentVault() {
   const { data, error } = await supabase
