@@ -5,3 +5,6 @@ env.js
 .env
 .env.local
 package-lock.json
+
+# Raw HeyGen render drop zone — masters live in Supabase videos/ bucket, never in git
+HEYGENLOAD/

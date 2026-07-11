@@ -7,11 +7,9 @@
 // project ref is derived from VITE_SUPABASE_URL so it tracks the active project across
 // environments, falling back to the canonical BBF project origin.
 //
-// ASSET STATUS: the `bbf_app_vault_*_916.mp4` portrait masters are NOT yet produced /
-// uploaded — the bucket + folder exist, the objects do not. These entries are forward
-// config (not yet wired to a live launcher), so no dead 404 can reach the UI. Once a
-// master is produced, compress <50MB and upload to videos/guides/<filename>, then wire
-// its launcher.
+// ASSET STATUS: all 8 `bbf_app_vault_*_916.mp4` portrait masters are LIVE in the bucket
+// (compressed via ffmpeg crf24/2M cap, 2.5–9.6MB each, public HEAD → 206). The `intro`
+// entry maps to the `welcome` upload (BBF_WELCOME_PAGE). Catalog ↔ bucket are in sync.
 
 const SUPABASE_ORIGIN = import.meta.env.VITE_SUPABASE_URL || 'https://ihclbceghxpuawymlvgi.supabase.co';
 const SUPABASE_CDN_BASE = `${SUPABASE_ORIGIN}/storage/v1/object/public/videos/guides`;
@@ -20,7 +18,7 @@ export const SOVEREIGN_SYSTEM_GUIDES = {
   intro: {
     id: 'bbf_intro_protocol',
     title: "Today's Protocol Overview",
-    url: `${SUPABASE_CDN_BASE}/bbf_app_vault_intro_916.mp4`,
+    url: `${SUPABASE_CDN_BASE}/bbf_app_vault_welcome_916.mp4`,
   },
   check_in: {
     id: 'bbf_data_capture',
