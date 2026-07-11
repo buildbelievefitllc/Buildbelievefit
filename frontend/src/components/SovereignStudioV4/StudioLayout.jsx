@@ -129,6 +129,24 @@ export default function StudioLayout({
       ⬇ SAVE TO PHONE
     </button>
   ) : null;
+  // VAULT HISTORY auto-backup — every finished export is ALSO pushed (best-effort,
+  // in the background) to the private studio-drafts-v1 vault, so even when the
+  // phone-side save dies (the S25 Ultra failure) the render survives server-side
+  // and any device — e.g. the laptop — can pull it back down from the 🗂 HISTORY
+  // tab. A vault hiccup never blocks the local download path.
+  const [vaultNote, setVaultNote] = useState(null); // { ok, text } | null
+  const vaultDraft = (kind, blob, meta) => {
+    setVaultNote({ ok: true, text: '☁ Backing up to Vault History…' });
+    import('../../lib/studioDraftsApi.js')
+      .then(({ saveDraft }) => saveDraft({ kind, blob, meta }))
+      .then(() => setVaultNote({ ok: true, text: '✓ Backed up to Vault History — retrievable from any device via the 🗂 HISTORY tab.' }))
+      .catch((e) => setVaultNote({ ok: false, text: `⚠ Vault backup failed (${e?.message || 'error'}) — this file only exists on this device right now.` }));
+  };
+  const vaultNoteLine = vaultNote ? (
+    <div className="hint-v4" data-testid="vault-note" style={{ color: vaultNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>
+      {vaultNote.text}
+    </div>
+  ) : null;
   // PRE-EXPORT CODEC PROBE — runs once on mount, BEFORE any render. Warns
   // (non-blocking) when this browser has no H.264 encoder and the reel would export
   // via the VP9/AV1 fallback (which IG/TikTok/YouTube recompress hard → softer post).
@@ -187,6 +205,7 @@ export default function StudioLayout({
       // Keep the finished blob so ⬇ SAVE TO PHONE can re-deliver it from a fresh
       // tap even if this immediate attempt dies silently (Android PWA anchors do).
       setLastExport({ blob, name });
+      vaultDraft('image', blob, { file_name: name, mode });
       // Image renders are fast enough that the click's activation is usually still
       // live — share-first on mobile lands the file in the sheet right away; the
       // ladder falls back to the classic anchor on desktop (exportDelivery.js).
@@ -300,6 +319,7 @@ export default function StudioLayout({
       {postNote && (
         <div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>
       )}
+      {vaultNoteLine}
       {saveToPhoneBtn}
     </>
   );
@@ -385,6 +405,13 @@ export default function StudioLayout({
       if (!target) {
         const name = `bbf-reel-${stamp}.mp4`;
         setLastExport({ blob: result.blob, name });
+        vaultDraft('video', result.blob, {
+          file_name: name,
+          mode: 'reel',
+          caption: reelFields().caption,
+          duration_sec: result.durationSec || null,
+          frames: result.frames || null,
+        });
         const dur = result.durationSec ? `${result.durationSec}s` : '';
         const frm = result.frames ? `${result.frames} real frames` : '';
         const stats = [dur, frm].filter(Boolean).join(', ');
@@ -759,6 +786,7 @@ export default function StudioLayout({
               {postNote && (
                 <div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>
               )}
+              {vaultNoteLine}
               {saveToPhoneBtn}
             </div>
           </div>

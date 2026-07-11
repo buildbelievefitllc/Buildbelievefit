@@ -5,6 +5,7 @@
 import { useState, useEffect, useRef } from 'react';
 import StudioLayout from './StudioLayout';
 import StudioCompilerPanel from './StudioCompilerPanel';
+import DraftHistoryPanel from './DraftHistoryPanel';
 import './sovereignStudioV4.css';
 
 // Card catalog — copy ported verbatim from the v3 reference banks (each entry is
@@ -162,6 +163,7 @@ export default function SovereignStudioV4() {
             ['reel', '🎬 VIDEO ENGINE'],
             ['compiler', '⚙ AD COMPILER'],
             ['queue', '📡 QUEUE'],
+            ['history', '🗂 HISTORY'],
           ].map(([id, label]) => (
             <button
               key={id}
@@ -181,6 +183,10 @@ export default function SovereignStudioV4() {
         // Standalone URL-driven pipeline — no ctaData/phoneData/reelData editor
         // state to thread through; it's self-contained like QueueMonitor.
         <div className="sc-shell"><StudioCompilerPanel /></div>
+      ) : mode === 'history' ? (
+        // Vault Export History — self-contained reader over bbf-studio-drafts;
+        // no editor state to thread through (same shape as the compiler panel).
+        <div className="dhist-shell-v4"><DraftHistoryPanel /></div>
       ) : (
         <StudioLayout
           mode={mode}

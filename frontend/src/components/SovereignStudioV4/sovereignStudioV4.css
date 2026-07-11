@@ -239,6 +239,25 @@
 .qmon-kind { flex-shrink: 0; }
 .qmon-row-sub { font-size: 0.72rem; color: var(--mut); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ===== VAULT EXPORT HISTORY (DraftHistoryPanel · 🗂 HISTORY tab) ===== */
+.dhist-shell-v4 { width: 100%; max-width: 680px; margin: 0 auto; padding: 24px 18px; }
+.dhist-v4 { width: 100%; color: var(--wht); }
+.dhist-lede-v4 { margin: 0 0 16px; }
+.dhist-row-v4 { align-items: stretch; }
+.dhist-row-v4 .qmon-row-title { white-space: normal; word-break: break-all; }
+.dhist-actions-v4 { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
+.dhist-btn-v4 {
+  font-family: var(--hb); font-size: 0.72rem; letter-spacing: 1.4px;
+  padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  background: var(--gry2); border: 1px solid var(--gry3); color: var(--wht);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.dhist-btn-v4:disabled { opacity: 0.55; cursor: default; }
+.dhist-btn-v4.primary { border-color: rgba(245, 200, 0, 0.5); color: var(--yel); }
+.dhist-btn-v4.primary:hover:not(:disabled) { background: rgba(245, 200, 0, 0.12); }
+.dhist-btn-v4.danger { border-color: rgba(251, 146, 60, 0.4); color: #fb923c; }
+.dhist-btn-v4.danger:hover:not(:disabled) { background: rgba(251, 146, 60, 0.1); }
+
 /* ===== AD COMPILER (StudioCompilerPanel) ===== */
 .sc-shell { width: 100%; max-width: 520px; margin: 0 auto; padding: 24px 18px; }
 .sc-panel { display: flex; flex-direction: column; }
