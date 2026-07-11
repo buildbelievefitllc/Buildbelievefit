@@ -237,9 +237,16 @@ function buildSsml(raw: string, vibe: Vibe): string {
   return `${PAD} ${out} ${PAD}`;
 }
 
+// 120s synthesis budget: a 180s Masterclass script (~450 words) routinely takes
+// ElevenLabs >30s to synthesize, so the old 30s abort made long durations fail
+// spuriously (`timeout_30000ms` → tts_failed 502 on a perfectly valid request).
+// Edge functions allow up to ~150s wall clock — 120s leaves headroom for the
+// storage upload after synthesis.
+const SYNTH_TIMEOUT_MS = 120_000;
+
 async function synthesize(apiKey: string, text: string, settings: Record<string, unknown>): Promise<{ ok: true; buf: ArrayBuffer } | { ok: false; status: number; detail: string }> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout = setTimeout(() => controller.abort(), SYNTH_TIMEOUT_MS);
   try {
     // MAX-QUALITY AUDIO VALVE: mp3_44100_192 — 44.1 kHz / 192 kbps, ElevenLabs'
     // top MP3 rung (Creator tier+, which the Akeem PVC already requires). NOT
@@ -260,7 +267,7 @@ async function synthesize(apiKey: string, text: string, settings: Record<string,
     return { ok: true, buf: await res.arrayBuffer() };
   } catch (e) {
     const err = e as Error;
-    return { ok: false, status: 0, detail: err.name === 'AbortError' ? 'timeout_30000ms' : err.message };
+    return { ok: false, status: 0, detail: err.name === 'AbortError' ? `timeout_${SYNTH_TIMEOUT_MS}ms` : err.message };
   } finally { clearTimeout(timeout); }
 }
 

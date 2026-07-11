@@ -68,12 +68,11 @@ function humanizePostErr(slug) {
 
 function humanizeReelErr(slug) {
   const map = {
-    no_recorder: 'This browser can’t record canvas video — try Chrome or Safari on a recent device.',
+    no_webcodecs: 'This browser lacks WebCodecs — use a recent Chrome/Edge.',
     no_footage: 'Upload reel footage first (EXPORT still works for the cover).',
     no_stage: 'Reel preview not ready — switch to the Video Engine tab and retry.',
-    empty_recording: 'The recording produced no data — try again, or use a different browser.',
+    empty_recording: 'The render produced no data — try again, or use a different browser.',
     play_failed: 'Could not start footage playback — re-upload the clip and retry.',
-    recorder_init: 'Recorder init failed — try a different browser.',
     no_admin_session: 'No admin session — sign in to the Command Center, then retry.',
     not_admin: 'This session is not an authorized admin.',
   };
@@ -85,6 +84,7 @@ export default function StudioLayout({
   ctaData,
   handleCtaChange,
   spinCard,
+  undoSpin,
   phoneData,
   handlePhoneChange,
   reelData,
@@ -368,17 +368,28 @@ export default function StudioLayout({
       }
       setPostNote({ ok: true, text: 'Rendering reel (seeking + encoding frames + voiceover)…' });
       const videoUrl = stageRef.current?.querySelector('.reel-video-v4')?.src || reelData.videoFile?.url;
-      // Voice wins the export bake; with no voiceover the backing track carries it;
-      // with neither, fall back to the uploaded footage's OWN audio track (if it has
-      // one) — the capture <video> is muted (Chrome suspends decode on inaudible
-      // elements otherwise), so without this fallback a clip's native sound was
-      // silently dropped even though _decodeVo can pull audio out of any container.
-      const audioUrl = reelData.voUrl || reelData.musicFile?.url || reelData.videoFile?.url || null;
+      // THE REAL AUDIO MIX: voice and music ride as SEPARATE tracks with the Audio
+      // Mix Console's slider levels — the foundry mixes them (music looped + ducked
+      // under the voice) so the export sounds like the preview, instead of the old
+      // single-track collapse that silently dropped the music whenever a voiceover
+      // existed. With neither voice nor music, fall back to the uploaded footage's
+      // OWN audio track (if it has one) — the capture <video> is muted (Chrome
+      // suspends decode on inaudible elements otherwise), so without this fallback
+      // a clip's native sound was silently dropped.
+      const voiceUrl = reelData.voUrl || null;
+      const musicUrl = reelData.musicFile?.url || null;
+      const fallbackAudioUrl = (!voiceUrl && !musicUrl) ? (reelData.videoFile?.url || null) : null;
+      const audioUrl = voiceUrl || musicUrl || fallbackAudioUrl; // for the status line below
       const overlay = await SovereignFoundry.captureOverlay(stageRef.current);
       const foundry = new SovereignFoundry(document.body);
       const result = await foundry.render({
         videoUrl,
-        voUrl: audioUrl,
+        voUrl: voiceUrl || fallbackAudioUrl,
+        musicUrl,
+        // Footage-audio fallback plays at full level; the voice slider only governs
+        // an actual voiceover track.
+        voGain: voiceUrl ? Number(reelData.voiceVolume ?? 100) / 100 : 1,
+        musicGain: Number(reelData.musicVolume ?? 80) / 100,
         overlay,
         // Phone backdrop → clip the footage into the same rect the DOM preview used, and
         // have the export draw the matching bezel/notch itself (reelPhoneBackdrop.js —
@@ -396,7 +407,9 @@ export default function StudioLayout({
 
       // Audio status line — explicit, never silent (CEO order: bubble the reason).
       const audioMsg = result.audio
-        ? '🎙 Audio baked in.'
+        ? (voiceUrl && musicUrl
+            ? '🎙 Voice + music mix baked in (console levels, music ducked under the voice).'
+            : '🎙 Audio baked in.')
         : (audioUrl
             ? `⚠ Audio failed: ${result.audioError || 'unknown'} — video exported without sound.`
             : 'No voiceover, music, or footage audio was available — video exported silent.');
@@ -480,6 +493,11 @@ export default function StudioLayout({
               <button className="spin-btn-v4" onClick={spinCard}>
                 🎰 SPIN A CARD
               </button>
+              {undoSpin && (
+                <button type="button" className="ph-clear-v4" onClick={undoSpin} data-testid="undo-spin">
+                  ↩ Undo spin — restore previous copy
+                </button>
+              )}
               <div className="hint-v4">Pulls a headline, body &amp; CTA from the selected lane (or shuffles all). Everything stays editable.</div>
             </div>
 
@@ -763,6 +781,12 @@ export default function StudioLayout({
               <label className="ctl-label-v4">📤 Distribute Reel</label>
               {captionBox(reelFields().caption)}
               {socialToggles()}
+              {targets.tiktok && (
+                <div className="hint-v4" style={{ color: '#fb923c' }}>
+                  ⚠ TikTok direct-posting isn’t connected for video yet — IG/FB post automatically;
+                  for TikTok, export the reel and share it from ⬇ SAVE TO PHONE.
+                </div>
+              )}
               {/* VP9 fallback guardrail — non-blocking, shown BEFORE the render when
                   this browser has no H.264 encoder (Linux/headless/some Chromium). */}
               {codecProbe && codecProbe.willFallback ? (
@@ -778,7 +802,7 @@ export default function StudioLayout({
                 </div>
               ) : null}
               <button className="postnow-btn-v4" onClick={exportOrPostReel} disabled={recording || posting}>
-                {recording ? `🎬 RECORDING… ${recordPct}%` : platformTarget() ? `🚀 EXPORT & POST → ${platformLabel()}` : '⬇ EXPORT VIDEO'}
+                {recording ? `🎬 RENDERING… ${recordPct}%` : platformTarget() ? `🚀 EXPORT & POST → ${platformLabel()}` : '⬇ EXPORT VIDEO'}
               </button>
               <div className="hint-v4">
                 Toggles OFF → records &amp; downloads the reel. Toggles ON → records &amp; posts it. Needs uploaded footage (else exports the cover frame).
@@ -866,13 +890,13 @@ export default function StudioLayout({
         )}
       </div>
 
-      {/* Hard UI lock + encoding overlay while the MediaRecorder runs in real time. */}
+      {/* Hard UI lock + progress overlay while the SovereignFoundry encodes. */}
       {recording && (
-        <div className="rec-lock-v4" role="alertdialog" aria-busy="true" aria-label="Recording reel">
+        <div className="rec-lock-v4" role="alertdialog" aria-busy="true" aria-label="Rendering reel">
           <div className="rec-lock-card">
             <div className="rec-spinner" />
-            <div className="rec-title">RECORDING REEL</div>
-            <div className="rec-sub">Encoding the canvas in real time — please keep this tab open.</div>
+            <div className="rec-title">RENDERING REEL</div>
+            <div className="rec-sub">Encoding frames + mixing audio — please keep this tab open.</div>
             <div className="rec-bar"><div className="rec-bar-fill" style={{ width: `${recordPct}%` }} /></div>
             <div className="rec-pct">{recordPct}%</div>
           </div>

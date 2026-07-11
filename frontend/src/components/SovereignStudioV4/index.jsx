@@ -8,6 +8,39 @@ import StudioCompilerPanel from './StudioCompilerPanel';
 import DraftHistoryPanel from './DraftHistoryPanel';
 import './sovereignStudioV4.css';
 
+// ── WORK-IN-PROGRESS PERSISTENCE ─────────────────────────────────────────────
+// Every typed field (headlines, hooks, colors, voice/config picks) is mirrored
+// to localStorage (debounced) so a reload, a PWA tab reclaimed by Android, or a
+// crash never wipes the session's copywriting back to defaults. Blob-backed
+// uploads (footage / logo / screenshots / music) CANNOT survive a reload —
+// their object URLs die with the JS session — so they are excluded from the
+// snapshot and simply start empty again after a reload.
+const EDITOR_STATE_KEY = 'bbf-studio-v4-editor-v1';
+const NONPERSISTED_KEYS = new Set([
+  'backgroundImage', 'backgroundImage2', 'backgroundImage3', // phone screenshots
+  'logoImage', 'videoFile', 'musicFile',                      // reel uploads
+]);
+
+// Hydrate one state slice: defaults overlaid with the saved snapshot, but only
+// for keys the defaults define (schema drift → stale keys drop silently) and
+// never for blob-backed keys. Reads localStorage per call so a remount always
+// picks up the LATEST save, not a stale module-load snapshot.
+function hydrateSlice(slice, defaults) {
+  try {
+    const raw = localStorage.getItem(EDITOR_STATE_KEY);
+    const saved = raw ? JSON.parse(raw)?.[slice] : null;
+    if (!saved || typeof saved !== 'object') return defaults;
+    const out = { ...defaults };
+    for (const k of Object.keys(defaults)) {
+      if (NONPERSISTED_KEYS.has(k)) continue;
+      if (k in saved && saved[k] !== undefined && saved[k] !== null) out[k] = saved[k];
+    }
+    return out;
+  } catch {
+    return defaults; // corrupt/absent storage — start clean, never crash the studio
+  }
+}
+
 // Card catalog — copy ported verbatim from the v3 reference banks (each entry is
 // [eyebrow, headline, body, buttonText]; *single* = accent highlight, **double**
 // = bold white). Lanes mirror the v3 lane dropdown.
@@ -42,7 +75,7 @@ const CATALOG = {
 
 export default function SovereignStudioV4() {
   const [mode, setMode] = useState('cta');
-  const [ctaData, setCtaData] = useState({
+  const [ctaData, setCtaData] = useState(() => hydrateSlice('cta', {
     lane: 'all',
     format: 'feed',
     eyebrow: 'BUILD BELIEVE FIT • THE WHY',
@@ -51,9 +84,9 @@ export default function SovereignStudioV4() {
     buttonText: 'DM PATHFINDER',
     primaryColor: '#f5c800',
     secondaryColor: '#6a0dad',
-  });
+  }));
 
-  const [phoneData, setPhoneData] = useState({
+  const [phoneData, setPhoneData] = useState(() => hydrateSlice('phone', {
     layout: 'single',
     frame: 'sleek',
     eyebrow: 'NUTRITION  •  ADAPTIVE FASTING',
@@ -62,9 +95,9 @@ export default function SovereignStudioV4() {
     backgroundImage: null,   // front-phone screenshot (single / dual / trio)
     backgroundImage2: null,  // 2nd-phone screenshot (dual back phone / trio left phone)
     backgroundImage3: null,  // 3rd-phone screenshot (trio right phone)
-  });
+  }));
 
-  const [reelData, setReelData] = useState({
+  const [reelData, setReelData] = useState(() => hydrateSlice('reel', {
     spectrum: '',
     hook: '',
     hookSub: '',
@@ -90,7 +123,23 @@ export default function SovereignStudioV4() {
     targetDuration: 30,     // seconds: 15 Hook / 30 Breakdown / 60 Masterclass
     lang: 'en',             // payload lang (en/es/pt) — defaults EN
     voUrl: null,            // returned Supabase Storage public URL → ReelPreviewEngine
-  });
+  }));
+
+  // Debounced localStorage mirror of the three editor slices (blob fields
+  // stripped). 400ms coalesces per-keystroke updates into one write.
+  const persistTimerRef = useRef(null);
+  useEffect(() => {
+    if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
+    persistTimerRef.current = setTimeout(() => {
+      try {
+        const strip = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => !NONPERSISTED_KEYS.has(k)));
+        localStorage.setItem(EDITOR_STATE_KEY, JSON.stringify({
+          cta: strip(ctaData), phone: strip(phoneData), reel: strip(reelData),
+        }));
+      } catch { /* private mode / storage full — persistence is best-effort */ }
+    }, 400);
+    return () => { if (persistTimerRef.current) clearTimeout(persistTimerRef.current); };
+  }, [ctaData, phoneData, reelData]);
 
   // Keep a live ref to the reel blob URLs so the unmount cleanup revokes whatever
   // is current. Synced in an effect (never during render) per the hooks rules.
@@ -131,6 +180,9 @@ export default function SovereignStudioV4() {
     setReelData(prev => ({ ...prev, [key]: value }));
   };
 
+  // SPIN overwrites four hand-editable fields at once — keep a one-step undo
+  // snapshot so a spin over hand-tuned copy is never destructive.
+  const [spinUndo, setSpinUndo] = useState(null); // { eyebrow, headline, body, buttonText } | null
   const spinCard = () => {
     // Honor the selected lane; "all" (or an empty lane) shuffles the whole catalog.
     const selected = ctaData.lane;
@@ -139,10 +191,18 @@ export default function SovereignStudioV4() {
       : Object.values(CATALOG).flat();
     if (!pool.length) return;
     const [eyebrow, headline, body, buttonText] = pool[Math.floor(Math.random() * pool.length)];
+    setSpinUndo({
+      eyebrow: ctaData.eyebrow, headline: ctaData.headline,
+      body: ctaData.body, buttonText: ctaData.buttonText,
+    });
     // One atomic update — replaces all four fields together (no reliance on
     // functional-updater accumulation across separate calls).
     setCtaData(prev => ({ ...prev, eyebrow, headline, body, buttonText }));
   };
+  const undoSpin = spinUndo ? () => {
+    setCtaData(prev => ({ ...prev, ...spinUndo }));
+    setSpinUndo(null);
+  } : null;
 
   return (
     <div className="sovereign-studio-v4">
@@ -193,6 +253,7 @@ export default function SovereignStudioV4() {
           ctaData={ctaData}
           handleCtaChange={handleCtaChange}
           spinCard={spinCard}
+          undoSpin={undoSpin}
           phoneData={phoneData}
           handlePhoneChange={handlePhoneChange}
           reelData={reelData}

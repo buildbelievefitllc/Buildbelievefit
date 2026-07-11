@@ -131,10 +131,11 @@ function CtlSection({ icon, label, defaultOpen = true, children }) {
 }
 
 // Hook headline typeface choices — mirrors ReelPreviewEngine's HOOK_FONT_STACK ids.
+// Labels match StudioCompilerPanel's picker — same ids, same names everywhere.
 const HOOK_FONTS = [
   ['bebas', 'BEBAS'],
   ['anton', 'ANTON'],
-  ['barlow', 'CONDENSED'],
+  ['barlow', 'BARLOW'],
 ];
 
 const SERIES = [
@@ -159,6 +160,17 @@ export default function VibeSelector({ reelData, handleReelChange }) {
   const [voNote, setVoNote] = useState(null); // { ok: boolean, text: string }
   const [hookBusy, setHookBusy] = useState(false);
   const [hookNote, setHookNote] = useState(null); // { ok: boolean, text: string }
+  // One-step undo for the two hook overwriters (SPIN + AUTO) — hand-tuned copy
+  // must never be destroyed by a stray tap.
+  const [hookUndo, setHookUndo] = useState(null); // { hook, hookSub } | null
+  const snapshotHook = () => setHookUndo({ hook: reelData.hook, hookSub: reelData.hookSub });
+  const undoHook = () => {
+    if (!hookUndo) return;
+    handleReelChange('hook', hookUndo.hook);
+    handleReelChange('hookSub', hookUndo.hookSub);
+    setHookUndo(null);
+    setHookNote({ ok: true, text: 'Restored your previous hook.' });
+  };
 
   // Pull a random hook from the chosen spectrum, or across ALL spectrums when the
   // default "— all spectrums (shuffle) —" is selected (v3 parity — no dead button).
@@ -166,6 +178,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
     const pool = spectrum && HOOKS[spectrum] ? HOOKS[spectrum] : Object.values(HOOKS).flat();
     if (!pool.length) return;
     const pick = pool[Math.floor(Math.random() * pool.length)];
+    snapshotHook();
     handleReelChange('hook', pick.hook);
     handleReelChange('hookSub', pick.sub);
   };
@@ -187,6 +200,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
     try {
       const { generateHook } = await import('../../lib/studioApi.js');
       const r = await generateHook({ topic, spectrum: reelData.spectrum, lang: reelData.lang || 'en' });
+      snapshotHook();
       handleReelChange('hook', r.hook);
       if (r.sub) handleReelChange('hookSub', r.sub);
       setHookNote({ ok: true, text: `Hook auto-filled via Haiku for “${topic}”.` });
@@ -346,6 +360,11 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           {hookBusy ? '…' : '✨ AUTO (HAIKU)'}
         </button>
       </div>
+      {hookUndo && (
+        <button type="button" className="ph-clear-v4" onClick={undoHook} data-testid="undo-hook">
+          ↩ Undo — restore previous hook
+        </button>
+      )}
       {hookNote && (
         <div className="hint-v4" style={{ color: hookNote.ok ? 'var(--green, #4ade80)' : '#fb923c', marginTop: -8 }}>{hookNote.text}</div>
       )}

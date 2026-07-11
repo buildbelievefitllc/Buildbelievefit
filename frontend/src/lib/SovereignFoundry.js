@@ -137,9 +137,14 @@ export class SovereignFoundry {
 
   /**
    * Render the reel.
+   * Audio contract (the REAL Audio Mix Console): `voUrl` is the voice/content
+   * track (its length can drive the reel duration); `musicUrl` is the backing
+   * track — looped to fill, DUCKED under the voice, and never allowed to extend
+   * the reel. `voGain`/`musicGain` (0–1) are the console sliders — the exported
+   * mix is the same mix the preview plays, not a single-track approximation.
    * @returns {Promise<{blob:Blob, ext:'mp4', mime:'video/mp4', audio:boolean, frames:number, durationSec:number}>}
    */
-  async render({ videoUrl, voUrl = null, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
+  async render({ videoUrl, voUrl = null, musicUrl = null, voGain = 1, musicGain = 1, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
     if (!videoUrl) throw new Error('no_footage');
 
@@ -158,12 +163,20 @@ export class SovereignFoundry {
 
       // Decode + resample the voiceover FIRST so its real length drives the duration.
       // Any failure is captured as a REASON (never swallowed) and surfaced to the UI.
+      // The music track decodes alongside it but NEVER influences duration — backing
+      // music is looped/trimmed to the reel, not the other way round.
       let audioBuffer = null, audioError = null;
+      let voBuffer = null, musicBuffer = null;
       if (voUrl) {
         const dec = await this._decodeVo(voUrl);
-        if (dec.error) audioError = dec.error; else audioBuffer = dec.buffer;
+        if (dec.error) audioError = `Voice: ${dec.error}`; else voBuffer = dec.buffer;
       }
-      const voDur = audioBuffer ? (audioBuffer.length / audioBuffer.sampleRate) : 0;
+      if (musicUrl) {
+        const dec = await this._decodeVo(musicUrl);
+        if (dec.error) audioError = [audioError, `Music: ${dec.error}`].filter(Boolean).join(' · ');
+        else musicBuffer = dec.buffer;
+      }
+      const voDur = voBuffer ? (voBuffer.length / voBuffer.sampleRate) : 0;
 
       // Ad Compiler contract (audioIsDurationMaster): the final MP4 runs EXACTLY
       // the audio track's length — shorter footage loops beneath it (unchanged),
@@ -174,6 +187,18 @@ export class SovereignFoundry {
         ? voDur
         : (Math.max(footageDur, voDur) || footageDur || voDur || durationCap);
       const d = Math.max(0.1, Math.min(naturalDur, durationCap));
+
+      // ── THE REAL MIXDOWN ── voice + looped/ducked music at the console's slider
+      // levels, rendered offline to one buffer of exactly `d` seconds. Falls back
+      // to the raw voice buffer if the mix itself fails (audio still ships).
+      if (voBuffer || musicBuffer) {
+        const mix = await this._buildAudioMix({ voBuffer, musicBuffer, voGain, musicGain, durationSec: d });
+        if (mix.buffer) audioBuffer = mix.buffer;
+        else {
+          audioBuffer = voBuffer || musicBuffer;
+          audioError = [audioError, `Mixdown: ${mix.error || 'failed'} — shipped the raw ${voBuffer ? 'voice' : 'music'} track instead`].filter(Boolean).join(' · ');
+        }
+      }
 
       // ── Codec selection (decided BEFORE the muxer, since the muxer is told the
       //    container codec up front). Prefer H.264 + AAC — the most universally
@@ -611,6 +636,61 @@ export class SovereignFoundry {
       const resampled = await oac.startRendering();
       return { buffer: resampled };
     } catch { return { buffer: decoded }; } // resample failed → still ship audio at native rate
+  }
+
+  // Compose the FINAL soundtrack the export bakes: voice + backing music with the
+  // Audio Mix Console's per-track gains, the music looped to fill the whole reel
+  // and DUCKED to 25% under the voice (easing back up over 0.4s once the voice
+  // ends — broadcast-style sidechain feel via gain automation), all rendered
+  // offline to one buffer of exactly `durationSec`. This is what makes the mix
+  // console REAL: the preview mix and the shipped MP4 are the same mix.
+  async _buildAudioMix({ voBuffer = null, musicBuffer = null, voGain = 1, musicGain = 1, durationSec }) {
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const clamp01 = (g) => { const n = Number(g); return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1; };
+    const vg = clamp01(voGain), mg = clamp01(musicGain);
+    if (!voBuffer && !musicBuffer) return { error: 'No audio' };
+    // Voice-only at full level → nothing to mix; ship the decoded buffer as-is
+    // (this is the Ad Compiler / legacy single-track path, byte-identical output).
+    if (!musicBuffer && vg === 1) return { buffer: voBuffer };
+    if (!OAC) return { error: 'No OfflineAudioContext' };
+    try {
+      const sr = 48_000;
+      const frames = Math.max(1, Math.ceil(durationSec * sr));
+      const oac = new OAC(2, frames, sr);
+      if (voBuffer) {
+        const vGainNode = oac.createGain();
+        vGainNode.gain.value = vg;
+        const vs = oac.createBufferSource();
+        vs.buffer = voBuffer;
+        vs.connect(vGainNode);
+        vGainNode.connect(oac.destination);
+        vs.start(0);
+      }
+      if (musicBuffer) {
+        const mGainNode = oac.createGain();
+        const voDur = voBuffer ? voBuffer.length / voBuffer.sampleRate : 0;
+        if (voBuffer && voDur > 0.05 && mg > 0) {
+          const ducked = mg * 0.25;
+          const rampAt = Math.min(voDur, durationSec);
+          mGainNode.gain.setValueAtTime(ducked, 0);
+          mGainNode.gain.setValueAtTime(ducked, Math.max(0, rampAt - 0.01));
+          mGainNode.gain.linearRampToValueAtTime(mg, Math.min(rampAt + 0.4, durationSec));
+        } else {
+          mGainNode.gain.value = mg;
+        }
+        const ms = oac.createBufferSource();
+        ms.buffer = musicBuffer;
+        ms.loop = true; // a short track fills the whole reel; a long one is trimmed
+        ms.connect(mGainNode);
+        mGainNode.connect(oac.destination);
+        ms.start(0);
+        ms.stop(durationSec);
+      }
+      const buffer = await oac.startRendering();
+      return { buffer };
+    } catch (e) {
+      return { error: (e && e.message) || 'render' };
+    }
   }
 
   _encodeVoiceover(muxer, audioBuffer, durationSec, apick, setErr) {

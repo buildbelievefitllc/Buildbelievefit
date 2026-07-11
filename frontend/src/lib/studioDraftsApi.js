@@ -94,3 +94,11 @@ export async function getDraftDownloadUrl(id) {
 export async function deleteDraft(id) {
   return call('delete', { id });
 }
+
+// Promote a stored draft into the auto-post pipeline — SERVER-SIDE copy + queued
+// batch row (the device never re-uploads anything). now:true fires the distributor
+// immediately: images return a synchronous verdict; videos return status 'posting'
+// with a queue_id to poll via studioQueueApi.pollPostStatus.
+export async function promoteDraft({ id, now = false }) {
+  return call('promote', { id, now });
+}

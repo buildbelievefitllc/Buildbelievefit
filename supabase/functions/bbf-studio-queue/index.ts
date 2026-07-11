@@ -141,10 +141,14 @@ async function isAuthorized(req: Request): Promise<boolean> {
   if (!userId) return false;
   try {
     const rows = await pgGet(
-      `bbf_users?select=uid,role&id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&limit=1`,
+      `bbf_users?select=uid,role,access_status&id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&limit=1`,
     );
     const u = Array.isArray(rows) && rows.length ? rows[0] : null;
     if (!u) return false;
+    // A LOCKED account must never reach the write path (this function posts to
+    // the public internet) — parity with bbf-sovereign-studio's read-side gate,
+    // which was previously STRICTER than this posting path.
+    if (String(u.access_status ?? '').toLowerCase() === 'locked') return false;
     const role = String(u.role ?? '').toLowerCase();
     const uname = String(u.uid ?? '').toLowerCase();
     return role === 'admin' || role === 'trainer' || uname === 'akeem';
@@ -181,6 +185,28 @@ async function assetExists(bucket: string, path: string): Promise<boolean> {
     const r = await fetch(`${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`, { method: 'HEAD' });
     return r.ok;
   } catch (_) { return false; }
+}
+
+// Guarded row mutations (PATCH/DELETE with a status filter + return=representation
+// so the caller can tell "matched nothing" apart from "succeeded").
+async function pgPatchRows(path: string, patch: Record<string, unknown>): Promise<unknown[]> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'PATCH',
+    headers: { ...pgHeaders(), Prefer: 'return=representation' },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`patch_${res.status}:${(await res.text()).slice(0, 200)}`);
+  const j = await res.json().catch(() => null);
+  return Array.isArray(j) ? j : [];
+}
+async function pgDeleteRows(path: string): Promise<unknown[]> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'DELETE',
+    headers: { ...pgHeaders(), Prefer: 'return=representation' },
+  });
+  if (!res.ok) throw new Error(`delete_${res.status}:${(await res.text()).slice(0, 200)}`);
+  const j = await res.json().catch(() => null);
+  return Array.isArray(j) ? j : [];
 }
 
 async function insertQueuedRow(table: string, row: Record<string, unknown>): Promise<unknown> {
@@ -304,6 +330,58 @@ serve(async (req) => {
       const row = Array.isArray(rows) && rows.length ? rows[0] : null;
       if (!row) return jsonResponse({ ok: false, error: 'not_found' }, 404);
       return jsonResponse({ ok: true, id, kind, status: row.status ?? null, last_error: row.last_error ?? null, post_refs: row.post_refs ?? null });
+    }
+
+    // ── retry: flip a FAILED row back to queued; now:true re-fires the distributor
+    //    immediately. Safe against double-posting: the distributors replay the row's
+    //    post_refs idempotently, so a channel that already returned a confirmed 200
+    //    is never re-posted — only the missing channel(s) fire.
+    if (action === 'retry') {
+      const kind = normKind(body?.kind);
+      const cfg = ROUTING[kind];
+      const id = String(body?.id ?? '');
+      if (!UUID_RE.test(id)) return jsonResponse({ error: 'bad_id' }, 400);
+      const flipped = await pgPatchRows(
+        `${cfg.table}?id=eq.${encodeURIComponent(id)}&status=eq.failed&select=id`,
+        { status: 'queued', last_error: null },
+      );
+      if (!flipped.length) return jsonResponse({ error: 'not_retryable', detail: 'row is not in failed state' }, 409);
+      if (body?.now === true) {
+        // Same async split as confirm: reels block on Meta's transcode, so fire in
+        // the background and let the browser poll poststatus; cards verdict sync.
+        if (kind === 'video') {
+          const bg = distributeNow(cfg.distributor, id)
+            .catch((e) => { console.error('[bbf-studio-queue] bg retry distribute failed:', String((e as Error)?.message ?? e)); });
+          try { (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime?.waitUntil?.(bg); } catch (_) { /* best effort */ }
+          return jsonResponse({ ok: true, id, kind, status: 'posting', async: true });
+        }
+        const dist = await distributeNow(cfg.distributor, id);
+        const summary = (dist.result && dist.result.summary) ? dist.result.summary : null;
+        const posted = !!summary && Number(summary.posted) > 0;
+        return jsonResponse(
+          { ok: dist.ok && posted, ...(dist.ok && posted ? {} : { error: 'distribute_failed' }), id, kind, status: posted ? 'posted' : 'failed', distribute: dist.result },
+          dist.ok ? 200 : 502,
+        );
+      }
+      return jsonResponse({ ok: true, id, kind, status: 'queued' });
+    }
+
+    // ── cancel: remove a still-QUEUED row (and its uploaded asset) before the drip
+    //    picks it up. Rows already posting/posted are past the point of recall.
+    if (action === 'cancel') {
+      const kind = normKind(body?.kind);
+      const cfg = ROUTING[kind];
+      const id = String(body?.id ?? '');
+      if (!UUID_RE.test(id)) return jsonResponse({ error: 'bad_id' }, 400);
+      const gone = await pgDeleteRows(`${cfg.table}?id=eq.${encodeURIComponent(id)}&status=eq.queued&select=id`);
+      if (!gone.length) return jsonResponse({ error: 'not_cancellable', detail: 'row is not queued (already posting/posted, or missing)' }, 409);
+      // Best-effort asset cleanup — a leftover public object is harmless but tidy to drop.
+      try {
+        await fetch(`${SUPABASE_URL}/storage/v1/object/${cfg.bucket}/${id}.${cfg.ext}`, {
+          method: 'DELETE', headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` },
+        });
+      } catch (_) { /* best effort */ }
+      return jsonResponse({ ok: true, id, kind, cancelled: true });
     }
 
     // ── list: recent jobs across both batch tables (queue monitor read) ──────────

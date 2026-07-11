@@ -118,9 +118,11 @@ async function authorize(req: Request): Promise<{ ok: boolean; userId: string | 
   const userId = await uidFromSession(session);
   if (!userId) return { ok: false, userId: null };
   try {
-    const rows = await pgGet(`bbf_users?select=uid,role&id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&limit=1`) as Array<Record<string, unknown>>;
+    const rows = await pgGet(`bbf_users?select=uid,role,access_status&id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&limit=1`) as Array<Record<string, unknown>>;
     const u = Array.isArray(rows) && rows.length ? rows[0] : null;
     if (!u) return { ok: false, userId: null };
+    // LOCKED accounts must not reach the write path (parity with bbf-sovereign-studio).
+    if (String(u.access_status ?? '').toLowerCase() === 'locked') return { ok: false, userId: null };
     const role = String(u.role ?? '').toLowerCase();
     const uname = String(u.uid ?? '').toLowerCase();
     return { ok: role === 'admin' || role === 'trainer' || uname === 'akeem', userId };

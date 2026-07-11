@@ -482,6 +482,20 @@
   .controls-v4 { max-height: none; overflow-y: visible; border-right: none; border-bottom: 1px solid var(--gry3); padding: 18px; }
   .preview-wrap-v4 { order: -1; max-height: none; padding: 16px; }
   .stage-host-v4.active { max-width: 320px; }
+  /* MOBILE TAB STRIP — one horizontally-scrolling row instead of a 2–3-row wrap
+     (six tabs at S25-class widths). Sticky so the tabs never scroll away, and
+     ≥44px touch targets per platform guidelines. */
+  .topbar-v4 { position: sticky; top: 0; background: var(--gry, #121212); }
+  .mode-tabs-v4 {
+    flex-wrap: nowrap; overflow-x: auto; width: 100%;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .mode-tabs-v4::-webkit-scrollbar { display: none; }
+  .mode-tab-v4 { flex: none; white-space: nowrap; min-height: 44px; padding: 11px 16px; }
+  .seg-v4 button { min-height: 44px; }
+  .range-v4 { min-height: 32px; }
+  .dhist-btn-v4 { min-height: 44px; }
 }
 
 

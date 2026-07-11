@@ -91,6 +91,32 @@ export async function pollPostStatus({ kind, id }) {
   return 'timeout';
 }
 
+// Retry a FAILED job — flips it back to queued; now:true re-fires the distributor
+// immediately. Safe against double-posting: the distributors replay the row's
+// post_refs, so channels that already confirmed 200 are skipped and only the
+// missing ones fire. Returns { status: 'queued'|'posting'|'posted'|'failed', … }.
+export async function retryPost({ kind, id, now = true }) {
+  const token = getStoredVaultToken();
+  if (!token) throw new Error('no_admin_session');
+  const r = await fetch(QUEUE_FN, { method: 'POST', headers: qHeaders(token), body: JSON.stringify({ action: 'retry', kind, id, now }) });
+  if (r.status === 401 || r.status === 403) throw new Error('not_admin');
+  const j = await r.json().catch(() => null);
+  if (!r.ok || !j || j.ok === false) throw new Error((j && j.error) || `retry_${r.status}`);
+  return j;
+}
+
+// Cancel a still-QUEUED job — removes the row and its uploaded asset before the
+// drip picks it up. Rows already posting/posted are past the point of recall.
+export async function cancelPost({ kind, id }) {
+  const token = getStoredVaultToken();
+  if (!token) throw new Error('no_admin_session');
+  const r = await fetch(QUEUE_FN, { method: 'POST', headers: qHeaders(token), body: JSON.stringify({ action: 'cancel', kind, id }) });
+  if (r.status === 401 || r.status === 403) throw new Error('not_admin');
+  const j = await r.json().catch(() => null);
+  if (!r.ok || !j || j.ok === false) throw new Error((j && j.error) || `cancel_${r.status}`);
+  return j;
+}
+
 // Recent jobs across both batch tables → { ok, jobs:[{id,kind,status,headline,…}], counts }.
 export async function fetchQueue({ limit = 25 } = {}) {
   const token = getStoredVaultToken();

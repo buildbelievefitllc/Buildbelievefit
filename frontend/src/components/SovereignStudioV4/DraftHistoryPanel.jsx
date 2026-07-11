@@ -108,6 +108,35 @@ export default function DraftHistoryPanel() {
     });
   };
 
+  // Promote a stored draft into the auto-post pipeline — the "render on the phone,
+  // post from the laptop" bridge. Entirely server-side (no re-upload from here).
+  // queue → the daily drip; postNow → fires the distributor immediately (videos
+  // are polled via the queue's poststatus, same as the editor's POST NOW).
+  const promote = async (d, postNow) => {
+    const verb = postNow ? 'POST this to IG/FB NOW' : 'QUEUE this for the next daily drip';
+    if (!window.confirm(`${verb}?\n\n${d.file_name}\n\nCaption (saved with the draft):\n${(d.caption || '(none)').slice(0, 400)}`)) return;
+    setRow(d.id, { phase: 'fetching', note: postNow ? 'Posting…' : 'Queuing…' });
+    try {
+      const { promoteDraft } = await import('../../lib/studioDraftsApi.js');
+      const r = await promoteDraft({ id: d.id, now: !!postNow });
+      if (r.status === 'posting' && r.queue_id) {
+        setRow(d.id, { note: 'Posting… Meta is transcoding (~60–90s).' });
+        const { pollPostStatus } = await import('../../lib/studioQueueApi.js');
+        const verdict = await pollPostStatus({ kind: d.kind, id: r.queue_id });
+        setRow(d.id, {
+          phase: verdict === 'posted' ? null : 'error',
+          note: verdict === 'posted' ? '✓ Posted to IG/FB.' : verdict === 'failed' ? '⚠ Meta rejected it — check the 📡 QUEUE tab for the error.' : 'Still finishing at Meta — check the 📡 QUEUE tab shortly.',
+        });
+      } else if (r.status === 'posted') {
+        setRow(d.id, { phase: null, note: '✓ Posted to IG/FB.' });
+      } else {
+        setRow(d.id, { phase: null, note: '✓ Queued — posts on the next daily drip (manage it in 📡 QUEUE).' });
+      }
+    } catch (e) {
+      setRow(d.id, { phase: 'error', note: `⚠ ${postNow ? 'Post' : 'Queue'} failed (${e?.message || 'error'}) — retry.` });
+    }
+  };
+
   const removeDraft = async (d) => {
     if (!window.confirm(`Delete ${d.file_name} from the vault?\n\nThis permanently removes the stored file — it cannot be re-downloaded afterwards.`)) return;
     setRow(d.id, { phase: 'fetching', note: 'Deleting…' });
@@ -175,6 +204,12 @@ export default function DraftHistoryPanel() {
                         {busy ? '… WORKING' : '⬇ DOWNLOAD'}
                       </button>
                     )}
+                    <button type="button" className="dhist-btn-v4" onClick={() => promote(d, false)} disabled={busy} data-testid={`promote-${d.id}`}>
+                      📡 QUEUE → SOCIAL
+                    </button>
+                    <button type="button" className="dhist-btn-v4" onClick={() => promote(d, true)} disabled={busy} data-testid={`postnow-${d.id}`}>
+                      🚀 POST NOW
+                    </button>
                     <button type="button" className="dhist-btn-v4 danger" onClick={() => removeDraft(d)} disabled={busy}>
                       ✕ DELETE
                     </button>

@@ -97,7 +97,12 @@ async function uidFromVaultToken(url: string, key: string, token: string): Promi
     const r = await fetch(`${url}/rest/v1/rpc/_bbf_uid_from_vault_token`, { method: 'POST', headers: pgHeaders(key), body: JSON.stringify({ p_session_token: token }) });
     if (!r.ok) return null;
     const v = await r.json().catch(() => null);
-    return (typeof v === 'string' && v) ? v : null;
+    // The RPC may answer as a bare string OR a single-element array depending on
+    // the PostgREST return shape — handle both (parity with every sibling studio
+    // function; the string-only form could reject valid admin sessions).
+    if (typeof v === 'string' && v) return v;
+    if (Array.isArray(v) && v.length && v[0]) return String(v[0]);
+    return null;
   } catch { return null; }
 }
 async function readUserRow(url: string, key: string, userId: string): Promise<Record<string, unknown> | null> {

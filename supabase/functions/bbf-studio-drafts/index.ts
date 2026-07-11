@@ -29,6 +29,13 @@
 //   download { id } → { ok, id, url, file_name, content_type }  (6h signed URL,
 //              Content-Disposition: attachment via the ?download= param)
 //   delete   { id } → remove the storage object + the ledger row → { ok, id }
+//   promote  { id, now?, platform_target? } → SERVER-SIDE copy of the stored blob
+//              into the auto-post pipeline (studio-drafts-v1 → calling-cards-v1 /
+//              reels-v1) + a status:'queued' batch row carrying the draft's saved
+//              caption — so a reel rendered on the phone posts from the laptop (or
+//              any device) with ZERO re-upload. now:true fires the distributor
+//              immediately (video → background, poll bbf-studio-queue poststatus
+//              with the returned queue_id; image → synchronous verdict).
 //
 // Secrets (auto-injected): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 // Optional: BBF_COACH_AGENT_TOKEN (server-to-server admin gate).
@@ -57,6 +64,23 @@ type Kind = 'image' | 'video';
 const EXT: Record<Kind, { ext: string; contentType: string }> = {
   image: { ext: 'jpg', contentType: 'image/jpeg' },
   video: { ext: 'mp4', contentType: 'video/mp4' },
+};
+
+// promote → the auto-post pipeline's routing (kept in lockstep with
+// bbf-studio-queue: same env overrides, same defaults, same batch tables).
+const QUEUE_ROUTING: Record<Kind, { bucket: string; ext: string; table: string; distributor: string }> = {
+  image: {
+    bucket: Deno.env.get('BBF_CARDS_BUCKET') || 'calling-cards-v1',
+    ext: 'jpg',
+    table: 'bbf_calling_cards_batch_v1',
+    distributor: 'bbf-card-distributor',
+  },
+  video: {
+    bucket: Deno.env.get('REELS_BUCKET') || 'reels-v1',
+    ext: (Deno.env.get('REELS_EXT') || 'mp4').replace(/^\./, ''),
+    table: 'bbf_reels_batch_v1',
+    distributor: 'bbf-reel-distributor',
+  },
 };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -116,10 +140,13 @@ async function isAuthorized(req: Request): Promise<boolean> {
   if (!userId) return false;
   try {
     const rows = await pgGet(
-      `bbf_users?select=uid,role&id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&limit=1`,
+      `bbf_users?select=uid,role,access_status&id=eq.${encodeURIComponent(userId)}&deleted_at=is.null&limit=1`,
     );
     const u = Array.isArray(rows) && rows.length ? rows[0] : null;
     if (!u) return false;
+    // LOCKED accounts must not reach a function that can promote assets into the
+    // live auto-post pipeline (parity with bbf-sovereign-studio's gate).
+    if (String(u.access_status ?? '').toLowerCase() === 'locked') return false;
     const role = String(u.role ?? '').toLowerCase();
     const uname = String(u.uid ?? '').toLowerCase();
     return role === 'admin' || role === 'trainer' || uname === 'akeem';
@@ -199,6 +226,53 @@ async function getDraft(id: string): Promise<Record<string, unknown> | null> {
   return Array.isArray(rows) && rows.length ? rows[0] : null;
 }
 
+async function insertRow(table: string, row: Record<string, unknown>): Promise<unknown> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { ...pgHeaders(), Prefer: 'return=representation' },
+    body: JSON.stringify([row]),
+  });
+  if (!res.ok) throw new Error(`insert_${res.status}:${(await res.text()).slice(0, 240)}`);
+  const j = await res.json().catch(() => null);
+  return Array.isArray(j) && j.length ? j[0] : null;
+}
+
+// Server-side object copy (private draft vault → public distributor bucket) so a
+// promote never touches the device. Storage's copy endpoint first; download +
+// re-upload fallback for older storage-api builds without cross-bucket copy.
+async function copyObject(srcBucket: string, srcKey: string, dstBucket: string, dstKey: string, contentType: string): Promise<void> {
+  const cp = await fetch(`${SUPABASE_URL}/storage/v1/object/copy`, {
+    method: 'POST',
+    headers: pgHeaders(),
+    body: JSON.stringify({ bucketId: srcBucket, sourceKey: srcKey, destinationBucket: dstBucket, destinationKey: dstKey }),
+  });
+  if (cp.ok) return;
+  const dl = await fetch(`${SUPABASE_URL}/storage/v1/object/${srcBucket}/${srcKey}`, {
+    headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` },
+  });
+  if (!dl.ok) throw new Error(`copy_download_${dl.status}`);
+  const bytes = await dl.arrayBuffer();
+  const up = await fetch(`${SUPABASE_URL}/storage/v1/object/${dstBucket}/${dstKey}`, {
+    method: 'POST',
+    headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}`, 'Content-Type': contentType, 'x-upsert': 'true' },
+    body: bytes,
+  });
+  if (!up.ok) throw new Error(`copy_upload_${up.status}`);
+}
+
+// Fire the matching distributor for one queued id (server-to-server, same gate
+// the queue function uses). Requires BBF_COACH_AGENT_TOKEN in env.
+async function distributeNow(distributor: string, id: string): Promise<{ ok: boolean; status: number; result: any }> {
+  if (!ADMIN_TOKEN) return { ok: false, status: 0, result: { error: 'admin_token_unset' } };
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/${distributor}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': ADMIN_TOKEN },
+    body: JSON.stringify({ action: 'distribute', live: true, limit: 1, ids: [id] }),
+  });
+  const result = await r.json().catch(() => null);
+  return { ok: r.ok, status: r.status, result };
+}
+
 // ─── handler ─────────────────────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -273,6 +347,50 @@ serve(async (req) => {
       const fileName = String(draft.file_name || draft.storage_path);
       const url = await mintSignedDownload(String(draft.storage_path), fileName);
       return jsonResponse({ ok: true, id, url, file_name: fileName, content_type: draft.content_type, expires_in: DOWNLOAD_TTL_SEC });
+    }
+
+    // ── promote: draft → auto-post queue, entirely server-side. Copies the blob
+    //    into the distributor bucket, inserts a queued batch row (draft caption
+    //    carried over), and optionally fires the distributor now. The device that
+    //    rendered the draft is not involved — this is the "render on the phone,
+    //    post from the laptop" bridge. ───────────────────────────────────────────
+    if (action === 'promote') {
+      const id = String(body?.id ?? '');
+      if (!UUID_RE.test(id)) return jsonResponse({ error: 'bad_id' }, 400);
+      const draft = await getDraft(id);
+      if (!draft || draft.status !== 'stored') return jsonResponse({ error: 'not_found' }, 404);
+
+      const kind: Kind = draft.kind === 'image' ? 'image' : 'video';
+      const q = QUEUE_ROUTING[kind];
+      const queueId = crypto.randomUUID();
+      const destKey = `${queueId}.${q.ext}`;
+
+      await copyObject(BUCKET, String(draft.storage_path), q.bucket, destKey, String(draft.content_type || EXT[kind].contentType));
+
+      await insertRow(q.table, {
+        id: queueId,                        // MUST equal the copied object's stem
+        status: 'queued',
+        platform_target: clip(body?.platform_target, 40) || 'online',
+        caption: clip(body?.caption, 2200) ?? (draft.caption ? String(draft.caption) : null),
+        headline: clip(body?.headline, 300) ?? (draft.file_name ? String(draft.file_name) : null),
+      });
+
+      if (body?.now === true) {
+        if (kind === 'video') {
+          const bg = distributeNow(q.distributor, queueId)
+            .catch((e) => { console.error('[bbf-studio-drafts] bg promote distribute failed:', String((e as Error)?.message ?? e)); });
+          try { (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime?.waitUntil?.(bg); } catch (_) { /* best effort */ }
+          return jsonResponse({ ok: true, id, queue_id: queueId, kind, status: 'posting', async: true });
+        }
+        const dist = await distributeNow(q.distributor, queueId);
+        const summary = (dist.result && dist.result.summary) ? dist.result.summary : null;
+        const posted = !!summary && Number(summary.posted) > 0;
+        return jsonResponse(
+          { ok: dist.ok && posted, ...(dist.ok && posted ? {} : { error: 'distribute_failed' }), id, queue_id: queueId, kind, status: posted ? 'posted' : 'failed', distribute: dist.result },
+          dist.ok ? 200 : 502,
+        );
+      }
+      return jsonResponse({ ok: true, id, queue_id: queueId, kind, status: 'queued' });
     }
 
     // ── delete: remove the blob + the ledger row ─────────────────────────────────

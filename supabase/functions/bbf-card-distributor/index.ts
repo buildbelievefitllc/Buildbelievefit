@@ -131,6 +131,23 @@ async function getSecret(name: string): Promise<string> {
 // ─── Channel configuration (derived from which secrets are present) ──────────────
 type ChannelKey = 'instagram' | 'facebook' | 'tiktok';
 
+const PLATFORM_NAMES: ChannelKey[] = ['instagram', 'facebook', 'tiktok'];
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Row-level platform routing (makes the Studio's IG/FB/TikTok toggles REAL):
+// platform_target carries the toggles as a CSV (e.g. "instagram,facebook").
+// Platform names found there are intersected with the run's channel set; a value
+// with NO platform names (the legacy audience tags 'online'/'athlete'/… or empty)
+// keeps the historical behavior — every configured channel. `explicit` tells the
+// caller the row NAMED platforms, so an unsatisfiable target can fail loudly
+// instead of posting somewhere the operator explicitly did not select.
+function rowChannels(platformTarget: unknown, runChannels: ChannelKey[]): { channels: ChannelKey[]; explicit: boolean } {
+  const names = String(platformTarget ?? '').toLowerCase().split(/[,\s]+/).filter(Boolean);
+  const wanted = PLATFORM_NAMES.filter((p) => names.includes(p));
+  if (!wanted.length) return { channels: runChannels, explicit: false };
+  return { channels: runChannels.filter((c) => wanted.includes(c)), explicit: true };
+}
+
 async function resolveConfig() {
   const [metaToken, igUser, fbPage, tiktokToken, graphVer, bucket, ext] = await Promise.all([
     getSecret('META_TOKEN'), getSecret('META_IG_USER_ID'), getSecret('META_FB_PAGE_ID'),
@@ -370,11 +387,11 @@ serve(async (req) => {
         return jsonResponse({ error: 'no_channel_configured', detail: 'inject tokens into Vault before distributing' }, 412);
       }
 
-      // Select queued rows (optionally a specific id set).
-      const idFilter = Array.isArray(body?.ids) && body.ids.length
-        ? `&id=in.(${(body.ids as string[]).map((x) => `"${x}"`).join(',')})`
-        : '';
-      const rows = await pgGet(`${TABLE}?select=id,caption,headline,platform_target,status,post_refs&status=eq.queued${idFilter}&order=created_at.asc&limit=${limit}`);
+      // Select queued rows (optionally a specific id set — UUID-validated before
+      // the values are interpolated into the PostgREST filter).
+      const ids = Array.isArray(body?.ids) ? (body.ids as string[]).filter((x) => UUID_RE.test(String(x))) : [];
+      const idFilter = ids.length ? `&id=in.(${ids.map((x) => `"${x}"`).join(',')})` : '';
+      const rows = await pgGet(`${TABLE}?select=id,caption,headline,platform_target,status,post_refs,attempts&status=eq.queued${idFilter}&order=created_at.asc&limit=${limit}`);
       const queued = Array.isArray(rows) ? rows : [];
 
       const report: any[] = [];
@@ -383,17 +400,29 @@ serve(async (req) => {
       for (const row of queued) {
         const id = String(row.id);
         const caption = String(row.caption ?? '');
+        const nextAttempts = (Number(row.attempts) || 0) + 1;
+        // Row-level routing: honor the Studio's platform toggles (see rowChannels).
+        const target = rowChannels(row.platform_target, onlyChannels);
         const imageUrl = await resolveAssetUrl(cfg, id);        // GATE 4 (probes .jpg → .png)
         const haveAsset = !!imageUrl;
 
         // ---- DRY RUN: preview only, no posting, no DB writes ----
         if (!live) {
           previewed++;
-          report.push({ id, would_post_to: onlyChannels, asset_present: haveAsset, image_url: imageUrl, caption_preview: caption.slice(0, 80), composed_preview: withLocalTags(caption).slice(0, 240) });
+          report.push({ id, would_post_to: target.channels, platform_target: row.platform_target ?? null, asset_present: haveAsset, image_url: imageUrl, caption_preview: caption.slice(0, 80), composed_preview: withLocalTags(caption).slice(0, 240) });
           continue;
         }
 
         // ---- LIVE ----
+        // A row that explicitly named platforms none of which are configured/enabled
+        // must NOT silently post elsewhere — fail it loudly with the reason.
+        if (target.explicit && !target.channels.length) {
+          failed++;
+          await pgPatch(`${TABLE}?id=eq.${encodeURIComponent(id)}&status=eq.queued`, { status: 'failed' });
+          await writeAudit(id, { last_error: `no_configured_channel_matches_platform_target:${String(row.platform_target)}`, attempts: nextAttempts });
+          report.push({ id, result: 'failed_no_matching_channel', platform_target: row.platform_target ?? null });
+          continue;
+        }
         if (!imageUrl) {
           // Asset not rendered yet — leave queued, do not consume the row.
           skipped++;
@@ -420,7 +449,7 @@ serve(async (req) => {
         // Post to every targeted channel; collect per-channel results.
         const channelResults: Record<string, PostResult> = {};
         let allOk = true;
-        for (const ch of onlyChannels) {
+        for (const ch of target.channels) {
           const had = prior[ch];
           if (had && had.status === 200 && had.ref) {
             channelResults[ch] = { ok: true, status: 200, ref: String(had.ref), detail: 'already_posted' };
@@ -444,14 +473,14 @@ serve(async (req) => {
         if (allOk) {
           // FLIP RULE — 'posted' only when every channel returned HTTP 200.
           await pgPatch(`${TABLE}?id=eq.${encodeURIComponent(id)}`, { status: 'posted' });
-          await writeAudit(id, { posted_at: new Date().toISOString(), post_refs: refs, last_error: null });
+          await writeAudit(id, { posted_at: new Date().toISOString(), post_refs: refs, last_error: null, attempts: nextAttempts });
           posted++;
           report.push({ id, result: 'posted', channels: channelResults });
         } else {
-          // Any non-200 → 'failed' (terminal, audited) so a live post is never
-          // silently duplicated on a blind retry.
+          // Any non-200 → 'failed' (audited; retryable — the idempotent replay
+          // above guarantees already-succeeded channels are never re-posted).
           await pgPatch(`${TABLE}?id=eq.${encodeURIComponent(id)}`, { status: 'failed' });
-          await writeAudit(id, { last_error: JSON.stringify(refs).slice(0, 500), post_refs: refs });
+          await writeAudit(id, { last_error: JSON.stringify(refs).slice(0, 500), post_refs: refs, attempts: nextAttempts });
           failed++;
           report.push({ id, result: 'failed', channels: channelResults });
         }
