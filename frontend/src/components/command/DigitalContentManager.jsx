@@ -28,6 +28,7 @@ import {
   APPROVAL_STATUS, APPROVAL_LABELS,
   buildAlgorithmicBrief, contentWeight, assessAlgorithmHealth,
 } from '../../lib/algorithmicBriefEngine.js';
+import ContentVaultGrid from './ContentVaultGrid.jsx';
 import './digitalContentManager.css';
 
 // ── date helpers (local-time; the queue stores ISO/UTC) ──────────────────────
@@ -550,7 +551,7 @@ function humanizeError(slug) {
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
 export default function DigitalContentManager() {
-  const [tab, setTab] = useState('bucket'); // 'bucket' | 'calendar'
+  const [tab, setTab] = useState('bucket'); // 'bucket' | 'vault' | 'calendar'
   const [lang, setLang] = useState('EN');    // 'EN' | 'ES' | 'PT' | 'ALL'
   const [items, setItems] = useState([]);
   const [queueState, setQueueState] = useState({ loading: true, error: null });
@@ -621,6 +622,13 @@ export default function DigitalContentManager() {
             Review Bucket
           </button>
           <button
+            type="button" role="tab" aria-selected={tab === 'vault'}
+            className={`dcm-tab${tab === 'vault' ? ' is-on' : ''}`}
+            onClick={() => setTab('vault')} data-testid="content-mgr-tab-vault"
+          >
+            Marketing Vault
+          </button>
+          <button
             type="button" role="tab" aria-selected={tab === 'calendar'}
             className={`dcm-tab${tab === 'calendar' ? ' is-on' : ''}`}
             onClick={() => { setTab('calendar'); refresh(); }} data-testid="content-mgr-tab-calendar"
@@ -662,6 +670,8 @@ export default function DigitalContentManager() {
             )}
           </div>
         </>
+      ) : tab === 'vault' ? (
+        <ContentVaultGrid />
       ) : (
         <div className="dcm-calendar-wrap">
           {queueState.error ? <p className="dcm-error" role="alert">⚠ {queueState.error}</p> : null}
