@@ -147,8 +147,8 @@ function HubDossier({ profile, t }) {
         </div>
       </div>
 
-      {/* 4K module guide — flush below the lifestyle habit streak counters. */}
-      <GuideLauncher module="daily_protocol" testId="protocol-guide" />
+      {/* System guide — flush below the lifestyle habit streak counters. */}
+      <GuideLauncher module="intro" testId="protocol-guide" />
 
       {/* ── 30-day consistency strip ── */}
       <h2 className="vh-subhead">{t('vh-last30')}</h2>

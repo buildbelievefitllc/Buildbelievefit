@@ -33,6 +33,7 @@ import { addActiveCalories } from '../../lib/biometricsApi.js';
 import { manualToday } from '../../lib/manualBaseline.js';
 import { SESSION_COMPLETE_EVENT } from '../../lib/sessionFeedbackApi.js';
 import SpotifyEmbed from './SpotifyEmbed.jsx';
+import { GuideLauncher } from '../BbfMediaPortal.jsx';
 import './cardio.css';
 
 // ── Trilingual UI chrome for Smart Cardio (Metabolic Pacer) ──────────────────
@@ -325,6 +326,9 @@ export default function SmartCardio() {
         <span className="bbf-cardio__kicker">{tr.kicker}</span>
       </div>
       <p className="bbf-cardio__sub">{tr.sub}</p>
+
+      {/* System guide — Smart Cardio System Flush walkthrough (Step 4). */}
+      <GuideLauncher module="system_flush" testId="cardio-guide" />
 
       {/* FRONT 4 · "Breaking the Loop" — The Flush: post-lifting cardio science,
           framed before the configurator/library. 'gate' = stronger transition. */}

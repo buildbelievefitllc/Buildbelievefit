@@ -307,7 +307,7 @@ function pick() {
       // exact production path the four module hosts embed.
       return (
         <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>
-          <GuideLauncher module={props.module || 'program_tracker'} testId="guide" />
+          <GuideLauncher module={props.module || 'program_execution'} testId="guide" />
         </AuthMock>
       );
     default:

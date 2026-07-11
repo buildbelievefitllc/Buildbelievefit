@@ -118,7 +118,7 @@ export default function Program({ plans, profile, onSequence }) {
       </div>
 
       {/* 4K module guide — sits right under the phase/protocol selection header. */}
-      <GuideLauncher module="program_tracker" testId="program-guide" />
+      <GuideLauncher module="program_execution" testId="program-guide" />
 
       {/* V-04 (Repositioning): the two collapsible utility strips — What-is-RPE
           education + the Weekly Analytics dossier — share one half-width row

@@ -1,15 +1,21 @@
 // src/lib/sovereignSystemGuides.js
 // ─────────────────────────────────────────────────────────────────────────────
-// SOVEREIGN SYSTEM GUIDES — canonical catalog for the 9:16 portrait tutorial suite
-// (BBF Lab mobile). One entry per system step; each streams from Supabase Storage.
+// SOVEREIGN SYSTEM GUIDES — canonical registry for the 9:16 portrait tutorial suite
+// (BBF Lab mobile). One entry per system step; each streams from Supabase Storage
+// and is opened by <GuideLauncher> → <BbfMediaPortal>.
 //
-// CDN: the public `videos` bucket (created + confirmed public), folder `guides`. The
-// project ref is derived from VITE_SUPABASE_URL so it tracks the active project across
-// environments, falling back to the canonical BBF project origin.
+// Schema per entry:
+//   id       – stable analytics/QA key
+//   title    – on-portal heading (string; the portal also accepts an {en,es,pt} map)
+//   url       – public CDN object (Watch streams the video; Listen streams its audio)
+//   feature  – entitlement key that must unlock playback (TierGate); Baseline `grid`
+//              = every active paid tier.
+//   ready    – true once the object is LIVE in the bucket. Launchers mount a guide
+//              only when ready===true, so an un-produced guide can never 404 the UI.
 //
-// ASSET STATUS: all 8 `bbf_app_vault_*_916.mp4` portrait masters are LIVE in the bucket
-// (compressed via ffmpeg crf24/2M cap, 2.5–9.6MB each, public HEAD → 206). The `intro`
-// entry maps to the `welcome` upload (BBF_WELCOME_PAGE). Catalog ↔ bucket are in sync.
+// CDN: public `videos` bucket, folder `guides`; project ref from VITE_SUPABASE_URL.
+// ASSET STATUS: all 8 masters are LIVE (ffmpeg crf24/2M, 2.5–9.6MB, public HEAD → 206).
+// The `intro` entry maps to the `welcome` upload (BBF_WELCOME_PAGE).
 
 const SUPABASE_ORIGIN = import.meta.env.VITE_SUPABASE_URL || 'https://ihclbceghxpuawymlvgi.supabase.co';
 const SUPABASE_CDN_BASE = `${SUPABASE_ORIGIN}/storage/v1/object/public/videos/guides`;
@@ -19,41 +25,57 @@ export const SOVEREIGN_SYSTEM_GUIDES = {
     id: 'bbf_intro_protocol',
     title: "Today's Protocol Overview",
     url: `${SUPABASE_CDN_BASE}/bbf_app_vault_welcome_916.mp4`,
+    feature: 'grid',
+    ready: true,
   },
   check_in: {
     id: 'bbf_data_capture',
     title: 'Step 1: Data Capture & Readiness',
     url: `${SUPABASE_CDN_BASE}/bbf_app_vault_step1_checkin_916.mp4`,
+    feature: 'grid',
+    ready: true,
   },
   tissue_priming: {
     id: 'bbf_tissue_priming',
     title: 'Step 2: Tissue Priming & Mobilization',
     url: `${SUPABASE_CDN_BASE}/bbf_app_vault_step2_priming_916.mp4`,
+    feature: 'prehab',
+    ready: true,
   },
   program_execution: {
     id: 'bbf_program_execution',
     title: 'Step 3: Progressive Overload Execution',
     url: `${SUPABASE_CDN_BASE}/bbf_app_vault_step3_program_916.mp4`,
+    feature: 'grid',
+    ready: true,
   },
   system_flush: {
     id: 'bbf_system_flush',
     title: 'Step 4: Smart Cardio System Flush',
     url: `${SUPABASE_CDN_BASE}/bbf_app_vault_step4_flush_916.mp4`,
+    feature: 'smart_cardio',
+    ready: true,
   },
   nutrition_locker: {
     id: 'bbf_nutrition_locker',
     title: 'Fuel Targets & Fasting Architecture',
     url: `${SUPABASE_CDN_BASE}/bbf_app_vault_nutrition_916.mp4`,
+    feature: 'base_nutrition',
+    ready: true,
   },
   prehab_diagnostic: {
     id: 'bbf_prehab_diagnostic',
     title: 'Autonomous Joint Symptom Diagnostic',
     url: `${SUPABASE_CDN_BASE}/bbf_app_vault_prehab_916.mp4`,
+    feature: 'prehab',
+    ready: true,
   },
   champion_mindset: {
     id: 'bbf_champion_mindset',
     title: 'The Sovereign Frequency & Identity',
     url: `${SUPABASE_CDN_BASE}/bbf_app_vault_mindset_916.mp4`,
+    feature: 'grid',
+    ready: true,
   },
 };
 

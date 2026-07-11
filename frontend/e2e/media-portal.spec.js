@@ -18,7 +18,7 @@ test.describe('BBF Media Portal — dual-media mixer', () => {
   test.beforeEach(async ({ page }) => {
     // Keep the heavy 4K assets off the wire — intercept the Supabase Storage bucket
     // route (bbf-media-vault/guides) so the elements mount without a live fetch.
-    await page.route('**/storage/v1/object/public/bbf-media-vault/guides/**', (route) =>
+    await page.route('**/storage/v1/object/public/**', (route) =>
       route.fulfill({ status: 200, contentType: 'video/mp4', body: '' }));
   });
 

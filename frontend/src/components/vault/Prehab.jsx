@@ -40,6 +40,7 @@ import { useActiveSymptom, AREA_TO_PREHAB_REGION, AREA_TO_MATRIX_JOINT } from '.
 import PREHAB_MATRIX from '../../data/prehabDiagnosticMatrix.json';
 import ContextualVoiceover from './ContextualVoiceover.jsx';
 import { AUDIO_CTX_PREHAB } from '../../lib/contextualVoiceover.js';
+import { GuideLauncher } from '../BbfMediaPortal.jsx';
 import './prehab.css';
 
 // Coach Akeem "what prehab is / why it's here" explainer chrome — trilingual (§1).
@@ -995,6 +996,8 @@ export default function Prehab({ onSequence }) {
         title={(PREHAB_VO[lang] || PREHAB_VO.en).title}
         sub={(PREHAB_VO[lang] || PREHAB_VO.en).sub}
       />
+      {/* System guide — Autonomous Joint Symptom Diagnostic walkthrough. */}
+      <GuideLauncher module="prehab_diagnostic" testId="prehab-guide" />
       <PrehabReadinessBanner readiness={readiness} />
       <MobilityPlanner />
       <ProtocolDeck />

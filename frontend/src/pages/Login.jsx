@@ -18,6 +18,7 @@ import { useLang } from '../context/LangContext.jsx';
 import { homePathForUser } from '../lib/sportsRoster.js';
 import { supabase } from '../lib/supabaseClient.js';
 import { isNativePlatform } from '../native/platform.js';
+import { GuideLauncher } from '../components/BbfMediaPortal.jsx';
 import './login.css';
 
 const NATIVE = isNativePlatform();
@@ -159,6 +160,8 @@ export default function Login() {
       <div className="lg-top">
         <div className="lg-logo">BUILD BELIEVE <b>FIT</b></div>
         <div className="lg-sub">Sovereign Access</div>
+        {/* System guide — Today's Protocol Overview (welcome tour). */}
+        <GuideLauncher module="intro" testId="login-guide" />
       </div>
 
       <form className="lg-card" onSubmit={handleSubmit} noValidate>

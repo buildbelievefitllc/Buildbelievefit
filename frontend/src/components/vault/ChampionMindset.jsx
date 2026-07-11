@@ -45,6 +45,7 @@ import { isParent } from '../../lib/personalTouches.js';
 import { PARENTS_WELLBEING, parentsBucket } from './parentsWellbeingData.js';
 import TierGate from '../TierGate.jsx';
 import LiveCheckinCoach from './LiveCheckinCoach.jsx';
+import { GuideLauncher } from '../BbfMediaPortal.jsx';
 import './championMindset.css';
 
 export default function ChampionMindset() {
@@ -137,6 +138,8 @@ export default function ChampionMindset() {
           <span className="cm-spark" aria-hidden="true">✦</span> {L.title}
         </h2>
         <p className="cm-sub">{L.sub}</p>
+        {/* System guide — The Sovereign Frequency & Identity walkthrough. */}
+        <GuideLauncher module="champion_mindset" testId="mindset-guide" />
       </section>
 
       {/* ── 1b · LIVE MINDSET CHECK-IN — Product 2 (Apex band). Real-time spoken

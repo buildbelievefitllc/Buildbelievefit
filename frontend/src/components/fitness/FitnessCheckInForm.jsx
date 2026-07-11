@@ -91,8 +91,8 @@ export default function FitnessCheckInForm() {
         <h3 className="ft-title">{fs.fitTitle}</h3>
       </header>
 
-      {/* 4K module guide — high-visibility intro banner before the screening fields. */}
-      <GuideLauncher module="weekly_checkin" testId="checkin-guide" />
+      {/* System guide — high-visibility intro banner before the screening fields. */}
+      <GuideLauncher module="check_in" testId="checkin-guide" />
 
       <div className="ft-inputs">
         <label className="ft-field ft-field--vector">

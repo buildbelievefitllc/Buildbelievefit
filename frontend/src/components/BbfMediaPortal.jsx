@@ -25,65 +25,68 @@ import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../context/LangContext.jsx';
 import TierGate from './TierGate.jsx';
 import WatchGuideButton from './WatchGuideButton.jsx';
+import { SOVEREIGN_SYSTEM_GUIDES } from '../lib/sovereignSystemGuides.js';
 import './bbfMediaPortal.css';
 
-// The 4K guides live in Supabase Storage (public bucket `bbf-media-vault/guides`),
-// NOT in source control — keeps the repo lean and Render deploys fast. The origin is
-// derived from VITE_SUPABASE_URL so it tracks the active project across environments,
-// falling back to the canonical BBF project id when the env var is absent.
-const SUPABASE_ORIGIN = import.meta.env.VITE_SUPABASE_URL || 'https://ihclbceghxpuawymlvgi.supabase.co';
-const MEDIA_BASE = `${SUPABASE_ORIGIN}/storage/v1/object/public/bbf-media-vault/guides`;
-
-// ── Guide registry — module id → assets + trilingual chrome ───────────────────
-// `feature` is the Baseline-band entitlement key that gates playback (every active
-// paid tier inherits Baseline, so validated clients pass while unentitled/expired
-// accounts never see the triggers — render="hide").
-const GUIDE_MODULES = {
-  program_tracker: {
-    feature: 'grid',
-    video: `${MEDIA_BASE}/bbf_module_program_tracker_4k.mp4`,
-    audio: `${MEDIA_BASE}/bbf_module_program_tracker_4k.mp4`,
-    title: { en: 'Program Tracker Guide', es: 'Guía del Rastreador de Programa', pt: 'Guia do Rastreador de Programa' },
-    sub: {
-      en: 'How to read your phases, log every set, and let autoregulation drive the load.',
-      es: 'Cómo leer tus fases, registrar cada serie y dejar que la autorregulación ajuste la carga.',
-      pt: 'Como ler suas fases, registrar cada série e deixar a autorregulação ajustar a carga.',
-    },
+// Optional trilingual subtitle chrome layered over the catalog's id/title/url, keyed
+// by guide key; missing → the portal renders no subtitle. Access + assets live in the
+// catalog (sovereignSystemGuides.js); this is presentational copy only.
+const GUIDE_SUB = {
+  intro: {
+    en: 'Your daily loop, end to end — how every surface fits the protocol.',
+    es: 'Tu ciclo diario, de principio a fin — cómo cada sección encaja en el protocolo.',
+    pt: 'Seu ciclo diário, de ponta a ponta — como cada tela se encaixa no protocolo.',
+  },
+  check_in: {
+    en: 'What every field captures — and why honest numbers move you faster.',
+    es: 'Qué captura cada campo — y por qué los números honestos te hacen avanzar más rápido.',
+    pt: 'O que cada campo captura — e por que números honestos te fazem avançar mais rápido.',
+  },
+  tissue_priming: {
+    en: 'Prime the tissue before load — the mobility work that protects the joint.',
+    es: 'Prepara el tejido antes de la carga — la movilidad que protege la articulación.',
+    pt: 'Prepare o tecido antes da carga — a mobilidade que protege a articulação.',
+  },
+  program_execution: {
+    en: 'Read your phases, log every set, and let autoregulation drive the load.',
+    es: 'Lee tus fases, registra cada serie y deja que la autorregulación ajuste la carga.',
+    pt: 'Leia suas fases, registre cada série e deixe a autorregulação ajustar a carga.',
+  },
+  system_flush: {
+    en: 'The post-lift flush — smart cardio that clears the system without burning muscle.',
+    es: 'El enjuague post-pesas — cardio inteligente que limpia el sistema sin quemar músculo.',
+    pt: 'O flush pós-treino — cardio inteligente que limpa o sistema sem queimar músculo.',
   },
   nutrition_locker: {
-    feature: 'base_nutrition',
-    video: `${MEDIA_BASE}/bbf_module_nutrition_locker_4k.mp4`,
-    audio: `${MEDIA_BASE}/bbf_module_nutrition_locker_4k.mp4`,
-    title: { en: 'Nutrition Locker Guide', es: 'Guía del Casillero de Nutrición', pt: 'Guia do Armário de Nutrição' },
-    sub: {
-      en: 'Working the fuel wheel — hit your macros, not just the recipe, meal by meal.',
-      es: 'Cómo usar la rueda de combustible — acierta tus macros, no solo la receta, comida a comida.',
-      pt: 'Como usar a roda de combustível — bata seus macros, não só a receita, refeição a refeição.',
-    },
+    en: 'Working the fuel wheel — hit your macros, not just the recipe, meal by meal.',
+    es: 'Cómo usar la rueda de combustible — acierta tus macros, no solo la receta, comida a comida.',
+    pt: 'Como usar a roda de combustível — bata seus macros, não só a receita, refeição a refeição.',
   },
-  daily_protocol: {
-    feature: 'readiness',
-    video: `${MEDIA_BASE}/bbf_module_daily_protocol_4k.mp4`,
-    audio: `${MEDIA_BASE}/bbf_module_daily_protocol_4k.mp4`,
-    title: { en: 'Daily Protocol Guide', es: 'Guía del Protocolo Diario', pt: 'Guia do Protocolo Diário' },
-    sub: {
-      en: 'Build the streak — how your daily habits compound into readiness.',
-      es: 'Construye la racha — cómo tus hábitos diarios se acumulan en preparación.',
-      pt: 'Construa a sequência — como seus hábitos diários se acumulam em prontidão.',
-    },
+  prehab_diagnostic: {
+    en: 'Log a joint symptom and let the diagnostic route your recovery work.',
+    es: 'Registra un síntoma articular y deja que el diagnóstico dirija tu recuperación.',
+    pt: 'Registre um sintoma articular e deixe o diagnóstico guiar sua recuperação.',
   },
-  weekly_checkin: {
-    feature: 'grid',
-    video: `${MEDIA_BASE}/bbf_module_weekly_checkin_4k.mp4`,
-    audio: `${MEDIA_BASE}/bbf_module_weekly_checkin_4k.mp4`,
-    title: { en: 'Weekly Check-In Guide', es: 'Guía del Registro Semanal', pt: 'Guia do Check-In Semanal' },
-    sub: {
-      en: 'What every field on the check-in captures — and why honest numbers move you faster.',
-      es: 'Qué captura cada campo del registro — y por qué los números honestos te hacen avanzar más rápido.',
-      pt: 'O que cada campo do check-in captura — e por que números honestos te fazem avançar mais rápido.',
-    },
+  champion_mindset: {
+    en: 'The identity work — tuning the frequency that keeps you on protocol.',
+    es: 'El trabajo de identidad — afinar la frecuencia que te mantiene en el protocolo.',
+    pt: 'O trabalho de identidade — afinar a frequência que te mantém no protocolo.',
   },
 };
+
+// Resolve a guide key → the portal module shape, or null when the key is unknown or
+// its asset isn't LIVE yet (ready!==true) — so a launcher never opens a dead 404.
+function resolveGuide(key) {
+  const g = SOVEREIGN_SYSTEM_GUIDES[key];
+  if (!g || g.ready !== true) return null;
+  return {
+    video: g.url,
+    audio: g.url,          // Listen mode streams the same object's audio track
+    title: g.title,        // string; the portal also accepts an {en,es,pt} map
+    sub: GUIDE_SUB[key],   // optional trilingual copy
+    feature: g.feature || 'grid',
+  };
+}
 
 const STR = {
   en: { watch: 'Watch Guide', listen: 'Listen Only', close: 'Close', modeWatch: 'Watch Video', modeListen: 'Listen Only', audioNote: 'Audio only · streaming the coach track' },
@@ -91,7 +94,8 @@ const STR = {
   pt: { watch: 'Ver Guia', listen: 'Só Ouvir', close: 'Fechar', modeWatch: 'Ver Vídeo', modeListen: 'Só Áudio', audioNote: 'Só áudio · transmitindo a faixa do coach' },
 };
 
-const pick = (dict, lang) => dict[lang] || dict.en;
+// Accepts either a plain string (catalog title) or an {en,es,pt} map (chrome copy).
+const pick = (v, lang) => (v == null ? undefined : (typeof v === 'string' ? v : (v[lang] || v.en)));
 
 // ── The modal ─────────────────────────────────────────────────────────────────
 export function BbfMediaPortal({ module, initialMode = 'watch', onClose }) {
@@ -197,7 +201,7 @@ export function BbfMediaPortal({ module, initialMode = 'watch', onClose }) {
             </div>
           )}
 
-          <p className="bmp-sub">{sub}</p>
+          {sub ? <p className="bmp-sub">{sub}</p> : null}
         </div>
       </div>
     </div>
@@ -211,7 +215,7 @@ export function GuideLauncher({ module: moduleId, testId, className }) {
   const { lang } = useLang();
   const S = STR[lang] || STR.en;
   const [open, setOpen] = useState(null); // null | 'watch' | 'listen'
-  const mod = GUIDE_MODULES[moduleId];
+  const mod = resolveGuide(moduleId);
 
   if (!mod) return null;
 
