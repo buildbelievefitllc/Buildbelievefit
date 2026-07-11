@@ -82,9 +82,22 @@ async function rpc(fn, args) {
   return data || { ok: false, error: 'unknown' };
 }
 
+// Map the pipeline's provenance tag to the RPC's tri-state vitals lock source.
+// 'launch' = the SILENT launch-time auto-pull — must never be able to override
+// a day the athlete already explicitly governed (see the vitals_lock migration).
+// 'manual' = the athlete tapped "Sync Health Connect" on purpose; 'manual_input'
+// = a typed & saved baseline. Both explicit forms pass straight through and
+// always win server-side. Anything unrecognized falls back to the safe
+// (non-overriding) automatic tier.
+function toVitalsSource(pipelineSource) {
+  if (pipelineSource === 'manual_input') return 'manual_input';
+  if (pipelineSource === 'manual') return 'wearable_explicit';
+  return 'wearable_auto';
+}
+
 // Upsert today's vitals; returns the trailing 28-day series (newest first).
-export function syncBiometricDay(day) {
-  return rpc('bbf_upsert_daily_biometrics', { p_day: day });
+export function syncBiometricDay(day, source) {
+  return rpc('bbf_upsert_daily_biometrics', { p_day: day, p_source: toVitalsSource(source) });
 }
 
 // Persist the engine's computed protocol for the day.

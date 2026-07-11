@@ -32,7 +32,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { useHealthConnectSync } from './healthConnectSync.js';
 import { runSovereignEngine } from './bbf-readiness-engine';
-import { PROTOCOL_UPDATED_EVENT } from './useDailyReadiness.js';
+import { PROTOCOL_UPDATED_EVENT, useBiometricLedger, localToday } from './useDailyReadiness.js';
 import {
   mapRecoveryToBiometricDay,
   toProtocolRow,
@@ -131,8 +131,12 @@ async function _pipeline(produceRecovery, source, manual) {
     recovery = await produceRecovery();
     if (!recovery) throw new Error('No recovery payload to sync.');
     // 1 · Land the day on the biometric ledger → trailing 28-day series back.
+    //     `source` rides along as the vitals-lock provenance tag (see
+    //     biometricsApi.js toVitalsSource / the vitals_lock migration) — only
+    //     an explicit 'manual'/'manual_input' write can move hrv/sleep once a
+    //     day is locked; the silent 'launch' auto-pull never can.
     const day = mapRecoveryToBiometricDay(recovery);
-    const up = await syncBiometricDay(day);
+    const up = await syncBiometricDay(day, source);
     if (!up || !up.ok) throw new Error(up && up.error ? `Ledger write failed — ${up.error}.` : 'Ledger write failed.');
     // 2 · Deterministic readiness verdict from REAL history (+ subjective axis).
     const protocol = runSovereignEngine(day, up.series || [], manual);
@@ -181,15 +185,33 @@ let autoPulled = false;
 // failure worth surfacing — the catch reports to the store (already done inside
 // _pipeline) and logs to the console; it does not re-throw (a background pull must
 // not crash the shell), but it is no longer silent.
+//
+// VITALS LOCK GATE (field bug fix): a watch that didn't record through the night
+// hands back the SAME stale/incomplete read on every relaunch. Before this gate,
+// this silent auto-pull would re-fire on every fresh app session and stomp any
+// manual correction the athlete had already saved for today, straight back down
+// to the stale score — every single time they reopened the app. Now it waits for
+// the ledger (already loading via useDailyReadiness in the same shell — this call
+// shares that fetch, not a second one) and, if today's row is already
+// vitals_locked (an explicit manual save or an explicit "Sync Health Connect" tap
+// governs it), skips the automatic pull entirely — no native read, no recompute,
+// no overwrite. The score the athlete set stays exactly as they set it.
 export function useAutoVitalsSync() {
   const { available, sync } = useHealthConnectSync();
+  const { ledger, loading: ledgerLoading } = useBiometricLedger();
   useEffect(() => {
-    if (!available || autoPulled) return;
+    if (!available || autoPulled || ledgerLoading) return;
+    const today = localToday();
+    const todayRow = Array.isArray(ledger?.series) ? ledger.series.find((r) => r && r.date === today) : null;
+    if (todayRow?.vitals_locked) {
+      autoPulled = true;
+      return;
+    }
     autoPulled = true;
     runVitalsPipeline(sync, 'launch').catch((e) => {
       if (typeof console !== 'undefined') {
         console.error('[vitals] launch auto-pull failed — falling back to stored ledger:', e);
       }
     });
-  }, [available, sync]);
+  }, [available, sync, ledger, ledgerLoading]);
 }
