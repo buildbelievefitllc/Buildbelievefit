@@ -21,14 +21,26 @@
 //   • Only the SERVICE ROLE (held here, never shipped) reads/writes the queue.
 //
 // ACTIONS (POST JSON { action, ... }):
-//   list        {}                              → { ok, items:[...] } (calendar feed)
-//   approve     { series, target_angle?, hook?, caption?, studio_recipe?,
-//                 voiceover_script?, audio_url?, audio_slug?, scheduled_at?, source_ref? }
+//   list          {}                            → { ok, items:[...] } (calendar feed)
+//   approve       { series, target_angle?, hook?, caption?, studio_recipe?,
+//                   voiceover_script?, audio_url?, audio_slug?, scheduled_at?, source_ref? }
 //                                               → INSERT a status:'scheduled' row → { ok, item }
-//   reschedule  { id, scheduled_at }            → UPDATE scheduled_at (the drag-drop RPC) → { ok, item }
+//   reschedule    { id, scheduled_at }          → UPDATE scheduled_at (the drag-drop RPC) → { ok, item }
+//
+// ── Marketing Vault actions (content_vault table; Digital Content Manager grid) ──
+//   vault_dispatch { id?, video_url, caption }  → LIVE-post the clip to Instagram
+//                   Reels + Facebook Page video via the Meta Graph API (same proven
+//                   path as bbf-reel-distributor), then flip the content_vault row's
+//                   status to 'published'. The Meta token is a Vault secret — this
+//                   MUST run server-side (never the client). → { ok, published, channels }
+//   vault_purge    { id, video_url }            → two-tier destruction (service role):
+//                   Tier A delete the raw .mp4 from Storage (videos/marketing/*),
+//                   Tier B delete the content_vault row. → { ok, storage_deleted }
 //
 // Secrets (auto-injected): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 // Optional: BBF_COACH_AGENT_TOKEN (server-to-server admin gate).
+// Meta (Vault first via bbf_get_vault_secret, env fallback — SAME secrets the
+// reel distributor uses): META_TOKEN · META_IG_USER_ID · META_FB_PAGE_ID · META_GRAPH_VERSION (opt).
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -149,6 +161,126 @@ async function patchRow(id: string, patch: Record<string, unknown>): Promise<unk
   return Array.isArray(j) && j.length ? j[0] : null;
 }
 
+// ─── Marketing Vault: Meta dispatch + secure purge (content_vault) ───────────────
+// The Command Center browser is already gated to THIS function by the admin session
+// token, so the vault's live-post + destructive-purge run here (never the anon
+// client — content_vault has no client write RLS; a browser delete silently no-ops).
+
+const VAULT_TABLE = 'content_vault';
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Vault-secret resolution (Vault RPC first, env fallback) — mirrors bbf-reel-distributor.
+const _secretCache = new Map<string, string | null>();
+async function getSecret(name: string): Promise<string> {
+  if (_secretCache.has(name)) return _secretCache.get(name) ?? '';
+  let val: string | null = null;
+  try {
+    const r = await pgRpc('bbf_get_vault_secret', { p_name: name });
+    if (typeof r === 'string') val = r;
+    else if (Array.isArray(r) && r.length) val = r[0] as string;
+  } catch (_) { /* RPC absent — env fallback */ }
+  if (!val) val = Deno.env.get(name) ?? null;
+  _secretCache.set(name, val);
+  return val ?? '';
+}
+
+type MetaCfg = { metaToken: string; igUser: string; fbPage: string; graph: string; enabled: { instagram: boolean; facebook: boolean } };
+async function metaConfig(): Promise<MetaCfg> {
+  const [metaToken, igUser, fbPage, graphVer] = await Promise.all([
+    getSecret('META_TOKEN'), getSecret('META_IG_USER_ID'), getSecret('META_FB_PAGE_ID'), getSecret('META_GRAPH_VERSION'),
+  ]);
+  return {
+    metaToken, igUser, fbPage,
+    graph: `https://graph.facebook.com/${graphVer || 'v21.0'}`,
+    enabled: { instagram: Boolean(metaToken && igUser), facebook: Boolean(metaToken && fbPage) },
+  };
+}
+
+type PostResult = { ok: boolean; status: number; ref?: string; detail?: string };
+
+// Poll an IG media container until Meta finishes ingesting/transcoding (bounded).
+async function pollContainer(cfg: MetaCfg, containerId: string, maxAttempts = 20, delayMs = 4000): Promise<{ ok: boolean; detail?: string }> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const r = await fetch(`${cfg.graph}/${containerId}?fields=status_code,status&access_token=${encodeURIComponent(cfg.metaToken)}`);
+    const j = await r.json().catch(() => ({}));
+    const code = j?.status_code;
+    if (code === 'FINISHED') return { ok: true };
+    if (code === 'ERROR' || code === 'EXPIRED') return { ok: false, detail: `status_${code}` };
+    await sleep(delayMs);
+  }
+  return { ok: false, detail: `poll_timeout:${containerId}` };
+}
+
+// INSTAGRAM Reels via hosted URL: create container → poll → publish (proven path).
+async function postInstagram(cfg: MetaCfg, videoUrl: string, caption: string): Promise<PostResult> {
+  const create = await fetch(`${cfg.graph}/${cfg.igUser}/media`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ media_type: 'REELS', video_url: videoUrl, caption, share_to_feed: true, access_token: cfg.metaToken }),
+  });
+  const cj = await create.json().catch(() => ({}));
+  if (create.status !== 200 || !cj?.id) return { ok: false, status: create.status, detail: `ig_create:${JSON.stringify(cj).slice(0, 200)}` };
+  const poll = await pollContainer(cfg, String(cj.id));
+  if (!poll.ok) return { ok: false, status: 0, detail: `ig_poll:${poll.detail}` };
+  const publish = await fetch(`${cfg.graph}/${cfg.igUser}/media_publish`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ creation_id: String(cj.id), access_token: cfg.metaToken }),
+  });
+  const pj = await publish.json().catch(() => ({}));
+  if (publish.status !== 200 || !pj?.id) return { ok: false, status: publish.status, detail: `ig_publish:${JSON.stringify(pj).slice(0, 200)}` };
+  return { ok: true, status: 200, ref: String(pj.id) };
+}
+
+// Facebook Page video needs a PAGE token (exchange META_TOKEN → page token; module-cached).
+let _fbPageToken: string | null = null;
+async function facebookPageToken(cfg: MetaCfg): Promise<string> {
+  if (_fbPageToken) return _fbPageToken;
+  try {
+    const r = await fetch(`${cfg.graph}/${cfg.fbPage}?fields=access_token&access_token=${encodeURIComponent(cfg.metaToken)}`);
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 200 && j?.access_token) { _fbPageToken = String(j.access_token); return _fbPageToken; }
+  } catch (_) { /* fall back to the user token */ }
+  return cfg.metaToken;
+}
+
+// FACEBOOK Page video via hosted URL: POST /{page-id}/videos with file_url.
+async function postFacebook(cfg: MetaCfg, videoUrl: string, caption: string): Promise<PostResult> {
+  const pageToken = await facebookPageToken(cfg);
+  const r = await fetch(`${cfg.graph}/${cfg.fbPage}/videos`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file_url: videoUrl, description: caption, access_token: pageToken }),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (r.status !== 200 || !(j?.id || j?.post_id)) return { ok: false, status: r.status, detail: `fb:${JSON.stringify(j).slice(0, 200)}` };
+  return { ok: true, status: 200, ref: String(j.post_id ?? j.id) };
+}
+
+// Set a content_vault row's status (service role; best-effort — dispatch already succeeded).
+async function setVaultStatus(id: string, status: string): Promise<void> {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${VAULT_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH', headers: pgHeaders(), body: JSON.stringify({ status }),
+    });
+  } catch (_) { /* non-fatal */ }
+}
+
+// Parse a public Storage URL → { bucket, path }, SCOPE-LOCKED to videos/marketing/*
+// so a purge can never target anything outside the marketing folder.
+function marketingObjectPath(videoUrl: string): { bucket: string; path: string } | null {
+  try {
+    const u = new URL(String(videoUrl));                       // hash (#t=0.1) drops out of pathname
+    const marker = '/storage/v1/object/public/';
+    const i = u.pathname.indexOf(marker);
+    if (i === -1) return null;
+    const rest = decodeURIComponent(u.pathname.slice(i + marker.length)); // videos/marketing/foo.mp4
+    const slash = rest.indexOf('/');
+    if (slash === -1) return null;
+    const bucket = rest.slice(0, slash);
+    const path = rest.slice(slash + 1);
+    if (bucket !== 'videos' || !path.startsWith('marketing/') || path.includes('..')) return null;
+    return { bucket, path };
+  } catch { return null; }
+}
+
 // ─── handler ─────────────────────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
@@ -206,6 +338,69 @@ serve(async (req) => {
       const item = await patchRow(id, { scheduled_at, updated_at: new Date().toISOString() });
       if (!item) return jsonResponse({ error: 'not_found' }, 404);
       return jsonResponse({ ok: true, item });
+    }
+
+    // ── vault_dispatch: LIVE-post a content_vault clip to IG Reels + FB Page video ──
+    if (action === 'vault_dispatch') {
+      const videoUrl = clip(body?.video_url, 600);
+      if (!videoUrl) return jsonResponse({ error: 'missing_video_url' }, 400);
+      const caption = clip(body?.caption, 2200) ?? '';
+      const id = String(body?.id ?? '');
+
+      const cfg = await metaConfig();
+      const targets = (['instagram', 'facebook'] as const).filter((c) => cfg.enabled[c]);
+      if (!targets.length) {
+        return jsonResponse({ error: 'no_channel_configured', detail: 'inject META_TOKEN / META_IG_USER_ID / META_FB_PAGE_ID into Vault' }, 412);
+      }
+
+      const channels: Record<string, PostResult> = {};
+      let allOk = true;
+      for (const ch of targets) {
+        try {
+          const r = ch === 'instagram' ? await postInstagram(cfg, videoUrl, caption) : await postFacebook(cfg, videoUrl, caption);
+          channels[ch] = r;
+          if (!r.ok) allOk = false;
+        } catch (e) {
+          channels[ch] = { ok: false, status: 0, detail: String((e as Error)?.message ?? e) };
+          allOk = false;
+        }
+      }
+
+      // FLIP RULE (mirrors the distributor): 'published' only when EVERY targeted
+      // channel returned a confirmed 200. Persist it so the badge survives a refresh.
+      if (allOk && UUID_RE.test(id)) await setVaultStatus(id, 'published');
+      return jsonResponse({ ok: allOk, action: 'vault_dispatch', published: allOk, channels }, allOk ? 200 : 502);
+    }
+
+    // ── vault_purge: two-tier destruction (service role) — storage .mp4 + DB row ────
+    if (action === 'vault_purge') {
+      const id = String(body?.id ?? '');
+      if (!UUID_RE.test(id)) return jsonResponse({ error: 'bad_id' }, 400);
+
+      // Tier A — delete the raw binary from Storage (best-effort: a missing/already
+      // gone object must NOT block the authoritative row purge in Tier B).
+      const obj = marketingObjectPath(String(body?.video_url ?? ''));
+      let storageDeleted = false;
+      let storageDetail: string | null = null;
+      if (obj) {
+        try {
+          const r = await fetch(`${SUPABASE_URL}/storage/v1/object/${obj.bucket}/${encodeURI(obj.path)}`, { method: 'DELETE', headers: pgHeaders() });
+          storageDeleted = r.ok;
+          if (!r.ok) storageDetail = `storage_${r.status}:${(await r.text()).slice(0, 160)}`;
+        } catch (e) { storageDetail = String((e as Error)?.message ?? e); }
+      } else {
+        storageDetail = 'url_out_of_scope_or_unparseable';
+      }
+
+      // Tier B — delete the content_vault row (the authoritative purge).
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${VAULT_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+        method: 'DELETE', headers: { ...pgHeaders(), Prefer: 'return=representation' },
+      });
+      if (!res.ok) return jsonResponse({ error: 'purge_failed', detail: `row_${res.status}:${(await res.text()).slice(0, 200)}` }, 500);
+      const j = await res.json().catch(() => null);
+      if (!Array.isArray(j) || !j.length) return jsonResponse({ error: 'not_found' }, 404);
+
+      return jsonResponse({ ok: true, action: 'vault_purge', id, storage_deleted: storageDeleted, storage_detail: storageDetail });
     }
 
     return jsonResponse({ error: 'unknown_action', detail: action }, 400);

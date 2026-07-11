@@ -128,6 +128,47 @@
 
 .cv-bridge-note { font-family: var(--bd, 'Barlow Condensed'), sans-serif; font-size: .76rem; color: var(--gold-soft, #f5cf60); }
 
+/* Automated distribution + secure purge — a 2-up row under the bridge/BGM actions. */
+.cv-dispatch-row { display: flex; align-items: center; gap: .5rem; }
+
+/* DISPATCH TO META — brand-gold #f5c800 capsule (dark ink for legibility on gold). */
+.cv-meta {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem; flex: 1;
+  cursor: pointer; font-family: var(--hb, 'Bebas Neue'), sans-serif; font-weight: 700;
+  font-size: .82rem; letter-spacing: 1.5px; text-transform: uppercase; color: #0e0a16;
+  padding: .5rem .8rem; border-radius: 999px; border: 1px solid #f5c800;
+  background: linear-gradient(180deg, #f5c800, #d9af00);
+  box-shadow: 0 0 14px rgba(245, 200, 0, .4);
+  transition: transform .15s ease, box-shadow .25s ease, filter .2s ease;
+}
+.cv-meta:hover { filter: brightness(1.06); box-shadow: 0 0 22px rgba(245, 200, 0, .65); }
+.cv-meta:active { transform: scale(.96); }
+.cv-meta:focus-visible { outline: 2px solid #6a0dad; outline-offset: 2px; }
+.cv-meta:disabled { opacity: .7; cursor: default; }
+.cv-meta.is-confirm {
+  background: linear-gradient(180deg, #fff1a8, #f5c800);
+  box-shadow: 0 0 20px rgba(245, 200, 0, .8); animation: cv-pulse 1s ease-in-out infinite;
+}
+
+/* PURGE FROM VAULT — muted system-warning red; intensifies to solid on confirm. */
+.cv-purge {
+  display: inline-flex; align-items: center; justify-content: center; gap: .35rem; flex: none;
+  cursor: pointer; font-family: var(--hb, 'Bebas Neue'), sans-serif; font-size: .8rem;
+  letter-spacing: 1px; text-transform: uppercase; color: #ff8f8f;
+  padding: .5rem .7rem; border-radius: 999px; border: 1px solid rgba(255, 77, 79, .5);
+  background: rgba(255, 77, 79, .08); transition: border-color .18s ease, background .18s ease, color .18s ease;
+}
+.cv-purge:hover { border-color: #ff4d4f; color: #ff6b6b; background: rgba(255, 77, 79, .14); }
+.cv-purge:focus-visible { outline: 2px solid #ff4d4f; outline-offset: 2px; }
+.cv-purge:disabled { opacity: .7; cursor: default; }
+.cv-purge.is-confirm {
+  color: #fff; border-color: #ff4d4f; background: linear-gradient(180deg, #ff4d4f, #cc2f31);
+  box-shadow: 0 0 16px rgba(255, 77, 79, .55); animation: cv-pulse 1s ease-in-out infinite;
+}
+
+@keyframes cv-pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.15); } }
+
 @media (prefers-reduced-motion: reduce) {
-  .cv-tiktok { transition: none; }
+  .cv-tiktok, .cv-meta, .cv-purge { transition: none; }
+  .cv-meta.is-confirm, .cv-purge.is-confirm { animation: none; }
 }

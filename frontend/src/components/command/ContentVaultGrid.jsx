@@ -9,9 +9,23 @@
 // recordings) so a Galaxy S25 Ultra can attach a background-music source per clip.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchContentVault, subscribeContentVault } from '../../lib/contentVaultApi.js';
+import {
+  fetchContentVault, subscribeContentVault, dispatchToMeta, purgeVaultItem,
+} from '../../lib/contentVaultApi.js';
 import { runTikTokBridge } from '../../lib/tiktokBridge.js';
 import './contentVault.css';
+
+// Human-readable slugs for the vault write failures surfaced by bbf-content-manager.
+function vaultErr(msg) {
+  const map = {
+    no_admin_session: 'No admin session — sign in to the Command Center.',
+    not_admin: 'Restricted to the administrative tier.',
+    no_channel_configured: 'Meta channels not configured on the server.',
+    missing_video_url: 'This clip has no video URL to dispatch.',
+    not_found: 'Row already gone — refreshing.',
+  };
+  return map[msg] || `Failed (${msg || 'unknown'}).`;
+}
 
 const STATUS_COLOR = {
   staged: '#8a8f98',
@@ -28,9 +42,61 @@ function StatusChip({ status }) {
   );
 }
 
-function VaultCard({ row }) {
+function VaultCard({ row, onPurged }) {
   const [bridge, setBridge] = useState(null); // null | 'run' | 'ok' | 'err'
   const [bgmName, setBgmName] = useState('');
+  // Local status mirror — flips to 'published' the instant a Meta dispatch confirms,
+  // so the badge updates with 0 refresh (the server also persists it durably).
+  const [status, setStatus] = useState(row.status);
+  // Two-step confirm for the outward/irreversible actions (live Meta post + purge).
+  const [meta, setMeta] = useState(null);   // null | 'confirm' | 'run' | 'ok' | 'err'
+  const [purge, setPurge] = useState(null);  // null | 'confirm' | 'run' | 'err'
+  const [note, setNote] = useState('');      // inline error/status line
+  const confirmTimer = useRef(null);
+  useEffect(() => () => clearTimeout(confirmTimer.current), []);
+
+  // First click arms the confirm state (auto-disarms after 4s); the caller fires on
+  // the second click. Prevents a stray single click going live / destroying an asset.
+  const armThenRun = useCallback((phase, setPhase, run) => {
+    if (phase !== 'confirm') {
+      setNote('');
+      setPhase('confirm');
+      clearTimeout(confirmTimer.current);
+      confirmTimer.current = setTimeout(() => setPhase(null), 4000);
+      return;
+    }
+    clearTimeout(confirmTimer.current);
+    run();
+  }, []);
+
+  const onDispatch = useCallback(() => {
+    armThenRun(meta, setMeta, async () => {
+      setMeta('run');
+      try {
+        await dispatchToMeta({ id: row.id, video_url: row.video_url, caption_body: row.caption_body });
+        setStatus('published');
+        setMeta('ok');
+        setNote('');
+      } catch (e) {
+        setMeta('err');
+        setNote(vaultErr(e?.message));
+      }
+    });
+  }, [armThenRun, meta, row.id, row.video_url, row.caption_body]);
+
+  const onPurge = useCallback(() => {
+    armThenRun(purge, setPurge, async () => {
+      setPurge('run');
+      try {
+        await purgeVaultItem({ id: row.id, video_url: row.video_url });
+        onPurged?.(row.id); // optimistic slice-out — card leaves the grid immediately
+      } catch (e) {
+        setPurge('err');
+        setNote(vaultErr(e?.message));
+        if (e?.message === 'not_found') onPurged?.(row.id); // already gone — drop it anyway
+      }
+    });
+  }, [armThenRun, purge, row.id, row.video_url, onPurged]);
   // ── LAZY MEDIA THROTTLE ────────────────────────────────────────────────────
   // Rendering 36 seated <video> nodes at once saturates the main thread + client
   // memory. The clip element is NOT mounted until the card is intentionally
@@ -94,7 +160,7 @@ function VaultCard({ row }) {
       <div className="cv-body">
         <div className="cv-row-top">
           <h3 className="cv-title" title={row.title}>{row.title}</h3>
-          <StatusChip status={row.status} />
+          <StatusChip status={status} />
         </div>
 
         {Array.isArray(row.platform_targets) && row.platform_targets.length ? (
@@ -129,7 +195,44 @@ function VaultCard({ row }) {
           </label>
         </div>
 
+        {/* Automated distribution + secure purge — both LIVE/irreversible, so each
+            arms a confirm state on the first click and only fires on the second. */}
+        <div className="cv-dispatch-row">
+          <button
+            type="button"
+            className={`cv-meta${meta === 'confirm' ? ' is-confirm' : ''}`}
+            onClick={onDispatch}
+            disabled={meta === 'run'}
+            data-testid={`vault-meta-${row.id}`}
+            aria-label={`Dispatch ${row.title} to Meta (Facebook + Instagram)`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M13 3v7h7v2h-7v9h-2v-9H4v-2h7V3z" transform="rotate(45 12 12)" />
+            </svg>
+            {meta === 'run' ? 'Dispatching…'
+              : meta === 'ok' ? 'Dispatched ✓'
+                : meta === 'confirm' ? 'Confirm → FB + IG'
+                  : 'Dispatch to Meta'}
+          </button>
+
+          <button
+            type="button"
+            className={`cv-purge${purge === 'confirm' ? ' is-confirm' : ''}`}
+            onClick={onPurge}
+            disabled={purge === 'run'}
+            data-testid={`vault-purge-${row.id}`}
+            aria-label={`Purge ${row.title} from the vault`}
+            title="Permanently delete the .mp4 from storage and the vault row"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 12H8L7 9Z" />
+            </svg>
+            {purge === 'run' ? 'Purging…' : purge === 'confirm' ? 'Confirm purge?' : 'Purge from Vault'}
+          </button>
+        </div>
+
         {bridge === 'err' ? <div className="cv-bridge-note" role="status">Bridge partially completed — check the new tab / clipboard.</div> : null}
+        {note ? <div className="cv-bridge-note" role="alert">⚠ {note}</div> : null}
       </div>
     </article>
   );
@@ -147,6 +250,12 @@ export default function ContentVaultGrid() {
     } catch (e) {
       if (alive.current) setState({ loading: false, error: e?.message || 'read_failed' });
     }
+  }, []);
+
+  // Optimistic slice-out after a confirmed purge — the card leaves the grid the
+  // instant the edge fn returns, no refresh needed (realtime will reconcile too).
+  const handlePurged = useCallback((id) => {
+    setRows((rs) => rs.filter((r) => r.id !== id));
   }, []);
 
   useEffect(() => {
@@ -179,7 +288,7 @@ export default function ContentVaultGrid() {
         <p className="cv-empty">No clips seated in content_vault yet.</p>
       ) : (
         <div className="cv-grid">
-          {rows.map((row) => <VaultCard key={row.id} row={row} />)}
+          {rows.map((row) => <VaultCard key={row.id} row={row} onPurged={handlePurged} />)}
         </div>
       )}
     </div>
