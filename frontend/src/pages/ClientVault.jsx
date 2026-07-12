@@ -43,6 +43,9 @@ import Prehab from '../components/vault/Prehab.jsx';
 import Recovery from '../components/vault/Recovery.jsx';
 import ChampionMindset from '../components/vault/ChampionMindset.jsx';
 import SovereignClientHub from '../components/vault/SovereignClientHub.jsx';
+// CNS Triage Router — default export (the file exports it as default, and this repo
+// has no '@' path alias), so a relative default import is the correct wiring.
+import CnsTriageRouter from '../components/vault/CnsTriageRouter.jsx';
 import PostWorkoutCheckInModal from '../components/vault/PostWorkoutCheckInModal.jsx';
 import ProvisionGate from '../components/vault/ProvisionGate.jsx';
 import TierGate from '../components/TierGate.jsx';
@@ -88,7 +91,7 @@ const MODE_TKEY = {
 
 export default function ClientVault() {
   const { user, session, signOut, isAdmin } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(TABS[0].id);
 
@@ -270,7 +273,16 @@ export default function ClientVault() {
                 </>
               )}
               {activeTab === 'checkin' && (
-                <SovereignClientHub refreshKey={checkInRefresh} onSequence={onNavigate} prescribedLoad={prescribedLoad} />
+                <>
+                  {/* CNS Triage Router — immersive trilingual alignment intercept.
+                      Self-gates: renders NOTHING when readiness is optimal (score ≥ 70)
+                      or absent; a below-optimal CNS fires the tiered HAGEN film (cloud-
+                      streamed), then routes the athlete into Champion Mindset. Bound to
+                      the SAME shared readiness store the beacon reads (readiness.score)
+                      and the active language (useLang). */}
+                  <CnsTriageRouter cnsScore={readiness?.score} userLanguage={lang} />
+                  <SovereignClientHub refreshKey={checkInRefresh} onSequence={onNavigate} prescribedLoad={prescribedLoad} />
+                </>
               )}
               {activeTab === 'program' && <Program plans={plans} profile={profile} onSequence={onNavigate} />}
               {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
