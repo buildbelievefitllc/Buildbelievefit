@@ -10,11 +10,16 @@
 // deliberately never surface the words TDEE / BMR / NEAT: the screen speaks in
 // "Daily Calorie Burn" only.
 //
-// The Handoff: "ENTER THE PATHFINDER" routes to /pathfinder via React Router and
-// passes { age, sex, weight, heightFt, heightIn } in location state, which the
-// Pathfinder reads to pre-fill its biometrics automatically.
+// The Reveal: results no longer print inline under the form. A valid calculation
+// flips `showProfile` and the numbers land inside <MockProfileModal> — a
+// full-screen "your profile is ready" overlay that blocks out the page and
+// carries the lead capture + the only forward exits (Pathfinder / Explorer).
+//
+// The Handoff: "ENTER THE PATHFINDER" routes to /select-tier via React Router
+// and passes { age, sex, weight, heightFt, heightIn } in location state, which
+// the tier bridge forwards to the Pathfinder to pre-fill biometrics.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calcTDEE } from '../components/vault/nutritionEngine.js';
 import TdeeLeadCapture from '../components/TdeeLeadCapture.jsx';
@@ -48,6 +53,7 @@ export default function DailyBurnCalculator() {
   const [inch, setInch] = useState('');
   const [act, setAct] = useState('1.55');
   const [burn, setBurn] = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
   const [explorerReady, setExplorerReady] = useState(false);
   const [error, setError] = useState(null);
 
@@ -60,10 +66,19 @@ export default function DailyBurnCalculator() {
     if (!a || !w || !f) {
       setError('Please fill in age, weight, and height.');
       setBurn(null);
+      setShowProfile(false);
+      return;
+    }
+    const tdee = calcTDEE(a, sex, w, f, i, parseFloat(act) || 1.55);
+    if (!Number.isFinite(tdee) || tdee <= 0) {
+      setError('Those numbers don’t compute — double-check and try again.');
+      setBurn(null);
+      setShowProfile(false);
       return;
     }
     setError(null);
-    setBurn(calcTDEE(a, sex, w, f, i, parseFloat(act)));
+    setBurn(tdee);
+    setShowProfile(true);
   }
 
   // The Handoff — carry the raw inputs forward into the upsell bridge
@@ -81,6 +96,17 @@ export default function DailyBurnCalculator() {
       },
     });
   }
+
+  // Shared biometric snapshot — the SAME shape rides the lead payload and the
+  // Explorer guest-token mint, built once so the two can never drift.
+  const biometrics = {
+    age: parseInt(age, 10) || null,
+    sex,
+    weight_lbs: parseFloat(weight) || null,
+    height_ft: parseInt(ft, 10) || null,
+    height_in: parseInt(inch, 10) || null,
+    activity_factor: parseFloat(act) || null,
+  };
 
   return (
     <div style={st.screen}>
@@ -132,84 +158,151 @@ export default function DailyBurnCalculator() {
           <button type="submit" style={st.calcBtn}>Show My Numbers →</button>
         </form>
 
-        {burn ? (
-          <div style={st.results} role="status" aria-live="polite">
-            <div style={st.burnCard}>
-              <div style={st.burnLbl}>Your Daily Calorie Burn</div>
-              <div style={st.burnBig}>{burn.toLocaleString()}</div>
-              <div style={st.burnUnit}>calories / day to maintain</div>
-            </div>
-
-            <div style={st.splitRow}>
-              <GoalCard
-                title="To Lose Fat"
-                value={(burn + FAT_LOSS_ADJ).toLocaleString()}
-                note="calories / day"
-              />
-              <GoalCard
-                title="To Build Muscle"
-                value={(burn + MUSCLE_ADJ).toLocaleString()}
-                note="calories / day"
-                gold
-              />
-            </div>
-
-            {/* Phase 21 — capture the micro-intent lead right here, at the moment
-                they see a real number, instead of only at the (much bigger)
-                Pathfinder ask below. No macros computed on this surface (calcTDEE
-                only), so those fields ride as null — the schema is nullable. */}
-            <TdeeLeadCapture
-              source="daily_burn"
-              payload={{
-                age: parseInt(age, 10) || null,
-                sex,
-                weight_lbs: parseFloat(weight) || null,
-                height_ft: parseInt(ft, 10) || null,
-                height_in: parseInt(inch, 10) || null,
-                activity_factor: parseFloat(act) || null,
-                tdee_maintenance: burn,
-              }}
-              onCaptured={() => {
-                // EXPLORER MODE gateway — guest token mints the moment the visitor
-                // submits their details (no macros on this surface; the sandbox
-                // recomputes them live from the stored biometrics).
-                startExplorerSession({
-                  source: 'daily_burn',
-                  profile: {
-                    age: parseInt(age, 10) || null,
-                    sex,
-                    weight_lbs: parseFloat(weight) || null,
-                    height_ft: parseInt(ft, 10) || null,
-                    height_in: parseInt(inch, 10) || null,
-                    activity_factor: parseFloat(act) || null,
-                  },
-                  targets: { tdee_maintenance: burn },
-                });
-                setExplorerReady(true);
-              }}
-            />
-
-            {/* The Hook → the only forward exit. */}
-            <div style={st.hook}>
-              <div style={st.hookText}>
-                Knowing your numbers is only step one. You need a blueprint to hit them.
-              </div>
-              <button type="button" style={st.hookBtn} onClick={enterPathfinder}>
-                ENTER THE PATHFINDER →
-              </button>
-              {explorerReady ? (
-                <button
-                  type="button"
-                  style={{ ...st.hookBtn, marginTop: 8 }}
-                  onClick={() => navigate('/explore')}
-                  data-testid="enter-explorer"
-                >
-                  ◇ ENTER EXPLORER MODE →
-                </button>
-              ) : null}
-            </div>
-          </div>
+        {/* Post-close breadcrumb: if they dismiss the profile, the number stays
+            reachable — one tap reopens the modal, no recalculation needed. */}
+        {burn != null && !showProfile ? (
+          <button type="button" style={st.reopenBtn} onClick={() => setShowProfile(true)}>
+            View My Metabolic Profile ({burn.toLocaleString()} cal) →
+          </button>
         ) : null}
+      </div>
+
+      {showProfile && burn != null ? (
+        <MockProfileModal
+          burn={burn}
+          biometrics={biometrics}
+          explorerReady={explorerReady}
+          onClose={() => setShowProfile(false)}
+          onEnterPathfinder={enterPathfinder}
+          onEnterExplorer={() => navigate('/explore')}
+          onCaptured={() => {
+            // EXPLORER MODE gateway — guest token mints the moment the visitor
+            // submits their details (no macros on this surface; the sandbox
+            // recomputes them live from the stored biometrics).
+            startExplorerSession({
+              source: 'daily_burn',
+              profile: biometrics,
+              targets: { tdee_maintenance: burn },
+            });
+            setExplorerReady(true);
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * MockProfileModal — the premium "your profile is ready" reveal surface.
+ *
+ * Full-viewport overlay (blurred, darkened backdrop · zIndex 9999) over a matte
+ * black panel with purple→gold hairline accents. Renders the maintenance burn,
+ * the fat-loss (−500) and muscle (+250) targets, the in-modal lead capture, and
+ * the only forward exits (Pathfinder / Explorer). Escape or the backdrop closes
+ * it; the numbers survive in parent state, so reopening is free.
+ *
+ * @param {object} props
+ * @param {number} props.burn - computed maintenance TDEE (guaranteed finite by caller)
+ * @param {object} props.biometrics - snake_case biometric snapshot for the lead payload
+ * @param {boolean} props.explorerReady - guest token minted; show the Explorer exit
+ * @param {() => void} props.onClose - dismiss the modal (state survives in parent)
+ * @param {() => void} props.onEnterPathfinder - primary CTA → /select-tier with prefill
+ * @param {() => void} props.onEnterExplorer - secondary CTA → /explore
+ * @param {() => void} props.onCaptured - lead saved → mint the Explorer session
+ */
+function MockProfileModal({
+  burn,
+  biometrics,
+  explorerReady,
+  onClose,
+  onEnterPathfinder,
+  onEnterExplorer,
+  onCaptured,
+}) {
+  // Lock the page scroll behind the overlay and wire Escape-to-close for the
+  // lifetime of the modal; both restore on unmount.
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      style={st.overlay}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mock-profile-title"
+    >
+      <div style={st.modal} role="document">
+        <div style={st.hairline} aria-hidden="true" />
+
+        <button type="button" style={st.closeBtn} onClick={onClose} aria-label="Close profile">
+          ✕
+        </button>
+
+        <div style={st.modalBody} role="status" aria-live="polite">
+          <div style={st.modalKicker}>Your Metabolic Profile</div>
+          <h2 id="mock-profile-title" style={st.modalTitle}>The Numbers Are In</h2>
+
+          <div style={st.burnCard}>
+            <div style={st.burnLbl}>Your Daily Calorie Burn</div>
+            <div style={st.burnBig}>{burn.toLocaleString()}</div>
+            <div style={st.burnUnit}>calories / day to maintain</div>
+          </div>
+
+          <div style={st.splitRow}>
+            <GoalCard
+              title="To Lose Fat"
+              value={(burn + FAT_LOSS_ADJ).toLocaleString()}
+              note="calories / day"
+            />
+            <GoalCard
+              title="To Build Muscle"
+              value={(burn + MUSCLE_ADJ).toLocaleString()}
+              note="calories / day"
+              gold
+            />
+          </div>
+
+          {/* Phase 21 — capture the micro-intent lead right here, at the moment
+              they see a real number, instead of only at the (much bigger)
+              Pathfinder ask below. No macros computed on this surface (calcTDEE
+              only), so those fields ride as null — the schema is nullable. */}
+          <TdeeLeadCapture
+            source="daily_burn"
+            payload={{ ...biometrics, tdee_maintenance: burn }}
+            onCaptured={onCaptured}
+          />
+
+          {/* The Hook → the only forward exit. */}
+          <div style={st.hook}>
+            <div style={st.hookText}>
+              Knowing your numbers is only step one. You need a blueprint to hit them.
+            </div>
+            <button type="button" style={st.hookBtn} onClick={onEnterPathfinder}>
+              ENTER THE PATHFINDER →
+            </button>
+            {explorerReady ? (
+              <button
+                type="button"
+                style={{ ...st.hookBtn, marginTop: 8 }}
+                onClick={onEnterExplorer}
+                data-testid="enter-explorer"
+              >
+                ◇ ENTER EXPLORER MODE →
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        <div style={st.hairline} aria-hidden="true" />
       </div>
     </div>
   );
@@ -249,7 +342,16 @@ const st = {
   input: { width: '100%', boxSizing: 'border-box', background: '#0a0414', border: '1px solid rgba(157,39,201,.35)', borderRadius: 8, color: '#fff', fontFamily: BODY, fontSize: '1rem', fontWeight: 600, padding: '.7rem .8rem', outline: 'none' },
   error: { fontFamily: BODY, fontSize: '.88rem', fontWeight: 700, color: '#fca5a5', margin: '4px 0 10px' },
   calcBtn: { width: '100%', marginTop: 6, fontFamily: HEAD, fontSize: '1.1rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#fff', background: `linear-gradient(180deg, ${PURL}, ${PUR})`, border: '1px solid rgba(157,39,201,.6)', borderRadius: 10, padding: '.9rem', cursor: 'pointer' },
-  results: { marginTop: 22 },
+  reopenBtn: { width: '100%', marginTop: 14, fontFamily: HEAD, fontSize: '1rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: GOLD_SOFT, background: 'rgba(8,2,18,.7)', border: '1px solid rgba(245,200,0,.35)', borderRadius: 10, padding: '.85rem', cursor: 'pointer' },
+
+  // ── MockProfileModal ────────────────────────────────────────────────────────
+  overlay: { position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(4,1,10,.78)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(10px,3vw,28px)', overflowY: 'auto' },
+  modal: { position: 'relative', width: '100%', maxWidth: 560, maxHeight: '92dvh', overflowY: 'auto', background: '#090909', border: '1px solid rgba(157,39,201,.35)', borderRadius: 20, boxShadow: '0 30px 80px rgba(0,0,0,.75), 0 0 60px rgba(106,13,173,.25)' },
+  hairline: { height: 1, background: `linear-gradient(90deg, transparent 0%, ${PUR} 30%, ${GOLD} 70%, transparent 100%)` },
+  closeBtn: { position: 'absolute', top: 12, right: 12, zIndex: 1, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(157,39,201,.12)', border: '1px solid rgba(157,39,201,.4)', borderRadius: '50%', color: 'rgba(255,255,255,.75)', fontFamily: BODY, fontSize: '.95rem', fontWeight: 700, lineHeight: 1, cursor: 'pointer' },
+  modalBody: { padding: 'clamp(22px,5vw,34px)' },
+  modalKicker: { fontFamily: BODY, fontSize: '.7rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL, textAlign: 'center' },
+  modalTitle: { fontFamily: HEAD, fontSize: 'clamp(1.7rem,6vw,2.3rem)', letterSpacing: '1.5px', color: '#fff', textAlign: 'center', lineHeight: 1, margin: '.35rem 0 1.1rem' },
   burnCard: { background: 'rgba(8,2,18,.7)', border: `1px solid rgba(245,200,0,.3)`, borderRadius: 16, padding: 'clamp(20px,4vw,30px)', textAlign: 'center' },
   burnLbl: { fontFamily: BODY, fontSize: '.8rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.6)' },
   burnBig: { fontFamily: HEAD, fontSize: 'clamp(3rem,12vw,4.4rem)', letterSpacing: '2px', color: GOLD_SOFT, lineHeight: 1, margin: '.2rem 0' },
