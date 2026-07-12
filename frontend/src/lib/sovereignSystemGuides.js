@@ -81,6 +81,23 @@ export const SOVEREIGN_SYSTEM_GUIDES = {
     feature: 'grid',
     ready: true,
   },
+  // Newly linked elite-voice masters (previously uploaded but unmapped). Standard
+  // registry schema so <GuideLauncher module="masterclass_overview" /> resolves them
+  // like any other key; unreferenced keys are inert (no default view mounts them).
+  masterclass_overview: {
+    id: 'bbf_masterclass_overview',
+    title: 'Product Tour Masterclass',
+    url: `${SUPABASE_TUTORIALS_BASE}/bbf_tour_masterclass.mp4`,
+    feature: 'grid',
+    ready: true,
+  },
+  behavioral_reset: {
+    id: 'bbf_behavioral_reset',
+    title: 'Behavioral Reset — Break the Cycle',
+    url: `${SUPABASE_TUTORIALS_BASE}/bbf_step2_breakcycle.mp4`,
+    feature: 'grid',
+    ready: true,
+  },
 };
 
 export default SOVEREIGN_SYSTEM_GUIDES;
