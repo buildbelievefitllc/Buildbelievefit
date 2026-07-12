@@ -46,6 +46,10 @@ const ClientVault = lazy(() => import('./pages/ClientVault.jsx'));
 const CommandCenter = lazy(() => import('./pages/CommandCenter.jsx'));
 const YouthIntakeGate = lazy(() => import('./components/sportshub/YouthIntakeGate.jsx'));
 const SportsPortal = lazy(() => import('./components/sports/SportsPortal.jsx'));
+// Champion Mindset dashboard — the target of the CNS Triage Router's completion
+// anchor. Mounted at its own guarded path (was previously only a Vault-internal tab)
+// so the trilingual intercept can route straight into it.
+const ChampionMindset = lazy(() => import('./components/vault/ChampionMindset.jsx'));
 
 // The Sovereign Vault — the authenticated athlete home. Guarded: an unauthenticated
 // visitor is bounced to the login gate rather than shown an empty shell. NOTE: the
@@ -86,6 +90,17 @@ const bootStyle = {
   minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
   fontFamily: 'var(--bd)', color: 'var(--mut)', letterSpacing: '.5px',
 };
+
+// Champion Mindset dashboard — auth-guarded (mirrors VaultRoute): an unauthenticated
+// visitor is bounced to the login gate. The CNS Triage Router's completion anchor
+// routes here; all context providers (Lang/Auth/Readiness) live at the root so the
+// surface mounts standalone with full trilingual + session context.
+function ChampionMindsetRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return <div style={bootStyle}>Loading…</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  return <ChampionMindset />;
+}
 
 // Native start-URL guardrail (Apple/Android compliance): the Capacitor wrapper
 // always boots index.html at "/", which — unlike the web PWA (manifest start_url
@@ -161,6 +176,9 @@ export default function App() {
       {/* Sports Portal & Athlete Database — auth-guarded; the panel switches the
           admin-override vs client view on isAdmin (see SportsRoute). */}
       <Route path="/sports" element={<SportsRoute />} />
+      {/* Champion Mindset dashboard — auth-guarded standalone surface; the CNS
+          Triage Router's completion anchor routes here. */}
+      <Route path="/champion-mindset" element={<ChampionMindsetRoute />} />
       {/* Admin console — AdminGuard denies non-admins before the shell mounts. The
           optional :tab segment makes each surface deep-linkable; the sidebar nav
           and the segmented tabs both push to /command/<tab>. ONE route (not two)

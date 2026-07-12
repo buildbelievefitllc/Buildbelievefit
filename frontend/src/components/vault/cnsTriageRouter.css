@@ -1,0 +1,81 @@
+/* src/components/vault/cnsTriageRouter.css — CNS Triage Router.
+   Immersive, borderless 9:16 portrait alignment player + completion overlay.
+   Brand-locked (§2): BBF Purple #6a0dad · BBF Gold #f5c800 · matte-black canvas. */
+
+/* Immersive stage — fills its container, matte-black bleed, centers the 9:16 film.
+   Borderless by construction (no border, no radius). */
+.cns-triage {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;                       /* approved matte-black canvas */
+  overflow: hidden;
+}
+
+/* 9:16 portrait video — borderless, fills the stage height, cover-cropped. */
+.cns-triage-video {
+  display: block;
+  height: 100%;
+  max-height: 100vh;
+  aspect-ratio: 9 / 16;
+  width: auto;
+  max-width: 100%;
+  object-fit: cover;
+  border: none;
+  background: #000;
+}
+
+/* Completion overlay — matte-black takeover the millisecond the film ends. */
+.cns-triage-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6rem;
+  padding: 2rem;
+  text-align: center;
+  background: #090909;                     /* matte black */
+  animation: cns-triage-fade .35s ease both;
+}
+
+.cns-triage-complete {
+  margin: 0;
+  font-family: var(--display, 'Bebas Neue'), sans-serif;
+  font-size: clamp(2rem, 7vw, 3.4rem);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--wht, #f9f5ff);
+}
+
+/* High-visibility branding anchor — BBF purple→gold, glowing, unmissable. */
+.cns-triage-cta {
+  cursor: pointer;
+  font-family: var(--hb, 'Bebas Neue'), sans-serif;
+  font-weight: 700;
+  font-size: clamp(1rem, 3.4vw, 1.3rem);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #0e0a16;
+  padding: .9rem 1.8rem;
+  border-radius: 999px;
+  border: 1px solid #f5c800;
+  background: linear-gradient(90deg, #6a0dad, #f5c800);
+  box-shadow: 0 0 22px rgba(245, 200, 0, .5);
+  transition: transform .15s ease, box-shadow .25s ease, filter .2s ease;
+}
+.cns-triage-cta:hover { filter: brightness(1.08); box-shadow: 0 0 32px rgba(245, 200, 0, .75); }
+.cns-triage-cta:active { transform: scale(.97); }
+.cns-triage-cta:focus-visible { outline: 2px solid #f9f5ff; outline-offset: 3px; }
+
+@keyframes cns-triage-fade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cns-triage-overlay { animation: none; }
+  .cns-triage-cta { transition: none; }
+}
