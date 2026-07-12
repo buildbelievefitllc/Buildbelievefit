@@ -8,15 +8,24 @@
 // (VaultRoute still gates /vault on a real user; a guest token unlocks zero
 // server surface). The shell demonstrates value with the visitor's OWN numbers:
 //
-//   01 FUEL TARGETS   — their calculated macro wheel, fully interactive (goal
-//                       re-selection recomputes via the SAME nutritionEngine
-//                       math the paid vault runs).
+//   01 FUEL TARGETS   — a presentational clone of the premium Nutrition Locker
+//                       (plan banner · conic macro wheel · target legend ·
+//                       ratio bar · fasting pace + eating-window timeline),
+//                       data-bound to the guest's OWN numbers via the SAME
+//                       nutritionEngine math the paid vault runs
+//                       (GuestFuelDashboard — zero Supabase).
 //   02 DAY 1 PROGRAM  — a static Day-1 programming preview from the authorized
 //                       catalog (programData.js), expandable per exercise.
-//   03-05 DEEP LAYERS — live coach chat · biometric sync · coach audio render
-//                       as locked panels; any interaction opens the gold
-//                       'Break the Loop' portal modal → /select-tier →
-//                       /pathfinder (the existing application funnel).
+//   03 LIVE COACH CHAT — stays behind the premium lock overlay; any interaction
+//                       opens the gold 'Break the Loop' portal modal →
+//                       /select-tier → /pathfinder (the existing funnel).
+//   04 BIOMETRIC SYNC — a read-only clone of the Client Hub Check-In
+//                       (GuestCheckInPreview): manual tracking sliders + a
+//                       fixed Sovereign Readiness 89 · Prime Execution dial.
+//   05 COACH AUDIO    — the ACTUAL "Breaking the Loop" media container
+//                       (CoachVoiceNote — a pure static <audio> transport, no
+//                       API/entitlement surface) streaming the official
+//                       EN/ES/PT masterclass voice-clone sessions.
 //
 // LOCKED §10 compliance: this is a numbered TAB DECK (one panel mounted at a
 // time), never a vertical stack. Brand: BBF Purple #6a0dad structure, Victory
@@ -28,6 +37,10 @@ import { useLang } from '../context/LangContext.jsx';
 import { readExplorerSession, clearExplorerSession } from '../lib/explorerSession.js';
 import { calcTDEE, calcMacros } from '../components/vault/nutritionEngine.js';
 import { getProgram, DEFAULT_PROGRAM_KEY } from '../components/vault/programData.js';
+import GuestFuelDashboard from '../components/explorer/GuestFuelDashboard.jsx';
+import GuestCheckInPreview from '../components/explorer/GuestCheckInPreview.jsx';
+import CoachVoiceNote from '../components/vault/CoachVoiceNote.jsx';
+import '../components/explorer/explorerPreviews.css';
 
 const GOAL_ADJ = { cut: -500, maintain: 0, gain: 300 };
 
@@ -44,6 +57,8 @@ const STR = {
     lockedSync: 'Wearable + Health Connect biometric syncing drives the adaptive engine — members only.',
     lockedAudio: 'Custom Akeem-narrated session audio is generated per athlete — members only.',
     unlock: 'Unlock This Layer',
+    audioKicker: 'Coach Audio · Breaking the Loop',
+    audioIntro: 'Three masterclass sessions in Coach Akeem’s own cloned voice — the exact audio engine that narrates every stage of the member protocol. Streams in your language.',
     modalKicker: 'You’ve Seen the Surface', modalTitle: 'Break the Loop',
     modalBody: 'The wheel you just spun is the demo. The real engine adapts your macros, programming, and recovery to YOUR biometrics every single day. Finish your application and step inside.',
     modalCta: 'Complete My Application', modalAlt: 'Go straight to the Pathfinder intake', modalClose: 'Keep exploring',
@@ -60,6 +75,8 @@ const STR = {
     lockedSync: 'La sincronización biométrica de wearables impulsa el motor adaptativo — solo miembros.',
     lockedAudio: 'El audio de sesión narrado por Akeem se genera por atleta — solo miembros.',
     unlock: 'Desbloquear Esta Capa',
+    audioKicker: 'Audio del Coach · Rompiendo el Ciclo',
+    audioIntro: 'Tres sesiones magistrales con la voz clonada del Coach Akeem — el mismo motor de audio que narra cada etapa del protocolo de miembros. Se reproduce en tu idioma.',
     modalKicker: 'Ya Viste la Superficie', modalTitle: 'Rompe el Ciclo',
     modalBody: 'La rueda que giraste es la demo. El motor real adapta tus macros, programación y recuperación a TUS biométricos cada día. Completa tu aplicación y entra.',
     modalCta: 'Completar Mi Aplicación', modalAlt: 'Ir directo al intake Pathfinder', modalClose: 'Seguir explorando',
@@ -76,52 +93,24 @@ const STR = {
     lockedSync: 'A sincronização biométrica de wearables move o motor adaptativo — somente membros.',
     lockedAudio: 'O áudio de sessão narrado pelo Akeem é gerado por atleta — somente membros.',
     unlock: 'Desbloquear Esta Camada',
+    audioKicker: 'Áudio do Coach · Quebrando o Ciclo',
+    audioIntro: 'Três sessões magistrais com a voz clonada do Coach Akeem — o mesmo motor de áudio que narra cada etapa do protocolo de membros. Toca no seu idioma.',
     modalKicker: 'Você Viu a Superfície', modalTitle: 'Quebre o Ciclo',
     modalBody: 'A roda que você girou é a demo. O motor real adapta seus macros, programação e recuperação aos SEUS biométricos todos os dias. Finalize sua aplicação e entre.',
     modalCta: 'Completar Minha Aplicação', modalAlt: 'Ir direto ao intake Pathfinder', modalClose: 'Continuar explorando',
   },
 };
 
+// Only Live Coach Chat keeps the hard lock overlay (the operational module is
+// fully gated); Biometric Sync and Coach Audio now mount as open PREVIEW panels
+// — read-only visual clones / static media, still zero server surface.
 const DECK = [
   { id: 'fuel', locked: false },
   { id: 'day1', locked: false },
   { id: 'chat', locked: true },
-  { id: 'sync', locked: true },
-  { id: 'audio', locked: true },
+  { id: 'sync', locked: false },
+  { id: 'audio', locked: false },
 ];
-
-// ── The visitor's macro wheel — 3-segment conic (P/C/F calorie shares) ───────
-function GuestMacroWheel({ kcal, p, c, f, tr }) {
-  const pCal = p * 4, cCal = c * 4, fCal = f * 9;
-  const total = Math.max(1, pCal + cCal + fCal);
-  const pDeg = (pCal / total) * 360;
-  const cDeg = pDeg + (cCal / total) * 360;
-  return (
-    <div style={s.wheelWrap} data-testid="explorer-macro-wheel">
-      <div
-        style={{
-          ...s.wheel,
-          background: `conic-gradient(from 0deg, #ff5d5d 0deg ${pDeg}deg, #4dc3ff ${pDeg}deg ${cDeg}deg, #ffb547 ${cDeg}deg 360deg)`,
-        }}
-      >
-        <div style={s.wheelHole}>
-          <span style={s.wheelKcal}>{Number(kcal).toLocaleString()}</span>
-          <span style={s.wheelUnit}>kcal/day</span>
-        </div>
-      </div>
-      <div style={s.legend}>
-        {[['Protein', p, '#ff5d5d'], ['Carbs', c, '#4dc3ff'], ['Fat', f, '#ffb547']].map(([lbl, g, color]) => (
-          <div key={lbl} style={s.legendRow}>
-            <span style={{ ...s.legendDot, background: color }} />
-            <span style={s.legendLbl}>{lbl}</span>
-            <span style={{ ...s.legendVal, color }} data-testid={`explorer-macro-${lbl.toLowerCase()}`}>{g}g</span>
-          </div>
-        ))}
-      </div>
-      <div style={s.legendFoot}>{tr.target}</div>
-    </div>
-  );
-}
 
 // ── Day-1 preview — static authorized catalog, expandable rows, zero writes ──
 function Day1Preview({ tr }) {
@@ -237,7 +226,9 @@ export default function ExplorerVault() {
   };
 
   const activeMeta = DECK.find((d) => d.id === tab) || DECK[0];
-  const lockedCopy = { chat: tr.lockedChat, sync: tr.lockedSync, audio: tr.lockedAudio };
+  // Only chat still renders the hard lock overlay; sync/audio upsell copy now
+  // rides inline beneath their open preview panels.
+  const lockedCopy = { chat: tr.lockedChat };
 
   return (
     <div style={s.shell} data-bbf-mode="explorer" data-testid="explorer-vault">
@@ -297,12 +288,53 @@ export default function ExplorerVault() {
                 </button>
               ))}
             </div>
-            <GuestMacroWheel kcal={computed.target} p={computed.p} c={computed.c} f={computed.f} tr={tr} />
-            <p style={s.body}>{tr.maintenance}: {computed.base.toLocaleString()} kcal/day.</p>
+            <GuestFuelDashboard
+              base={computed.base}
+              target={computed.target}
+              p={computed.p}
+              c={computed.c}
+              f={computed.f}
+            />
           </div>
         ) : null}
 
         {tab === 'day1' ? <Day1Preview tr={tr} /> : null}
+
+        {/* 04 · Biometric Sync — read-only Client Hub Check-In clone. The Save
+            CTA and the upsell note both route into the conversion portal. */}
+        {tab === 'sync' ? (
+          <div>
+            <GuestCheckInPreview onUnlock={() => setModalOpen(true)} />
+            <div className="xp-upsell-note">
+              <p>{tr.lockedSync}</p>
+              <button type="button" onClick={() => setModalOpen(true)} data-testid="explorer-sync-upsell">
+                {tr.unlock} →
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {/* 05 · Coach Audio — the ACTUAL "Breaking the Loop" media container
+            (CoachVoiceNote: pure static <audio>, no API/entitlement surface)
+            streaming the official EN/ES/PT masterclass voice-clone sessions.
+            The players localize with the app language automatically. */}
+        {tab === 'audio' ? (
+          <div data-testid="explorer-audio">
+            <div style={s.panelKicker}>{tr.audioKicker}</div>
+            <p style={s.body}>{tr.audioIntro}</p>
+            <div className="xp-audio-list">
+              <CoachVoiceNote module="primer" />
+              <CoachVoiceNote module="fuel" />
+              <CoachVoiceNote module="flush" />
+            </div>
+            <div className="xp-upsell-note">
+              <p>{tr.lockedAudio}</p>
+              <button type="button" onClick={() => setModalOpen(true)} data-testid="explorer-audio-upsell">
+                {tr.unlock} →
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {activeMeta.locked ? (
           <div style={s.lockedPanel} data-testid={`explorer-locked-${tab}`}>
@@ -353,7 +385,7 @@ const s = {
   tabIdx: { fontFamily: HEAD, fontSize: '.8rem', color: 'rgba(249,245,255,.4)', letterSpacing: '1px' },
   tabIdxActive: { color: GOLD },
   tabLabel: { fontFamily: HEAD, fontSize: '.92rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#f9f5ff' },
-  panel: { maxWidth: 720 },
+  panel: { maxWidth: 820 },
   panelKicker: { fontFamily: HEAD, fontSize: '.85rem', letterSpacing: '2.5px', textTransform: 'uppercase', color: GOLD, marginBottom: '.8rem' },
   body: { fontFamily: BODY, fontSize: '.95rem', color: 'rgba(249,245,255,.7)', lineHeight: 1.5 },
   goalRow: { display: 'flex', gap: '.45rem', marginBottom: '1rem' },
@@ -363,17 +395,6 @@ const s = {
     borderRadius: 999, padding: '.35rem .9rem', cursor: 'pointer',
   },
   goalChipOn: { color: '#fff', border: `1px solid ${PUR}`, background: 'rgba(106,13,173,.35)' },
-  wheelWrap: { display: 'flex', alignItems: 'center', gap: '1.4rem', flexWrap: 'wrap', margin: '.4rem 0 1rem' },
-  wheel: { width: 168, height: 168, borderRadius: '50%', display: 'grid', placeItems: 'center', boxShadow: '0 0 40px rgba(106,13,173,.35)' },
-  wheelHole: { width: 118, height: 118, borderRadius: '50%', background: '#0d0716', display: 'grid', placeItems: 'center', alignContent: 'center', textAlign: 'center' },
-  wheelKcal: { fontFamily: HEAD, fontSize: '1.7rem', color: '#fff', lineHeight: 1 },
-  wheelUnit: { fontFamily: BODY, fontSize: '.7rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(249,245,255,.5)' },
-  legend: { display: 'flex', flexDirection: 'column', gap: '.45rem' },
-  legendRow: { display: 'flex', alignItems: 'center', gap: '.5rem' },
-  legendDot: { width: 10, height: 10, borderRadius: '50%' },
-  legendLbl: { fontFamily: BODY, fontSize: '.85rem', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(249,245,255,.65)', width: 62 },
-  legendVal: { fontFamily: HEAD, fontSize: '1.1rem' },
-  legendFoot: { fontFamily: BODY, fontSize: '.7rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(249,245,255,.4)', alignSelf: 'flex-end' },
   dayHead: { display: 'flex', alignItems: 'baseline', gap: '.8rem', marginBottom: '.8rem' },
   dayName: { fontFamily: HEAD, fontSize: '1.5rem', letterSpacing: '1px', color: '#fff' },
   dayFocus: { fontFamily: BODY, fontSize: '.9rem', color: GOLD, letterSpacing: '1px', textTransform: 'uppercase' },

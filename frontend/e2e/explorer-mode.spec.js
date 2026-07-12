@@ -32,6 +32,12 @@ test('guest sandbox renders the macro wheel + Day-1 preview, fully interactive',
   await expect(page.getByTestId('explorer-mode-chip')).toBeVisible();
   await expect(page.getByTestId('explorer-macro-wheel')).toBeVisible();
 
+  // The Fuel pane is now the premium Nutrition Locker clone — plan banner +
+  // wheel + target legend + fasting pace card (16/8 default) all mount.
+  await expect(page.getByTestId('explorer-fuel-dashboard')).toBeVisible();
+  await expect(page.getByTestId('explorer-fasting-card')).toBeVisible();
+  await expect(page.getByTestId('explorer-pace-16-8')).toHaveAttribute('aria-checked', 'true');
+
   // Interactive re-targeting: the SAME vault math recomputes live. Maintain →
   // protein rides the 0.9 g/lb cut/maintain coefficient (162 g at 180 lb);
   // switching to Build (surplus) lifts it to the 1.0 g/lb coefficient (180 g).
@@ -72,6 +78,65 @@ test('deep layers are gated: locked tab → Break the Loop modal → /select-tie
   await page.getByTestId('break-the-loop-cta').click();
   await page.waitForURL('**/select-tier');
   await expect(page).toHaveURL(/\/select-tier$/);
+});
+
+test('Biometric Sync renders the read-only Client Hub Check-In preview', async ({ page }) => {
+  await seedEnvelope(page);
+  await page.goto('/explore');
+
+  await page.getByTestId('explorer-tab-sync').click();
+  const preview = page.getByTestId('explorer-sync-preview');
+  await expect(preview).toBeVisible();
+
+  // Fixed visual verdict: 89 · Prime Execution, ×1.00 volume.
+  await expect(page.getByTestId('explorer-sync-score')).toHaveText('89');
+  await expect(page.getByTestId('explorer-sync-mode')).toHaveText(/prime execution/i);
+
+  // Manual tracking sliders are present and purely local — dragging changes the
+  // readout, the fixed readiness verdict never moves (nothing computes).
+  const sleepQ = page.getByTestId('explorer-sync-sleep-q');
+  await expect(sleepQ).toBeVisible();
+  await sleepQ.fill('4');
+  await expect(page.getByTestId('explorer-sync-score')).toHaveText('89');
+
+  // The Save CTA is the conversion portal, not a write.
+  await page.getByTestId('explorer-sync-save').click();
+  await expect(page.getByTestId('break-the-loop-modal')).toBeVisible();
+});
+
+test('Coach Audio embeds the Breaking the Loop masterclass players (trilingual)', async ({ page }) => {
+  await seedEnvelope(page);
+  await page.goto('/explore');
+
+  await page.getByTestId('explorer-tab-audio').click();
+  await expect(page.getByTestId('explorer-audio')).toBeVisible();
+
+  // The ACTUAL CoachVoiceNote containers mount — one per masterclass essay —
+  // each carrying a locale-keyed static MP3 source (EN by default).
+  for (const module of ['primer', 'fuel', 'flush']) {
+    const player = page.getByTestId(`coach-voice-${module}`);
+    await expect(player).toBeVisible();
+    const src = await player.locator('audio').getAttribute('src');
+    expect(src).toBe(`/audio/coach-edu/${module}.en.mp3`);
+  }
+});
+
+test('/burn trilingual entrance localizes the calculator through LangContext', async ({ page }) => {
+  await page.goto('/burn');
+
+  // EN ground truth renders by default.
+  await expect(page.getByRole('heading', { name: 'What Does Your Body Burn?' })).toBeVisible();
+
+  // ES flips the full surface instantly (native translation maps, no reload).
+  await page.getByTestId('burn-lang-es').click();
+  await expect(page.getByRole('heading', { name: '¿Cuánto Quema Tu Cuerpo?' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /ver mis números/i })).toBeVisible();
+
+  // PT too — and the choice persists through the app-wide LangContext key.
+  await page.getByTestId('burn-lang-pt').click();
+  await expect(page.getByRole('heading', { name: 'Quanto Seu Corpo Queima?' })).toBeVisible();
+  const stored = await page.evaluate(() => localStorage.getItem('bbf_lang'));
+  expect(stored).toBe('pt');
 });
 
 test('calculator capture mints the guest token and surfaces the Explorer CTA', async ({ page }) => {

@@ -1,0 +1,389 @@
+/* src/components/explorer/explorerPreviews.css
+   ─────────────────────────────────────────────────────────────────────────────
+   EXPLORER MODE PREVIEW SURFACES — self-contained styling for the guest
+   sandbox's presentational clones of premium Vault features:
+
+     .xp-nl-*   → Fuel Targets pane, cloned from the Nutrition Locker
+                  (nutrition.css `.nl-*` + vault.css `.pg-fast-*` visual rules)
+     .xp-sch-*  → Biometric Sync pane, cloned from the Client Hub Check-In
+                  (sovereignHub.css `.sch-*` visual rules)
+
+   WHY A COPY: the live vault stylesheets are chunk-loaded by the authenticated
+   components (Nutrition.jsx / SovereignClientHub.jsx) and never reach /explore,
+   so the clones carry their own rules under an `xp-` prefix — zero collision,
+   zero coupling to the live bundles. Brand + mode tokens (--yel, --purd,
+   --panel-grad, [data-bbf-mode]) come from the GLOBAL index.css and stay
+   shared, so a brand retune propagates here automatically. LOCKED brand §2. */
+
+/* ── Fuel Targets · plan banner (clone of .nl-day-head) ─────────────────────── */
+.xp-nl-day-head {
+  background: linear-gradient(135deg, var(--purd) 0%, var(--purp) 72%);
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.xp-nl-day-head-cuisine {
+  font-family: var(--hb);
+  font-size: .68rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .7);
+}
+.xp-nl-day-head-cal {
+  font-family: var(--hb);
+  font-size: 2rem;
+  letter-spacing: 1px;
+  color: #fff;
+  line-height: 1.1;
+  margin: .15rem 0;
+}
+.xp-nl-day-head-goal { font-family: var(--bd); font-size: .88rem; color: rgba(255, 255, 255, .82); }
+
+/* ── Fuel Targets · card shell (clone of .pg-card) ──────────────────────────── */
+.xp-card {
+  position: relative;
+  background: var(--panel-grad, linear-gradient(168deg, rgba(26, 11, 46, .52) 0%, rgba(9, 6, 14, .94) 52%, rgba(5, 5, 5, .97) 100%));
+  border: 1px solid var(--panel-edge, rgba(106, 13, 173, .26));
+  border-radius: 16px;
+  padding: 1.15rem 1.25rem;
+}
+.xp-card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 18px;
+  width: 46px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--yel), transparent);
+  opacity: .75;
+}
+.xp-fuel-title {
+  font-family: var(--hb);
+  font-size: .75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin-bottom: .9rem;
+}
+
+/* ── Fuel Targets · macro wheel (clone of .nl-wheel) ────────────────────────── */
+.xp-nl-wheel { position: relative; width: 200px; height: 200px; margin: 0 auto; border-radius: 50%; }
+.xp-nl-wheel-ring { position: absolute; inset: 0; border-radius: 50%; }
+.xp-nl-wheel-hole {
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  background: #0b0710;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, .8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.xp-nl-wheel-kcal { font-family: var(--hb); font-size: 2.6rem; color: var(--wht); line-height: 1; }
+.xp-nl-wheel-sub { font-family: var(--bd); font-size: .72rem; font-weight: 700; color: var(--mut); }
+.xp-nl-wheel-pct { font-family: var(--hb); font-size: .8rem; letter-spacing: 1.5px; color: var(--yel); margin-top: .2rem; }
+
+/* ── Fuel Targets · macro legend (clone of .nl-legend) ──────────────────────── */
+.xp-nl-legend {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .5rem;
+  margin-top: 1rem;
+}
+@media (max-width: 380px) { .xp-nl-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.xp-nl-legend-box {
+  border-top: 2px solid var(--yel);
+  border-radius: 0 0 9px 9px;
+  background: #111016;
+  text-align: center;
+  padding: .55rem .3rem .6rem;
+}
+.xp-nl-legend-lbl { font-family: var(--bd); font-size: .6rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mut); }
+.xp-nl-legend-val { font-family: var(--hb); font-size: 1.25rem; color: var(--wht); line-height: 1.15; }
+.xp-nl-legend-tgt { font-family: var(--bd); font-size: .62rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
+
+/* ── Fuel Targets · macro volume-ratio bar (clone of .nl-ratio) ─────────────── */
+.xp-nl-ratio { margin-top: 1rem; }
+.xp-nl-ratio-track { display: flex; height: 12px; border-radius: 7px; overflow: hidden; background: #1a1424; }
+.xp-nl-ratio-seg { height: 100%; }
+.xp-nl-ratio-legend { display: flex; flex-wrap: wrap; gap: .3rem .9rem; margin-top: .45rem; }
+.xp-nl-ratio-key { display: inline-flex; align-items: center; gap: .35rem; font-family: var(--bd); font-size: .72rem; font-weight: 700; color: var(--mut); }
+.xp-nl-ratio-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ── Fuel Targets · fasting pace chips (clone of .nl-pace) ──────────────────── */
+.xp-nl-fast-head { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.xp-nl-fast-kicker { font-family: var(--hb); font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
+.xp-nl-fast-note { font-family: var(--bd); font-size: .68rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #555; }
+.xp-nl-pace { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: 1rem; }
+.xp-nl-pace-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 62px;
+  background: #0d0d0d;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: .45rem .55rem;
+  cursor: pointer;
+}
+.xp-nl-pace-chip.is-active { border-color: var(--yel); box-shadow: 0 0 0 1px var(--yel); }
+.xp-nl-pace-chip.is-active .xp-nl-pace-ratio { color: var(--yel); }
+.xp-nl-pace-chip.is-off.is-active { border-color: #3a3a3a; box-shadow: none; }
+.xp-nl-pace-chip.is-off.is-active .xp-nl-pace-ratio { color: var(--mut); }
+.xp-nl-pace-ratio { font-family: var(--hb); font-size: .98rem; letter-spacing: 1px; color: var(--wht); line-height: 1; }
+.xp-nl-pace-desc { font-family: var(--bd); font-size: .58rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
+
+/* ── Fuel Targets · eating-window timeline (clone of .pg-fast-*) ────────────── */
+.xp-fast-top { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: .9rem; }
+.xp-fast-title { font-family: var(--hb); font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
+.xp-fast-status { font-family: var(--hb); font-size: .78rem; letter-spacing: 1.5px; text-transform: uppercase; padding: .32rem .7rem; border-radius: 999px; white-space: nowrap; }
+.xp-fast-status.is-eating { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); }
+.xp-fast-status.is-fasting { color: var(--purl); background: rgba(139, 26, 191, .15); border: 1px solid rgba(139, 26, 191, .4); }
+.xp-fast-track {
+  position: relative;
+  height: 34px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #1c1c1c;
+  background: repeating-linear-gradient(90deg, #0c0c0c, #0c0c0c 1px, #101010 1px, #101010 12.5%);
+}
+.xp-fast-win {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(245, 200, 0, .34), rgba(245, 200, 0, .12));
+  border-left: 2px solid var(--yel);
+  border-right: 2px solid var(--yel);
+}
+.xp-fast-now { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--wht); box-shadow: 0 0 8px var(--wht); }
+.xp-fast-now::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wht);
+  box-shadow: 0 0 8px var(--wht);
+}
+.xp-fast-axis { display: flex; justify-content: space-between; margin-top: .4rem; font-family: var(--bd); font-size: .66rem; font-weight: 700; color: #555; }
+.xp-fast-clockrow { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; }
+.xp-fast-clock { display: flex; align-items: baseline; gap: .5rem; }
+.xp-fast-clock-time {
+  font-family: var(--hb);
+  font-size: clamp(1.7rem, 7vw, 2.4rem);
+  letter-spacing: 1px;
+  color: var(--yel);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 18px rgba(245, 200, 0, .28);
+}
+.xp-fast-clock-lbl { font-family: var(--bd); font-size: .72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--mut); }
+.xp-fast-offmsg { font-family: var(--bd); font-size: .88rem; color: var(--mut); line-height: 1.5; }
+
+/* ── Biometric Sync · Client Hub Check-In clone (.sch-* rules) ──────────────── */
+.xp-sch { display: grid; gap: 1rem; }
+.xp-sch-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
+.xp-sch-kicker { font-family: var(--hb); font-size: .72rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--mut); }
+.xp-sch-title { font-family: var(--display); font-size: 2rem; letter-spacing: 1px; line-height: 1.05; color: var(--wht); margin: .2rem 0 0; }
+.xp-sch-stamp {
+  font-family: var(--bd);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--yel);
+  border: 1px solid rgba(245, 200, 0, .5);
+  border-radius: 999px;
+  padding: .32rem .8rem;
+  white-space: nowrap;
+}
+.xp-sch-label { font-family: var(--hb); font-size: .7rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--mut); margin-bottom: .7rem; }
+.xp-sch-body { font-family: var(--bd); font-size: .9rem; color: rgba(249, 245, 255, .68); line-height: 1.5; margin: 0 0 .9rem; }
+
+.xp-sch-dossier { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 1rem; align-items: start; }
+@media (max-width: 760px) { .xp-sch-dossier { grid-template-columns: 1fr; } }
+.xp-sch-verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .9rem;
+  text-align: center;
+  padding: 1.4rem 1.25rem 1.5rem;
+  background:
+    radial-gradient(420px 300px at 50% -18%, var(--mode-glow, rgba(245, 200, 0, .14)), transparent 70%),
+    var(--panel-grad, linear-gradient(168deg, rgba(26, 11, 46, .52) 0%, rgba(9, 6, 14, .94) 52%, rgba(5, 5, 5, .97) 100%));
+  border-color: var(--mode-edge, rgba(245, 200, 0, .5));
+}
+.xp-sch-intel { display: grid; gap: 1rem; align-content: start; }
+
+/* Readiness dial (SVG arc ring) */
+.xp-sch-dial { position: relative; width: 198px; height: 198px; }
+.xp-sch-dial-svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.xp-sch-dial-track { fill: none; stroke: rgba(249, 245, 255, .08); stroke-width: 7; }
+.xp-sch-dial-fill {
+  fill: none;
+  stroke: var(--mode-flag, var(--yel));
+  stroke-width: 7;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 9px var(--mode-glow, rgba(245, 200, 0, .14)));
+  transition: stroke-dasharray .9s ease, stroke .9s ease;
+}
+.xp-sch-dial-core {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .1rem;
+}
+.xp-sch-score {
+  font-family: var(--display);
+  font-size: 3.7rem;
+  line-height: .9;
+  letter-spacing: 1px;
+  color: var(--wht);
+  text-shadow: 0 2px 26px var(--mode-glow, rgba(245, 200, 0, .14));
+}
+.xp-sch-dial-cap { font-family: var(--bd); font-size: .78rem; font-weight: 700; letter-spacing: 2px; color: var(--mut); }
+
+.xp-sch-mode {
+  font-family: var(--bd);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: .42rem 1rem;
+  border: 1px solid var(--line);
+  color: var(--mut);
+}
+.xp-sch-mode--prime { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); border-color: var(--yel); }
+.xp-sch-volume { display: flex; align-items: baseline; gap: .55rem; }
+.xp-sch-volume-k { font-family: var(--hb); font-size: .7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); }
+.xp-sch-volume-v { font-family: var(--display); font-size: 1.3rem; color: var(--wht); }
+
+/* Biometrics telemetry strip */
+.xp-sch-vitals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.xp-sch-vital { padding: .1rem .8rem; border-left: 1px solid var(--line); text-align: left; min-width: 0; }
+.xp-sch-vital:first-child { border-left: none; padding-left: 0; }
+.xp-sch-vital-k { font-family: var(--hb); font-size: .64rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); display: block; }
+.xp-sch-vital-v { font-family: var(--display); font-size: 1.35rem; color: var(--wht); line-height: 1.2; overflow-wrap: anywhere; }
+
+/* Directives: macro split bar + numbered log */
+.xp-sch-macro-bar { display: flex; height: 12px; border-radius: 7px; overflow: hidden; background: #1a1424; margin-bottom: .5rem; }
+.xp-sch-macro-seg { height: 100%; }
+.xp-sch-macro-legend { display: flex; flex-wrap: wrap; gap: .3rem .9rem; margin-bottom: .9rem; }
+.xp-sch-cardio { font-family: var(--bd); font-size: .88rem; color: rgba(249, 245, 255, .78); line-height: 1.5; margin: 0 0 .7rem; }
+.xp-sch-log { margin: 0; padding-left: 1.15rem; display: grid; gap: .35rem; }
+.xp-sch-log li { font-family: var(--bd); font-size: .84rem; color: var(--mut); line-height: 1.45; }
+
+/* Manual input form: fields, gold-thumb sliders, number inputs */
+.xp-sch-manual-title { font-family: var(--hb); font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); margin-bottom: .45rem; }
+.xp-sch-mi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem 1rem; }
+@media (max-width: 640px) { .xp-sch-mi-grid { grid-template-columns: 1fr; } }
+.xp-sch-mi-grid > .xp-sch-field:nth-child(odd):last-child { grid-column: 1 / -1; }
+.xp-sch-field { display: flex; flex-direction: column; min-width: 0; }
+.xp-sch-field-k {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  font-family: var(--hb);
+  font-size: .68rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-deep, #d4af37);
+}
+.xp-sch-field-val { font-family: var(--display); font-size: .95rem; letter-spacing: 1px; color: var(--yel); }
+.xp-sch-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--purd), var(--purl));
+  outline: none;
+  margin: .5rem 0 .15rem;
+  cursor: pointer;
+}
+.xp-sch-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: 2px solid #0c0a02;
+  cursor: pointer;
+  box-shadow: 0 2px 10px -2px rgba(245, 200, 0, .7);
+}
+.xp-sch-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--yel), var(--gold-soft));
+  border: 2px solid #0c0a02;
+  cursor: pointer;
+}
+.xp-sch-num {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: .45rem;
+  background: #0d0d0d;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--wht);
+  font-family: var(--bd);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: .55rem .7rem;
+  outline: none;
+}
+.xp-sch-save {
+  margin-top: 1rem;
+  width: 100%;
+  font-family: var(--hb);
+  font-size: .95rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #1B1106;
+  background: linear-gradient(180deg, var(--yel), var(--gold-deep, #d4af37));
+  border: none;
+  border-radius: 10px;
+  padding: .7rem 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(245, 200, 0, .28);
+}
+.xp-sch-mi-hint { font-family: var(--bd); font-size: .76rem; color: var(--mut); line-height: 1.5; margin: .7rem 0 0; }
+
+/* ── Coach Audio panel framing ──────────────────────────────────────────────── */
+.xp-audio-list { display: grid; gap: .8rem; margin: 1rem 0; }
+.xp-upsell-note {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+  border: 1px dashed rgba(106, 13, 173, .6);
+  border-radius: 12px;
+  padding: .8rem 1rem;
+  margin-top: 1.1rem;
+}
+.xp-upsell-note p { flex: 1 1 240px; font-family: var(--bd); font-size: .84rem; color: rgba(249, 245, 255, .7); line-height: 1.45; margin: 0; }
+.xp-upsell-note button {
+  font-family: var(--hb);
+  font-size: .82rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--yel);
+  background: rgba(245, 200, 0, .08);
+  border: 1px solid rgba(245, 200, 0, .45);
+  border-radius: 9px;
+  padding: .5rem .9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
