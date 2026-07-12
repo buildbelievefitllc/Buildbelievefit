@@ -94,6 +94,12 @@
   background: linear-gradient(135deg, var(--yel), var(--gold-soft)); color: #0c0a02;
   box-shadow: 0 4px 16px rgba(0, 0, 0, .5); font-size: 1.05rem; padding-left: 3px;
 }
+.spsy-thumb-dur {
+  position: absolute; right: 6px; bottom: 6px; z-index: 1;
+  font-family: var(--hb); font-size: .64rem; letter-spacing: .5px;
+  color: var(--wht); background: rgba(9, 9, 9, .82); border: 1px solid rgba(245, 200, 0, .35);
+  border-radius: 4px; padding: 1px 6px; line-height: 1.5;
+}
 .spsy-cardmeta { padding: .6rem .7rem .75rem; }
 .spsy-cardtitle {
   font-family: var(--bd); font-size: .86rem; font-weight: 700; line-height: 1.32; color: var(--wht);

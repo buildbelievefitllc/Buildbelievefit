@@ -191,6 +191,9 @@ export default function SovereignPsychologyDeck() {
                 <span className="spsy-thumb">
                   <img src={ytThumb(f.id)} alt="" loading="lazy" referrerPolicy="no-referrer" />
                   <span className="spsy-thumb-ov" aria-hidden="true"><span className="spsy-thumb-play">▶</span></span>
+                  {/* Duration is optional per-topic data (only Guided Meditation
+                      carries it today) — the badge simply omits itself when absent. */}
+                  {f.duration ? <span className="spsy-thumb-dur">{f.duration}</span> : null}
                 </span>
                 <span className="spsy-cardmeta">
                   <span className="spsy-cardtitle">{f.title}</span>
