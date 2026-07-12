@@ -12,12 +12,12 @@
 // the SAME lightweight thumbnail-grid + lightbox pattern as the Mind Lab
 // (SovereignPsychologyDeck), reusing its `.spsy-*` CSS classes and the shared
 // VideoLightbox for byte-identical visual treatment (matte panel, gold hairline,
-// duration badge). The source library is English-only (no ES/PT variant videos
-// exist yet), so video titles stay in English across every language toggle —
-// only the section chrome (kicker/CTA copy) localizes.
+// duration badge). Trilingual: EN/ES/PT each carry their OWN distinct 10-video
+// roster per bucket (native-language creators, not translated titles) — a bucket
+// missing the active language falls back to English.
 //
 // DATA · src/data/cognitiveFortitudeLibrary.json — keyed by bucket KEY (shared
-// with championMindsetData.js buckets) → [{ title, url, duration }].
+// with championMindsetData.js buckets) → language code → [{ title, url, duration }].
 
 import { useMemo, useState } from 'react';
 import LIBRARY from '../../data/cognitiveFortitudeLibrary.json';
@@ -34,7 +34,8 @@ function ytId(url) {
   const s = String(url || '');
   const m = s.match(/[?&]v=([A-Za-z0-9_-]{11})/)
     || s.match(/youtu\.be\/([A-Za-z0-9_-]{11})/)
-    || s.match(/\/embed\/([A-Za-z0-9_-]{11})/);
+    || s.match(/\/embed\/([A-Za-z0-9_-]{11})/)
+    || s.match(/\/shorts\/([A-Za-z0-9_-]{11})/);
   return m ? m[1] : '';
 }
 const ytThumb = (id) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
@@ -46,7 +47,8 @@ export default function CognitiveFortitudeLibrary({ bucketKey, lang }) {
   const [openVideo, setOpenVideo] = useState(null);
 
   const films = useMemo(() => {
-    const list = LIBRARY[bucketKey] || [];
+    const byLang = LIBRARY[bucketKey] || {};
+    const list = byLang[lang] || byLang.en || [];
     const seen = new Set();
     return list
       .map((f) => ({ ...f, id: ytId(f.url) }))
@@ -55,7 +57,7 @@ export default function CognitiveFortitudeLibrary({ bucketKey, lang }) {
         seen.add(f.id);
         return true;
       });
-  }, [bucketKey]);
+  }, [bucketKey, lang]);
 
   if (!films.length) return null;
 

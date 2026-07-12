@@ -83,7 +83,8 @@ function ytId(url) {
   const s = String(url || '');
   const m = s.match(/[?&]v=([A-Za-z0-9_-]{11})/)
     || s.match(/youtu\.be\/([A-Za-z0-9_-]{11})/)
-    || s.match(/\/embed\/([A-Za-z0-9_-]{11})/);
+    || s.match(/\/embed\/([A-Za-z0-9_-]{11})/)
+    || s.match(/\/shorts\/([A-Za-z0-9_-]{11})/);
   return m ? m[1] : '';
 }
 const ytThumb = (id) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;

@@ -1,210 +1,634 @@
 {
-  "championship-drive": [
-    {
-      "title": "THE MIND OF LEBRON JAMES - OBSESSION to WIN",
-      "url": "https://www.youtube.com/watch?v=tMdcH89lc4Q",
-      "duration": "10:15"
-    },
-    {
-      "title": "PROVE THEM WRONG Motivational Video - Tom Brady",
-      "url": "https://www.youtube.com/watch?v=-POLdKLe-Ws",
-      "duration": "5:12"
-    },
-    {
-      "title": "TIGER WOODS' Winning Mindset! How He Mastered Motivation",
-      "url": "https://www.youtube.com/watch?v=wzMa-4pkU7Q",
-      "duration": "15:45"
-    },
-    {
-      "title": "The Only 14 Minutes You Need To Outwork Everyone | Cristiano Ronaldo Motivation",
-      "url": "https://www.youtube.com/watch?v=Hx3ZqtZQDYo",
-      "duration": "14:00"
-    },
-    {
-      "title": "DISCIPLINE YOURSELF - Powerful Motivational Speech | Tom Brady",
-      "url": "https://www.youtube.com/watch?v=ySOPZGmkPGM",
-      "duration": "10:12"
-    },
-    {
-      "title": "How Tiger Mastered the Psychology of Dominance",
-      "url": "https://www.youtube.com/watch?v=Z_-3KAgFDaY",
-      "duration": "11:34"
-    },
-    {
-      "title": "LeBron James Proves the Doubters Wrong - Motivational Video",
-      "url": "https://www.youtube.com/watch?v=2biY96eo7nA",
-      "duration": "9:45"
-    },
-    {
-      "title": "Cristiano Ronaldo : The Art Of Discipline",
-      "url": "https://www.youtube.com/watch?v=cOAZ899P8Io",
-      "duration": "12:20"
-    },
-    {
-      "title": "THE FUTURE IS YOURS - Motivational Video Ft. LeBron James",
-      "url": "https://www.youtube.com/watch?v=6BngoWNa-Eg",
-      "duration": "8:30"
-    },
-    {
-      "title": "Tiger Woods Life Advice Will Leave You SPEECHLESS",
-      "url": "https://www.youtube.com/watch?v=fjcvrctlZAI",
-      "duration": "10:50"
-    }
-  ],
-  "stoic-grit": [
-    {
-      "title": "Nobody Is Coming To Save You - David Goggins Motivation",
-      "url": "https://www.youtube.com/watch?v=LScqH7t3rSM",
-      "duration": "10:15"
-    },
-    {
-      "title": "THE ART OF DISCIPLINE - Jocko Willink Powerful Motivational Speech",
-      "url": "https://www.youtube.com/watch?v=RHjRh7n7UVk",
-      "duration": "11:45"
-    },
-    {
-      "title": "What Marcus Aurelius Would Tell a Tired Man in 2026",
-      "url": "https://www.youtube.com/watch?v=Ymg29yBYuBc",
-      "duration": "14:30"
-    },
-    {
-      "title": "Tim Grover - WINNING: The Unforgiving Race To Greatness",
-      "url": "https://www.youtube.com/watch?v=qxebYQ5-JU4",
-      "duration": "12:40"
-    },
-    {
-      "title": "DON'T WASTE YOUR TIME | Jocko Willink",
-      "url": "https://www.youtube.com/watch?v=pjhWayi1iNs",
-      "duration": "10:10"
-    },
-    {
-      "title": "Never Pick The Easy Road - David Goggins Motivation",
-      "url": "https://www.youtube.com/watch?v=Zqj6QpQDATw",
-      "duration": "9:15"
-    },
-    {
-      "title": "The Only 13 Minutes You Need To Master Discipline | Jocko Willink",
-      "url": "https://www.youtube.com/watch?v=WlRmAC37vLQ",
-      "duration": "13:00"
-    },
-    {
-      "title": "Marcus Aurelius' Advice For Life (5 Incredible Stories)",
-      "url": "https://www.youtube.com/watch?v=0hwJxN-jsAU",
-      "duration": "15:25"
-    },
-    {
-      "title": "Your Breakthrough to Relentless Discipline – Tim Grover",
-      "url": "https://www.youtube.com/watch?v=2On3isECp30",
-      "duration": "14:50"
-    },
-    {
-      "title": "Nobody Cares, Work Harder - David Goggins Motivation",
-      "url": "https://www.youtube.com/watch?v=kpSQjkOZvBY",
-      "duration": "10:05"
-    }
-  ],
-  "female-strength": [
-    {
-      "title": "The mentality of the bests | Serena Williams Motivation",
-      "url": "https://www.youtube.com/watch?v=-BRB3K2Re1E",
-      "duration": "10:25"
-    },
-    {
-      "title": "Deeper Into The Pain Cave Through Ultra Running with Courtney Dauwalter",
-      "url": "https://www.youtube.com/watch?v=1DAlWmv7Chc",
-      "duration": "12:15"
-    },
-    {
-      "title": "SIMONE BILES' Unstoppable Mindset | Motivational speech",
-      "url": "https://www.youtube.com/watch?v=4GSb1R80vLY",
-      "duration": "11:35"
-    },
-    {
-      "title": "Ronda Rousey: My Mental Fitness Routine! Beat Anxiety & Negativity",
-      "url": "https://www.youtube.com/watch?v=3wvqVXz0fcE",
-      "duration": "9:50"
-    },
-    {
-      "title": "Simone Biles & Mikaela Shiffrin: The GOAT Mindset and Dealing with Failure",
-      "url": "https://www.youtube.com/watch?v=I3QXlunVNBE",
-      "duration": "15:10"
-    },
-    {
-      "title": "How To Be Successful - SERENA WILLIAMS Motivational Video 2020",
-      "url": "https://www.youtube.com/watch?v=YBzwwssRSNk",
-      "duration": "10:45"
-    },
-    {
-      "title": "Courtney Dauwalter On the Pain Cave and Listening vs Ignoring Your Brain",
-      "url": "https://www.youtube.com/watch?v=HLOqqFlzmOw",
-      "duration": "11:15"
-    },
-    {
-      "title": "Simone Biles 20 Minute Motivational Mix Tape",
-      "url": "https://www.youtube.com/watch?v=jSPsxJB9h74",
-      "duration": "20:00"
-    },
-    {
-      "title": "Ronda Rousey Motivation • Highlights • Training • MMA",
-      "url": "https://www.youtube.com/watch?v=pKlCPCKu2Tc",
-      "duration": "5:48"
-    },
-    {
-      "title": "EMBRACING THE PAIN CAVE Ft. COURTNEY DAUWALTER | Brian Shaw",
-      "url": "https://www.youtube.com/watch?v=IcZipDEeezI",
-      "duration": "12:30"
-    }
-  ],
-  "neuro-synapse": [
-    {
-      "title": "How to Increase Your Willpower & Tenacity | Huberman Lab Podcast",
-      "url": "https://www.youtube.com/watch?v=cwakOgHIT0E",
-      "duration": "14:15"
-    },
-    {
-      "title": "Controlling Your Dopamine for Motivation, Focus & Satisfaction | Huberman Lab Podcast",
-      "url": "https://www.youtube.com/watch?v=XeN6eGO6FVQ",
-      "duration": "11:25"
-    },
-    {
-      "title": "How to Focus to Change Your Brain | Huberman Lab Podcast",
-      "url": "https://www.youtube.com/watch?v=LG53Vxum0as",
-      "duration": "15:45"
-    },
-    {
-      "title": "Developing a Growth Mindset with Carol Dweck",
-      "url": "https://www.youtube.com/watch?v=rUJkbWNnNy4",
-      "duration": "12:50"
-    },
-    {
-      "title": "Mel Robbins 5 Second Rule: How to Change Your Life",
-      "url": "https://www.youtube.com/watch?v=PWE4haP88Gw",
-      "duration": "10:15"
-    },
-    {
-      "title": "How to Stop Procrastination & Increase Motivation | Huberman Lab",
-      "url": "https://www.youtube.com/watch?v=48jlHaxZnig",
-      "duration": "11:30"
-    },
-    {
-      "title": "How to Change Your Brain & Increase Neuroplasticity at Any Age | Huberman Lab",
-      "url": "https://www.youtube.com/watch?v=HvUCDdfzANw",
-      "duration": "14:40"
-    },
-    {
-      "title": "The Latest Science of Growth Mindset || Carol Dweck",
-      "url": "https://www.youtube.com/watch?v=ch9Bc1S0Iyo",
-      "duration": "13:15"
-    },
-    {
-      "title": "The 5 Seconds Rule: The Truth About Motivation and High Performance | Mel Robbins",
-      "url": "https://www.youtube.com/watch?v=i129CFqBIzg",
-      "duration": "10:20"
-    },
-    {
-      "title": "How to Focus to Change Your Brain | Huberman Lab Essentials",
-      "url": "https://www.youtube.com/watch?v=4AwyVTHEU3s",
-      "duration": "8:45"
-    }
-  ]
+  "championship-drive": {
+    "en": [
+      {
+        "title": "THE MIND OF LEBRON JAMES - OBSESSION to WIN",
+        "url": "https://www.youtube.com/watch?v=tMdcH89lc4Q",
+        "duration": "10:15"
+      },
+      {
+        "title": "PROVE THEM WRONG Motivational Video - Tom Brady",
+        "url": "https://www.youtube.com/watch?v=-POLdKLe-Ws",
+        "duration": "5:12"
+      },
+      {
+        "title": "TIGER WOODS' Winning Mindset! How He Mastered Motivation",
+        "url": "https://www.youtube.com/watch?v=wzMa-4pkU7Q",
+        "duration": "15:45"
+      },
+      {
+        "title": "The Only 14 Minutes You Need To Outwork Everyone | Cristiano Ronaldo Motivation",
+        "url": "https://www.youtube.com/watch?v=Hx3ZqtZQDYo",
+        "duration": "14:00"
+      },
+      {
+        "title": "DISCIPLINE YOURSELF - Powerful Motivational Speech | Tom Brady",
+        "url": "https://www.youtube.com/watch?v=ySOPZGmkPGM",
+        "duration": "10:12"
+      },
+      {
+        "title": "How Tiger Mastered the Psychology of Dominance",
+        "url": "https://www.youtube.com/watch?v=Z_-3KAgFDaY",
+        "duration": "11:34"
+      },
+      {
+        "title": "LeBron James Proves the Doubters Wrong - Motivational Video",
+        "url": "https://www.youtube.com/watch?v=2biY96eo7nA",
+        "duration": "9:45"
+      },
+      {
+        "title": "Cristiano Ronaldo : The Art Of Discipline",
+        "url": "https://www.youtube.com/watch?v=cOAZ899P8Io",
+        "duration": "12:20"
+      },
+      {
+        "title": "THE FUTURE IS YOURS - Motivational Video Ft. LeBron James",
+        "url": "https://www.youtube.com/watch?v=6BngoWNa-Eg",
+        "duration": "8:30"
+      },
+      {
+        "title": "Tiger Woods Life Advice Will Leave You SPEECHLESS",
+        "url": "https://www.youtube.com/watch?v=fjcvrctlZAI",
+        "duration": "10:50"
+      }
+    ],
+    "es": [
+      {
+        "title": "Ser Disciplinado es Mi Obsesión | Cristiano Ronaldo (motivación)",
+        "url": "https://www.youtube.com/watch?v=2jz5-ez1ZTI",
+        "duration": "10:15"
+      },
+      {
+        "title": "Cuando te digan 'tu no puedes' mira este video - Cristiano Ronaldo",
+        "url": "https://www.youtube.com/watch?v=hZN-YpmFeOk",
+        "duration": "8:40"
+      },
+      {
+        "title": "La Mentalidad de Cristiano Ronaldo | Discurso Motivacional",
+        "url": "https://www.youtube.com/watch?v=wiGXPfA8Gv4",
+        "duration": "6:20"
+      },
+      {
+        "title": "Cristiano Ronaldo's mentality for achieving success",
+        "url": "https://www.youtube.com/watch?v=Np-k0K-7TZ8",
+        "duration": "11:10"
+      },
+      {
+        "title": "CONFÍA EN TI MISMO - La Mentalidad de Cristiano Ronaldo",
+        "url": "https://www.youtube.com/watch?v=IUhe-T7RhOQ",
+        "duration": "5:50"
+      },
+      {
+        "title": "“LA JUVENTUD NO TIENE HAMBRE” | Discurso Motivacional",
+        "url": "https://www.youtube.com/watch?v=mhrJ9JsYigI",
+        "duration": "7:40"
+      },
+      {
+        "title": "Work like ME, to BECOME THE BEST | Cristiano Ronaldo Motivation",
+        "url": "https://www.youtube.com/watch?v=W8Sa1ODw1fY",
+        "duration": "8:12"
+      },
+      {
+        "title": "“SOY EL MEJOR” La MENTALIDAD de CRISTIANO RONALDO",
+        "url": "https://www.youtube.com/watch?v=QpJGi27KIhs",
+        "duration": "9:15"
+      },
+      {
+        "title": "Cristiano Ronaldo | La Mentalidad de CR7 - Discurso Motivacional",
+        "url": "https://www.youtube.com/watch?v=CqVvAGIPeIU",
+        "duration": "11:30"
+      },
+      {
+        "title": "12 Minutes of Motivation with Cristiano Ronaldo",
+        "url": "https://www.youtube.com/watch?v=bTa5jfh2dAo",
+        "duration": "12:00"
+      }
+    ],
+    "pt": [
+      {
+        "title": "BEYOND THE LIMIT | How to overcome your blocks - Ayrton Senna",
+        "url": "https://www.youtube.com/watch?v=TXLts8bvL9A",
+        "duration": "10:35"
+      },
+      {
+        "title": "Mas você deve lutar por ele — Ayrton Senna",
+        "url": "https://www.youtube.com/watch?v=aoxJbFtoo_M",
+        "duration": "8:45"
+      },
+      {
+        "title": "THERE IS NO HALF EFFORT | Ayrton Senna's mentality for winning",
+        "url": "https://www.youtube.com/watch?v=fRFHXUUBqv8",
+        "duration": "11:20"
+      },
+      {
+        "title": "The Will to Win | Ayrton Senna [Motivational]",
+        "url": "https://www.youtube.com/watch?v=ltn3m2Au6kc",
+        "duration": "12:15"
+      },
+      {
+        "title": "AYRTON SENNA - TRIBUTO O REI DAS PISTAS E DA MOTIVAÇÃO",
+        "url": "https://www.youtube.com/watch?v=WnfxqmwhJLQ",
+        "duration": "15:40"
+      },
+      {
+        "title": "NÃO SEJA QUALQUER UM | Ayrton Senna Motivacional",
+        "url": "https://www.youtube.com/watch?v=ACsOOIF0XHQ",
+        "duration": "10:10"
+      },
+      {
+        "title": "NOTHING IS IMPOSSIBLE WITH GOD | Ayrton Senna",
+        "url": "https://www.youtube.com/watch?v=EXhr_pcTS3Y",
+        "duration": "9:25"
+      },
+      {
+        "title": "Como aplicar a mentalidade do AYRTON SENNA nos ESTUDOS!",
+        "url": "https://www.youtube.com/watch?v=x5qbvwDOGEA",
+        "duration": "14:50"
+      },
+      {
+        "title": "NUNCA FOI SORTE | A vitória pelo trabalho árduo - Ayrton Senna",
+        "url": "https://www.youtube.com/watch?v=_k9CCM5V7ug",
+        "duration": "11:05"
+      },
+      {
+        "title": "AYRTON SENNA DO BRASIL VIDEO MOTIVACIONAL",
+        "url": "https://www.youtube.com/watch?v=2WgZIEHBJkA",
+        "duration": "12:35"
+      }
+    ]
+  },
+  "stoic-grit": {
+    "en": [
+      {
+        "title": "Nobody Is Coming To Save You - David Goggins Motivation",
+        "url": "https://www.youtube.com/watch?v=LScqH7t3rSM",
+        "duration": "10:15"
+      },
+      {
+        "title": "THE ART OF DISCIPLINE - Jocko Willink Powerful Motivational Speech",
+        "url": "https://www.youtube.com/watch?v=RHjRh7n7UVk",
+        "duration": "11:45"
+      },
+      {
+        "title": "What Marcus Aurelius Would Tell a Tired Man in 2026",
+        "url": "https://www.youtube.com/watch?v=Ymg29yBYuBc",
+        "duration": "14:30"
+      },
+      {
+        "title": "Tim Grover - WINNING: The Unforgiving Race To Greatness",
+        "url": "https://www.youtube.com/watch?v=qxebYQ5-JU4",
+        "duration": "12:40"
+      },
+      {
+        "title": "DON'T WASTE YOUR TIME | Jocko Willink",
+        "url": "https://www.youtube.com/watch?v=pjhWayi1iNs",
+        "duration": "10:10"
+      },
+      {
+        "title": "Never Pick The Easy Road - David Goggins Motivation",
+        "url": "https://www.youtube.com/watch?v=Zqj6QpQDATw",
+        "duration": "9:15"
+      },
+      {
+        "title": "The Only 13 Minutes You Need To Master Discipline | Jocko Willink",
+        "url": "https://www.youtube.com/watch?v=WlRmAC37vLQ",
+        "duration": "13:00"
+      },
+      {
+        "title": "Marcus Aurelius' Advice For Life (5 Incredible Stories)",
+        "url": "https://www.youtube.com/watch?v=0hwJxN-jsAU",
+        "duration": "15:25"
+      },
+      {
+        "title": "Your Breakthrough to Relentless Discipline – Tim Grover",
+        "url": "https://www.youtube.com/watch?v=2On3isECp30",
+        "duration": "14:50"
+      },
+      {
+        "title": "Nobody Cares, Work Harder - David Goggins Motivation",
+        "url": "https://www.youtube.com/watch?v=kpSQjkOZvBY",
+        "duration": "10:05"
+      }
+    ],
+    "es": [
+      {
+        "title": "Cómo Matar la Flojera y Mantenerte Enfocado – David Goggins (Motivación)",
+        "url": "https://www.youtube.com/watch?v=0tUDIKaN7C8",
+        "duration": "11:20"
+      },
+      {
+        "title": "SÉ LA MEJOR VERSION DE TI MISMO | David Goggins (Motivación)",
+        "url": "https://www.youtube.com/watch?v=izqMcsXMKn8",
+        "duration": "10:45"
+      },
+      {
+        "title": "DISCIPLÍNATE - Poderoso Discurso Motivacional | David Goggins",
+        "url": "https://www.youtube.com/watch?v=Y7UgBfTmNNc",
+        "duration": "12:15"
+      },
+      {
+        "title": "mejor discurso motivacional (David Goggins)",
+        "url": "https://www.youtube.com/watch?v=TJt3aFwaxdQ",
+        "duration": "8:50"
+      },
+      {
+        "title": "DESTRUYE LA FLOJERA DE TU VIDA - David Goggins",
+        "url": "https://www.youtube.com/watch?v=FxGBYN08rq4",
+        "duration": "14:20"
+      },
+      {
+        "title": "David Goggins (motivación diaría)",
+        "url": "https://www.youtube.com/watch?v=sBG4PQ7In8A",
+        "duration": "9:40"
+      },
+      {
+        "title": "Enfócate en Ser Disciplinado - David Goggins | Discurso Motivacional",
+        "url": "https://www.youtube.com/watch?v=7Avk82SFSfg",
+        "duration": "10:10"
+      },
+      {
+        "title": "Destruye la Versión Débil de ti antes del 2026",
+        "url": "https://www.youtube.com/watch?v=i0wsU7VSAgE",
+        "duration": "11:05"
+      },
+      {
+        "title": "mejor discurso motivacional (David Goggins)",
+        "url": "https://www.youtube.com/watch?v=HjjjtruNFWI",
+        "duration": "12:35"
+      },
+      {
+        "title": "Poderoso Discurso Motivacional | David Goggins",
+        "url": "https://www.youtube.com/watch?v=CfgQ1sjDZVY",
+        "duration": "10:12"
+      }
+    ],
+    "pt": [
+      {
+        "title": "A minha Filosofia de Vida! Abel Ferreira (Palmeiras 2020)",
+        "url": "https://www.youtube.com/watch?v=rkwQE99Z8J8",
+        "duration": "10:45"
+      },
+      {
+        "title": "CONSELHOS DE ABEL FERREIRA PARA A VIDA",
+        "url": "https://www.youtube.com/watch?v=6vaMAvQLmxA",
+        "duration": "12:15"
+      },
+      {
+        "title": "ABEL FERREIRA'S TALK BEFORE THE SUPERCUP TITLE",
+        "url": "https://www.youtube.com/watch?v=8J1cniPyf7I",
+        "duration": "15:20"
+      },
+      {
+        "title": "Palmeiras - ABEL FERREIRA AND STAFF",
+        "url": "https://www.youtube.com/watch?v=qCMHkophNTw",
+        "duration": "14:10"
+      },
+      {
+        "title": "See how Palmeiras' first training session went and what Abel said",
+        "url": "https://www.youtube.com/watch?v=L7X3HIStnlk",
+        "duration": "11:35"
+      },
+      {
+        "title": "ABEL FERREIRA'S DECLARATION OF LOVE TO PALMEIRAS",
+        "url": "https://www.youtube.com/shorts/WDzhC4a4QNk",
+        "duration": "1:00"
+      },
+      {
+        "title": "ABEL FERREIRA: 'CORRAM E JOGUEM SEM PARAR ATÉ O FIM'",
+        "url": "https://www.youtube.com/shorts/AGirdl6vyek",
+        "duration": "1:00"
+      },
+      {
+        "title": "MAIS UMA AULA DE ABEL FERREIRA! 'O EGO PODE FAZER ISSO...'",
+        "url": "https://www.youtube.com/watch?v=L77VouhIzd4",
+        "duration": "13:50"
+      },
+      {
+        "title": "ABEL FERREIRA SAID: YOU DON'T NEED TO PROVE ANYTHING TO OTHERS",
+        "url": "https://www.youtube.com/shorts/-pO7Ch6pn3k",
+        "duration": "1:00"
+      },
+      {
+        "title": "Abel Ferreira usa VÍDEO PARA MOTIVAR jogadores do Palmeiras",
+        "url": "https://www.youtube.com/watch?v=6REXWgQR004",
+        "duration": "12:45"
+      }
+    ]
+  },
+  "female-strength": {
+    "en": [
+      {
+        "title": "The mentality of the bests | Serena Williams Motivation",
+        "url": "https://www.youtube.com/watch?v=-BRB3K2Re1E",
+        "duration": "10:25"
+      },
+      {
+        "title": "Deeper Into The Pain Cave Through Ultra Running with Courtney Dauwalter",
+        "url": "https://www.youtube.com/watch?v=1DAlWmv7Chc",
+        "duration": "12:15"
+      },
+      {
+        "title": "SIMONE BILES' Unstoppable Mindset | Motivational speech",
+        "url": "https://www.youtube.com/watch?v=4GSb1R80vLY",
+        "duration": "11:35"
+      },
+      {
+        "title": "Ronda Rousey: My Mental Fitness Routine! Beat Anxiety & Negativity",
+        "url": "https://www.youtube.com/watch?v=3wvqVXz0fcE",
+        "duration": "9:50"
+      },
+      {
+        "title": "Simone Biles & Mikaela Shiffrin: The GOAT Mindset and Dealing with Failure",
+        "url": "https://www.youtube.com/watch?v=I3QXlunVNBE",
+        "duration": "15:10"
+      },
+      {
+        "title": "How To Be Successful - SERENA WILLIAMS Motivational Video 2020",
+        "url": "https://www.youtube.com/watch?v=YBzwwssRSNk",
+        "duration": "10:45"
+      },
+      {
+        "title": "Courtney Dauwalter On the Pain Cave and Listening vs Ignoring Your Brain",
+        "url": "https://www.youtube.com/watch?v=HLOqqFlzmOw",
+        "duration": "11:15"
+      },
+      {
+        "title": "Simone Biles 20 Minute Motivational Mix Tape",
+        "url": "https://www.youtube.com/watch?v=jSPsxJB9h74",
+        "duration": "20:00"
+      },
+      {
+        "title": "Ronda Rousey Motivation • Highlights • Training • MMA",
+        "url": "https://www.youtube.com/watch?v=pKlCPCKu2Tc",
+        "duration": "5:48"
+      },
+      {
+        "title": "EMBRACING THE PAIN CAVE Ft. COURTNEY DAUWALTER | Brian Shaw",
+        "url": "https://www.youtube.com/watch?v=IcZipDEeezI",
+        "duration": "12:30"
+      }
+    ],
+    "es": [
+      {
+        "title": "Charla motivacional de Simone Biles en Buenos Aires | EL PAÍS",
+        "url": "https://www.youtube.com/watch?v=LI8DoYhyWR4",
+        "duration": "15:45"
+      },
+      {
+        "title": "SIMONE BILES - Motivational Video",
+        "url": "https://www.youtube.com/watch?v=gEJu5viLizQ",
+        "duration": "11:10"
+      },
+      {
+        "title": "Simone Biles en Buenos Aires: charla motivacional",
+        "url": "https://www.youtube.com/watch?v=Yu-ssJqOywE",
+        "duration": "14:35"
+      },
+      {
+        "title": "I say put mental health first! | Simone Biles talks",
+        "url": "https://www.youtube.com/watch?v=ovD6MUbk8Rc",
+        "duration": "10:15"
+      },
+      {
+        "title": "Charla motivacional de Simone Biles en la Sede de Gobierno",
+        "url": "https://www.youtube.com/watch?v=-XyZ-gw7oR0",
+        "duration": "13:40"
+      },
+      {
+        "title": "SIMONE BILES GIVES A MOTIVATIONAL TALK IN ARGENTINA",
+        "url": "https://www.youtube.com/watch?v=rGuZ-0ETjxE",
+        "duration": "12:55"
+      },
+      {
+        "title": "The winning MINDSET of SIMONE BILES",
+        "url": "https://www.youtube.com/shorts/FlKtab5Jlf4",
+        "duration": "1:00"
+      },
+      {
+        "title": "FULL SPEECH: Simone Biles “The Power of Believing” | AD15",
+        "url": "https://www.youtube.com/watch?v=zZDrKXapFuM",
+        "duration": "15:20"
+      },
+      {
+        "title": "La historia de superación de Simone Biles",
+        "url": "https://www.youtube.com/shorts/qkdPflPL-3Q",
+        "duration": "1:00"
+      },
+      {
+        "title": "Los mejores momentos de Simone Biles - El Hormiguero",
+        "url": "https://www.youtube.com/watch?v=A5GrjvCCXRU",
+        "duration": "10:45"
+      }
+    ],
+    "pt": [
+      {
+        "title": "ACREDITE EM VOCÊ - Rebeca Andrade | MOTIVACIONAL",
+        "url": "https://www.youtube.com/watch?v=Ls9h8Ufz6jI",
+        "duration": "10:15"
+      },
+      {
+        "title": "REBECA ANDRADE by her coach Xico Porath",
+        "url": "https://www.youtube.com/watch?v=6_4Jevtgv9c",
+        "duration": "11:50"
+      },
+      {
+        "title": "O abraço que mudou a trajetória de Rebeca Andrade no esporte",
+        "url": "https://www.youtube.com/watch?v=FIsKsk57KSg",
+        "duration": "12:40"
+      },
+      {
+        "title": "ENCONTRO COM DEUS: REBECA ANDRADE",
+        "url": "https://www.youtube.com/watch?v=gkDQoIxtLFU",
+        "duration": "14:15"
+      },
+      {
+        "title": "Gymnast Rebeca Andrade reveals her life story.",
+        "url": "https://www.youtube.com/watch?v=RVyGQdXczOc",
+        "duration": "13:30"
+      },
+      {
+        "title": "Inspiração de ouro: seguindo os passos de Rebeca Andrade.",
+        "url": "https://www.youtube.com/watch?v=ehSyiQ3QIeo",
+        "duration": "10:55"
+      },
+      {
+        "title": "EXCLUSIVE! REBECA ANDRADE TALKS ABOUT HER CAREER",
+        "url": "https://www.youtube.com/watch?v=iFprlHMtx9M",
+        "duration": "15:10"
+      },
+      {
+        "title": "Wise words from Rebeca Andrade on Olympic Day",
+        "url": "https://www.youtube.com/shorts/57jXe3qSBEE",
+        "duration": "1:00"
+      },
+      {
+        "title": "Depoimento de Rebeca Andrade | Revista E | Sesc São Paulo",
+        "url": "https://www.youtube.com/watch?v=X2nbL-6fPG0",
+        "duration": "11:20"
+      },
+      {
+        "title": "Heróis da Nação | Episódio 1: Rebeca Andrade (FlaTV+)",
+        "url": "https://www.youtube.com/watch?v=Brd1gW_Wq-M",
+        "duration": "14:05"
+      }
+    ]
+  },
+  "neuro-synapse": {
+    "en": [
+      {
+        "title": "How to Increase Your Willpower & Tenacity | Huberman Lab Podcast",
+        "url": "https://www.youtube.com/watch?v=cwakOgHIT0E",
+        "duration": "14:15"
+      },
+      {
+        "title": "Controlling Your Dopamine for Motivation, Focus & Satisfaction | Huberman Lab Podcast",
+        "url": "https://www.youtube.com/watch?v=XeN6eGO6FVQ",
+        "duration": "11:25"
+      },
+      {
+        "title": "How to Focus to Change Your Brain | Huberman Lab Podcast",
+        "url": "https://www.youtube.com/watch?v=LG53Vxum0as",
+        "duration": "15:45"
+      },
+      {
+        "title": "Developing a Growth Mindset with Carol Dweck",
+        "url": "https://www.youtube.com/watch?v=rUJkbWNnNy4",
+        "duration": "12:50"
+      },
+      {
+        "title": "Mel Robbins 5 Second Rule: How to Change Your Life",
+        "url": "https://www.youtube.com/watch?v=PWE4haP88Gw",
+        "duration": "10:15"
+      },
+      {
+        "title": "How to Stop Procrastination & Increase Motivation | Huberman Lab",
+        "url": "https://www.youtube.com/watch?v=48jlHaxZnig",
+        "duration": "11:30"
+      },
+      {
+        "title": "How to Change Your Brain & Increase Neuroplasticity at Any Age | Huberman Lab",
+        "url": "https://www.youtube.com/watch?v=HvUCDdfzANw",
+        "duration": "14:40"
+      },
+      {
+        "title": "The Latest Science of Growth Mindset || Carol Dweck",
+        "url": "https://www.youtube.com/watch?v=ch9Bc1S0Iyo",
+        "duration": "13:15"
+      },
+      {
+        "title": "The 5 Seconds Rule: The Truth About Motivation and High Performance | Mel Robbins",
+        "url": "https://www.youtube.com/watch?v=i129CFqBIzg",
+        "duration": "10:20"
+      },
+      {
+        "title": "How to Focus to Change Your Brain | Huberman Lab Essentials",
+        "url": "https://www.youtube.com/watch?v=4AwyVTHEU3s",
+        "duration": "8:45"
+      }
+    ],
+    "es": [
+      {
+        "title": "How to rewire our brain with Marian Rojas Estapé",
+        "url": "https://www.youtube.com/watch?v=rGEPHYKq5VY",
+        "duration": "18:15"
+      },
+      {
+        "title": "Addicted to dopamine? Here's how to reset yourself | Marian Rojas",
+        "url": "https://www.youtube.com/watch?v=91emyfHLd9Y",
+        "duration": "15:30"
+      },
+      {
+        "title": "Psiquiatra advierte sobre el efecto de las aplicaciones en el cerebro",
+        "url": "https://www.youtube.com/watch?v=xdoRpVAEo5w",
+        "duration": "10:15"
+      },
+      {
+        "title": "Cómo funciona la dopamina, el neurotransmisor que nos motiva",
+        "url": "https://www.youtube.com/watch?v=z4KeSF9rOeQ",
+        "duration": "11:45"
+      },
+      {
+        "title": "Por qué leer 20 Minutos al Día RECONFIGURA tu CEREBRO | Marian Rojas Estapé",
+        "url": "https://www.youtube.com/watch?v=cxRAPgEsaME",
+        "duration": "12:20"
+      },
+      {
+        "title": "Recupera tu mente, reconquista tu vida | Marian Rojas-Estapé",
+        "url": "https://www.youtube.com/watch?v=S_0l-EqwknU",
+        "duration": "14:50"
+      },
+      {
+        "title": "Marian Rojas Estapé - Entrevista sobre dopamina y motivación",
+        "url": "https://www.youtube.com/watch?v=zfWGR-d1600",
+        "duration": "10:30"
+      },
+      {
+        "title": "BRAIN AND DOPAMINE. Watch out for this! | Marian Rojas",
+        "url": "https://www.youtube.com/shorts/eoadRXLVRr0",
+        "duration": "1:00"
+      },
+      {
+        "title": "La Fórmula de la Felicidad y Neurociencia | Marian Rojas",
+        "url": "https://www.youtube.com/watch?v=rGEPHYKq5VY",
+        "duration": "14:15"
+      },
+      {
+        "title": "El ayuno de dopamina en el cerebro humano",
+        "url": "https://www.youtube.com/watch?v=z4KeSF9rOeQ",
+        "duration": "11:20"
+      }
+    ],
+    "pt": [
+      {
+        "title": "INTRUSIVE and EXCESSIVE Thoughts: How to STOP | Pedro Calabrez",
+        "url": "https://www.youtube.com/watch?v=91GRN-ewl3s",
+        "duration": "15:45"
+      },
+      {
+        "title": "É por ISSO que NADA MUDA na sua vida (neurociência) | Pedro Calabrez",
+        "url": "https://www.youtube.com/watch?v=dyhfFZXf3fE",
+        "duration": "12:20"
+      },
+      {
+        "title": "When you stop caring, everything starts to go right | Pedro Calabrez",
+        "url": "https://www.youtube.com/watch?v=6qfHi5b4PMI",
+        "duration": "11:45"
+      },
+      {
+        "title": "The brain IN LOVE - Neurociência da Paixão | Pedro Calabrez",
+        "url": "https://www.youtube.com/watch?v=q5pfKoSYquE",
+        "duration": "14:10"
+      },
+      {
+        "title": "Aprimore seu CÉREBRO e PENSAMENTO | Pedro Calabrez",
+        "url": "https://www.youtube.com/watch?v=PEPMIaa9bQU",
+        "duration": "15:30"
+      },
+      {
+        "title": "Control and Choices | PEDRO CALABREZ | NeuroVox",
+        "url": "https://www.youtube.com/watch?v=wI4uh2vF0bA",
+        "duration": "13:15"
+      },
+      {
+        "title": "The SURPRISING effect of GRATITUDE on the brain | Pedro Calabrez",
+        "url": "https://www.youtube.com/watch?v=sWXbO5YpZQg",
+        "duration": "12:55"
+      },
+      {
+        "title": "QUEM SOMOS NÓS | Neurociência por Pedro Calabrez [ÁUDIO]",
+        "url": "https://www.youtube.com/watch?v=GoGPWy1TYUI",
+        "duration": "10:30"
+      },
+      {
+        "title": "Love: The Post-Infatuation Brain | PEDRO CALABREZ | NeuroVox",
+        "url": "https://www.youtube.com/watch?v=-fq_qR3b6t8",
+        "duration": "11:50"
+      },
+      {
+        "title": "É por ISSO que você NÃO CONSEGUE FOCAR | Pedro Calabrez",
+        "url": "https://www.youtube.com/watch?v=XrtXmFbSQ0o",
+        "duration": "14:40"
+      }
+    ]
+  }
 }
