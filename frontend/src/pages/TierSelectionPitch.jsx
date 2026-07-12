@@ -16,10 +16,23 @@
 // in location state and are forwarded UNTOUCHED to /pathfinder, alongside the
 // `checkout` object ({ priceId, tierName, price }) the Pathfinder needs to surface
 // its screening-gated Stripe handoff on submit.
+//
+// SCREENING COMPLETE (closes the /protocol-init seam): a visitor who just
+// finished the Explorer funnel's Protocol Initialization arrives here with
+// `location.state.screening = { complete, email, fullName }` — a Pathfinder
+// screening record already exists under that exact (normalized) email. Select
+// Plan then skips the intake entirely and mints the Stripe Checkout Session
+// directly via createCheckoutSession(email, priceId), the SAME gated call
+// PathfinderForm's own post-submit success card uses. No screening on file
+// (a direct /select-tier visit, or the legacy /burn → /select-tier path) →
+// unchanged behavior: Select Plan still carries the tier into /pathfinder
+// first.
 
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { PRICING } from '../lib/pricingMatrix.js';
+import { createCheckoutSession } from '../lib/checkoutApi.js';
+import { useLang } from '../context/LangContext.jsx';
 
 const GOLD = '#F5C800';
 const GOLD_LAB = '#D4AF37';
@@ -40,18 +53,43 @@ const TIERS = [
 ].filter((tx) => tx.priceId); // defensive: drop any that failed to resolve
 
 export default function TierSelectionPitch() {
+  const { t } = useLang();
   const navigate = useNavigate();
   const location = useLocation();
-  // Biometrics inherited from the /burn handoff (may be absent on a direct visit).
+  // Biometrics inherited from the /burn or /protocol-init handoff (may be
+  // absent on a direct visit).
   const prefill = location.state?.prefill || null;
+  // Screening Complete — a Pathfinder screening record already exists under
+  // this exact (normalized) email; see the file-header note above.
+  const screening = location.state?.screening || null;
+  const screeningComplete = Boolean(screening?.complete && screening?.email);
 
   // Default-active = the premium Vanguard tier (price anchor loads first).
   const [active, setActive] = useState(TIERS[0]?.priceId || '');
   const tier = TIERS.find((tx) => tx.priceId === active) || TIERS[0];
+  // Fast-track checkout in flight (Screening Complete path only).
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [checkoutErr, setCheckoutErr] = useState(null);
 
-  // Select Plan → carry the chosen tier (as the Pathfinder `checkout` object) +
-  // the inherited biometrics into the screening intake.
-  function selectPlan(tx) {
+  // Select Plan — two paths:
+  //  · Screening Complete: skip the intake entirely, mint the Stripe session
+  //    directly against the already-screened email, and redirect.
+  //  · Legacy (no screening on file): carry the chosen tier (as the Pathfinder
+  //    `checkout` object) + the inherited biometrics into the screening intake,
+  //    exactly as before.
+  async function selectPlan(tx) {
+    if (screeningComplete) {
+      setCheckoutErr(null);
+      setCheckingOut(true);
+      try {
+        const url = await createCheckoutSession(screening.email, tx.priceId);
+        window.location.href = url;
+      } catch (err) {
+        setCheckoutErr(err?.message || 'Could not open checkout. Please try again.');
+        setCheckingOut(false);
+      }
+      return;
+    }
     navigate('/pathfinder', {
       state: {
         prefill,
@@ -70,12 +108,15 @@ export default function TierSelectionPitch() {
         <Link to="/burn" style={st.back}>← Back to your numbers</Link>
 
         <div style={st.head}>
+          {screeningComplete ? (
+            <div style={st.screenedBadge} data-testid="tier-screening-complete">✓ {t('pf-checkout-title')}</div>
+          ) : null}
           <div style={st.kicker}>Choose Your Access</div>
           <h1 style={st.h1}>Pick the Engine That Fits</h1>
           <p style={st.sub}>
-            Every tier runs on the same Sovereign Gold Standard — the price reflects
-            depth of access. Choose your plan, then complete a 60-second readiness
-            screen before secure checkout.
+            {screeningComplete
+              ? t('pf-checkout-body')
+              : 'Every tier runs on the same Sovereign Gold Standard — the price reflects depth of access. Choose your plan, then complete a 60-second readiness screen before secure checkout.'}
           </p>
         </div>
 
@@ -120,12 +161,21 @@ export default function TierSelectionPitch() {
                 </ul>
                 <button
                   type="button"
-                  style={{ ...st.selectBtn, ...(tier.vanguard ? st.selectBtnGold : st.selectBtnPurple) }}
+                  style={{
+                    ...st.selectBtn,
+                    ...(tier.vanguard ? st.selectBtnGold : st.selectBtnPurple),
+                    ...(checkingOut ? st.selectBtnBusy : null),
+                  }}
                   onClick={() => selectPlan(tier)}
+                  disabled={checkingOut}
+                  data-testid="tier-select-plan"
                 >
-                  Select Plan →
+                  {screeningComplete ? (checkingOut ? t('pf-checkout-loading') : t('pf-checkout-cta')) : 'Select Plan →'}
                 </button>
-                <div style={st.cardNote}>Cancel anytime · readiness screening required before payment</div>
+                {checkoutErr ? <div style={st.checkoutErr} role="alert">{checkoutErr}</div> : null}
+                <div style={st.cardNote}>
+                  {screeningComplete ? t('pf-checkout-secured') : 'Cancel anytime · readiness screening required before payment'}
+                </div>
               </div>
             </div>
           </div>
@@ -140,6 +190,7 @@ const st = {
   shell: { width: '100%', maxWidth: 720 },
   back: { display: 'inline-block', fontFamily: BODY, fontSize: '.85rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,.55)', textDecoration: 'none', marginBottom: 'clamp(16px,3vw,26px)' },
   head: { textAlign: 'center', marginBottom: 24 },
+  screenedBadge: { display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: BODY, fontSize: '.74rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: GOLD, background: 'rgba(245,200,0,.08)', border: `1px solid rgba(245,200,0,.4)`, borderRadius: 999, padding: '.35rem .9rem', marginBottom: 10 },
   kicker: { fontFamily: BODY, fontSize: '.72rem', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: PURL },
   h1: { fontFamily: HEAD, fontSize: 'clamp(2rem,7vw,2.9rem)', letterSpacing: '1.5px', color: '#fff', margin: '.35rem 0 .55rem', lineHeight: 1 },
   sub: { fontFamily: BODY, fontSize: '.98rem', color: 'rgba(255,255,255,.62)', lineHeight: 1.5, margin: '0 auto', maxWidth: 480 },
@@ -171,5 +222,7 @@ const st = {
   selectBtn: { width: '100%', maxWidth: 340, fontFamily: HEAD, fontSize: '1.15rem', letterSpacing: '2px', textTransform: 'uppercase', borderRadius: 10, padding: '1rem 1.6rem', cursor: 'pointer' },
   selectBtnGold: { color: '#1B1106', background: `linear-gradient(180deg, ${GOLD} 0%, ${GOLD_LAB} 100%)`, border: 'none', boxShadow: `0 10px 28px rgba(245,200,0,.35)` },
   selectBtnPurple: { color: '#fff', background: `linear-gradient(180deg, ${PURL}, ${PUR})`, border: `1px solid rgba(157,39,201,.6)` },
+  selectBtnBusy: { opacity: .6, cursor: 'wait' },
   cardNote: { fontFamily: BODY, fontSize: '.78rem', fontWeight: 600, color: 'rgba(255,255,255,.45)', marginTop: 14, letterSpacing: '.3px' },
+  checkoutErr: { fontFamily: BODY, fontSize: '.85rem', fontWeight: 700, color: '#ef4444', marginTop: 12 },
 };

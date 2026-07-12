@@ -12,8 +12,10 @@
 // Screening BEFORE pricing: `onComplete` fires the moment the intake submits
 // successfully — no `checkout` prop is passed here (no tier is chosen yet), so
 // PathfinderForm skips its own success/checkout card entirely and this screen
-// takes over, forwarding the same biometrics onward and landing the visitor on
-// /select-tier to pick a plan now that sovereign execution is unlocked.
+// takes over, forwarding the biometrics AND a `screening` flag (the intake's
+// own normalized email/fullName) onward and landing the visitor on
+// /select-tier. TierSelectionPitch reads that flag to skip a duplicate
+// Pathfinder pass and fast-track straight to Stripe checkout.
 //
 // This is intentionally a SEPARATE route from /pathfinder — the existing
 // /select-tier → /pathfinder(+checkout) → Stripe bridge (TierSelectionPitch)
@@ -49,10 +51,13 @@ export default function ProtocolInitialization() {
   const location = useLocation();
   const prefill = location.state?.prefill || null;
 
-  // The intake just collected/confirmed these biometrics — forward them
-  // untouched to the pricing grid so /select-tier never re-asks.
-  function handleComplete() {
-    navigate('/select-tier', { state: { prefill } });
+  // The intake just collected/confirmed these biometrics AND persisted a
+  // screening record under `email` — forward both, untouched, so /select-tier
+  // never re-asks and a subsequent checkout can skip straight to Stripe.
+  function handleComplete({ email, fullName }) {
+    navigate('/select-tier', {
+      state: { prefill, screening: { complete: true, email, fullName } },
+    });
   }
 
   return (

@@ -149,12 +149,15 @@ function buildIntakeSportsProtocol(form) {
 }
 
 // `onComplete(payload)` — OPTIONAL. When provided, a successful submission
-// calls it with { form, nutrition } instead of rendering this component's own
-// success/checkout card, and the caller owns what happens next (e.g. the
-// Protocol Initialization screen forwards the biometrics via router state and
-// navigates to /select-tier). Omitted by every existing caller (PathfinderPage,
-// MarketingLanding) — their plain-application / gated-checkout success cards
-// are byte-for-byte unchanged.
+// calls it with { form, nutrition, email, fullName } — `email`/`fullName` are
+// the SAME normalized (trimmed/lowercased) strings just persisted by
+// submitLead, so a caller can hand them straight to createCheckoutSession
+// without risking a case/whitespace mismatch against the screening record —
+// instead of rendering this component's own success/checkout card; the caller
+// owns what happens next (e.g. the Protocol Initialization screen forwards
+// them via router state and navigates to /select-tier). Omitted by every
+// existing caller (PathfinderPage, MarketingLanding) — their plain-application
+// / gated-checkout success cards are byte-for-byte unchanged.
 export default function PathfinderForm({ checkout = null, prefill = null, onComplete = null }) {
   const { t, lang, setLang } = useLang();
   const { containerRef, obtainToken, error: tsError } = useTurnstile(TURNSTILE_SITE_KEY);
@@ -261,11 +264,16 @@ export default function PathfinderForm({ checkout = null, prefill = null, onComp
         || buildScaledMealPlan(form, nutrition.tdee_target);
       const sports_protocol = requiresClearance ? null : buildIntakeSportsProtocol(form);
       const height_weight = `${parseInt(form.heightFt, 10) || 0}'${parseInt(form.heightIn, 10) || 0}" / ${parseFloat(form.weight) || 0} lbs`;
+      // Normalized once — this EXACT string is what bbf-lead-capture persists as the
+      // screening record's identity, and what a subsequent gated checkout must match
+      // byte-for-byte. Reused below in both the submitLead payload and onComplete.
+      const email = form.email.trim().toLowerCase();
+      const fullName = form.fullName.trim();
       // Data contract preserved — all shield fields ride in the lead payload.
       await submitLead(
         {
-          full_name: form.fullName.trim(),
-          email: form.email.trim().toLowerCase(),
+          full_name: fullName,
+          email,
           phone: form.phone.trim() || undefined,
           primary_goal: form.goal,
           experience: form.experience || undefined,
@@ -304,7 +312,7 @@ export default function PathfinderForm({ checkout = null, prefill = null, onComp
         lang,
       );
       if (onComplete) {
-        onComplete({ form, nutrition });
+        onComplete({ form, nutrition, email, fullName });
         return;
       }
       setSubmitted(true);
