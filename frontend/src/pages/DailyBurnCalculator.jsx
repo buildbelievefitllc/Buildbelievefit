@@ -2,7 +2,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // The Metabolic Gateway — a standalone, jargon-free top-of-funnel lead magnet
 // mounted at /burn. NO main-site nav or footer (zero click-aways): the only exit
-// is forward, into the Pathfinder.
+// is forward, into the /explore mock lab.
 //
 // Math reuses the SAME native engine the Pathfinder + TDEE widget run on
 // (calcTDEE · Mifflin-St Jeor × activity factor) so the number a prospect sees
@@ -57,7 +57,6 @@ export default function DailyBurnCalculator() {
   const [act, setAct] = useState('1.55');
   const [burn, setBurn] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [explorerReady, setExplorerReady] = useState(false);
   const [error, setError] = useState(null);
 
   function calculate(e) {
@@ -173,19 +172,18 @@ export default function DailyBurnCalculator() {
         <MockProfileModal
           burn={burn}
           biometrics={biometrics}
-          explorerReady={explorerReady}
           onClose={() => setShowProfile(false)}
           onClaimProfile={enterMockLab}
           onCaptured={() => {
             // EXPLORER MODE gateway — guest token mints the moment the visitor
             // submits their details (no macros on this surface; the sandbox
-            // recomputes them live from the stored biometrics).
+            // recomputes them live from the stored biometrics). onClaimProfile
+            // re-checks hasExplorerSession(), so this just gets there first.
             startExplorerSession({
               source: 'daily_burn',
               profile: biometrics,
               targets: { tdee_maintenance: burn },
             });
-            setExplorerReady(true);
           }}
         />
       ) : null}
@@ -205,15 +203,13 @@ export default function DailyBurnCalculator() {
  * @param {object} props
  * @param {number} props.burn - computed maintenance TDEE (guaranteed finite by caller)
  * @param {object} props.biometrics - snake_case biometric snapshot for the lead payload
- * @param {boolean} props.explorerReady - guest token minted; show the badge exit
  * @param {() => void} props.onClose - dismiss the modal (state survives in parent)
- * @param {() => void} props.onClaimProfile - CTAs → mint-if-missing, then /explore
+ * @param {() => void} props.onClaimProfile - primary CTA → mint-if-missing, then /explore
  * @param {() => void} props.onCaptured - lead saved → mint the Explorer session
  */
 function MockProfileModal({
   burn,
   biometrics,
-  explorerReady,
   onClose,
   onClaimProfile,
   onCaptured,
@@ -272,7 +268,7 @@ function MockProfileModal({
 
           {/* Phase 21 — capture the micro-intent lead right here, at the moment
               they see a real number, instead of only at the (much bigger)
-              Pathfinder ask below. No macros computed on this surface (calcTDEE
+              mock-lab ask below. No macros computed on this surface (calcTDEE
               only), so those fields ride as null — the schema is nullable. */}
           <TdeeLeadCapture
             source="daily_burn"
@@ -285,19 +281,9 @@ function MockProfileModal({
             <div style={st.hookText}>
               Knowing your numbers is only step one. You need a blueprint to hit them.
             </div>
-            <button type="button" style={st.hookBtn} onClick={onClaimProfile}>
-              ENTER THE PATHFINDER →
+            <button type="button" style={st.hookBtn} onClick={onClaimProfile} data-testid="enter-explorer">
+              ENTER EXPLORER MODE →
             </button>
-            {explorerReady ? (
-              <button
-                type="button"
-                style={{ ...st.hookBtn, marginTop: 8 }}
-                onClick={onClaimProfile}
-                data-testid="enter-explorer"
-              >
-                ◇ ENTER EXPLORER MODE →
-              </button>
-            ) : null}
           </div>
         </div>
 
