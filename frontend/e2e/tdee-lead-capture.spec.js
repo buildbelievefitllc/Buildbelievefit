@@ -63,6 +63,6 @@ test('Daily Burn Calculator (/burn): capture form appears with the result', asyn
 
   await expect(page.getByText('Your Daily Calorie Burn')).toBeVisible();
   await expect(page.getByRole('form', { name: 'Save your results' })).toBeVisible();
-  // The forward exit into the Pathfinder is still intact alongside the capture.
-  await expect(page.getByRole('button', { name: /enter the pathfinder/i })).toBeVisible();
+  // The forward exit into the Explorer mock lab is still intact alongside the capture.
+  await expect(page.getByRole('button', { name: /enter explorer mode/i })).toBeVisible();
 });
