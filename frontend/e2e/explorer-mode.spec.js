@@ -1,7 +1,8 @@
 // e2e/explorer-mode.spec.js — Conversion Upgrade: the Explorer Mode guest funnel.
 // Drives the REAL app routes (not the harness): guest-token gating on /explore,
 // the interactive macro wheel + Day-1 preview, the gold 'Break the Loop' portal
-// modal → /select-tier redirect, and the calculator → token-mint gateway.
+// modal → /protocol-init (screening-first) → /select-tier, and the calculator
+// → token-mint gateway.
 
 import { test, expect } from '@playwright/test';
 
@@ -56,28 +57,44 @@ test('guest sandbox renders the macro wheel + Day-1 preview, fully interactive',
   await expect(firstEx).toHaveAttribute('aria-expanded', 'true');
 });
 
-test('deep layers are gated: locked tab → Break the Loop modal → /select-tier', async ({ page }) => {
+test('the 4-tab deck has no locked panels; the conversion portal is always one tap away', async ({ page }) => {
   await seedEnvelope(page);
   await page.goto('/explore');
 
-  await page.getByTestId('explorer-tab-chat').click();
-  await expect(page.getByTestId('explorer-locked-chat')).toBeVisible();
+  // Live Coach Chat is retired — exactly 4 tabs, all open previews.
+  await expect(page.getByTestId('explorer-tab-chat')).toHaveCount(0);
+  for (const id of ['fuel', 'day1', 'sync', 'audio']) {
+    await expect(page.getByTestId(`explorer-tab-${id}`)).toBeVisible();
+  }
+  await expect(page.getByTestId(/^explorer-locked-/)).toHaveCount(0);
 
-  await page.getByTestId('explorer-locked-unlock').click();
+  // The header 'Break the Loop' button opens the SAME portal modal from any tab.
   const modal = page.getByTestId('break-the-loop-modal');
+  await page.getByTestId('explorer-break-open').click();
   await expect(modal).toBeVisible();
-  await expect(modal).toContainText(/break the loop/i);
+  await expect(modal).toContainText(/unlock full protocol/i);
 
-  // Dismiss keeps exploring; reopen from the always-visible header CTA.
+  // Dismiss keeps exploring; reopen, then the Sync-panel upsell note opens it too.
   await page.getByTestId('break-the-loop-close').click();
   await expect(modal).toHaveCount(0);
-  await page.getByTestId('explorer-break-open').click();
-  await expect(page.getByTestId('break-the-loop-modal')).toBeVisible();
+  await page.getByTestId('explorer-tab-sync').click();
+  await page.getByTestId('explorer-sync-upsell').click();
+  await expect(modal).toBeVisible();
+});
 
-  // The gold CTA routes into the existing application funnel.
+test('Break the Loop routes into Protocol Initialization, biometrics forwarded', async ({ page }) => {
+  await seedEnvelope(page);
+  await page.goto('/explore');
+
+  await page.getByTestId('explorer-break-open').click();
   await page.getByTestId('break-the-loop-cta').click();
-  await page.waitForURL('**/select-tier');
-  await expect(page).toHaveURL(/\/select-tier$/);
+  await page.waitForURL('**/protocol-init');
+  await expect(page).toHaveURL(/\/protocol-init$/);
+
+  // The intake is the REAL Pathfinder form, pre-seeded from the guest envelope
+  // (profile.age: 30) — nothing the visitor already gave gets re-asked.
+  await expect(page.getByRole('heading', { name: /protocol/i })).toBeVisible();
+  await expect(page.locator('#pf-age')).toHaveValue('30');
 });
 
 test('Biometric Sync renders the read-only Client Hub Check-In preview', async ({ page }) => {

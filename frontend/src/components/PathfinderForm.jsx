@@ -148,7 +148,14 @@ function buildIntakeSportsProtocol(form) {
   }
 }
 
-export default function PathfinderForm({ checkout = null, prefill = null }) {
+// `onComplete(payload)` — OPTIONAL. When provided, a successful submission
+// calls it with { form, nutrition } instead of rendering this component's own
+// success/checkout card, and the caller owns what happens next (e.g. the
+// Protocol Initialization screen forwards the biometrics via router state and
+// navigates to /select-tier). Omitted by every existing caller (PathfinderPage,
+// MarketingLanding) — their plain-application / gated-checkout success cards
+// are byte-for-byte unchanged.
+export default function PathfinderForm({ checkout = null, prefill = null, onComplete = null }) {
   const { t, lang, setLang } = useLang();
   const { containerRef, obtainToken, error: tsError } = useTurnstile(TURNSTILE_SITE_KEY);
 
@@ -296,6 +303,10 @@ export default function PathfinderForm({ checkout = null, prefill = null }) {
         token,
         lang,
       );
+      if (onComplete) {
+        onComplete({ form, nutrition });
+        return;
+      }
       setSubmitted(true);
     } catch (err) {
       setError(err?.message || 'Submission failed. Please try again.');

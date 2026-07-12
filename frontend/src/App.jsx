@@ -42,6 +42,7 @@ const DailyBurnCalculator = lazy(() => import('./pages/DailyBurnCalculator.jsx')
 const TierSelectionPitch = lazy(() => import('./pages/TierSelectionPitch.jsx'));
 const ExplorerVault = lazy(() => import('./pages/ExplorerVault.jsx'));
 const PathfinderPage = lazy(() => import('./pages/PathfinderPage.jsx'));
+const ProtocolInitialization = lazy(() => import('./pages/ProtocolInitialization.jsx'));
 const ClientVault = lazy(() => import('./pages/ClientVault.jsx'));
 const CommandCenter = lazy(() => import('./pages/CommandCenter.jsx'));
 const YouthIntakeGate = lazy(() => import('./components/sportshub/YouthIntakeGate.jsx'));
@@ -168,6 +169,10 @@ export default function App() {
       {/* Standalone Pathfinder intake — pre-fills from the handoff state and, when
           a tier was chosen, carries the checkout object into the screening flow. */}
       <Route path="/pathfinder" element={<PathfinderPage />} />
+      {/* Protocol Initialization — the Explorer Mode funnel's screening-first
+          entry ritual. Embeds the SAME Pathfinder intake, but forwards to
+          /select-tier on completion instead of a tier-first checkout handoff. */}
+      <Route path="/protocol-init" element={<ProtocolInitialization />} />
       {/* The authenticated Vault now lives at its own guarded route (was at "/"). */}
       <Route path="/vault" element={<VaultRoute />} />
       {/* The Sports Hub — youth/sports division home; the post-login Routing Fork

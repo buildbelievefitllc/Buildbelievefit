@@ -16,16 +16,25 @@
 //                       (GuestFuelDashboard — zero Supabase).
 //   02 DAY 1 PROGRAM  — a static Day-1 programming preview from the authorized
 //                       catalog (programData.js), expandable per exercise.
-//   03 LIVE COACH CHAT — stays behind the premium lock overlay; any interaction
-//                       opens the gold 'Break the Loop' portal modal →
-//                       /select-tier → /pathfinder (the existing funnel).
-//   04 BIOMETRIC SYNC — a read-only clone of the Client Hub Check-In
+//   03 BIOMETRIC SYNC — a read-only clone of the Client Hub Check-In
 //                       (GuestCheckInPreview): manual tracking sliders + a
 //                       fixed Sovereign Readiness 89 · Prime Execution dial.
-//   05 COACH AUDIO    — the ACTUAL "Breaking the Loop" media container
+//   04 COACH AUDIO    — the ACTUAL "Breaking the Loop" media container
 //                       (CoachVoiceNote — a pure static <audio> transport, no
 //                       API/entitlement surface) streaming the official
 //                       EN/ES/PT masterclass voice-clone sessions.
+//
+// STREAMLINED DECK (v2): Live Coach Chat is retired from the guest nav — a
+// 4-tab rail reads cleaner on mobile and every remaining tab is already an
+// open preview (no locked panels left to render).
+//
+// THE CONVERSION PORTAL: every gated touchpoint — the header 'Break the Loop'
+// button, the Sync/Audio upsell notes, the Check-In preview's Save CTA — opens
+// the SAME gold portal modal. Its primary action now routes to /protocol-init
+// ('Protocol Initialization'), which embeds the REAL Pathfinder intake
+// (screening + liability shield, unchanged). Finishing that intake forwards
+// the collected biometrics through router state and lands the visitor on
+// /select-tier to pick a plan — screening-first, pricing-second.
 //
 // LOCKED §10 compliance: this is a numbered TAB DECK (one panel mounted at a
 // time), never a vertical stack. Brand: BBF Purple #6a0dad structure, Victory
@@ -46,71 +55,62 @@ const GOAL_ADJ = { cut: -500, maintain: 0, gain: 300 };
 
 const STR = {
   en: {
-    mode: 'Explorer Mode', sub: 'Your numbers, live inside the platform. Read-only sandbox — your full Vault unlocks after the application.',
+    mode: 'Explorer Mode', sub: 'Your numbers, live inside the platform. Read-only sandbox — full sovereign execution unlocks after Protocol Initialization.',
     break: 'Break the Loop', exit: 'Exit',
-    tabs: { fuel: 'Fuel Targets', day1: 'Day 1 Program', chat: 'Live Coach Chat', sync: 'Biometric Sync', audio: 'Coach Audio' },
+    tabs: { fuel: 'Fuel Targets', day1: 'Day 1 Program', sync: 'Biometric Sync', audio: 'Coach Audio' },
     goal: { cut: 'Cut', maintain: 'Maintain', gain: 'Build' },
     fuelKicker: 'Your Daily Fuel Contract', target: 'Target', maintenance: 'Maintenance',
     day1Kicker: 'Day 1 · What Training Actually Looks Like', restNote: 'Programmed recovery — growth happens here.',
     sets: 'sets', reps: 'reps',
-    lockedChat: 'Real-time accountability chat with Coach Akeem lives behind the application.',
     lockedSync: 'Wearable + Health Connect biometric syncing drives the adaptive engine — members only.',
     lockedAudio: 'Custom Akeem-narrated session audio is generated per athlete — members only.',
-    unlock: 'Unlock This Layer',
+    unlock: 'Unlock Full Protocol',
     audioKicker: 'Coach Audio · Breaking the Loop',
     audioIntro: 'Three masterclass sessions in Coach Akeem’s own cloned voice — the exact audio engine that narrates every stage of the member protocol. Streams in your language.',
-    modalKicker: 'You’ve Seen the Surface', modalTitle: 'Break the Loop',
-    modalBody: 'The wheel you just spun is the demo. The real engine adapts your macros, programming, and recovery to YOUR biometrics every single day. Finish your application and step inside.',
-    modalCta: 'Complete My Application', modalAlt: 'Go straight to the Pathfinder intake', modalClose: 'Keep exploring',
+    modalKicker: 'Surface Layer Complete', modalTitle: 'Unlock Full Protocol',
+    modalBody: 'The wheel you just spun is the demo. Full sovereign execution — macros, programming, and recovery engineered to YOUR biometrics every single day — starts with a 60-second Protocol Initialization.',
+    modalCta: 'Begin Protocol Initialization', modalClose: 'Keep exploring',
   },
   es: {
-    mode: 'Modo Explorador', sub: 'Tus números, vivos dentro de la plataforma. Sandbox de solo lectura — tu Vault completo se desbloquea tras la aplicación.',
+    mode: 'Modo Explorador', sub: 'Tus números, vivos dentro de la plataforma. Sandbox de solo lectura — la ejecución soberana completa se desbloquea tras la Inicialización de Protocolo.',
     break: 'Rompe el Ciclo', exit: 'Salir',
-    tabs: { fuel: 'Metas de Combustible', day1: 'Programa Día 1', chat: 'Chat en Vivo', sync: 'Sincronización Biométrica', audio: 'Audio del Coach' },
+    tabs: { fuel: 'Metas de Combustible', day1: 'Programa Día 1', sync: 'Sincronización Biométrica', audio: 'Audio del Coach' },
     goal: { cut: 'Definir', maintain: 'Mantener', gain: 'Construir' },
     fuelKicker: 'Tu Contrato Diario de Combustible', target: 'Objetivo', maintenance: 'Mantenimiento',
     day1Kicker: 'Día 1 · Cómo se ve el entrenamiento real', restNote: 'Recuperación programada — aquí ocurre el crecimiento.',
     sets: 'series', reps: 'reps',
-    lockedChat: 'El chat de responsabilidad en tiempo real con Coach Akeem vive detrás de la aplicación.',
     lockedSync: 'La sincronización biométrica de wearables impulsa el motor adaptativo — solo miembros.',
     lockedAudio: 'El audio de sesión narrado por Akeem se genera por atleta — solo miembros.',
-    unlock: 'Desbloquear Esta Capa',
+    unlock: 'Desbloquear Protocolo Completo',
     audioKicker: 'Audio del Coach · Rompiendo el Ciclo',
     audioIntro: 'Tres sesiones magistrales con la voz clonada del Coach Akeem — el mismo motor de audio que narra cada etapa del protocolo de miembros. Se reproduce en tu idioma.',
-    modalKicker: 'Ya Viste la Superficie', modalTitle: 'Rompe el Ciclo',
-    modalBody: 'La rueda que giraste es la demo. El motor real adapta tus macros, programación y recuperación a TUS biométricos cada día. Completa tu aplicación y entra.',
-    modalCta: 'Completar Mi Aplicación', modalAlt: 'Ir directo al intake Pathfinder', modalClose: 'Seguir explorando',
+    modalKicker: 'Capa de Superficie Completa', modalTitle: 'Desbloquea el Protocolo Completo',
+    modalBody: 'La rueda que giraste es la demo. La ejecución soberana completa — macros, programación y recuperación diseñados para TUS biométricos cada día — comienza con una Inicialización de Protocolo de 60 segundos.',
+    modalCta: 'Iniciar Protocolo', modalClose: 'Seguir explorando',
   },
   pt: {
-    mode: 'Modo Explorador', sub: 'Seus números, vivos dentro da plataforma. Sandbox somente leitura — seu Vault completo desbloqueia após a aplicação.',
+    mode: 'Modo Explorador', sub: 'Seus números, vivos dentro da plataforma. Sandbox somente leitura — a execução soberana completa desbloqueia após a Inicialização de Protocolo.',
     break: 'Quebre o Ciclo', exit: 'Sair',
-    tabs: { fuel: 'Metas de Combustível', day1: 'Programa Dia 1', chat: 'Chat ao Vivo', sync: 'Sincronização Biométrica', audio: 'Áudio do Coach' },
+    tabs: { fuel: 'Metas de Combustível', day1: 'Programa Dia 1', sync: 'Sincronização Biométrica', audio: 'Áudio do Coach' },
     goal: { cut: 'Definir', maintain: 'Manter', gain: 'Construir' },
     fuelKicker: 'Seu Contrato Diário de Combustível', target: 'Meta', maintenance: 'Manutenção',
     day1Kicker: 'Dia 1 · Como é o treino de verdade', restNote: 'Recuperação programada — o crescimento acontece aqui.',
     sets: 'séries', reps: 'reps',
-    lockedChat: 'O chat de responsabilidade em tempo real com o Coach Akeem vive atrás da aplicação.',
     lockedSync: 'A sincronização biométrica de wearables move o motor adaptativo — somente membros.',
     lockedAudio: 'O áudio de sessão narrado pelo Akeem é gerado por atleta — somente membros.',
-    unlock: 'Desbloquear Esta Camada',
+    unlock: 'Desbloquear Protocolo Completo',
     audioKicker: 'Áudio do Coach · Quebrando o Ciclo',
     audioIntro: 'Três sessões magistrais com a voz clonada do Coach Akeem — o mesmo motor de áudio que narra cada etapa do protocolo de membros. Toca no seu idioma.',
-    modalKicker: 'Você Viu a Superfície', modalTitle: 'Quebre o Ciclo',
-    modalBody: 'A roda que você girou é a demo. O motor real adapta seus macros, programação e recuperação aos SEUS biométricos todos os dias. Finalize sua aplicação e entre.',
-    modalCta: 'Completar Minha Aplicação', modalAlt: 'Ir direto ao intake Pathfinder', modalClose: 'Continuar explorando',
+    modalKicker: 'Camada de Superfície Completa', modalTitle: 'Desbloqueie o Protocolo Completo',
+    modalBody: 'A roda que você girou é a demo. A execução soberana completa — macros, programação e recuperação projetados para SEUS biométricos todos os dias — começa com uma Inicialização de Protocolo de 60 segundos.',
+    modalCta: 'Iniciar Protocolo', modalClose: 'Continuar explorando',
   },
 };
 
-// Only Live Coach Chat keeps the hard lock overlay (the operational module is
-// fully gated); Biometric Sync and Coach Audio now mount as open PREVIEW panels
-// — read-only visual clones / static media, still zero server surface.
-const DECK = [
-  { id: 'fuel', locked: false },
-  { id: 'day1', locked: false },
-  { id: 'chat', locked: true },
-  { id: 'sync', locked: false },
-  { id: 'audio', locked: false },
-];
+// Every remaining tab is an open PREVIEW panel — read-only visual clones or
+// static media, zero server surface, nothing left to hard-lock — so the deck
+// is just the ordered tab ids (the numbered index is derived from position).
+const DECK = ['fuel', 'day1', 'sync', 'audio'];
 
 // ── Day-1 preview — static authorized catalog, expandable rows, zero writes ──
 function Day1Preview({ tr }) {
@@ -157,6 +157,10 @@ function Day1Preview({ tr }) {
 }
 
 // ── The gold-accented conversion portal (UpgradeOverlay visual language) ─────
+// Single primary action: every gated touchpoint funnels here, and the CTA
+// routes to /protocol-init (the Pathfinder intake, reframed as the guest's
+// entry ritual) — screening first, pricing second. Router state carries the
+// biometrics forward so the intake never re-asks what /burn already captured.
 function BreakTheLoopModal({ tr, prefill, onClose }) {
   const navigate = useNavigate();
   return (
@@ -170,12 +174,9 @@ function BreakTheLoopModal({ tr, prefill, onClose }) {
           type="button"
           style={s.modalCta}
           data-testid="break-the-loop-cta"
-          onClick={() => navigate('/select-tier', { state: { prefill } })}
+          onClick={() => navigate('/protocol-init', { state: { prefill } })}
         >
           {tr.modalCta} →
-        </button>
-        <button type="button" style={s.modalAlt} onClick={() => navigate('/pathfinder', { state: { prefill } })}>
-          {tr.modalAlt}
         </button>
         <button type="button" style={s.modalClose} onClick={onClose} data-testid="break-the-loop-close">
           {tr.modalClose}
@@ -225,11 +226,6 @@ export default function ExplorerVault() {
     heightIn: profile.height_in != null ? String(profile.height_in) : '',
   };
 
-  const activeMeta = DECK.find((d) => d.id === tab) || DECK[0];
-  // Only chat still renders the hard lock overlay; sync/audio upsell copy now
-  // rides inline beneath their open preview panels.
-  const lockedCopy = { chat: tr.lockedChat };
-
   return (
     <div style={s.shell} data-bbf-mode="explorer" data-testid="explorer-vault">
       <header style={s.head}>
@@ -251,20 +247,21 @@ export default function ExplorerVault() {
         </div>
       </header>
 
-      {/* LOCKED §10 — numbered tab deck, one mounted panel, no vertical stack. */}
+      {/* LOCKED §10 — numbered tab deck, one mounted panel, no vertical stack.
+          4 ultra-clean tabs (Live Coach Chat retired) — reads cleaner on mobile. */}
       <div style={s.tabbar} role="tablist" aria-label={tr.mode}>
-        {DECK.map((d, i) => (
+        {DECK.map((id, i) => (
           <button
-            key={d.id}
+            key={id}
             type="button"
             role="tab"
-            aria-selected={tab === d.id}
-            style={{ ...s.tab, ...(tab === d.id ? s.tabActive : null) }}
-            onClick={() => setTab(d.id)}
-            data-testid={`explorer-tab-${d.id}`}
+            aria-selected={tab === id}
+            style={{ ...s.tab, ...(tab === id ? s.tabActive : null) }}
+            onClick={() => setTab(id)}
+            data-testid={`explorer-tab-${id}`}
           >
-            <span style={{ ...s.tabIdx, ...(tab === d.id ? s.tabIdxActive : null) }}>{String(i + 1).padStart(2, '0')}</span>
-            <span style={s.tabLabel}>{tr.tabs[d.id]}{d.locked ? ' 🔒' : ''}</span>
+            <span style={{ ...s.tabIdx, ...(tab === id ? s.tabIdxActive : null) }}>{String(i + 1).padStart(2, '0')}</span>
+            <span style={s.tabLabel}>{tr.tabs[id]}</span>
           </button>
         ))}
       </div>
@@ -335,16 +332,6 @@ export default function ExplorerVault() {
             </div>
           </div>
         ) : null}
-
-        {activeMeta.locked ? (
-          <div style={s.lockedPanel} data-testid={`explorer-locked-${tab}`}>
-            <span style={s.lockedIcon} aria-hidden="true">🔒</span>
-            <p style={s.lockedCopy}>{lockedCopy[tab]}</p>
-            <button type="button" style={s.lockedCta} onClick={() => setModalOpen(true)} data-testid="explorer-locked-unlock">
-              {tr.unlock} →
-            </button>
-          </div>
-        ) : null}
       </main>
 
       {modalOpen ? <BreakTheLoopModal tr={tr} prefill={prefill} onClose={() => setModalOpen(false)} /> : null}
@@ -407,18 +394,6 @@ const s = {
   exDetail: { padding: '0 .9rem .8rem' },
   exEquip: { fontFamily: BODY, fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'rgba(249,245,255,.5)' },
   exNotes: { fontFamily: BODY, fontSize: '.9rem', color: 'rgba(249,245,255,.75)', lineHeight: 1.5, margin: '.35rem 0 0' },
-  lockedPanel: {
-    border: '1px dashed rgba(106,13,173,.6)', borderRadius: 14, padding: '2.2rem 1.4rem',
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '.8rem', textAlign: 'center',
-    background: 'radial-gradient(ellipse at top, rgba(106,13,173,.18), transparent 70%)',
-  },
-  lockedIcon: { fontSize: '1.8rem', filter: 'drop-shadow(0 0 12px rgba(245,200,0,.35))' },
-  lockedCopy: { fontFamily: BODY, fontSize: '.98rem', color: 'rgba(249,245,255,.75)', maxWidth: 420, margin: 0, lineHeight: 1.5 },
-  lockedCta: {
-    fontFamily: HEAD, fontSize: '.95rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#1B1106',
-    background: GOLD, border: 'none', borderRadius: 10, padding: '.6rem 1.3rem', cursor: 'pointer',
-    boxShadow: '0 10px 30px rgba(245,200,0,.28)',
-  },
   modalScrim: {
     position: 'fixed', inset: 0, zIndex: 100, display: 'grid', placeItems: 'center',
     background: 'radial-gradient(ellipse at center, rgba(106,13,173,.22), rgba(9,9,9,.94) 70%)', padding: '1rem',
@@ -437,10 +412,6 @@ const s = {
     width: '100%', fontFamily: HEAD, fontSize: '1.1rem', letterSpacing: '2px', textTransform: 'uppercase',
     color: '#1B1106', background: GOLD, border: 'none', borderRadius: 10, padding: '.75rem 1rem',
     cursor: 'pointer', boxShadow: '0 10px 30px rgba(245,200,0,.28)', marginTop: '.4rem',
-  },
-  modalAlt: {
-    background: 'transparent', border: 'none', color: 'rgba(249,245,255,.65)', fontFamily: BODY,
-    fontSize: '.85rem', textDecoration: 'underline', cursor: 'pointer',
   },
   modalClose: {
     background: 'transparent', border: 'none', color: 'rgba(249,245,255,.4)', fontFamily: BODY,
