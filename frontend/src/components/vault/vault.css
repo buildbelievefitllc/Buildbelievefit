@@ -1062,6 +1062,26 @@
 .vh-line-u { font-family: var(--bd); font-size: .68rem; font-weight: 700; color: var(--gold-deep); text-transform: uppercase; letter-spacing: 1px; }
 
 .vh-subhead { font-family: var(--hb); font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mut); margin: .2rem 0 .85rem; }
+
+/* PREMIUM — System Masterclass Overview card (dashboard feature grid). Brand
+   purple→gold hairline envelope over matte black; hosts the GuideLauncher pair. */
+.vh-masterclass {
+  display: flex; flex-direction: column; gap: .8rem;
+  padding: 1rem 1.05rem; margin: .2rem 0 1rem; border-radius: 14px;
+  background: linear-gradient(180deg, rgba(106, 13, 173, .28), rgba(9, 9, 9, .35));
+  border: 1px solid rgba(245, 200, 0, .45);
+  box-shadow: 0 0 18px rgba(106, 13, 173, .25);
+}
+.vh-mc-copy { display: flex; flex-direction: column; gap: .18rem; }
+.vh-mc-kicker {
+  font-family: var(--hb); font-size: .64rem; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--yel, #f5c800);
+}
+.vh-mc-title {
+  font-family: var(--display, 'Bebas Neue'), sans-serif; font-size: 1.15rem; line-height: 1.05;
+  letter-spacing: .5px; color: var(--wht, #f9f5ff); margin: 0;
+}
+.vh-mc-sub { font-family: var(--bd, 'Barlow Condensed'), sans-serif; font-size: .84rem; color: rgba(249, 245, 255, .72); margin: 0; }
 .pg-heatmap { display: flex; flex-wrap: wrap; gap: 5px; }
 .pg-heat-cell { width: 16px; height: 16px; border-radius: 3px; background: #0d0a14; border: 1px solid var(--line); }
 .pg-heat-cell.is-on { background: var(--yel); border-color: var(--yel); }

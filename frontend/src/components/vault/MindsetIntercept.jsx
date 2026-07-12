@@ -25,6 +25,7 @@ import { useMemo, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
 import ChampionFilmCard from './ChampionFilmCard.jsx';
+import { GuideLauncher } from '../BbfMediaPortal.jsx';
 import { L10N, readLocked, writeLocked } from './championMindsetData.js';
 import './mindsetIntercept.css';
 
@@ -156,6 +157,10 @@ export default function MindsetIntercept() {
           onCollapse={() => setOpen(false)}
           onLockIn={() => { writeLocked(champion.id); setLockedToday(champion.id); }}
         />
+        {/* Behavioral Reset — the elite-voice "Break the Cycle" walkthrough, surfaced
+            exactly where the pattern-break intervention lives (this whole block only
+            mounts when readiness is below optimal). Sits above the score-entry card. */}
+        <GuideLauncher module="behavioral_reset" testId="behavioral-reset-guide" />
       </div>
     </div>
   );

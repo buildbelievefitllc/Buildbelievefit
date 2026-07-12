@@ -45,6 +45,14 @@ function fmtStat(v) {
   return v !== null && v !== undefined && v !== '' ? Number(v).toLocaleString() : '—';
 }
 
+// Premium masterclass card copy — localized inline (same lightweight pattern the
+// other vault cards use) so the trilingual mission holds without new dict keys.
+const MC_COPY = {
+  en: { kicker: 'Premium', title: 'System Masterclass Overview', sub: 'The full product tour — every surface, one walkthrough.' },
+  es: { kicker: 'Premium', title: 'Clase Magistral del Sistema', sub: 'El tour completo del producto — cada sección, un solo recorrido.' },
+  pt: { kicker: 'Premium', title: 'Masterclass do Sistema', sub: 'O tour completo do produto — cada tela, um único passo a passo.' },
+};
+
 export default function VaultHub({ profile, isLoading, error, onSequence }) {
   const { t, lang } = useLang();
   // Biokinetic Forecast — collapsible drawer on the LANDING Client Hub (the tab the
@@ -90,6 +98,22 @@ export default function VaultHub({ profile, isLoading, error, onSequence }) {
 
       {/* TOP OF FOLD — the coach's Monday voice memo. */}
       <WeeklyBriefCard brief={brief} loading={briefLoading} error={briefError} />
+
+      {/* PREMIUM — System Masterclass Overview: the full product-tour walkthrough
+          (elite-voice master), a premium card on the dashboard feature grid. */}
+      {(() => {
+        const mc = MC_COPY[lang] || MC_COPY.en;
+        return (
+          <div className="vh-masterclass" data-testid="masterclass-overview-card">
+            <div className="vh-mc-copy">
+              <span className="vh-mc-kicker">{mc.kicker}</span>
+              <h3 className="vh-mc-title">{mc.title}</h3>
+              <p className="vh-mc-sub">{mc.sub}</p>
+            </div>
+            <GuideLauncher module="masterclass_overview" testId="masterclass-guide" />
+          </div>
+        );
+      })()}
 
       <div className={`vh-fc${fcOpen ? ' is-open' : ''}`}>
         <button
