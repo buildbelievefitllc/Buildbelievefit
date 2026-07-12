@@ -3,17 +3,21 @@
 // SOVEREIGN PSYCHOLOGY DECK — the evidence-based sport-psychology film library for
 // the adult Vault's Champion's Mindset tab. Sister surface to the curated champion
 // cinema (ChampionMindset): where the cinema is motivational icon film, this is the
-// SCIENCE — self-determination, flow state, and mental-resilience education that
-// keeps an athlete adherent when motivation fades.
+// SCIENCE — self-determination, flow state, mental-resilience, and (as of the 4th
+// topic below) guided-meditation CNS-restoration education that keeps an athlete
+// adherent when motivation fades.
 //
 // DATA · src/data/championsPsychology.json — keyed topic → language → [{title,url}]
-//   (90 verified, distinct trilingual videos · 10 per language per topic). Topic
-//   KEYS are the stable English source strings; their LABELS localize in-component.
+//   (135 verified, distinct trilingual videos: 10/language across the first three
+//   topics, 15/language for Guided Meditation & CNS Restoration). Topic KEYS are
+//   the stable English source strings; their LABELS localize in-component.
 //
-// UI · the LOCKED modular tab-deck (CLAUDE.md §10): a numbered 01/02/03 tab bar over
-//   a SINGLE active panel — only the active topic's grid mounts (kills scroll weight).
-//   Trilingual: the active LanguageContext drives both the topic labels and the video
-//   list. A card's thumbnail opens an embedded YouTube lightbox (deep-link fallback).
+// UI · the LOCKED modular tab-deck (CLAUDE.md §10): a numbered 01/02/03/04 tab bar
+//   over a SINGLE active panel — only the active topic's grid mounts (kills scroll
+//   weight); the bar flex-wraps on narrow viewports so a 4th tab never overflows
+//   the container edge. Trilingual: the active LanguageContext drives both the
+//   topic labels and the video list. A card's thumbnail opens an embedded YouTube
+//   lightbox (deep-link fallback).
 
 import { useMemo, useState, useEffect } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
@@ -38,6 +42,11 @@ const TOPICS = [
     key: 'Overcoming Subconscious Resistance & Mental Fatigue',
     label: { en: 'Mental Resilience', es: 'Resiliencia Mental', pt: 'Resiliência Mental' },
     tag: { en: 'Anti-Fatigue', es: 'Anti-Fatiga', pt: 'Antifadiga' },
+  },
+  {
+    key: 'Guided Meditation & CNS Restoration',
+    label: { en: 'Guided Meditation', es: 'Meditación Guiada', pt: 'Meditação Guiada' },
+    tag: { en: 'CNS Restoration', es: 'Restauración del SNC', pt: 'Restauração do SNC' },
   },
 ];
 
