@@ -13,17 +13,20 @@
 // The Reveal: results no longer print inline under the form. A valid calculation
 // flips `showProfile` and the numbers land inside <MockProfileModal> — a
 // full-screen "your profile is ready" overlay that blocks out the page and
-// carries the lead capture + the only forward exits (Pathfinder / Explorer).
+// carries the lead capture + the only forward exit (the /explore mock lab).
 //
-// The Handoff: "ENTER THE PATHFINDER" routes to /select-tier via React Router
-// and passes { age, sex, weight, heightFt, heightIn } in location state, which
-// the tier bridge forwards to the Pathfinder to pre-fill biometrics.
+// The Handoff: the modal's primary CTA routes to /explore — the read-only mock
+// lab dashboard (ExplorerVault) — carrying the visitor's numbers in the
+// bbf.explorer.token.v1 guest envelope. /explore bounces token-less visitors
+// back to /burn, so the handoff mints the envelope first if the lead capture
+// hasn't already done it. The pricing wall (/select-tier) is reached later,
+// from inside the Explorer's own upgrade portals.
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calcTDEE } from '../components/vault/nutritionEngine.js';
 import TdeeLeadCapture from '../components/TdeeLeadCapture.jsx';
-import { startExplorerSession } from '../lib/explorerSession.js';
+import { startExplorerSession, hasExplorerSession } from '../lib/explorerSession.js';
 
 const GOLD = '#F5C800';
 const GOLD_SOFT = '#F5CF60';
@@ -81,22 +84,6 @@ export default function DailyBurnCalculator() {
     setShowProfile(true);
   }
 
-  // The Handoff — carry the raw inputs forward into the upsell bridge
-  // (/select-tier), which forwards them again to the Pathfinder after a tier pick.
-  function enterPathfinder() {
-    navigate('/select-tier', {
-      state: {
-        prefill: {
-          age: String(age || ''),
-          sex,
-          weight: String(weight || ''),
-          heightFt: String(ft || ''),
-          heightIn: String(inch || ''),
-        },
-      },
-    });
-  }
-
   // Shared biometric snapshot — the SAME shape rides the lead payload and the
   // Explorer guest-token mint, built once so the two can never drift.
   const biometrics = {
@@ -107,6 +94,21 @@ export default function DailyBurnCalculator() {
     height_in: parseInt(inch, 10) || null,
     activity_factor: parseFloat(act) || null,
   };
+
+  // The Handoff — straight into the /explore mock lab. ExplorerVault redirects
+  // token-less visitors back to /burn, so if the lead capture hasn't minted the
+  // guest envelope yet (onCaptured), mint it here from the same biometrics —
+  // the CTA must land inside the lab on every path, captured or not.
+  function enterMockLab() {
+    if (!hasExplorerSession()) {
+      startExplorerSession({
+        source: 'daily_burn',
+        profile: biometrics,
+        targets: { tdee_maintenance: burn },
+      });
+    }
+    navigate('/explore');
+  }
 
   return (
     <div style={st.screen}>
@@ -173,8 +175,7 @@ export default function DailyBurnCalculator() {
           biometrics={biometrics}
           explorerReady={explorerReady}
           onClose={() => setShowProfile(false)}
-          onEnterPathfinder={enterPathfinder}
-          onEnterExplorer={() => navigate('/explore')}
+          onClaimProfile={enterMockLab}
           onCaptured={() => {
             // EXPLORER MODE gateway — guest token mints the moment the visitor
             // submits their details (no macros on this surface; the sandbox
@@ -198,16 +199,15 @@ export default function DailyBurnCalculator() {
  * Full-viewport overlay (blurred, darkened backdrop · zIndex 9999) over a matte
  * black panel with purple→gold hairline accents. Renders the maintenance burn,
  * the fat-loss (−500) and muscle (+250) targets, the in-modal lead capture, and
- * the only forward exits (Pathfinder / Explorer). Escape or the backdrop closes
+ * the only forward exit (the /explore mock lab). Escape or the backdrop closes
  * it; the numbers survive in parent state, so reopening is free.
  *
  * @param {object} props
  * @param {number} props.burn - computed maintenance TDEE (guaranteed finite by caller)
  * @param {object} props.biometrics - snake_case biometric snapshot for the lead payload
- * @param {boolean} props.explorerReady - guest token minted; show the Explorer exit
+ * @param {boolean} props.explorerReady - guest token minted; show the badge exit
  * @param {() => void} props.onClose - dismiss the modal (state survives in parent)
- * @param {() => void} props.onEnterPathfinder - primary CTA → /select-tier with prefill
- * @param {() => void} props.onEnterExplorer - secondary CTA → /explore
+ * @param {() => void} props.onClaimProfile - CTAs → mint-if-missing, then /explore
  * @param {() => void} props.onCaptured - lead saved → mint the Explorer session
  */
 function MockProfileModal({
@@ -215,8 +215,7 @@ function MockProfileModal({
   biometrics,
   explorerReady,
   onClose,
-  onEnterPathfinder,
-  onEnterExplorer,
+  onClaimProfile,
   onCaptured,
 }) {
   // Lock the page scroll behind the overlay and wire Escape-to-close for the
@@ -281,19 +280,19 @@ function MockProfileModal({
             onCaptured={onCaptured}
           />
 
-          {/* The Hook → the only forward exit. */}
+          {/* The Hook → the only forward exit: the /explore mock lab. */}
           <div style={st.hook}>
             <div style={st.hookText}>
               Knowing your numbers is only step one. You need a blueprint to hit them.
             </div>
-            <button type="button" style={st.hookBtn} onClick={onEnterPathfinder}>
+            <button type="button" style={st.hookBtn} onClick={onClaimProfile}>
               ENTER THE PATHFINDER →
             </button>
             {explorerReady ? (
               <button
                 type="button"
                 style={{ ...st.hookBtn, marginTop: 8 }}
-                onClick={onEnterExplorer}
+                onClick={onClaimProfile}
                 data-testid="enter-explorer"
               >
                 ◇ ENTER EXPLORER MODE →
