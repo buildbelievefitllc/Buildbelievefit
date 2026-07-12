@@ -44,7 +44,15 @@ async function mintCheckout(payload) {
   let body = null;
   try { body = raw ? JSON.parse(raw) : null; } catch { /* non-JSON */ }
   if (!res.ok || !body?.ok || !body?.url) {
-    throw new Error(checkoutErrorMessage(res.status, body?.error));
+    // `.code` carries the raw slug (e.g. 'screening_required') alongside the
+    // human `.message`, so a caller can branch on the failure reason — e.g.
+    // TierSelectionPitch's fast-track path offers a re-screen CTA specifically
+    // when a Screening Complete flag turns out to be stale/expired server-side.
+    // Purely additive: existing callers reading only `.message` are unaffected.
+    const err = new Error(checkoutErrorMessage(res.status, body?.error));
+    err.code = body?.error || null;
+    err.status = res.status;
+    throw err;
   }
   return body.url;
 }

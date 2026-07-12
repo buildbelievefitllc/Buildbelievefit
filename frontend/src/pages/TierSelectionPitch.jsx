@@ -27,6 +27,16 @@
 // (a direct /select-tier visit, or the legacy /burn → /select-tier path) →
 // unchanged behavior: Select Plan still carries the tier into /pathfinder
 // first.
+//
+// SELF-HEALING ON A STALE RECORD: the "Screening Complete" flag is trusted
+// client-side state — if the server disagrees (bbf-create-checkout still
+// replies 403 screening_required, e.g. the record expired or was scrubbed),
+// checkoutApi surfaces that as `err.code`. On that specific code, the fast
+// path is locally invalidated (screeningExpired) and the button/badge revert
+// to the legacy look, while a dedicated re-screen callout offers a single-tap
+// recovery: straight into /pathfinder carrying the SAME tier's checkout
+// object, so the one extra intake pass ends with them paying for the plan
+// they actually picked — not stranded on a dead error message.
 
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
@@ -70,36 +80,42 @@ export default function TierSelectionPitch() {
   // Fast-track checkout in flight (Screening Complete path only).
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutErr, setCheckoutErr] = useState(null);
+  // Flips true ONLY on a server-confirmed 403 screening_required — the local
+  // "Screening Complete" flag was stale (expired/scrubbed record). Downgrades
+  // the whole fast-track UI back to legacy for the rest of this visit.
+  const [screeningExpired, setScreeningExpired] = useState(false);
+  const screeningValid = screeningComplete && !screeningExpired;
+
+  // The Pathfinder `checkout` object a given tier hands off — shared by the
+  // legacy branch below AND the re-screen recovery CTA, so a stale-record
+  // visitor lands back on the EXACT tier they picked, not a blank slate.
+  const checkoutFor = (tx) => ({
+    priceId: tx.priceId,
+    tierName: tx.name,
+    price: tx.per ? `${tx.price}${tx.per}` : tx.price,
+  });
 
   // Select Plan — two paths:
-  //  · Screening Complete: skip the intake entirely, mint the Stripe session
-  //    directly against the already-screened email, and redirect.
-  //  · Legacy (no screening on file): carry the chosen tier (as the Pathfinder
-  //    `checkout` object) + the inherited biometrics into the screening intake,
-  //    exactly as before.
+  //  · Screening Complete (and still valid): skip the intake entirely, mint
+  //    the Stripe session directly against the already-screened email, and
+  //    redirect.
+  //  · Legacy (no screening on file, or it just turned out to be stale): carry
+  //    the chosen tier + the inherited biometrics into the screening intake.
   async function selectPlan(tx) {
-    if (screeningComplete) {
+    if (screeningValid) {
       setCheckoutErr(null);
       setCheckingOut(true);
       try {
         const url = await createCheckoutSession(screening.email, tx.priceId);
         window.location.href = url;
       } catch (err) {
+        if (err?.code === 'screening_required') setScreeningExpired(true);
         setCheckoutErr(err?.message || 'Could not open checkout. Please try again.');
         setCheckingOut(false);
       }
       return;
     }
-    navigate('/pathfinder', {
-      state: {
-        prefill,
-        checkout: {
-          priceId: tx.priceId,
-          tierName: tx.name,
-          price: tx.per ? `${tx.price}${tx.per}` : tx.price,
-        },
-      },
-    });
+    navigate('/pathfinder', { state: { prefill, checkout: checkoutFor(tx) } });
   }
 
   return (
@@ -108,13 +124,13 @@ export default function TierSelectionPitch() {
         <Link to="/burn" style={st.back}>← Back to your numbers</Link>
 
         <div style={st.head}>
-          {screeningComplete ? (
+          {screeningValid ? (
             <div style={st.screenedBadge} data-testid="tier-screening-complete">✓ {t('pf-checkout-title')}</div>
           ) : null}
           <div style={st.kicker}>Choose Your Access</div>
           <h1 style={st.h1}>Pick the Engine That Fits</h1>
           <p style={st.sub}>
-            {screeningComplete
+            {screeningValid
               ? t('pf-checkout-body')
               : 'Every tier runs on the same Sovereign Gold Standard — the price reflects depth of access. Choose your plan, then complete a 60-second readiness screen before secure checkout.'}
           </p>
@@ -170,11 +186,30 @@ export default function TierSelectionPitch() {
                   disabled={checkingOut}
                   data-testid="tier-select-plan"
                 >
-                  {screeningComplete ? (checkingOut ? t('pf-checkout-loading') : t('pf-checkout-cta')) : 'Select Plan →'}
+                  {screeningValid ? (checkingOut ? t('pf-checkout-loading') : t('pf-checkout-cta')) : 'Select Plan →'}
                 </button>
-                {checkoutErr ? <div style={st.checkoutErr} role="alert">{checkoutErr}</div> : null}
+
+                {screeningExpired ? (
+                  <div style={st.reScreenCallout} data-testid="tier-rescreen-callout">
+                    <p style={st.reScreenBody}>
+                      Your screening record couldn’t be verified — it may have expired. A 60-second
+                      re-check clears it right back up.
+                    </p>
+                    <button
+                      type="button"
+                      style={st.reScreenBtn}
+                      onClick={() => navigate('/pathfinder', { state: { prefill, checkout: checkoutFor(tier) } })}
+                      data-testid="tier-rescreen-cta"
+                    >
+                      Re-Verify & Continue →
+                    </button>
+                  </div>
+                ) : checkoutErr ? (
+                  <div style={st.checkoutErr} role="alert">{checkoutErr}</div>
+                ) : null}
+
                 <div style={st.cardNote}>
-                  {screeningComplete ? t('pf-checkout-secured') : 'Cancel anytime · readiness screening required before payment'}
+                  {screeningValid ? t('pf-checkout-secured') : 'Cancel anytime · readiness screening required before payment'}
                 </div>
               </div>
             </div>
@@ -225,4 +260,7 @@ const st = {
   selectBtnBusy: { opacity: .6, cursor: 'wait' },
   cardNote: { fontFamily: BODY, fontSize: '.78rem', fontWeight: 600, color: 'rgba(255,255,255,.45)', marginTop: 14, letterSpacing: '.3px' },
   checkoutErr: { fontFamily: BODY, fontSize: '.85rem', fontWeight: 700, color: '#ef4444', marginTop: 12 },
+  reScreenCallout: { marginTop: 14, background: 'rgba(245,200,0,.06)', border: `1px solid rgba(245,200,0,.35)`, borderRadius: 12, padding: '.9rem 1rem', textAlign: 'left' },
+  reScreenBody: { fontFamily: BODY, fontSize: '.85rem', fontWeight: 600, color: 'rgba(255,255,255,.78)', lineHeight: 1.5, margin: '0 0 .6rem' },
+  reScreenBtn: { width: '100%', fontFamily: HEAD, fontSize: '.92rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#1B1106', background: `linear-gradient(180deg, ${GOLD} 0%, ${GOLD_LAB} 100%)`, border: 'none', borderRadius: 8, padding: '.65rem 1rem', cursor: 'pointer' },
 };

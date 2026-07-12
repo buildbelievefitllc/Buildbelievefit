@@ -1,13 +1,16 @@
 // e2e/tier-selection.spec.js — closes the onboarding loop seam between the
 // Explorer funnel's /protocol-init screen and the /select-tier pricing wall.
 //
-// Two paths through Select Plan:
+// Three paths through Select Plan:
 //   · LEGACY — a direct /select-tier visit (no `screening` in router state)
 //     still carries the chosen tier into /pathfinder for the intake, exactly
 //     as before this change.
 //   · SCREENING COMPLETE — a visitor who just finished Protocol Initialization
 //     arrives with a completed screening record; Select Plan skips the intake
 //     entirely and mints a Stripe Checkout Session directly.
+//   · STALE RECORD — the fast path's screening record turns out to be invalid
+//     server-side (403 screening_required); the UI self-heals into a
+//     re-screen recovery CTA instead of a dead-end error.
 
 import { test, expect } from '@playwright/test';
 
@@ -100,4 +103,57 @@ test('screening complete: Protocol Initialization → Select Plan fast-tracks st
   await page.waitForURL('**/burn?checkout=stub-session');
   expect(checkoutCall?.email).toBe('screened@test.fit');
   expect(checkoutCall?.price_id).toBeTruthy();
+});
+
+test('stale screening record: 403 self-heals into a re-screen recovery CTA', async ({ page }) => {
+  await stubTurnstile(page);
+  await seedEnvelope(page);
+
+  await page.route('**/functions/v1/bbf-lead-capture', async (route) => {
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' } });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ ok: true }) });
+  });
+
+  // The gated edge function disagrees with the client's stale "Screening
+  // Complete" flag — a real-world expired/scrubbed record.
+  await page.route('**/functions/v1/bbf-create-checkout', async (route) => {
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, OPTIONS' } });
+      return;
+    }
+    await route.fulfill({
+      status: 403, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({ ok: false, error: 'screening_required' }),
+    });
+  });
+
+  await page.goto('/explore');
+  await page.getByTestId('explorer-break-open').click();
+  await page.getByTestId('break-the-loop-cta').click();
+  await page.waitForURL('**/protocol-init');
+
+  await page.locator('#pf-name').fill('Stale Screening Test');
+  await page.locator('#pf-email').fill('stale@test.fit');
+  await page.locator('#pf-goal').selectOption('fat-loss');
+  await page.locator('#pf-liability').check();
+  await page.locator('button[type=submit]').click();
+  await page.waitForURL('**/select-tier');
+  await expect(page.getByTestId('tier-screening-complete')).toBeVisible();
+
+  // The fast-track attempt 403s → the badge/CTA revert to legacy AND the
+  // dedicated recovery callout appears (not a bare error string).
+  await page.getByTestId('tier-select-plan').click();
+  const callout = page.getByTestId('tier-rescreen-callout');
+  await expect(callout).toBeVisible();
+  await expect(page.getByTestId('tier-screening-complete')).toHaveCount(0);
+  await expect(page.getByTestId('tier-select-plan')).toHaveText(/select plan/i);
+
+  // Recovery CTA carries the SAME picked tier's checkout object into a fresh
+  // Pathfinder pass — one extra step, not a dead end.
+  await page.getByTestId('tier-rescreen-cta').click();
+  await page.waitForURL('**/pathfinder');
+  await expect(page).toHaveURL(/\/pathfinder$/);
 });
