@@ -19,19 +19,23 @@
 
 const SUPABASE_ORIGIN = import.meta.env.VITE_SUPABASE_URL || 'https://ihclbceghxpuawymlvgi.supabase.co';
 const SUPABASE_CDN_BASE = `${SUPABASE_ORIGIN}/storage/v1/object/public/videos/guides`;
+// Elite ElevenLabs voice-clone (Coach Akeem) walkthrough masters — compressed
+// (libx264 High@4.1, CRF 28/25fps, +faststart, ~2–7 MB) and served from the public
+// `videos/tutorials/` bucket. The topic-matched guide entries below now stream these.
+const SUPABASE_TUTORIALS_BASE = `${SUPABASE_ORIGIN}/storage/v1/object/public/videos/tutorials`;
 
 export const SOVEREIGN_SYSTEM_GUIDES = {
   intro: {
     id: 'bbf_intro_protocol',
     title: "Today's Protocol Overview",
-    url: `${SUPABASE_CDN_BASE}/bbf_app_vault_welcome_916.mp4`,
+    url: `${SUPABASE_TUTORIALS_BASE}/bbf_app_welcome_intro.mp4`,
     feature: 'grid',
     ready: true,
   },
   check_in: {
     id: 'bbf_data_capture',
     title: 'Step 1: Data Capture & Readiness',
-    url: `${SUPABASE_CDN_BASE}/bbf_app_vault_step1_checkin_916.mp4`,
+    url: `${SUPABASE_TUTORIALS_BASE}/bbf_step1_loopbreak.mp4`,
     feature: 'grid',
     ready: true,
   },
@@ -45,35 +49,35 @@ export const SOVEREIGN_SYSTEM_GUIDES = {
   program_execution: {
     id: 'bbf_program_execution',
     title: 'Step 3: Progressive Overload Execution',
-    url: `${SUPABASE_CDN_BASE}/bbf_app_vault_step3_program_916.mp4`,
+    url: `${SUPABASE_TUTORIALS_BASE}/bbf_tour_program.mp4`,
     feature: 'grid',
     ready: true,
   },
   system_flush: {
     id: 'bbf_system_flush',
     title: 'Step 4: Smart Cardio System Flush',
-    url: `${SUPABASE_CDN_BASE}/bbf_app_vault_step4_flush_916.mp4`,
+    url: `${SUPABASE_TUTORIALS_BASE}/bbf_tour_cardio.mp4`,
     feature: 'smart_cardio',
     ready: true,
   },
   nutrition_locker: {
     id: 'bbf_nutrition_locker',
     title: 'Fuel Targets & Fasting Architecture',
-    url: `${SUPABASE_CDN_BASE}/bbf_app_vault_nutrition_916.mp4`,
+    url: `${SUPABASE_TUTORIALS_BASE}/bbf_tour_nutrition.mp4`,
     feature: 'base_nutrition',
     ready: true,
   },
   prehab_diagnostic: {
     id: 'bbf_prehab_diagnostic',
     title: 'Autonomous Joint Symptom Diagnostic',
-    url: `${SUPABASE_CDN_BASE}/bbf_app_vault_prehab_916.mp4`,
+    url: `${SUPABASE_TUTORIALS_BASE}/bbf_tour_prehab.mp4`,
     feature: 'prehab',
     ready: true,
   },
   champion_mindset: {
     id: 'bbf_champion_mindset',
     title: 'The Sovereign Frequency & Identity',
-    url: `${SUPABASE_CDN_BASE}/bbf_app_vault_mindset_916.mp4`,
+    url: `${SUPABASE_TUTORIALS_BASE}/bbf_tour_mindset.mp4`,
     feature: 'grid',
     ready: true,
   },
