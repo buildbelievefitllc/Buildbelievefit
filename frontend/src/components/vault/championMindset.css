@@ -270,6 +270,13 @@
   color: var(--mut);
 }
 
+/* ── Cognitive Fortitude Library — supplementary "more films" grid per bucket
+   (raw video data, no objective/dictums). Sits below the curated cm-grid inside
+   the same cm-deck-panel; card/grid/lightbox styling rides psychologyDeck.css's
+   .spsy-* classes for byte-identical Mind Lab treatment. ── */
+.cm-fortitude { margin-top: .2rem; }
+.cm-fortitude-kicker { margin-bottom: .6rem; }
+
 /* ── Cinema roster — inline-expansion accordion ──────────────────────────────
    Responsive auto-fill grid of branded film covers; the tapped card expands in
    place (breaking out to the full grid width) to stream the inline video + that

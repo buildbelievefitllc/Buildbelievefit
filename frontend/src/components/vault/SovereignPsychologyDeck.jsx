@@ -19,9 +19,10 @@
 //   topic labels and the video list. A card's thumbnail opens an embedded YouTube
 //   lightbox (deep-link fallback).
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import PSYCH from '../../data/championsPsychology.json';
+import VideoLightbox from './VideoLightbox.jsx';
 import './psychologyDeck.css';
 
 const LANG_TO_KEY = { en: 'English', es: 'Spanish', pt: 'Portuguese' };
@@ -86,42 +87,6 @@ function ytId(url) {
   return m ? m[1] : '';
 }
 const ytThumb = (id) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
-const ytWatch = (id) => `https://www.youtube.com/watch?v=${id}`;
-const ytEmbed = (id) => `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&showinfo=0&fs=1&playsinline=1`;
-
-// ── Embedded YouTube modal (lightbox) ────────────────────────────────────────
-function VideoModal({ video, onClose, closeLabel, ytLabel }) {
-  useEffect(() => {
-    function onKey(e) { if (e.key === 'Escape') onClose(); }
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
-  }, [onClose]);
-
-  return (
-    <div className="spsy-modal" role="dialog" aria-modal="true" aria-label={video.title} onClick={onClose} data-testid="spsy-modal">
-      <div className="spsy-modal-box" onClick={(e) => e.stopPropagation()}>
-        <div className="spsy-modal-bar">
-          <p className="spsy-modal-title">{video.title}</p>
-          <button type="button" className="spsy-modal-close" onClick={onClose} aria-label={closeLabel}>✕</button>
-        </div>
-        <div className="spsy-modal-frame">
-          <iframe
-            src={ytEmbed(video.id)}
-            title={video.title}
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-        <div className="spsy-modal-foot">
-          <a className="spsy-modal-yt" href={ytWatch(video.id)} target="_blank" rel="noreferrer noopener">{ytLabel} ↗</a>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function SovereignPsychologyDeck() {
   const { lang } = useLang();
@@ -208,7 +173,7 @@ export default function SovereignPsychologyDeck() {
       </div>
 
       {openVideo ? (
-        <VideoModal
+        <VideoLightbox
           video={openVideo}
           onClose={() => setOpenVideo(null)}
           closeLabel={L.close}

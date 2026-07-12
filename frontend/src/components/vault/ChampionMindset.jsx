@@ -38,6 +38,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import ChampionFilmCard from './ChampionFilmCard.jsx';
+import CognitiveFortitudeLibrary from './CognitiveFortitudeLibrary.jsx';
 import SovereignPsychologyDeck from './SovereignPsychologyDeck.jsx';
 import DailyAffirmationCoach from './DailyAffirmationCoach.jsx';
 import { L10N, readLocked, writeLocked } from './championMindsetData.js';
@@ -220,6 +221,12 @@ export default function ChampionMindset() {
           ) : (
             <p className="cm-deck-empty" role="status">{L.noFilmsTitle}</p>
           )}
+
+          {/* Cognitive Fortitude Library — supplementary "more films" grid for
+              this same bucket, hydrated from raw video data (no objective/
+              dictums required). Renders null if the bucket has no library entry
+              (e.g. the Parents' Well-Being bucket). */}
+          <CognitiveFortitudeLibrary bucketKey={activeBucket.key} lang={lang} />
         </div>
       </section>
 
