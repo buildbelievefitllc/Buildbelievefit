@@ -385,6 +385,10 @@ export default function StudioLayout({
       voGain: Number(reelData.voiceVolume ?? 100) / 100,
       musicGain: Number(reelData.musicVolume ?? 80) / 100,
       footageGain: footageVol / 100,
+      // Karaoke captions baked per-frame (same transcript + timing the preview shows).
+      captions: reelData.captions,
+      captionsEnabled: !!reelData.captionsEnabled,
+      captionPos: reelData.captionPos ?? 62,
       overlay,
       // Phone backdrop → clip the footage into the same rect the DOM preview used, and
       // have the export draw the matching bezel/notch itself (reelPhoneBackdrop.js —

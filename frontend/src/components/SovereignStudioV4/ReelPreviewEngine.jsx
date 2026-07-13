@@ -7,6 +7,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { REEL_PHONE_FRAME } from '../../lib/reelPhoneBackdrop.js';
 import { seriesLabel } from '../../lib/reelSeriesLabels.js';
+import { captionState } from '../../lib/captionTiming.js';
 
 const OVERLAY_CLASS = {
   scrim: 'ovl-scrim',
@@ -53,23 +54,6 @@ function KineticHook({ text, anim }) {
       {li < lines.length - 1 ? <br /> : null}
     </span>
   ));
-}
-
-// ── Karaoke captions — group the timed transcript into short on-screen phrases
-// and, for the current voice time `t`, return the active phrase + which word is
-// lit. Kept pure so the same logic can later drive the export baking. ──
-const CAP_CHUNK = 4; // words shown at once (matches the reference: a short 1–2 line phrase)
-function captionState(words, t) {
-  if (!Array.isArray(words) || !words.length) return null;
-  const first = words[0], last = words[words.length - 1];
-  // Nothing until the voice is about to start; clear it shortly after it ends.
-  if (t < first.start - 0.3 || t > last.end + 1) return null;
-  // The current (or most-recently-spoken) word index — stays lit through the tiny
-  // gaps between words so the highlight never flickers.
-  let idx = 0;
-  for (let i = 0; i < words.length; i++) { if (words[i].start <= t) idx = i; else break; }
-  const chunkStart = Math.floor(idx / CAP_CHUNK) * CAP_CHUNK;
-  return { chunk: words.slice(chunkStart, chunkStart + CAP_CHUNK), active: idx - chunkStart };
 }
 
 export default function ReelPreviewEngine({ reelData, stageRef }) {

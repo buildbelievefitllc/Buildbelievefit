@@ -31,6 +31,7 @@
 // stts table — the most player-compatible timing there is.
 
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
+import { captionState } from './captionTiming.js';
 
 const TARGET_W = 1080;
 const TARGET_H = 1920;
@@ -147,7 +148,7 @@ export class SovereignFoundry {
    * single-track approximation.
    * @returns {Promise<{blob:Blob, ext:'mp4', mime:'video/mp4', audio:boolean, frames:number, durationSec:number}>}
    */
-  async render({ videoUrl, voUrl = null, musicUrl = null, footageUrl = null, voGain = 1, musicGain = 1, footageGain = 1, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
+  async render({ videoUrl, voUrl = null, musicUrl = null, footageUrl = null, voGain = 1, musicGain = 1, footageGain = 1, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', captions = null, captionsEnabled = false, captionPos = 62, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
     if (!videoUrl) throw new Error('no_footage');
 
@@ -155,6 +156,14 @@ export class SovereignFoundry {
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d', { alpha: false });
+
+    // Dynamic karaoke captions bake PER FRAME (they change with the voice time), so
+    // they can't ride the static captured overlay. Resolve the transcript once and
+    // ensure the caption face is loaded before the frame loop paints it on canvas.
+    const captionWords = (captionsEnabled && Array.isArray(captions?.words) && captions.words.length) ? captions.words : null;
+    if (captionWords) {
+      try { await document.fonts?.load?.('800 58px "Barlow Condensed"'); } catch { /* fall back to the default sans */ }
+    }
 
     const video = this._makeVideo(videoUrl);
     let encErr = null;
@@ -262,6 +271,9 @@ export class SovereignFoundry {
         // live DOM preview's z-index).
         if (videoRect && frameRect) this._drawPhoneFrame(ctx, frameRect, videoRect, phoneFrame);
         if (overlay) { try { ctx.drawImage(overlay, 0, 0, W, H); } catch { /* overlay optional */ } }
+        // Karaoke captions — drawn LAST (on top of everything) at this frame's voice
+        // time. Wrapped so a caption glitch can never abort the encode.
+        if (captionWords) { try { this._drawCaptions(ctx, tSec, W, H, captionWords, captionPos); } catch { /* captions optional */ } }
         const frame = new VideoFrame(canvas, { timestamp: Math.max(0, Math.round(tSec * 1e6)), duration: frameDurUs });
         venc.encode(frame, { keyFrame: frames % (fps * 2) === 0 });
         frame.close();
@@ -521,6 +533,59 @@ export class SovereignFoundry {
     const vw = video.videoWidth || W, vh = video.videoHeight || H;
     const s = Math.max(W / vw, H / vh), dw = vw * s, dh = vh * s;
     ctx.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  }
+
+  // Karaoke captions, baked onto the frame — the canvas twin of the DOM preview's
+  // .reel-caption-v4 / .cap-word-v4 styling (Barlow Condensed 800, white fill,
+  // heavy black stroke, active word in a BBF-gold rounded box). Same captionState()
+  // timing the preview uses, so the exported words/highlight match frame-for-frame.
+  // `posPct` is the vertical center (% of H) from the Caption Position slider.
+  _drawCaptions(ctx, tSec, W, H, words, posPct) {
+    const state = captionState(words, tSec);
+    if (!state || !state.chunk.length) return;
+    const FS = 58, GAP = 14, LGAP = 12, PADX = 12, PADY = 6, RAD = 8;
+    ctx.save();
+    ctx.font = `800 ${FS}px "Barlow Condensed", sans-serif`;
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+    ctx.lineJoin = 'round';
+
+    // Measure each word, then greedily wrap into lines within 84% of the width.
+    const maxW = W * 0.84;
+    const items = state.chunk.map((w, i) => ({ text: w.text, active: i === state.active, w: ctx.measureText(w.text).width }));
+    const lines = [];
+    let cur = [], curW = 0;
+    for (const it of items) {
+      const addW = (cur.length ? GAP : 0) + it.w;
+      if (cur.length && curW + addW > maxW) { lines.push({ items: cur, width: curW }); cur = []; curW = 0; }
+      curW += (cur.length ? GAP : 0) + it.w;
+      cur.push(it);
+    }
+    if (cur.length) lines.push({ items: cur, width: curW });
+
+    const lineH = FS + LGAP;
+    const totalH = lines.length * lineH - LGAP;
+    const centerY = H * (Math.max(0, Math.min(100, Number(posPct) || 62)) / 100);
+    let baseline = centerY - totalH / 2 + FS; // baseline of the first line
+    for (const line of lines) {
+      let x = (W - line.width) / 2;
+      for (const it of line.items) {
+        if (it.active) {
+          ctx.fillStyle = '#f5c800';
+          ctx.beginPath();
+          roundRectPath(ctx, x - PADX / 2, baseline - FS + 4, it.w + PADX, FS + PADY, RAD);
+          ctx.fill();
+        }
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#000';
+        ctx.strokeText(it.text, x, baseline);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(it.text, x, baseline);
+        x += it.w + GAP;
+      }
+      baseline += lineH;
+    }
+    ctx.restore();
   }
 
   // Phone-backdrop bezel + notch, drawn NATIVELY on canvas (not via html2canvas — see
