@@ -66,6 +66,52 @@ function resolveVibe(input: unknown): Vibe {
   return (v in VIBES) ? (v as Vibe) : 'the_architect';
 }
 
+// ── AI-VOICE CAPTIONS (free, at generation time) ────────────────────────────
+// ElevenLabs' /with-timestamps endpoint returns per-character start/end times
+// ALONGSIDE the audio, at zero extra cost. We fold those characters into spoken
+// words so the Studio can bake karaoke captions with NO separate transcription
+// pass. The word timings are cached next to the MP3 as `{slug}.words.json`.
+type Word = { text: string; start: number; end: number };
+
+// Decode ElevenLabs' base64 MP3 payload (the /with-timestamps endpoint returns
+// JSON with the audio inlined, not a raw audio body).
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+// Fold the character-level alignment into spoken words. Any SSML tag (`<break …/>`
+// and the head/tail PADs) is skipped so captions show clean words only — and the
+// pause it creates is naturally reflected in the NEXT word's start time. Robust
+// whether ElevenLabs keeps or strips the tag characters from the alignment.
+function wordsFromAlignment(alignment: any): Word[] {
+  const chars: unknown = alignment?.characters;
+  const starts: unknown = alignment?.character_start_times_seconds;
+  const ends: unknown = alignment?.character_end_times_seconds;
+  if (!Array.isArray(chars) || !Array.isArray(starts) || !Array.isArray(ends) || !chars.length) return [];
+  const words: Word[] = [];
+  let cur = '', curStart = -1, curEnd = -1, inTag = false;
+  const flush = () => {
+    if (cur && curStart >= 0 && Number.isFinite(curStart) && Number.isFinite(curEnd)) {
+      words.push({ text: cur, start: +curStart.toFixed(3), end: +Math.max(curEnd, curStart).toFixed(3) });
+    }
+    cur = ''; curStart = -1; curEnd = -1;
+  };
+  for (let i = 0; i < chars.length; i++) {
+    const c = String(chars[i] ?? '');
+    if (inTag) { if (c === '>') inTag = false; continue; }
+    if (c === '<') { flush(); inTag = true; continue; }
+    if (/\s/.test(c) || c === '') { flush(); continue; }
+    if (cur === '') curStart = Number(starts[i]);
+    cur += c;
+    curEnd = Number(ends[i]);
+  }
+  flush();
+  return words;
+}
+
 // ── slug / hash ─────────────────────────────────────────────────────────────
 function slugify(s: string): string {
   return String(s || '')
@@ -163,6 +209,32 @@ async function vaultPut(url: string, key: string, slug: string, buf: ArrayBuffer
   return true;
 }
 
+// The word-timing packet lives right next to the audio: `{slug}.words.json`.
+function wordsPublicUrl(url: string, slug: string): string {
+  return `${url}/storage/v1/object/public/${BUCKET}/${slug}.words.json`;
+}
+// On a cache HIT, fetch the caption packet if this asset has one (legacy audio
+// generated before captions won't — that's fine, the client falls back to Scribe).
+async function vaultGetWords(url: string, slug: string): Promise<Word[] | null> {
+  try {
+    const r = await fetch(wordsPublicUrl(url, slug));
+    if (!r.ok) return null;
+    const j = await r.json().catch(() => null);
+    if (j && Array.isArray(j.words)) return j.words as Word[];
+    return Array.isArray(j) ? (j as Word[]) : null;
+  } catch { return null; }
+}
+// VAULT DEPOSIT — store the caption packet as JSON alongside the MP3 (upsert).
+async function vaultPutWords(url: string, key: string, slug: string, words: Word[]): Promise<boolean> {
+  const r = await fetch(`${url}/storage/v1/object/${BUCKET}/${slug}.words.json`, {
+    method: 'POST',
+    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'x-upsert': 'true', 'Cache-Control': 'public, max-age=31536000, immutable' },
+    body: JSON.stringify({ words }),
+  });
+  if (!r.ok) { console.warn(`[${FN}] vaultPutWords ${r.status}: ${(await r.text().catch(() => '')).slice(0, 160)}`); return false; }
+  return true;
+}
+
 // ── dynamic generation ──────────────────────────────────────────────────────
 // Claude writes the spoken VO script, length-targeted to the duration.
 async function writeScript(apiKey: string, model: string, opts: { topic: string; series: string; words: number; tone: string; lang: string }): Promise<{ ok: true; text: string; usage: any } | { ok: false; status: number; detail: string }> {
@@ -244,7 +316,7 @@ function buildSsml(raw: string, vibe: Vibe): string {
 // storage upload after synthesis.
 const SYNTH_TIMEOUT_MS = 120_000;
 
-async function synthesize(apiKey: string, text: string, settings: Record<string, unknown>): Promise<{ ok: true; buf: ArrayBuffer } | { ok: false; status: number; detail: string }> {
+async function synthesize(apiKey: string, text: string, settings: Record<string, unknown>): Promise<{ ok: true; buf: ArrayBuffer; words: Word[] } | { ok: false; status: number; detail: string }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), SYNTH_TIMEOUT_MS);
   try {
@@ -254,17 +326,25 @@ async function synthesize(apiKey: string, text: string, settings: Record<string,
     // richer) and would break the .mp3 / audio/mpeg container the vault + the video
     // export (SovereignFoundry) decode from. 192 kbps MP3 is the lossless-practical
     // ceiling that keeps the pipeline intact.
+    //
+    // /with-timestamps: same audio, same cost, but the response also carries the
+    // character-level alignment we fold into free kinetic captions (Option 3). It
+    // returns JSON { audio_base64, alignment } instead of a raw audio body.
     const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(AKEEM_VOICE_ID)}?output_format=mp3_44100_192`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(AKEEM_VOICE_ID)}/with-timestamps?output_format=mp3_44100_192`,
       {
         method: 'POST',
-        headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+        headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ text, model_id: VOICE_MODEL, voice_settings: settings }),
         signal: controller.signal,
       },
     );
     if (!res.ok) return { ok: false, status: res.status, detail: (await res.text().catch(() => '')).slice(0, 200) };
-    return { ok: true, buf: await res.arrayBuffer() };
+    const data = await res.json().catch(() => null);
+    const b64 = data?.audio_base64;
+    if (!b64 || typeof b64 !== 'string') return { ok: false, status: 502, detail: 'no_audio_base64' };
+    const words = wordsFromAlignment(data?.alignment);
+    return { ok: true, buf: b64ToBytes(b64).buffer, words };
   } catch (e) {
     const err = e as Error;
     return { ok: false, status: 0, detail: err.name === 'AbortError' ? `timeout_${SYNTH_TIMEOUT_MS}ms` : err.message };
@@ -319,8 +399,9 @@ serve(async (req: Request) => {
   // ── 1 · CACHE LOOKUP ──
   const slug = await buildSlug({ vibe, series, topic, duration, lang });
   if (!force && (await vaultHas(SUPABASE_URL, slug))) {
-    console.log(`[${FN}] cache HIT slug=${slug}`);
-    return jsonResponse({ ok: true, cached: true, slug, url: publicUrl(SUPABASE_URL, slug), vibe, duration });
+    const words = await vaultGetWords(SUPABASE_URL, slug);
+    console.log(`[${FN}] cache HIT slug=${slug} words=${words ? words.length : 'none'}`);
+    return jsonResponse({ ok: true, cached: true, slug, url: publicUrl(SUPABASE_URL, slug), vibe, duration, words });
   }
   console.log(`[${FN}] cache MISS slug=${slug} — generating`);
 
@@ -363,14 +444,18 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'tts_failed', detail: `ElevenLabs returned ${tts.status}.`, eleven_status: tts.status }, 502);
   }
 
-  // ── 3 · VAULT DEPOSIT ──
+  // ── 3 · VAULT DEPOSIT (audio + free caption packet) ──
   await ensureBucket(SUPABASE_URL, SERVICE_KEY);
   const stored = await vaultPut(SUPABASE_URL, SERVICE_KEY, slug, tts.buf);
   if (!stored) {
     return jsonResponse({ error: 'vault_write_failed', detail: 'Synthesis succeeded but the audio could not be cached.' }, 502);
   }
+  // Persist the kinetic-caption timings next to the audio (best-effort — the audio
+  // is the load-bearing asset; a missed words.json just falls back to Scribe).
+  const captionWords = tts.words || [];
+  if (captionWords.length) await vaultPutWords(SUPABASE_URL, SERVICE_KEY, slug, captionWords);
 
-  console.log(`[${FN}] STORED slug=${slug} source=${source} model=${model ?? 'none'} words=${words} script_chars=${script.length} billed_chars=${ssml.length} bytes=${tts.buf.byteLength}`);
+  console.log(`[${FN}] STORED slug=${slug} source=${source} model=${model ?? 'none'} words=${words} caption_words=${captionWords.length} script_chars=${script.length} billed_chars=${ssml.length} bytes=${tts.buf.byteLength}`);
   return jsonResponse({
     ok: true,
     cached: false,
@@ -380,11 +465,13 @@ serve(async (req: Request) => {
     duration,
     source,
     model,
+    words: captionWords.length ? captionWords : null,
     usage: {
       words_target: words,
       script_chars: script.length,
       billed_chars: ssml.length,
       audio_bytes: tts.buf.byteLength,
+      caption_words: captionWords.length,
       llm: llmUsage,
     },
   });

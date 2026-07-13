@@ -321,8 +321,18 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         vibe: reelData.vibe,
         lang: reelData.lang || 'en',
       });
-      applyVoiceUrl(r.url); // → ReelPreviewEngine <audio>
-      setVoNote({ ok: true, text: r.cached ? 'Loaded from vault — cache hit, $0 spend.' : 'Generated & cached to the vault.' });
+      applyVoiceUrl(r.url); // → ReelPreviewEngine <audio> (clears any stale transcript)
+      // OPTION 3 — free kinetic captions: the AI voice ships its own word timings
+      // straight from the ElevenLabs generation payload (no separate Scribe pass).
+      // applyVoiceUrl just cleared captions, so set them AFTER it.
+      const aiWords = Array.isArray(r.words) ? r.words : null;
+      if (aiWords && aiWords.length) {
+        handleReelChange('captions', { words: aiWords });
+        handleReelChange('captionsEnabled', true);
+        setVoNote({ ok: true, text: `${r.cached ? 'Loaded from vault — cache hit, $0 spend' : 'Generated & cached to the vault'} · captions auto-timed (${aiWords.length} words).` });
+      } else {
+        setVoNote({ ok: true, text: r.cached ? 'Loaded from vault — cache hit, $0 spend.' : 'Generated & cached to the vault.' });
+      }
     } catch (e) {
       setVoNote({ ok: false, text: humanizeVoErr(e?.message) });
     } finally {
