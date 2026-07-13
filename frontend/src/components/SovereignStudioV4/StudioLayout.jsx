@@ -359,28 +359,32 @@ export default function StudioLayout({
     const { SovereignFoundry } = await import('../../lib/SovereignFoundry.js');
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
     const videoUrl = stageRef.current?.querySelector('.reel-video-v4')?.src || reelData.videoFile?.url;
-    // THE REAL AUDIO MIX: voice and music ride as SEPARATE tracks with the Audio
-    // Mix Console's slider levels — the foundry mixes them (music looped + ducked
-    // under the voice) so the export sounds like the preview, instead of the old
-    // single-track collapse that silently dropped the music whenever a voiceover
-    // existed. With neither voice nor music, fall back to the uploaded footage's
-    // OWN audio track (if it has one) — the capture <video> is muted (Chrome
-    // suspends decode on inaudible elements otherwise), so without this fallback
-    // a clip's native sound was silently dropped.
+    // THE REAL AUDIO MIX: voice, music, AND the footage's own baked-in sound ride
+    // as THREE SEPARATE tracks at the Audio Mix Console's slider levels — the
+    // foundry mixes them (music + clip audio looped and ducked under the voice) so
+    // the export sounds like the preview. Footage audio is now a first-class channel
+    // (Clip Volume), not just a no-voice/no-music fallback: an uploaded clip with
+    // prebaked music can sit UNDER a voiceover at a level the user dials in, instead
+    // of the old all-or-nothing collapse that dropped it entirely once any voice or
+    // music track existed. The capture <video> stays muted (Chrome suspends decode
+    // on inaudible elements), so the clip's sound is remixed from its URL, not the
+    // silent capture element.
     const voiceUrl = reelData.voUrl || null;
     const musicUrl = reelData.musicFile?.url || null;
-    const fallbackAudioUrl = (!voiceUrl && !musicUrl) ? (reelData.videoFile?.url || null) : null;
-    const audioUrl = voiceUrl || musicUrl || fallbackAudioUrl;
+    const footageVol = Number(reelData.footageVolume ?? 100);
+    // 0% Clip Volume → skip the footage-audio decode entirely (nothing to mix).
+    const footageUrl = (footageVol > 0 && reelData.videoFile?.url) ? reelData.videoFile.url : null;
+    const audioUrl = voiceUrl || musicUrl || footageUrl;
     const overlay = await SovereignFoundry.captureOverlay(stageRef.current);
     const foundry = new SovereignFoundry(document.body);
     const result = await foundry.render({
       videoUrl,
-      voUrl: voiceUrl || fallbackAudioUrl,
+      voUrl: voiceUrl,
       musicUrl,
-      // Footage-audio fallback plays at full level; the voice slider only governs
-      // an actual voiceover track.
-      voGain: voiceUrl ? Number(reelData.voiceVolume ?? 100) / 100 : 1,
+      footageUrl,
+      voGain: Number(reelData.voiceVolume ?? 100) / 100,
       musicGain: Number(reelData.musicVolume ?? 80) / 100,
+      footageGain: footageVol / 100,
       overlay,
       // Phone backdrop → clip the footage into the same rect the DOM preview used, and
       // have the export draw the matching bezel/notch itself (reelPhoneBackdrop.js —
@@ -393,13 +397,15 @@ export default function StudioLayout({
     });
     if (!result || !result.blob) throw new Error('record_failed');
     // Audio status line — explicit, never silent (CEO order: bubble the reason).
+    // Name the channels that actually made it into the mix so the export is legible.
+    const chans = [voiceUrl && 'voice', musicUrl && 'music', footageUrl && 'clip sound'].filter(Boolean);
     const audioMsg = result.audio
-      ? (voiceUrl && musicUrl
-          ? '🎙 Voice + music mix baked in (console levels, music ducked under the voice).'
+      ? (chans.length > 1
+          ? `🎙 ${chans.join(' + ')} mix baked in (console levels, backing ducked under the voice).`
           : '🎙 Audio baked in.')
       : (audioUrl
           ? `⚠ Audio failed: ${result.audioError || 'unknown'} — video exported without sound.`
-          : 'No voiceover, music, or footage audio was available — video exported silent.');
+          : 'No voiceover, music, or clip audio was available — video exported silent.');
     return { result, audioUrl, audioMsg };
   };
 

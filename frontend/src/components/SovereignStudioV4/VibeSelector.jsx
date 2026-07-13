@@ -628,6 +628,27 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         <div className="hint-v4">The backing-track channel — 0% mutes it, 100% is full volume.</div>
       </div>
 
+      {/* Clip Volume — the uploaded footage's OWN baked-in sound (e.g. music
+          already inside the video). A dedicated channel so a too-loud prebaked
+          track can be pulled down under the voiceover — or pushed up to feature
+          it — without re-editing the source clip. Ducks under the voice like the
+          music channel; 0% mutes the clip's audio in both preview and export. */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">🎬 Clip Volume — {reelData.footageVolume ?? 100}%</label>
+        <input
+          type="range"
+          className="range-v4"
+          min="0"
+          max="100"
+          step="1"
+          value={reelData.footageVolume ?? 100}
+          onChange={(e) => handleReelChange('footageVolume', Number(e.target.value))}
+          aria-label="Clip volume"
+          data-testid="reel-footage-volume"
+        />
+        <div className="hint-v4">The uploaded video's own sound (music/audio baked into the clip). Turn it down so it sits under the voiceover, or up to feature it — 0% mutes it.</div>
+      </div>
+
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">🎙 Voice Volume — {reelData.voiceVolume ?? 100}%</label>
         <input

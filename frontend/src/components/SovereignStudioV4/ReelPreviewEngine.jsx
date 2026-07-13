@@ -136,9 +136,10 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
     };
   }, [reelData.voUrl]);
 
-  // Audio-mix sliders — TWO independent channels, each bound DIRECTLY to its own
+  // Audio-mix sliders — THREE independent channels, each bound DIRECTLY to its own
   // element's volume property: voiceVolume → the voiceover track, musicVolume → the
-  // backing music track. Re-applied when a new source mounts either element.
+  // backing music track, footageVolume → the uploaded clip's OWN baked-in audio (the
+  // <video> element itself). Re-applied when a new source mounts each element.
   useEffect(() => {
     const voice = voRef.current;
     if (!voice) return;
@@ -151,6 +152,16 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
     const v = Number(reelData.musicVolume);
     music.volume = Number.isFinite(v) ? Math.min(Math.max(v / 100, 0), 1) : 1;
   }, [reelData.musicVolume, reelData.musicFile?.url]);
+  // Clip audio — the footage's own soundtrack (e.g. music already baked into the
+  // uploaded video). Bound to the <video> element so it can be turned down under a
+  // voiceover, or up to feature it. videoFile.url + phoneBackdrop are deps because a
+  // fresh <video> element mounts when either changes (and load() can reset volume).
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const v = Number(reelData.footageVolume);
+    video.volume = Number.isFinite(v) ? Math.min(Math.max(v / 100, 0), 1) : 1;
+  }, [reelData.footageVolume, reelData.videoFile?.url, reelData.phoneBackdrop]);
 
   // One transport: play/pause the voice and the backing track together, in sync.
   const toggleVoiceover = () => {

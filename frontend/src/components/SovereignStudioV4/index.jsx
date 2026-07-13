@@ -117,6 +117,8 @@ export default function SovereignStudioV4() {
     logoScale: 1,           // asset size handle — scales the corner logo badge
     musicVolume: 80,        // music-track mix (0–100%) → ReelPreviewEngine music element
     voiceVolume: 100,       // voice-track mix (0–100%) → ReelPreviewEngine voiceover element
+    footageVolume: 100,     // clip-audio mix (0–100%) → the uploaded footage's OWN baked-in sound (prebaked music), bound to the preview <video> and mixed as a ducked channel in the export
+
     // FRONT 5 · Sovereign Voiceover (lazy-cached bbf-studio-voiceover)
     voTopic: '',            // Exercise / topic that keys the cache
     vibe: 'the_architect',  // voice character → script tone + ElevenLabs physics
