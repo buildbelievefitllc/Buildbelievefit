@@ -819,15 +819,33 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           {capBusy ? '… TRANSCRIBING' : (reelData.captions?.words?.length ? '↻ REGENERATE CAPTIONS' : '💬 GENERATE CAPTIONS')}
         </button>
         {reelData.captions?.words?.length ? (
-          <label className="toggle-row-v4" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-            <input
-              type="checkbox"
-              checked={!!reelData.captionsEnabled}
-              onChange={(e) => handleReelChange('captionsEnabled', e.target.checked)}
-              data-testid="reel-captions-toggle"
-            />
-            <span>Show captions on the reel</span>
-          </label>
+          <>
+            <label className="toggle-row-v4" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              <input
+                type="checkbox"
+                checked={!!reelData.captionsEnabled}
+                onChange={(e) => handleReelChange('captionsEnabled', e.target.checked)}
+                data-testid="reel-captions-toggle"
+              />
+              <span>Show captions on the reel</span>
+            </label>
+            {reelData.captionsEnabled ? (
+              <div style={{ marginTop: 8 }}>
+                <label className="ctl-label-v4" style={{ fontSize: '.8rem' }}>↕ Caption Position — {reelData.captionPos ?? 62}% (higher ↔ lower)</label>
+                <input
+                  type="range"
+                  className="range-v4"
+                  min="20"
+                  max="90"
+                  step="1"
+                  value={reelData.captionPos ?? 62}
+                  onChange={(e) => handleReelChange('captionPos', Number(e.target.value))}
+                  aria-label="Caption position"
+                  data-testid="reel-caption-pos"
+                />
+              </div>
+            ) : null}
+          </>
         ) : null}
         {capNote && (
           <div className="hint-v4" style={{ color: capNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{capNote.text}</div>

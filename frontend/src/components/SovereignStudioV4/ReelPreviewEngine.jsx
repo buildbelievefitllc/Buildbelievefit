@@ -236,7 +236,12 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
       {/* Karaoke captions — bold outlined phrase, active word in a BBF-gold box,
           synced to the voice track. Plays whenever the voice audio advances. */}
       {caption ? (
-        <div className="reel-caption-v4" data-testid="reel-caption" aria-hidden="true">
+        <div
+          className="reel-caption-v4"
+          data-testid="reel-caption"
+          aria-hidden="true"
+          style={{ top: `${reelData.captionPos ?? 62}%` }}
+        >
           {caption.chunk.map((w, i) => (
             <span key={`${i}-${w.text}`} className={`cap-word-v4${i === caption.active ? ' is-active' : ''}`}>
               {w.text}

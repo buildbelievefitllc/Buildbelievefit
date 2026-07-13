@@ -215,6 +215,14 @@ test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
       a.dispatchEvent(new Event('timeupdate'));
     });
     await expect(page.getByTestId('reel-caption').locator('.cap-word-v4.is-active')).toHaveText('life');
+
+    // Caption Position slider moves the overlay's vertical placement (so it can be
+    // dropped low to clear the subject).
+    const capTop = () => page.evaluate(() => document.querySelector('[data-testid="reel-caption"]')?.style.top || null);
+    await page.getByTestId('reel-caption-pos').fill('82');
+    await expect.poll(capTop).toBe('82%');
+    await page.getByTestId('reel-caption-pos').fill('30');
+    await expect.poll(capTop).toBe('30%');
   });
 
   test('an uploaded voiceover survives a reload (IndexedDB rehydration, offline)', async ({ page }) => {

@@ -128,6 +128,7 @@ export default function SovereignStudioV4() {
     voUploadName: null,     // filename when voUrl is a USER UPLOAD (persisted marker → rehydrate the blob from IndexedDB on reload); null for generated/vault voice
     captions: null,         // { words: [{ text, start, end }] } transcript of the voice track (ElevenLabs Scribe) → karaoke captions; cleared whenever the voice changes
     captionsEnabled: false, // render the karaoke captions overlay in the preview (and, later, the export)
+    captionPos: 62,         // caption vertical position as a % of reel height (20 = high, 90 = low); adjustable so it clears the subject/action
   }));
 
   // Debounced localStorage mirror of the three editor slices (blob fields
