@@ -158,6 +158,23 @@ export default function VibeSelector({ reelData, handleReelChange }) {
   const logoInputRef = useRef(null);
   const [voBusy, setVoBusy] = useState(false);
   const [voNote, setVoNote] = useState(null); // { ok: boolean, text: string }
+  // Uploaded-voiceover lifecycle: voBlobRef holds the object URL we minted for a
+  // user-uploaded voice file (so it can be revoked before it's replaced); voUploadName
+  // surfaces the "remove" chip only while the voice channel IS a user upload.
+  const voBlobRef = useRef(null);
+  const [voUploadName, setVoUploadName] = useState(null);
+
+  // The single writer for the voice channel (voUrl). Revokes any prior blob WE own
+  // before swapping in the next source, so repeated uploads — or switching to
+  // Generate / the Vault after an upload — never leak the previous object URL.
+  // `owned` marks a blob we minted (an upload); remote generate/vault URLs are not
+  // ours to revoke. Every voUrl write funnels through here.
+  const applyVoiceUrl = (url, { owned = false, uploadName = null } = {}) => {
+    if (voBlobRef.current && voBlobRef.current !== url) URL.revokeObjectURL(voBlobRef.current);
+    voBlobRef.current = owned ? url : null;
+    setVoUploadName(uploadName);
+    handleReelChange('voUrl', url);
+  };
   const [hookBusy, setHookBusy] = useState(false);
   const [hookNote, setHookNote] = useState(null); // { ok: boolean, text: string }
   // One-step undo for the two hook overwriters (SPIN + AUTO) — hand-tuned copy
@@ -222,7 +239,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
     if (!id) return;
     const item = sovereignVaultManifest.find((x) => x.id === id);
     if (!item) return;
-    handleReelChange('voUrl', item.url);
+    applyVoiceUrl(item.url);
     handleReelChange('voTopic', item.subjectLine);
     setVoNote({ ok: true, text: `Loaded pre-rendered “${item.subjectLine}” from the vault — $0, zero-latency.` });
   }
@@ -242,7 +259,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         vibe: reelData.vibe,
         lang: reelData.lang || 'en',
       });
-      handleReelChange('voUrl', r.url); // → ReelPreviewEngine <audio>
+      applyVoiceUrl(r.url); // → ReelPreviewEngine <audio>
       setVoNote({ ok: true, text: r.cached ? 'Loaded from vault — cache hit, $0 spend.' : 'Generated & cached to the vault.' });
     } catch (e) {
       setVoNote({ ok: false, text: humanizeVoErr(e?.message) });
@@ -560,6 +577,43 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           <div className="hint-v4">Loads a pre-rendered MP3 straight into the reel audio — no generation, no spend.</div>
         </div>
       )}
+
+      {/* ── Upload Voiceover — bring your OWN voice track onto the voice channel
+          (voUrl), the same channel Generate and the Vault feed. For when the AI
+          clone reads a line awkwardly: render it in ElevenLabs or the Sovereign
+          Studio, download the MP3, and drop it here. It drives the reel length and
+          ducks the music + clip under it, and bakes into the exported MP4 via the
+          SAME voUrl → _decodeVo path the generated voice uses. ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">⬆ Upload Voiceover (MP3 / WAV / M4A)</label>
+        <label className="upload-btn-v4" htmlFor="reel-vo-upload-input">UPLOAD VOICEOVER</label>
+        <input
+          id="reel-vo-upload-input"
+          type="file"
+          accept="audio/*"
+          data-testid="reel-vo-upload-input"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            applyVoiceUrl(url, { owned: true, uploadName: file.name });
+            setVoNote({ ok: true, text: `Loaded your voiceover “${file.name}” — it rides the voice channel; balance it with the Voice Volume slider.` });
+            e.target.value = ''; // let the same file be re-selected after a remove
+          }}
+          style={{ display: 'none' }}
+        />
+        {voUploadName && (
+          <button
+            type="button"
+            className="ph-clear-v4"
+            data-testid="reel-vo-upload-clear"
+            onClick={() => applyVoiceUrl(null, { owned: false, uploadName: null })}
+          >
+            ✕ Remove “{voUploadName}”
+          </button>
+        )}
+        <div className="hint-v4">Bring your own voice — an ElevenLabs export, a Sovereign Studio render, any MP3/WAV. Takes the voice channel (drives the reel length, ducks the music &amp; clip under it) and bakes into the export. Replaces a generated / vault voiceover.</div>
+      </div>
 
       {/* ── Custom Music upload — drops your own track into the reel audio (baked into
           the exported MP4 via the same voUrl path the voiceover uses). Accepts VIDEO

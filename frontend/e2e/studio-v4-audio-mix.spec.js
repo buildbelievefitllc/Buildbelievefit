@@ -81,4 +81,30 @@ test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
     await clip.fill('0'); // 0% fully mutes the clip's own audio
     await expect.poll(videoVol).toBe(0);
   });
+
+  test('Upload Voiceover loads a user file onto the voice channel', async ({ page }) => {
+    await page.goto(`${HARNESS}?c=studio-v4`);
+    await expect(page.getByTestId('harness-root')).toBeVisible();
+    await page.getByRole('tab', { name: /VIDEO ENGINE/i }).click();
+
+    // No voice element until a source is chosen (generate / vault / upload).
+    const voiceEl = () => page.locator('audio[data-testid="reel-audio-voice"]');
+    await expect(voiceEl()).toHaveCount(0);
+
+    // Upload an ElevenLabs/Sovereign-style MP3 → it mounts on the VOICE channel
+    // and the voice-volume binding (default 100%) applies to it.
+    await page.getByTestId('reel-vo-upload-input').setInputFiles({
+      name: 'elevenlabs-vo.wav', mimeType: 'audio/wav', buffer: silentWav(1000),
+    });
+    await expect(voiceEl()).toHaveCount(1);
+    const src = await voiceEl().getAttribute('src');
+    expect(src).toMatch(/^blob:/); // a user-owned object URL, not a remote vault URL
+    await expect.poll(
+      () => page.evaluate(() => document.querySelector('audio[data-testid="reel-audio-voice"]')?.volume ?? null),
+    ).toBe(1);
+
+    // The remove chip clears the voice channel (and revokes the blob).
+    await page.getByTestId('reel-vo-upload-clear').click();
+    await expect(voiceEl()).toHaveCount(0);
+  });
 });
