@@ -95,6 +95,57 @@
 .lg-msg.is-error { color: var(--red); }
 .lg-msg.is-info { color: var(--gold-soft); }
 
+/* Forgot-PIN link + self-service panel — same lg-card / lg-input / lg-btn
+   primitives as the sign-in form, so it never introduces a second visual system. */
+.lg-forgot-link {
+  display: block;
+  margin-top: .5rem;
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--bd);
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--mut);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.lg-forgot-link:hover:not(:disabled) { color: var(--gold-soft); }
+.lg-forgot-link:disabled { cursor: not-allowed; opacity: .55; }
+
+.lg-forgot-card { margin-top: 1rem; }
+.lg-forgot-title {
+  font-family: var(--hb);
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  color: var(--wht);
+  margin-bottom: .4rem;
+}
+.lg-forgot-sub {
+  font-family: var(--bd);
+  font-size: .85rem;
+  color: var(--mut);
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+.lg-forgot-cancel {
+  display: block;
+  width: 100%;
+  margin-top: .7rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--bd);
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--mut);
+  text-align: center;
+}
+.lg-forgot-cancel:hover:not(:disabled) { color: var(--wht); }
+.lg-forgot-cancel:disabled { cursor: not-allowed; opacity: .55; }
+
 /* Native-only auth extras (Apple Sign-In infra + the anti-steering guardrail
    directive) — never rendered on the web build. */
 .lg-divider {

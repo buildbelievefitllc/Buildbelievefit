@@ -25,7 +25,7 @@ const NATIVE = isNativePlatform();
 
 export default function Login() {
   const { signInWithPin, bridgeSupabaseSession, user, loading } = useAuth();
-  const { setLang } = useLang();
+  const { lang, setLang } = useLang();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
@@ -35,6 +35,16 @@ export default function Login() {
   const [lockRemaining, setLockRemaining] = useState(0);
   const [appleBusy, setAppleBusy] = useState(false);
   const lockTimer = useRef(null);
+
+  // Forgot-PIN panel — collapsed by default; opened from the link under the
+  // form. Self-service only: the backend (bbf-forgot-pin) verifies uid+email
+  // match an active account before reissuing anything, and always replies with
+  // the same generic message so this UI can never reveal whether an account
+  // or email exists.
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotBusy, setForgotBusy] = useState(false);
+  const [forgotMsg, setForgotMsg] = useState(null);
 
   useEffect(() => () => clearInterval(lockTimer.current), []);
 
@@ -133,6 +143,41 @@ export default function Login() {
     setMsg({ kind: 'error', text: result.message || 'Incorrect username or PIN.' });
   }
 
+  function openForgot() {
+    setForgotMsg(null);
+    setForgotEmail('');
+    setForgotOpen(true);
+  }
+
+  async function handleForgotSubmit(e) {
+    e.preventDefault();
+    if (forgotBusy) return;
+
+    const u = username.trim();
+    const em = forgotEmail.trim();
+    if (!u || !em) {
+      setForgotMsg({ kind: 'error', text: 'Enter your username above, then your email here.' });
+      return;
+    }
+
+    setForgotBusy(true);
+    setForgotMsg({ kind: 'info', text: 'Checking…' });
+
+    const { data, error } = await supabase.functions.invoke('bbf-forgot-pin', {
+      body: { username: u, email: em, locale: lang },
+    });
+
+    setForgotBusy(false);
+
+    if (error || !data?.ok) {
+      // 429 (rate_limited) also lands here — same wording either way so the
+      // response never hints at whether the account/email matched.
+      setForgotMsg({ kind: 'error', text: 'Too many attempts. Try again later, or ask your coach.' });
+      return;
+    }
+    setForgotMsg({ kind: 'info', text: data.message || "If that account exists, we've sent a new PIN to the email on file." });
+  }
+
   // While resolving an existing session (or redirecting an authed user away),
   // show a minimal boot state instead of flashing the sign-in form. Also covers
   // the Apple Sign-In return leg while it bridges the GoTrue session.
@@ -195,6 +240,17 @@ export default function Login() {
             disabled={disabled}
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
           />
+          {!forgotOpen ? (
+            <button
+              type="button"
+              className="lg-forgot-link"
+              disabled={busy}
+              onClick={openForgot}
+              data-testid="forgot-pin-link"
+            >
+              Forgot PIN?
+            </button>
+          ) : null}
         </div>
 
         <button className="lg-btn" type="submit" disabled={disabled}>
@@ -230,6 +286,46 @@ export default function Login() {
           {lockText || msg?.text || ''}
         </div>
       </form>
+
+      {forgotOpen ? (
+        <form className="lg-card lg-forgot-card" onSubmit={handleForgotSubmit} noValidate>
+          <div className="lg-forgot-title">Reset your PIN</div>
+          <div className="lg-forgot-sub">
+            Enter the email on file for <b>{username.trim() || 'your username'}</b> and we'll send a new PIN.
+          </div>
+          <div className="lg-field">
+            <label className="lg-label" htmlFor="bbf-forgot-email">Email on file</label>
+            <input
+              id="bbf-forgot-email"
+              className="lg-input"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={forgotEmail}
+              disabled={forgotBusy}
+              onChange={(e) => setForgotEmail(e.target.value)}
+            />
+          </div>
+          <button className="lg-btn" type="submit" disabled={forgotBusy}>
+            {forgotBusy ? (<><span className="lg-spinner" aria-hidden="true" /> Sending…</>) : 'Send New PIN'}
+          </button>
+          <button
+            type="button"
+            className="lg-forgot-cancel"
+            disabled={forgotBusy}
+            onClick={() => setForgotOpen(false)}
+          >
+            Cancel
+          </button>
+          <div
+            className={`lg-msg ${forgotMsg?.kind === 'error' ? 'is-error' : 'is-info'}`}
+            role="status"
+            aria-live="polite"
+          >
+            {forgotMsg?.text || ''}
+          </div>
+        </form>
+      ) : null}
 
       {NATIVE ? (
         // Apple anti-steering guardrail (guideline 3.1.3): pure text, no link/tap
