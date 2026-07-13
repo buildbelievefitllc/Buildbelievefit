@@ -171,6 +171,8 @@ export default function VibeSelector({ reelData, handleReelChange }) {
   // reload rehydration below.
   const voBlobRef = useRef(null);
   const voUploadName = reelData.voUploadName || null;
+  const [voUploading, setVoUploading] = useState(false); // cloud sync of an uploaded voice in flight
+  const uploadSeqRef = useRef(0); // guards a stale upload completion from clobbering a newer pick
 
   // The single writer for the voice channel (voUrl). Revokes any prior blob WE own
   // before swapping in the next source, so repeated uploads — or switching to
@@ -618,23 +620,43 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           SAME voUrl → _decodeVo path the generated voice uses. ── */}
       <div className="ctl-group-v4">
         <label className="ctl-label-v4">⬆ Upload Voiceover (MP3 / WAV / M4A)</label>
-        <label className="upload-btn-v4" htmlFor="reel-vo-upload-input">UPLOAD VOICEOVER</label>
+        <label className="upload-btn-v4" htmlFor="reel-vo-upload-input">{voUploading ? '☁ SYNCING…' : 'UPLOAD VOICEOVER'}</label>
         <input
           id="reel-vo-upload-input"
           type="file"
           accept="audio/*"
           data-testid="reel-vo-upload-input"
-          onChange={(e) => {
+          onChange={async (e) => {
             const file = e.target.files?.[0];
-            if (!file) return;
-            // Stash the bytes in IndexedDB (durable across reloads) BEFORE minting the
-            // session blob URL — best-effort: if the store is unavailable the upload
-            // still works for this session, it just won't survive a reload.
-            putAsset(VO_ASSET_KEY, file, { name: file.name }).catch(() => {});
-            const url = URL.createObjectURL(file);
-            applyVoiceUrl(url, { owned: true, uploadName: file.name });
-            setVoNote({ ok: true, text: `Loaded your voiceover “${file.name}” — it rides the voice channel; balance it with the Voice Volume slider. Saved for this device — it survives a reload.` });
             e.target.value = ''; // let the same file be re-selected after a remove
+            if (!file) return;
+            const seq = ++uploadSeqRef.current;
+            // 1) Instant local preview + same-device fallback stash (IndexedDB), so the
+            //    voice plays immediately and survives a reload even if the cloud is slow
+            //    or offline.
+            putAsset(VO_ASSET_KEY, file, { name: file.name }).catch(() => {});
+            applyVoiceUrl(URL.createObjectURL(file), { owned: true, uploadName: file.name });
+            setVoUploading(true);
+            setVoNote({ ok: true, text: `Loaded “${file.name}” — syncing to the cloud so it follows you across devices…` });
+            // 2) Push to Supabase Storage (studioApi imported lazily so this component
+            //    still mounts in the supabase-less verification harness).
+            try {
+              const { uploadVoiceover } = await import('../../lib/studioApi.js');
+              const { publicUrl } = await uploadVoiceover(file);
+              if (seq !== uploadSeqRef.current) return; // a newer pick superseded this upload
+              // Swap the session blob for the DURABLE cross-device URL; the local
+              // IndexedDB fallback is now redundant (the cloud copy is authoritative).
+              applyVoiceUrl(publicUrl, { owned: false, uploadName: file.name });
+              deleteAsset(VO_ASSET_KEY).catch(() => {});
+              setVoNote({ ok: true, text: `Saved “${file.name}” to the cloud — it now follows you on any device. Balance it with the Voice Volume slider.` });
+            } catch (err) {
+              if (seq !== uploadSeqRef.current) return;
+              // Cloud sync failed — keep the session blob + IndexedDB so it still works
+              // (and survives a reload) on THIS device, and say so plainly.
+              setVoNote({ ok: false, text: `“${file.name}” is loaded on THIS device — cloud sync failed (${humanizeVoErr(err?.message)}). It survives a reload here, but won't cross to other devices until you re-upload with a connection.` });
+            } finally {
+              if (seq === uploadSeqRef.current) setVoUploading(false);
+            }
           }}
           style={{ display: 'none' }}
         />
@@ -648,7 +670,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
             ✕ Remove “{voUploadName}”
           </button>
         )}
-        <div className="hint-v4">Bring your own voice — an ElevenLabs export, a Sovereign Studio render, any MP3/WAV. Takes the voice channel (drives the reel length, ducks the music &amp; clip under it) and bakes into the export. Replaces a generated / vault voiceover.</div>
+        <div className="hint-v4">Bring your own voice — an ElevenLabs export, a Sovereign Studio render, any MP3/WAV. It syncs to the cloud so it follows you on any device (laptop, phone), takes the voice channel (drives the reel length, ducks the music &amp; clip under it), and bakes into the export. Replaces a generated / vault voiceover.</div>
       </div>
 
       {/* ── Custom Music upload — drops your own track into the reel audio (baked into

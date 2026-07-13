@@ -142,3 +142,48 @@ export async function fetchStudioVibes() {
   if (!res.ok) throw new Error(`vibes_failed_${res.status}`);
   return res.json();
 }
+
+// CROSS-DEVICE VOICEOVER UPLOAD. Pushes a user-provided voice file (an ElevenLabs
+// / Sovereign Studio render) into the PUBLIC studio-audio-vault bucket and returns
+// its durable public URL — so an uploaded voice rides the reel's voUrl on ANY
+// device, exactly like a generated voice, instead of a device-local blob. Two
+// steps: (1) the admin-gated bbf-studio-asset-upload fn mints a one-shot signed
+// upload URL, (2) the browser PUTs the bytes straight to Storage. Returns
+// { publicUrl, path }; throws a display-ready Error on failure so the caller can
+// fall back to a session-local blob.
+export async function uploadVoiceover(file) {
+  if (!file) throw new Error('no_file');
+  const token = getStoredVaultToken();
+  const contentType = file.type || 'audio/mpeg';
+
+  // 1) sign — server generates the path + a one-shot signed upload URL
+  const signRes = await fetch(`${FUNCTIONS_BASE}/bbf-studio-asset-upload`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      ...(token ? { 'x-bbf-vault-token': token } : {}),
+    },
+    body: JSON.stringify({ action: 'upload_voiceover', content_type: contentType, vault_token: token }),
+  });
+  const sj = await signRes.json().catch(() => null);
+  if (!signRes.ok || !sj?.ok || !sj?.uploadUrl || !sj?.publicUrl) {
+    throw new Error((sj && (sj.error || sj.detail)) || `sign_failed_${signRes.status}`);
+  }
+
+  // 2) PUT the bytes to the signed URL (direct to Storage, no base64 inflation)
+  const putRes = await fetch(sj.uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': contentType,
+      'x-upsert': 'true',
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    body: file,
+  });
+  if (!putRes.ok) throw new Error(`upload_${putRes.status}`);
+
+  return { publicUrl: sj.publicUrl, path: sj.path || null };
+}

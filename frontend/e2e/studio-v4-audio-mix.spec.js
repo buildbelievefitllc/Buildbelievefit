@@ -16,6 +16,30 @@ const HARNESS = '/e2e/harness/index.html';
 // never needs the footage to actually decode, so any buffer stands in for footage.
 const FAKE_MP4 = Buffer.from('00000020667479706d70343200000000', 'hex');
 
+// Cross-device voiceover upload mocks. The client signs an upload slot at the
+// asset-upload fn, then PUTs the bytes to the returned URL and adopts the durable
+// public URL as voUrl. These stand in for real Supabase Storage.
+const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST, PUT, OPTIONS' };
+const CLOUD_PUT_URL = 'https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/upload/sign/studio-audio-vault/user-uploads/mock-vo.wav?token=stub';
+const CLOUD_PUBLIC_URL = 'https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/user-uploads/mock-vo.wav';
+
+// Mock the sign endpoint (+ the signed PUT when ok). ok:false → the client falls
+// back to a session-local blob + IndexedDB (the offline path), deterministically
+// and WITHOUT hitting the real function.
+async function mockAssetUpload(page, { ok = true } = {}) {
+  await page.route('**/functions/v1/bbf-studio-asset-upload', async (route) => {
+    if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 200, headers: CORS }); return; }
+    if (!ok) { await route.fulfill({ status: 401, contentType: 'application/json', headers: CORS, body: JSON.stringify({ error: 'not_admin' }) }); return; }
+    await route.fulfill({
+      status: 200, contentType: 'application/json', headers: CORS,
+      body: JSON.stringify({ ok: true, uploadUrl: CLOUD_PUT_URL, publicUrl: CLOUD_PUBLIC_URL, path: 'user-uploads/mock-vo.wav' }),
+    });
+  });
+  if (ok) {
+    await page.route(CLOUD_PUT_URL, (route) => route.fulfill({ status: 200, headers: CORS }));
+  }
+}
+
 test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
   test('two sliders drive two separate gain values', async ({ page }) => {
     // The pre-rendered vault entries point at studio-audio-vault — serve a real clip.
@@ -82,7 +106,8 @@ test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
     await expect.poll(videoVol).toBe(0);
   });
 
-  test('Upload Voiceover loads a user file onto the voice channel', async ({ page }) => {
+  test('Upload Voiceover loads a user file onto the voice channel (offline fallback)', async ({ page }) => {
+    await mockAssetUpload(page, { ok: false }); // cloud sign fails → local blob fallback
     await page.goto(`${HARNESS}?c=studio-v4`);
     await expect(page.getByTestId('harness-root')).toBeVisible();
     await page.getByRole('tab', { name: /VIDEO ENGINE/i }).click();
@@ -91,14 +116,15 @@ test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
     const voiceEl = () => page.locator('audio[data-testid="reel-audio-voice"]');
     await expect(voiceEl()).toHaveCount(0);
 
-    // Upload an ElevenLabs/Sovereign-style MP3 → it mounts on the VOICE channel
-    // and the voice-volume binding (default 100%) applies to it.
+    // Upload an ElevenLabs/Sovereign-style file → it mounts on the VOICE channel
+    // immediately (instant blob preview) and the voice-volume binding applies.
     await page.getByTestId('reel-vo-upload-input').setInputFiles({
       name: 'elevenlabs-vo.wav', mimeType: 'audio/wav', buffer: silentWav(1000),
     });
     await expect(voiceEl()).toHaveCount(1);
-    const src = await voiceEl().getAttribute('src');
-    expect(src).toMatch(/^blob:/); // a user-owned object URL, not a remote vault URL
+    // Cloud sync failed → it stays the local blob (not a remote URL).
+    await expect.poll(() => page.evaluate(() => document.querySelector('audio[data-testid="reel-audio-voice"]')?.getAttribute('src') || null))
+      .toMatch(/^blob:/);
     await expect.poll(
       () => page.evaluate(() => document.querySelector('audio[data-testid="reel-audio-voice"]')?.volume ?? null),
     ).toBe(1);
@@ -108,7 +134,27 @@ test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
     await expect(voiceEl()).toHaveCount(0);
   });
 
-  test('an uploaded voiceover survives a reload (IndexedDB rehydration)', async ({ page }) => {
+  test('Upload Voiceover syncs to the cloud → voUrl becomes a durable cross-device URL', async ({ page }) => {
+    await mockAssetUpload(page, { ok: true });
+    await page.goto(`${HARNESS}?c=studio-v4`);
+    await expect(page.getByTestId('harness-root')).toBeVisible();
+    await page.getByRole('tab', { name: /VIDEO ENGINE/i }).click();
+
+    await page.getByTestId('reel-vo-upload-input').setInputFiles({
+      name: 'elevenlabs-vo.wav', mimeType: 'audio/wav', buffer: silentWav(1000),
+    });
+
+    // Instant local preview, THEN the src swaps to the durable public URL once the
+    // (mocked) cloud upload completes — that https URL is what follows the user
+    // across devices, exactly like a generated voice.
+    const voice = page.locator('audio[data-testid="reel-audio-voice"]');
+    await expect(voice).toHaveCount(1);
+    await expect.poll(() => page.evaluate(() => document.querySelector('audio[data-testid="reel-audio-voice"]')?.getAttribute('src') || null))
+      .toBe(CLOUD_PUBLIC_URL);
+  });
+
+  test('an uploaded voiceover survives a reload (IndexedDB rehydration, offline)', async ({ page }) => {
+    await mockAssetUpload(page, { ok: false }); // no cloud → the on-device IndexedDB path
     await page.goto(`${HARNESS}?c=studio-v4`);
     await expect(page.getByTestId('harness-root')).toBeVisible();
     await page.getByRole('tab', { name: /VIDEO ENGINE/i }).click();
