@@ -19,6 +19,8 @@ import { homePathForUser } from '../lib/sportsRoster.js';
 import { supabase } from '../lib/supabaseClient.js';
 import { isNativePlatform } from '../native/platform.js';
 import { GuideLauncher } from '../components/BbfMediaPortal.jsx';
+import { recoveryChallenge, recoveryReset } from '../lib/recoveryApi.js';
+import { questionLabel } from '../lib/securityQuestions.js';
 import './login.css';
 
 const NATIVE = isNativePlatform();
@@ -36,12 +38,19 @@ export default function Login() {
   const [appleBusy, setAppleBusy] = useState(false);
   const lockTimer = useRef(null);
 
-  // Forgot-PIN panel — collapsed by default; opened from the link under the
-  // form. Self-service only: the backend (bbf-forgot-pin) verifies uid+email
-  // match an active account before reissuing anything, and always replies with
-  // the same generic message so this UI can never reveal whether an account
-  // or email exists.
+  // Forgot-PIN panel — collapsed by default; opened from the link under the form.
+  // PRIMARY path = security questions (bbf_pin_recovery_*): the client answers the
+  // question they set at first login and picks a new PIN, no email needed. The
+  // challenge is decoy-safe and the reset is generic + rate-limited server-side,
+  // so this UI never reveals whether an account/answer matched. SECONDARY path =
+  // email reissue (bbf-forgot-pin), kept for accounts that never set questions
+  // (e.g. the hardwired Founder Five). Both replies are deliberately generic.
   const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotMode, setForgotMode] = useState('questions'); // 'questions' | 'email'
+  const [forgotStep, setForgotStep] = useState('ask');       // 'ask' | 'answer' | 'done'
+  const [forgotQuestionKey, setForgotQuestionKey] = useState(null);
+  const [forgotAnswer, setForgotAnswer] = useState('');
+  const [forgotNewPin, setForgotNewPin] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotBusy, setForgotBusy] = useState(false);
   const [forgotMsg, setForgotMsg] = useState(null);
@@ -145,33 +154,94 @@ export default function Login() {
 
   function openForgot() {
     setForgotMsg(null);
+    setForgotMode('questions');
+    setForgotStep('ask');
+    setForgotQuestionKey(null);
+    setForgotAnswer('');
+    setForgotNewPin('');
     setForgotEmail('');
     setForgotOpen(true);
   }
 
-  async function handleForgotSubmit(e) {
+  function closeForgot() {
+    setForgotOpen(false);
+  }
+
+  // Step 1 of the security-question path: fetch the challenge question for the
+  // username in the main field. Decoy-safe server-side — a real or unknown
+  // account both return a question, so advancing reveals nothing.
+  async function handleForgotChallenge(e) {
     e.preventDefault();
     if (forgotBusy) return;
+    const u = username.trim();
+    if (!u) {
+      setForgotMsg({ kind: 'error', text: 'Enter your username above first.' });
+      return;
+    }
+    setForgotBusy(true);
+    setForgotMsg({ kind: 'info', text: 'Loading your security question…' });
+    const res = await recoveryChallenge(u);
+    setForgotBusy(false);
+    if (!res.ok) {
+      if (res.locked) {
+        setForgotMsg({ kind: 'error', text: 'Too many attempts. Try again later, or use email / your coach.' });
+      } else {
+        setForgotMsg({ kind: 'error', text: 'Could not start recovery. Try again, or use email instead.' });
+      }
+      return;
+    }
+    setForgotQuestionKey(res.questionKey);
+    setForgotStep('answer');
+    setForgotMsg(null);
+  }
 
+  // Step 2: verify the answer and set the new PIN. Generic on failure so a wrong
+  // answer and a nonexistent account are indistinguishable.
+  async function handleForgotReset(e) {
+    e.preventDefault();
+    if (forgotBusy) return;
+    const u = username.trim();
+    const ans = forgotAnswer.trim();
+    const pin = forgotNewPin.trim();
+    if (!ans) { setForgotMsg({ kind: 'error', text: 'Enter your answer.' }); return; }
+    if (!/^\d{6}$/.test(pin)) { setForgotMsg({ kind: 'error', text: 'Choose a new 6-digit PIN.' }); return; }
+
+    setForgotBusy(true);
+    setForgotMsg({ kind: 'info', text: 'Verifying…' });
+    const res = await recoveryReset(u, ans, pin);
+    setForgotBusy(false);
+
+    if (res.ok) {
+      setForgotStep('done');
+      setForgotMsg({ kind: 'info', text: 'PIN reset. Sign in with your new PIN.' });
+      setPin('');
+      return;
+    }
+    if (res.locked) {
+      setForgotMsg({ kind: 'error', text: 'Too many attempts. Try again later, or use email / your coach.' });
+    } else {
+      setForgotMsg({ kind: 'error', text: "That answer didn't match. Try again, or use email instead." });
+    }
+  }
+
+  // Secondary path: email reissue via bbf-forgot-pin (for accounts with no
+  // security questions set). Generic reply — never reveals account/email match.
+  async function handleForgotEmail(e) {
+    e.preventDefault();
+    if (forgotBusy) return;
     const u = username.trim();
     const em = forgotEmail.trim();
     if (!u || !em) {
       setForgotMsg({ kind: 'error', text: 'Enter your username above, then your email here.' });
       return;
     }
-
     setForgotBusy(true);
     setForgotMsg({ kind: 'info', text: 'Checking…' });
-
     const { data, error } = await supabase.functions.invoke('bbf-forgot-pin', {
       body: { username: u, email: em, locale: lang },
     });
-
     setForgotBusy(false);
-
     if (error || !data?.ok) {
-      // 429 (rate_limited) also lands here — same wording either way so the
-      // response never hints at whether the account/email matched.
       setForgotMsg({ kind: 'error', text: 'Too many attempts. Try again later, or ask your coach.' });
       return;
     }
@@ -288,35 +358,114 @@ export default function Login() {
       </form>
 
       {forgotOpen ? (
-        <form className="lg-card lg-forgot-card" onSubmit={handleForgotSubmit} noValidate>
+        <div className="lg-card lg-forgot-card">
           <div className="lg-forgot-title">Reset your PIN</div>
-          <div className="lg-forgot-sub">
-            Enter the email on file for <b>{username.trim() || 'your username'}</b> and we'll send a new PIN.
-          </div>
-          <div className="lg-field">
-            <label className="lg-label" htmlFor="bbf-forgot-email">Email on file</label>
-            <input
-              id="bbf-forgot-email"
-              className="lg-input"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              value={forgotEmail}
-              disabled={forgotBusy}
-              onChange={(e) => setForgotEmail(e.target.value)}
-            />
-          </div>
-          <button className="lg-btn" type="submit" disabled={forgotBusy}>
-            {forgotBusy ? (<><span className="lg-spinner" aria-hidden="true" /> Sending…</>) : 'Send New PIN'}
-          </button>
-          <button
-            type="button"
-            className="lg-forgot-cancel"
-            disabled={forgotBusy}
-            onClick={() => setForgotOpen(false)}
-          >
-            Cancel
-          </button>
+
+          {/* ── Security-question path (primary) ─────────────────────────────── */}
+          {forgotMode === 'questions' && forgotStep === 'ask' ? (
+            <form onSubmit={handleForgotChallenge} noValidate>
+              <div className="lg-forgot-sub">
+                Answer the security question you set up for <b>{username.trim() || 'your username'}</b>.
+                {username.trim() ? '' : ' Enter your username above first.'}
+              </div>
+              <button className="lg-btn" type="submit" disabled={forgotBusy}>
+                {forgotBusy ? (<><span className="lg-spinner" aria-hidden="true" /> Loading…</>) : 'Continue'}
+              </button>
+              <button
+                type="button"
+                className="lg-forgot-alt"
+                disabled={forgotBusy}
+                onClick={() => { setForgotMode('email'); setForgotMsg(null); }}
+              >
+                No security questions? Reset by email
+              </button>
+              <button type="button" className="lg-forgot-cancel" disabled={forgotBusy} onClick={closeForgot}>
+                Cancel
+              </button>
+            </form>
+          ) : null}
+
+          {forgotMode === 'questions' && forgotStep === 'answer' ? (
+            <form onSubmit={handleForgotReset} noValidate>
+              <div className="lg-field">
+                <label className="lg-label">{questionLabel(forgotQuestionKey, lang)}</label>
+                <input
+                  className="lg-input"
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Your answer"
+                  value={forgotAnswer}
+                  disabled={forgotBusy}
+                  onChange={(e) => setForgotAnswer(e.target.value)}
+                />
+              </div>
+              <div className="lg-field">
+                <label className="lg-label" htmlFor="bbf-forgot-newpin">New 6-digit PIN</label>
+                <input
+                  id="bbf-forgot-newpin"
+                  className="lg-input"
+                  type="password"
+                  inputMode="numeric"
+                  autoComplete="new-password"
+                  maxLength={6}
+                  placeholder="new PIN"
+                  value={forgotNewPin}
+                  disabled={forgotBusy}
+                  onChange={(e) => setForgotNewPin(e.target.value.replace(/\D/g, ''))}
+                />
+              </div>
+              <button className="lg-btn" type="submit" disabled={forgotBusy}>
+                {forgotBusy ? (<><span className="lg-spinner" aria-hidden="true" /> Verifying…</>) : 'Reset PIN'}
+              </button>
+              <button type="button" className="lg-forgot-cancel" disabled={forgotBusy} onClick={closeForgot}>
+                Cancel
+              </button>
+            </form>
+          ) : null}
+
+          {forgotStep === 'done' ? (
+            <div>
+              <div className="lg-forgot-sub">Your PIN has been reset. Enter your new PIN above to sign in.</div>
+              <button type="button" className="lg-btn" onClick={closeForgot}>Done</button>
+            </div>
+          ) : null}
+
+          {/* ── Email path (secondary fallback) ──────────────────────────────── */}
+          {forgotMode === 'email' ? (
+            <form onSubmit={handleForgotEmail} noValidate>
+              <div className="lg-forgot-sub">
+                Enter the email on file for <b>{username.trim() || 'your username'}</b> and we'll send a new PIN.
+              </div>
+              <div className="lg-field">
+                <label className="lg-label" htmlFor="bbf-forgot-email">Email on file</label>
+                <input
+                  id="bbf-forgot-email"
+                  className="lg-input"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={forgotEmail}
+                  disabled={forgotBusy}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                />
+              </div>
+              <button className="lg-btn" type="submit" disabled={forgotBusy}>
+                {forgotBusy ? (<><span className="lg-spinner" aria-hidden="true" /> Sending…</>) : 'Send New PIN'}
+              </button>
+              <button
+                type="button"
+                className="lg-forgot-alt"
+                disabled={forgotBusy}
+                onClick={() => { setForgotMode('questions'); setForgotStep('ask'); setForgotMsg(null); }}
+              >
+                Use a security question instead
+              </button>
+              <button type="button" className="lg-forgot-cancel" disabled={forgotBusy} onClick={closeForgot}>
+                Cancel
+              </button>
+            </form>
+          ) : null}
+
           <div
             className={`lg-msg ${forgotMsg?.kind === 'error' ? 'is-error' : 'is-info'}`}
             role="status"
@@ -324,7 +473,7 @@ export default function Login() {
           >
             {forgotMsg?.text || ''}
           </div>
-        </form>
+        </div>
       ) : null}
 
       {NATIVE ? (

@@ -51,6 +51,7 @@ import ProvisionGate from '../components/vault/ProvisionGate.jsx';
 import TierGate from '../components/TierGate.jsx';
 import ComlinkFAB from '../components/vault/ComlinkFAB.jsx';
 import Concierge from '../components/vault/Concierge.jsx';
+import RecoveryQuestionsGate from '../components/vault/RecoveryQuestionsGate.jsx';
 import CalibrationGate from '../components/vault/CalibrationGate.jsx';
 import CalibrationMilestones from '../components/vault/CalibrationMilestones.jsx';
 import { TAB_FEATURE } from '../lib/entitlements.js';
@@ -301,6 +302,10 @@ export default function ClientVault() {
       {/* Self-Serve Concierge — first-login welcome that lists EXACTLY the band's
           unlocked tools (server-enforced, no mirages). Self-gates + fires once. */}
       <Concierge />
+      {/* Knowledge-based PIN recovery — first-login prompt for Pathfinder clients
+          to set two security questions (self-gates on role + server status; fires
+          once per login until set). Powers the Login "Forgot PIN?" recovery gate. */}
+      <RecoveryQuestionsGate />
       {/* 30-Day Calibration — one-time Day-15 toast + Day-30 graduation overlay.
           Shell-level so it overlays any tab; self-gates + fires once per athlete. */}
       <CalibrationMilestones />

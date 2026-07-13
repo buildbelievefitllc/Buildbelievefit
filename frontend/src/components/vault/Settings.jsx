@@ -21,6 +21,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
+import RecoveryQuestionsCard from './RecoveryQuestionsCard.jsx';
 import './vault.css';
 
 const LANG_LABELS = { en: 'English', es: 'Español', pt: 'Português' };
@@ -152,6 +153,9 @@ export default function Settings() {
               <span className="pg-set-v">{role}</span>
             </div>
           </div>
+          {/* Self-service PIN recovery — set/update the two security questions
+              that power the Login "Forgot PIN?" gate. */}
+          <RecoveryQuestionsCard />
         </>
       )}
 

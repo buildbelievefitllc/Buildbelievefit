@@ -146,6 +146,24 @@
 .lg-forgot-cancel:hover:not(:disabled) { color: var(--wht); }
 .lg-forgot-cancel:disabled { cursor: not-allowed; opacity: .55; }
 
+.lg-forgot-alt {
+  display: block;
+  width: 100%;
+  margin-top: .8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--bd);
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--gold-soft);
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.lg-forgot-alt:hover:not(:disabled) { color: var(--yel); }
+.lg-forgot-alt:disabled { cursor: not-allowed; opacity: .55; }
+
 /* Native-only auth extras (Apple Sign-In infra + the anti-steering guardrail
    directive) — never rendered on the web build. */
 .lg-divider {
