@@ -173,6 +173,30 @@ export default function VibeSelector({ reelData, handleReelChange }) {
   const voUploadName = reelData.voUploadName || null;
   const [voUploading, setVoUploading] = useState(false); // cloud sync of an uploaded voice in flight
   const uploadSeqRef = useRef(0); // guards a stale upload completion from clobbering a newer pick
+  const [capBusy, setCapBusy] = useState(false); // caption transcription in flight
+  const [capNote, setCapNote] = useState(null); // { ok, text }
+
+  // Transcribe the current voice track into word-by-word timing for karaoke
+  // captions. Works for a generated/vault voice OR a user upload — the client
+  // fetches whatever voUrl points at and ships the bytes to bbf-studio-transcribe.
+  async function handleGenerateCaptions() {
+    if (capBusy) return;
+    if (!reelData.voUrl) { setCapNote({ ok: false, text: 'Add or generate a voiceover first — captions transcribe the voice track.' }); return; }
+    setCapBusy(true);
+    setCapNote(null);
+    try {
+      const { transcribeCaptions } = await import('../../lib/studioApi.js');
+      const { words } = await transcribeCaptions(reelData.voUrl, { lang: reelData.lang || undefined });
+      if (!words.length) { setCapNote({ ok: false, text: 'No speech was detected in that track.' }); return; }
+      handleReelChange('captions', { words });
+      handleReelChange('captionsEnabled', true);
+      setCapNote({ ok: true, text: `Captions ready — ${words.length} words timed to the voice. Toggle them below.` });
+    } catch (e) {
+      setCapNote({ ok: false, text: `Caption generation failed (${humanizeVoErr(e?.message)}).` });
+    } finally {
+      setCapBusy(false);
+    }
+  }
 
   // The single writer for the voice channel (voUrl). Revokes any prior blob WE own
   // before swapping in the next source, so repeated uploads — or switching to
@@ -182,11 +206,15 @@ export default function VibeSelector({ reelData, handleReelChange }) {
   // (the bytes are already stored). Switching AWAY from an upload (uploadName null)
   // drops the stored bytes so a stale voiceover can't rehydrate later. Every voUrl
   // write funnels through here.
-  const applyVoiceUrl = (url, { owned = false, uploadName = null } = {}) => {
+  const applyVoiceUrl = (url, { owned = false, uploadName = null, preserveCaptions = false } = {}) => {
     if (voBlobRef.current && voBlobRef.current !== url) URL.revokeObjectURL(voBlobRef.current);
     voBlobRef.current = owned ? url : null;
     handleReelChange('voUploadName', uploadName);
     handleReelChange('voUrl', url);
+    // A genuine voice change makes any existing transcript stale → drop it so
+    // captions never lag a different take. The reload rehydrate re-applies the SAME
+    // voice, so it passes preserveCaptions to keep the persisted transcript.
+    if (!preserveCaptions) handleReelChange('captions', null);
     if (!uploadName) { deleteAsset(VO_ASSET_KEY).catch(() => {}); }
   };
 
@@ -203,7 +231,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
     getAsset(VO_ASSET_KEY).then((rec) => {
       if (cancelled || !rec?.blob) return;
       const url = URL.createObjectURL(rec.blob);
-      applyVoiceUrl(url, { owned: true, uploadName: rec.name || reelData.voUploadName });
+      applyVoiceUrl(url, { owned: true, uploadName: rec.name || reelData.voUploadName, preserveCaptions: true });
     }).catch(() => {});
     return () => { cancelled = true; };
     // Mount-once: the ref guard makes any re-run a no-op, so stable-deps churn is moot.
@@ -775,6 +803,36 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           data-testid="reel-voice-volume"
         />
         <div className="hint-v4">The voiceover channel — balance the AI voice against the music so neither overpowers.</div>
+      </div>
+
+      {/* ── CAPTIONS — transcribe the voice into word-by-word karaoke captions
+          (accessibility + reach). Works for the AI voice AND uploads. ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">💬 Live Captions — word-by-word</label>
+        <button
+          type="button"
+          className="export-btn-v4"
+          onClick={handleGenerateCaptions}
+          disabled={capBusy || !reelData.voUrl}
+          data-testid="reel-generate-captions"
+        >
+          {capBusy ? '… TRANSCRIBING' : (reelData.captions?.words?.length ? '↻ REGENERATE CAPTIONS' : '💬 GENERATE CAPTIONS')}
+        </button>
+        {reelData.captions?.words?.length ? (
+          <label className="toggle-row-v4" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <input
+              type="checkbox"
+              checked={!!reelData.captionsEnabled}
+              onChange={(e) => handleReelChange('captionsEnabled', e.target.checked)}
+              data-testid="reel-captions-toggle"
+            />
+            <span>Show captions on the reel</span>
+          </label>
+        ) : null}
+        {capNote && (
+          <div className="hint-v4" style={{ color: capNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{capNote.text}</div>
+        )}
+        <div className="hint-v4">Transcribes the voice track into on-screen captions that highlight each word as it&apos;s spoken — for the hard-of-hearing and for silent autoplay. Bakes into the export.</div>
       </div>
       </CtlSection>
 

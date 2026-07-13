@@ -55,6 +55,23 @@ function KineticHook({ text, anim }) {
   ));
 }
 
+// ── Karaoke captions — group the timed transcript into short on-screen phrases
+// and, for the current voice time `t`, return the active phrase + which word is
+// lit. Kept pure so the same logic can later drive the export baking. ──
+const CAP_CHUNK = 4; // words shown at once (matches the reference: a short 1–2 line phrase)
+function captionState(words, t) {
+  if (!Array.isArray(words) || !words.length) return null;
+  const first = words[0], last = words[words.length - 1];
+  // Nothing until the voice is about to start; clear it shortly after it ends.
+  if (t < first.start - 0.3 || t > last.end + 1) return null;
+  // The current (or most-recently-spoken) word index — stays lit through the tiny
+  // gaps between words so the highlight never flickers.
+  let idx = 0;
+  for (let i = 0; i < words.length; i++) { if (words[i].start <= t) idx = i; else break; }
+  const chunkStart = Math.floor(idx / CAP_CHUNK) * CAP_CHUNK;
+  return { chunk: words.slice(chunkStart, chunkStart + CAP_CHUNK), active: idx - chunkStart };
+}
+
 export default function ReelPreviewEngine({ reelData, stageRef }) {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -67,6 +84,7 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
   const voRef = useRef(null);
   const musicRef = useRef(null);
   const [voPlaying, setVoPlaying] = useState(false);
+  const [voTime, setVoTime] = useState(0); // voice-track playhead → drives the karaoke captions
 
   useEffect(() => {
     const video = videoRef.current;
@@ -123,18 +141,26 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
     const audio = voRef.current;
     if (!audio) return undefined;
     setVoPlaying(false);
+    setVoTime(0);
     const onPlay = () => setVoPlaying(true);
     const onPause = () => setVoPlaying(false);
-    const onEnded = () => setVoPlaying(false);
+    const onEnded = () => { setVoPlaying(false); setVoTime(0); };
+    const onTime = () => setVoTime(audio.currentTime || 0);
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
     audio.addEventListener('ended', onEnded);
+    audio.addEventListener('timeupdate', onTime);
     return () => {
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
       audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('timeupdate', onTime);
     };
   }, [reelData.voUrl]);
+
+  // Active karaoke phrase for the current voice time (null when captions are off,
+  // absent, or the voice isn't within the spoken window).
+  const caption = reelData.captionsEnabled ? captionState(reelData.captions?.words, voTime) : null;
 
   // Audio-mix sliders — THREE independent channels, each bound DIRECTLY to its own
   // element's volume property: voiceVolume → the voiceover track, musicVolume → the
@@ -206,6 +232,18 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
           </div>
         )
       )}
+
+      {/* Karaoke captions — bold outlined phrase, active word in a BBF-gold box,
+          synced to the voice track. Plays whenever the voice audio advances. */}
+      {caption ? (
+        <div className="reel-caption-v4" data-testid="reel-caption" aria-hidden="true">
+          {caption.chunk.map((w, i) => (
+            <span key={`${i}-${w.text}`} className={`cap-word-v4${i === caption.active ? ' is-active' : ''}`}>
+              {w.text}
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       <div className="reel-ov-v4" />
       <div className="reel-strip-v4" />

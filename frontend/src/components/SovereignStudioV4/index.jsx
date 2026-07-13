@@ -126,6 +126,8 @@ export default function SovereignStudioV4() {
     lang: 'en',             // payload lang (en/es/pt) — defaults EN
     voUrl: null,            // voice channel: generated/vault Supabase URL, or a re-minted blob for an uploaded voiceover → ReelPreviewEngine
     voUploadName: null,     // filename when voUrl is a USER UPLOAD (persisted marker → rehydrate the blob from IndexedDB on reload); null for generated/vault voice
+    captions: null,         // { words: [{ text, start, end }] } transcript of the voice track (ElevenLabs Scribe) → karaoke captions; cleared whenever the voice changes
+    captionsEnabled: false, // render the karaoke captions overlay in the preview (and, later, the export)
   }));
 
   // Debounced localStorage mirror of the three editor slices (blob fields

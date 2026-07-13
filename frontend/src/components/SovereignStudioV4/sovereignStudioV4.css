@@ -574,3 +574,44 @@
 @media (prefers-reduced-motion: reduce) {
   #video-preview .kin-word-v4 { animation: none !important; opacity: 1 !important; transform: none !important; }
 }
+
+/* ── Karaoke Captions ─────────────────────────────────────────────────────────
+   Word-by-word captions synced to the voice track (accessibility + silent-autoplay
+   reach). Reference style: bold white text, heavy black outline, centered, the
+   active word in a highlight box. LOCKED brand (§2): the box is BBF Gold (#f5c800),
+   not the reference's red; the face is Barlow Condensed (brand body), not a
+   substitute. Sized in the reel's true 1080-wide design space (StageScaler shrinks
+   the whole stage to fit), so the px here match the exported frame 1:1. */
+.reel-caption-v4 {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  width: 84%;
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 10px 14px;
+  text-align: center;
+  pointer-events: none;
+}
+.cap-word-v4 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 58px;
+  line-height: 1.05;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  -webkit-text-stroke: 2.5px #000;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+.cap-word-v4.is-active {
+  background: #f5c800;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(245, 200, 0, 0.4);
+}

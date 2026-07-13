@@ -187,3 +187,46 @@ export async function uploadVoiceover(file) {
 
   return { publicUrl: sj.publicUrl, path: sj.path || null };
 }
+
+// CAPTION TRANSCRIPTION. Turns the reel's voice track — generated OR uploaded —
+// into word-by-word timing for karaoke captions. Works for ANY voUrl (a remote
+// Supabase URL or a local blob:), because the browser fetches the audio bytes
+// itself and POSTs them as multipart to the admin-gated bbf-studio-transcribe fn
+// (ElevenLabs Scribe). Returns { text, words: [{ text, start, end }] }; throws a
+// display-ready Error on failure.
+export async function transcribeCaptions(audioUrl, { lang } = {}) {
+  if (!audioUrl) throw new Error('no_audio');
+  const token = getStoredVaultToken();
+
+  // Fetch the audio locally (uniform for blob: and remote URLs), then forward the
+  // bytes — never a URL the server may not be able to reach (e.g. a local blob).
+  let blob;
+  try {
+    const a = await fetch(audioUrl);
+    if (!a.ok) throw new Error(`audio_fetch_${a.status}`);
+    blob = await a.blob();
+  } catch {
+    throw new Error('audio_unreadable');
+  }
+  if (!blob || !blob.size) throw new Error('empty_audio');
+
+  const form = new FormData();
+  form.append('file', blob, 'voiceover');
+  if (token) form.append('vault_token', token);
+  if (lang) form.append('lang', lang);
+
+  const res = await fetch(`${FUNCTIONS_BASE}/bbf-studio-transcribe`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      ...(token ? { 'x-bbf-vault-token': token } : {}),
+    },
+    body: form, // multipart — do NOT set Content-Type; the browser sets the boundary
+  });
+  const j = await res.json().catch(() => null);
+  if (!res.ok || !j?.ok || !Array.isArray(j.words)) {
+    throw new Error((j && (j.error || j.detail)) || `transcribe_failed_${res.status}`);
+  }
+  return { text: String(j.text || ''), words: j.words };
+}

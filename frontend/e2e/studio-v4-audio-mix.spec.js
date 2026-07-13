@@ -40,6 +40,25 @@ async function mockAssetUpload(page, { ok = true } = {}) {
   }
 }
 
+// Mock the caption transcription (ElevenLabs Scribe proxy) → a fixed word-timed
+// transcript so the karaoke render is deterministic.
+const CAPTION_WORDS = [
+  { text: 'Bring', start: 0.0, end: 0.4 },
+  { text: 'your', start: 0.4, end: 0.7 },
+  { text: 'story', start: 0.7, end: 1.1 },
+  { text: 'to', start: 1.1, end: 1.3 },
+  { text: 'life', start: 1.3, end: 1.9 },
+];
+async function mockTranscribe(page) {
+  await page.route('**/functions/v1/bbf-studio-transcribe', async (route) => {
+    if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 200, headers: CORS }); return; }
+    await route.fulfill({
+      status: 200, contentType: 'application/json', headers: CORS,
+      body: JSON.stringify({ ok: true, text: 'Bring your story to life', words: CAPTION_WORDS }),
+    });
+  });
+}
+
 test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
   test('two sliders drive two separate gain values', async ({ page }) => {
     // The pre-rendered vault entries point at studio-audio-vault — serve a real clip.
@@ -151,6 +170,51 @@ test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
     await expect(voice).toHaveCount(1);
     await expect.poll(() => page.evaluate(() => document.querySelector('audio[data-testid="reel-audio-voice"]')?.getAttribute('src') || null))
       .toBe(CLOUD_PUBLIC_URL);
+  });
+
+  test('Generate Captions transcribes the voice → karaoke words render synced to playback', async ({ page }) => {
+    await mockAssetUpload(page, { ok: false }); // keep the voice a local blob (fetchable for STT)
+    await mockTranscribe(page);
+    await page.goto(`${HARNESS}?c=studio-v4`);
+    await expect(page.getByTestId('harness-root')).toBeVisible();
+    await page.getByRole('tab', { name: /VIDEO ENGINE/i }).click();
+
+    // Captions need a voice — the button is disabled until one exists.
+    await expect(page.getByTestId('reel-generate-captions')).toBeDisabled();
+
+    await page.getByTestId('reel-vo-upload-input').setInputFiles({
+      name: 'vo.wav', mimeType: 'audio/wav', buffer: silentWav(2000),
+    });
+    await expect(page.getByTestId('reel-generate-captions')).toBeEnabled();
+
+    // Transcribe → captions stored, the show-captions toggle appears (auto-on).
+    await page.getByTestId('reel-generate-captions').click();
+    await expect(page.getByTestId('reel-captions-toggle')).toBeChecked();
+
+    // Toggling OFF hides the overlay; ON brings it back.
+    await page.getByTestId('reel-captions-toggle').uncheck();
+    await expect(page.getByTestId('reel-caption')).toHaveCount(0);
+    await page.getByTestId('reel-captions-toggle').check();
+
+    // Drive the voice playhead into the first word → its phrase renders with the
+    // active word lit.
+    await page.evaluate(() => {
+      const a = document.querySelector('audio[data-testid="reel-audio-voice"]');
+      a.currentTime = 0.2;
+      a.dispatchEvent(new Event('timeupdate'));
+    });
+    const cap = page.getByTestId('reel-caption');
+    await expect(cap).toBeVisible();
+    await expect(cap).toContainText('Bring');
+    await expect(cap.locator('.cap-word-v4.is-active')).toHaveText('Bring');
+
+    // Advance to the last word → the highlight moves to it.
+    await page.evaluate(() => {
+      const a = document.querySelector('audio[data-testid="reel-audio-voice"]');
+      a.currentTime = 1.5;
+      a.dispatchEvent(new Event('timeupdate'));
+    });
+    await expect(page.getByTestId('reel-caption').locator('.cap-word-v4.is-active')).toHaveText('life');
   });
 
   test('an uploaded voiceover survives a reload (IndexedDB rehydration, offline)', async ({ page }) => {
