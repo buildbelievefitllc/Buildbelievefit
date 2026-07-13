@@ -124,7 +124,8 @@ export default function SovereignStudioV4() {
     vibe: 'the_architect',  // voice character → script tone + ElevenLabs physics
     targetDuration: 30,     // seconds: 15 Hook / 30 Breakdown / 60 Masterclass
     lang: 'en',             // payload lang (en/es/pt) — defaults EN
-    voUrl: null,            // returned Supabase Storage public URL → ReelPreviewEngine
+    voUrl: null,            // voice channel: generated/vault Supabase URL, or a re-minted blob for an uploaded voiceover → ReelPreviewEngine
+    voUploadName: null,     // filename when voUrl is a USER UPLOAD (persisted marker → rehydrate the blob from IndexedDB on reload); null for generated/vault voice
   }));
 
   // Debounced localStorage mirror of the three editor slices (blob fields
@@ -134,7 +135,16 @@ export default function SovereignStudioV4() {
     if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
     persistTimerRef.current = setTimeout(() => {
       try {
-        const strip = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => !NONPERSISTED_KEYS.has(k)));
+        // Drop the blob-object keys, AND null out any blob: URL string (e.g. an
+        // uploaded voiceover's voUrl) — an object URL is dead on the next reload, so
+        // persisting it would restore a broken reference. The uploaded bytes are
+        // re-hydrated from IndexedDB instead (studioAssetStore), keyed off the
+        // sibling *UploadName marker that DOES persist here.
+        const strip = (o) => Object.fromEntries(
+          Object.entries(o)
+            .filter(([k]) => !NONPERSISTED_KEYS.has(k))
+            .map(([k, v]) => [k, (typeof v === 'string' && v.startsWith('blob:')) ? null : v]),
+        );
         localStorage.setItem(EDITOR_STATE_KEY, JSON.stringify({
           cta: strip(ctaData), phone: strip(phoneData), reel: strip(reelData),
         }));

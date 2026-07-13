@@ -4,8 +4,14 @@
 // pick a topic + voice character + target duration → Generate → the Edge Function
 // returns a cached-or-fresh MP3 URL that loads into the ReelPreviewEngine.
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import ExerciseCombobox from './ExerciseCombobox';
+import { putAsset, getAsset, deleteAsset } from '../../lib/studioAssetStore.js';
+
+// Stable IndexedDB slot for the single WIP uploaded voiceover (one editor draft →
+// one voice upload), so it re-mints across reloads. Mirrors the single-slot model
+// of the localStorage editor snapshot.
+const VO_ASSET_KEY = 'reel-voiceover';
 // Lean name→category map for the 125 cached vault exercises (extracted from the
 // seed — NO script text, so the client bundle stays small). Drives the grouped
 // topic picker. The actual zero-cost URL lookup lives in studioApi.js.
@@ -159,22 +165,48 @@ export default function VibeSelector({ reelData, handleReelChange }) {
   const [voBusy, setVoBusy] = useState(false);
   const [voNote, setVoNote] = useState(null); // { ok: boolean, text: string }
   // Uploaded-voiceover lifecycle: voBlobRef holds the object URL we minted for a
-  // user-uploaded voice file (so it can be revoked before it's replaced); voUploadName
-  // surfaces the "remove" chip only while the voice channel IS a user upload.
+  // user-uploaded voice file (so it can be revoked before it's replaced). The
+  // "is this voice a user upload?" marker lives in reelData.voUploadName so it
+  // PERSISTS with the editor snapshot and drives both the remove chip and the
+  // reload rehydration below.
   const voBlobRef = useRef(null);
-  const [voUploadName, setVoUploadName] = useState(null);
+  const voUploadName = reelData.voUploadName || null;
 
   // The single writer for the voice channel (voUrl). Revokes any prior blob WE own
   // before swapping in the next source, so repeated uploads — or switching to
   // Generate / the Vault after an upload — never leak the previous object URL.
   // `owned` marks a blob we minted (an upload); remote generate/vault URLs are not
-  // ours to revoke. Every voUrl write funnels through here.
+  // ours to revoke. `persistBytes:false` skips the IndexedDB write on a rehydrate
+  // (the bytes are already stored). Switching AWAY from an upload (uploadName null)
+  // drops the stored bytes so a stale voiceover can't rehydrate later. Every voUrl
+  // write funnels through here.
   const applyVoiceUrl = (url, { owned = false, uploadName = null } = {}) => {
     if (voBlobRef.current && voBlobRef.current !== url) URL.revokeObjectURL(voBlobRef.current);
     voBlobRef.current = owned ? url : null;
-    setVoUploadName(uploadName);
+    handleReelChange('voUploadName', uploadName);
     handleReelChange('voUrl', url);
+    if (!uploadName) { deleteAsset(VO_ASSET_KEY).catch(() => {}); }
   };
+
+  // Reload rehydration (runs once): a prior session uploaded a voiceover — its
+  // marker persisted in reelData.voUploadName, but the blob: URL died with that
+  // session (and the snapshot nulled it). Re-mint a fresh object URL from the bytes
+  // stashed in IndexedDB so the upload survives the reload / reclaimed PWA tab.
+  const rehydratedRef = useRef(false);
+  useEffect(() => {
+    if (rehydratedRef.current) return undefined;
+    rehydratedRef.current = true;
+    if (!reelData.voUploadName || reelData.voUrl) return undefined; // nothing uploaded, or a live voice already present
+    let cancelled = false;
+    getAsset(VO_ASSET_KEY).then((rec) => {
+      if (cancelled || !rec?.blob) return;
+      const url = URL.createObjectURL(rec.blob);
+      applyVoiceUrl(url, { owned: true, uploadName: rec.name || reelData.voUploadName });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+    // Mount-once: the ref guard makes any re-run a no-op, so stable-deps churn is moot.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [hookBusy, setHookBusy] = useState(false);
   const [hookNote, setHookNote] = useState(null); // { ok: boolean, text: string }
   // One-step undo for the two hook overwriters (SPIN + AUTO) — hand-tuned copy
@@ -595,9 +627,13 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            // Stash the bytes in IndexedDB (durable across reloads) BEFORE minting the
+            // session blob URL — best-effort: if the store is unavailable the upload
+            // still works for this session, it just won't survive a reload.
+            putAsset(VO_ASSET_KEY, file, { name: file.name }).catch(() => {});
             const url = URL.createObjectURL(file);
             applyVoiceUrl(url, { owned: true, uploadName: file.name });
-            setVoNote({ ok: true, text: `Loaded your voiceover “${file.name}” — it rides the voice channel; balance it with the Voice Volume slider.` });
+            setVoNote({ ok: true, text: `Loaded your voiceover “${file.name}” — it rides the voice channel; balance it with the Voice Volume slider. Saved for this device — it survives a reload.` });
             e.target.value = ''; // let the same file be re-selected after a remove
           }}
           style={{ display: 'none' }}

@@ -107,4 +107,34 @@ test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
     await page.getByTestId('reel-vo-upload-clear').click();
     await expect(voiceEl()).toHaveCount(0);
   });
+
+  test('an uploaded voiceover survives a reload (IndexedDB rehydration)', async ({ page }) => {
+    await page.goto(`${HARNESS}?c=studio-v4`);
+    await expect(page.getByTestId('harness-root')).toBeVisible();
+    await page.getByRole('tab', { name: /VIDEO ENGINE/i }).click();
+
+    await page.getByTestId('reel-vo-upload-input').setInputFiles({
+      name: 'my-elevenlabs-take.wav', mimeType: 'audio/wav', buffer: silentWav(1000),
+    });
+    await expect(page.locator('audio[data-testid="reel-audio-voice"]')).toHaveCount(1);
+
+    // Wait for the debounced editor snapshot to flush the upload MARKER to
+    // localStorage (the bytes are already in IndexedDB from the upload handler).
+    await expect.poll(() => page.evaluate(() => {
+      const raw = localStorage.getItem('bbf-studio-v4-editor-v1');
+      return raw ? (JSON.parse(raw)?.reel?.voUploadName ?? null) : null;
+    })).toBe('my-elevenlabs-take.wav');
+
+    // Hard reload — the session's blob: URL is gone; only IndexedDB + the marker survive.
+    await page.reload();
+    await expect(page.getByTestId('harness-root')).toBeVisible();
+    await page.getByRole('tab', { name: /VIDEO ENGINE/i }).click();
+
+    // The voice channel re-mints a FRESH blob from IndexedDB — the upload survived.
+    const voice = page.locator('audio[data-testid="reel-audio-voice"]');
+    await expect(voice).toHaveCount(1);
+    expect(await voice.getAttribute('src')).toMatch(/^blob:/);
+    // And the remove chip (driven by the persisted marker) is back too.
+    await expect(page.getByTestId('reel-vo-upload-clear')).toBeVisible();
+  });
 });
