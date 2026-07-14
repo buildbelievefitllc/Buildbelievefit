@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import VibeSelector from './VibeSelector';
 import ReelPreviewEngine from './ReelPreviewEngine';
+import SpotlightVideoStage from './SpotlightVideoStage';
 import StageScaler from './StageScaler';
 import QueueMonitor from './QueueMonitor';
 import CompilerQueue from './CompilerQueue';
@@ -583,6 +584,80 @@ export default function StudioLayout({
     }
   };
 
+  // ── 🏆 VIDEO SPOTLIGHT (Tier 2) — bake the PR clip + Spotlight frame → MP4 ──
+  // Reuses the exact SovereignFoundry pipeline the Video Engine runs. The overlay
+  // (stat callout, name, CTA, brand) is STATIC, so it's captured once and composited
+  // onto every frame; the clip's own audio rides the footage channel.
+  const renderSpotlightMp4 = async ({ durationCapSec }) => {
+    const { SovereignFoundry } = await import('../../lib/SovereignFoundry.js');
+    if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
+    const videoUrl = spotData.spotVideo?.url;
+    if (!videoUrl) throw new Error('no_footage');
+    const overlay = await SovereignFoundry.captureOverlay(stageRef.current);
+    const foundry = new SovereignFoundry(document.body);
+    const result = await foundry.render({
+      videoUrl,
+      footageUrl: videoUrl, // bake the clip's own sound (gym ambience / hype track)
+      footageGain: 1,
+      overlay,
+      durationCap: durationCapSec,
+      onProgress: (p) => setRecordPct(Math.round(p * 100)),
+    });
+    if (!result || !result.blob) throw new Error('record_failed');
+    const audioMsg = result.audio ? '🎙 Clip audio baked in.' : 'Clip had no audio track — exported silent.';
+    return { result, audioMsg };
+  };
+
+  const exportOrPostSpotlight = async () => {
+    if (recording || posting) return;
+    const target = platformTarget();
+    setPostNote(null);
+    if (!spotData.spotVideo?.url) {
+      setPostNote({ ok: false, text: 'Upload a PR clip first — the video spotlight needs footage to bake the frame onto.' });
+      return;
+    }
+    setRecording(true);
+    setRecordPct(0);
+    try {
+      setPostNote({ ok: true, text: 'Rendering spotlight (seeking + encoding frames + clip audio)…' });
+      const { result, audioMsg } = await renderSpotlightMp4({ durationCapSec: target ? 90 : 1200 });
+      exportSeqRef.current += 1;
+      const stamp = `${SESSION_STAMP}-${exportSeqRef.current}`;
+      const fields = spotFields();
+
+      if (!target) {
+        const name = `bbf-spotlight-${stamp}.mp4`;
+        setLastExport({ blob: result.blob, name });
+        vaultDraft('video', result.blob, { file_name: name, mode: 'spot', caption: fields.caption, duration_sec: result.durationSec || null, frames: result.frames || null });
+        const dur = result.durationSec ? `${result.durationSec}s` : '';
+        if (isMobileish()) {
+          setPostNote({ ok: true, text: `✓ ${name} rendered${dur ? ` (${dur})` : ''}. Tap ⬇ SAVE TO PHONE below to save it. ${audioMsg}` });
+        } else {
+          await saveBlobToDevice(result.blob, name, { preferShare: false });
+          setPostNote({ ok: true, text: `✓ Exported ${name} — clean MP4${dur ? ` (${dur})` : ''}. ${audioMsg}` });
+        }
+        return;
+      }
+
+      setPosting(true);
+      setPostNote({ ok: true, text: `Posting spotlight to ${platformLabel()}…` });
+      const { queuePost, pollPostStatus } = await import('../../lib/studioQueueApi.js');
+      const res = await queuePost({ kind: 'video', fields: { ...fields, platform_target: target }, getBlob: async () => result.blob, now: true });
+      if (res.status === 'posting') {
+        setPostNote({ ok: true, text: 'Posting spotlight… Meta is transcoding (~60–90s).' });
+        const verdict = await pollPostStatus({ kind: 'video', id: res.id });
+        setPostNote({ ok: verdict === 'posted', text: verdict === 'posted' ? `✓ Spotlight posted. ${audioMsg}` : verdict === 'failed' ? 'Meta rejected the video — the asset is saved.' : 'Still finishing at Meta — check IG/FB shortly.' });
+      } else {
+        setPostNote({ ok: true, text: `✓ Spotlight posted. ${audioMsg}` });
+      }
+    } catch (e) {
+      setPostNote({ ok: false, text: humanizeReelErr(e?.message) });
+    } finally {
+      setRecording(false);
+      setPosting(false);
+    }
+  };
+
   return (
     <div className="layout-v4">
       <div className="controls-v4">
@@ -880,10 +955,92 @@ export default function StudioLayout({
         {mode === 'spot' && (
           <div className="panel-v4 active">
             <div className="ctl-group-v4">
-              <label className="ctl-label-v4">🏆 Client Spotlight — before / after card</label>
-              <div className="hint-v4">Celebrate a client win — drop a before &amp; after, drop in the shoutout, spin a quote pair, export a 1080×1350 post.</div>
+              <label className="ctl-label-v4">🏆 Client Spotlight</label>
+              <div className="seg-v4" data-testid="spot-format">
+                <button className={spotData.format !== 'video' ? 'active' : ''} onClick={() => handleSpotChange('format', 'card')}>CARD 4:5</button>
+                <button className={spotData.format === 'video' ? 'active' : ''} onClick={() => handleSpotChange('format', 'video')}>VIDEO 9:16</button>
+              </div>
+              <div className="hint-v4">
+                {spotData.format === 'video'
+                  ? 'Run a client PR clip as the background with the stat + Spotlight frame baked over it → 1080×1920 MP4.'
+                  : 'A before / after win card — shoutout, quote pair, export a 1080×1350 post.'}
+              </div>
             </div>
 
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">Client Name</label>
+              <input type="text" value={spotData.clientName} onChange={(e) => handleSpotChange('clientName', e.target.value)} className="input-v4" data-testid="spot-name" />
+            </div>
+
+            {spotData.format === 'video' ? (
+              <>
+                <div className="ctl-group-v4">
+                  <label className="ctl-label-v4">🎬 PR Clip — upload the lift / run</label>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="input-v4"
+                    data-testid="spot-video-input"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) setSpotPhoto('spotVideo', f); }}
+                  />
+                  {spotData.spotVideo?.url && (
+                    <button type="button" className="ph-clear-v4" onClick={() => setSpotPhoto('spotVideo', null)}>✕ Remove clip</button>
+                  )}
+                </div>
+
+                <div className="divider-v4"></div>
+
+                <div className="ctl-group-v4">
+                  <label className="ctl-label-v4">🏆 Stat Callout</label>
+                  <div className="stat-row-v4">
+                    <input type="text" value={spotData.statNumber} onChange={(e) => handleSpotChange('statNumber', e.target.value)} className="input-v4" placeholder="688" data-testid="spot-stat-number" style={{ flex: 2 }} />
+                    <input type="text" value={spotData.statUnit} onChange={(e) => handleSpotChange('statUnit', e.target.value)} className="input-v4" placeholder="LB" style={{ flex: 1 }} />
+                  </div>
+                  <input type="text" value={spotData.statLift} onChange={(e) => handleSpotChange('statLift', e.target.value)} className="input-v4" placeholder="DEADLIFT" style={{ marginTop: 6 }} />
+                  <div className="hint-v4">Leave the number blank for a training clip with no headline stat.</div>
+                </div>
+
+                <div className="ctl-group-v4">
+                  <label className="post-toggle-v4 spot-toggle-v4" style={{ display: 'inline-flex' }}>
+                    <input type="checkbox" checked={!!spotData.prBadge} onChange={(e) => handleSpotChange('prBadge', e.target.checked)} data-testid="spot-pr-toggle" /> 🏆 NEW PR badge
+                  </label>
+                </div>
+
+                <div className="ctl-group-v4">
+                  <label className="ctl-label-v4">Rep / Set Line (optional)</label>
+                  <input type="text" value={spotData.repLine} onChange={(e) => handleSpotChange('repLine', e.target.value)} className="input-v4" placeholder="3×3 @ RPE 9  ·  2.4× bodyweight" data-testid="spot-rep-line" />
+                </div>
+
+                <div className="ctl-group-v4">
+                  <label className="ctl-label-v4">Stat Position — {spotData.statPos ?? 24}% from top</label>
+                  <input type="range" min="8" max="70" value={spotData.statPos ?? 24} onChange={(e) => handleSpotChange('statPos', Number(e.target.value))} className="range-v4" data-testid="spot-stat-pos" />
+                </div>
+
+                <div className="ctl-group-v4">
+                  <label className="ctl-label-v4">CTA Line</label>
+                  <input type="text" value={spotData.cta} onChange={(e) => handleSpotChange('cta', e.target.value)} className="input-v4" />
+                </div>
+
+                <div className="ctl-group-v4">
+                  <label className="ctl-label-v4">📤 Distribute Spotlight</label>
+                  {captionBox(spotFields().caption)}
+                  {socialToggles()}
+                  {codecProbe && codecProbe.willFallback ? (
+                    <div className="hint-v4" role="alert" style={{ color: '#fb923c', border: '1px solid rgba(251,146,60,.5)', background: 'rgba(251,146,60,.08)', borderRadius: 8, padding: '8px 10px', margin: '0 0 8px' }}>
+                      ⚠ Hardware H.264 not detected. Video exports via a fallback codec, which social platforms recompress harder. For maximum quality, use a supported browser.
+                    </div>
+                  ) : null}
+                  <button className="postnow-btn-v4" onClick={exportOrPostSpotlight} disabled={recording || posting} data-testid="spot-export-video">
+                    {recording ? `🎬 RENDERING… ${recordPct}%` : platformTarget() ? `🚀 EXPORT & POST → ${platformLabel()}` : '⬇ EXPORT SPOTLIGHT MP4'}
+                  </button>
+                  <div className="hint-v4">Toggles OFF → records &amp; downloads. Toggles ON → records &amp; posts. Needs an uploaded clip.</div>
+                  {postNote && (<div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>)}
+                  {vaultNoteLine}
+                  {saveToPhoneBtn}
+                </div>
+              </>
+            ) : (
+              <>
             <div className="ctl-group-v4">
               <label className="ctl-label-v4">📷 Before Photo</label>
               <input
@@ -929,11 +1086,6 @@ export default function StudioLayout({
             <div className="divider-v4"></div>
 
             <div className="ctl-group-v4">
-              <label className="ctl-label-v4">Client Name</label>
-              <input type="text" value={spotData.clientName} onChange={(e) => handleSpotChange('clientName', e.target.value)} className="input-v4" data-testid="spot-name" />
-            </div>
-
-            <div className="ctl-group-v4">
               <label className="ctl-label-v4">Sub-line</label>
               <input type="text" value={spotData.subLine} onChange={(e) => handleSpotChange('subLine', e.target.value)} className="input-v4" />
             </div>
@@ -976,6 +1128,8 @@ export default function StudioLayout({
               </button>
               {postControls(spotFields())}
             </div>
+              </>
+            )}
           </div>
         )}
 
@@ -1100,7 +1254,15 @@ export default function StudioLayout({
           </div>
         )}
 
-        {mode === 'spot' && (
+        {mode === 'spot' && spotData.format === 'video' && (
+          <div className="stage-host-v4 active">
+            <StageScaler designWidth={1080} designHeight={1920}>
+              <SpotlightVideoStage spotData={spotData} stageRef={stageRef} />
+            </StageScaler>
+          </div>
+        )}
+
+        {mode === 'spot' && spotData.format !== 'video' && (
           <div className="stage-host-v4 active">
             <StageScaler designWidth={1080} designHeight={1350}>
               <div className="stage-spot-v4" ref={stageRef}>

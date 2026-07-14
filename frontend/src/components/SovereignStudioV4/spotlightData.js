@@ -54,4 +54,13 @@ export const SPOT_DEFAULTS = {
   beforeImage: null,       // blob-backed { url } — BEFORE photo
   afterImage: null,        // blob-backed { url } — AFTER photo
   spotLogo: null,          // blob-backed { url } — optional watermark logo
+
+  // ── Tier 2 · VIDEO SPOTLIGHT (1080×1920, baked via SovereignFoundry) ──
+  spotVideo: null,         // blob-backed { url } — the PR/live-feed clip (background)
+  statNumber: '688',       // the hero number (weight / reps / distance) — blank hides it
+  statUnit: 'LB',          // unit beside the number (LB, KG, MI, SEC, …)
+  statLift: 'DEADLIFT',    // the lift / event name under the number
+  prBadge: true,           // show the gold "NEW PR 🏆" pill
+  repLine: '',             // secondary context line (e.g. "3×3 @ RPE 9", "2.4× bodyweight")
+  statPos: 24,             // stat block vertical position, % of frame height (top-anchored)
 };

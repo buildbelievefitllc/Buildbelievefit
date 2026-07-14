@@ -64,4 +64,36 @@ test.describe('Studio V4 — Client Spotlight (Tier 1 restore)', () => {
     }
     await expect(q1).not.toHaveText(before || '');
   });
+
+  test('VIDEO format swaps to the 9:16 stage with the stat callout', async ({ page }) => {
+    await openSpotlight(page);
+    // Card stage is showing first.
+    await expect(page.locator('.stage-spot-v4')).toBeVisible();
+
+    await page.getByTestId('spot-format').getByRole('button', { name: 'VIDEO 9:16' }).click();
+
+    // Card stage gone, video stage + clip placeholder + stat callout present.
+    await expect(page.locator('.stage-spot-v4')).toHaveCount(0);
+    await expect(page.locator('.stage-spotvid-v4')).toBeVisible();
+    await expect(page.getByTestId('spot-video-placeholder')).toBeVisible();
+
+    const stat = page.getByTestId('spot-stat');
+    await expect(stat).toBeVisible();
+    await expect(stat.locator('.spot-stat-num-v4')).toContainText('688');
+    await expect(stat.locator('.spot-pr-v4')).toHaveText(/NEW PR/);
+
+    // Editing the stat number + lift reflects live.
+    await page.getByTestId('spot-stat-number').fill('405');
+    await expect(stat.locator('.spot-stat-num-v4')).toContainText('405');
+    await page.getByTestId('spot-rep-line').fill('5×5 @ RPE 8');
+    await expect(stat.locator('.spot-stat-rep-v4')).toHaveText('5×5 @ RPE 8');
+  });
+
+  test('NEW PR badge toggle shows / hides the gold pill', async ({ page }) => {
+    await openSpotlight(page);
+    await page.getByTestId('spot-format').getByRole('button', { name: 'VIDEO 9:16' }).click();
+    await expect(page.locator('.spot-pr-v4')).toBeVisible();
+    await page.getByTestId('spot-pr-toggle').uncheck();
+    await expect(page.locator('.spot-pr-v4')).toHaveCount(0);
+  });
 });

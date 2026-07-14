@@ -663,3 +663,54 @@
 .spot-brand-v4 { font-family: var(--hb); font-size: 30px; letter-spacing: 7px; color: rgba(255, 255, 255, 0.3);
   margin-top: 16px; }
 .spot-brand-v4 span { color: var(--yel); }
+
+/* ============ 🏆 VIDEO SPOTLIGHT STAGE (1080×1920 · Tier 2) ============ */
+.stage-spotvid-v4 {
+  width: 1080px; height: 1920px;
+  position: relative; overflow: hidden;
+  background: #08060a; font-family: var(--bd); color: var(--wht);
+}
+.spot-video-v4 { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.spot-vid-ph-v4 { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center;
+  background: radial-gradient(120% 80% at 50% 20%, rgba(106, 13, 173, 0.28), transparent 60%),
+    repeating-linear-gradient(115deg, #17121f 0 16px, #120e18 16px 32px); }
+.spot-vid-ph-text-v4 { font-family: var(--hb); font-size: 58px; letter-spacing: 4px; line-height: 1.1;
+  text-align: center; color: rgba(180, 170, 195, 0.5); }
+.spot-vid-scrim-v4 { position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg, rgba(8, 6, 10, 0.62) 0%, transparent 26%, rgba(8, 6, 10, 0.15) 52%, rgba(8, 6, 10, 0.9) 100%); }
+.spot-vid-strip-v4 { position: absolute; top: 0; left: 0; right: 0; height: 12px; z-index: 4;
+  background: linear-gradient(90deg, var(--pur), var(--yel)); }
+
+.spot-vid-top-v4 { position: absolute; top: 40px; left: 0; right: 0; z-index: 4; text-align: center; }
+.spot-vid-brand-v4 { font-family: var(--hb); font-size: 34px; letter-spacing: 7px; color: rgba(255, 255, 255, 0.85); }
+.spot-vid-brand-v4 span { color: var(--yel); }
+.spot-vid-eye-v4 { font-family: var(--hb); font-size: 30px; letter-spacing: 10px; color: var(--yel); margin-top: 8px; text-transform: uppercase; }
+
+/* Stat callout — the hero of the video spotlight. Top-anchored, position adjustable. */
+.spot-stat-v4 { position: absolute; left: 0; right: 0; z-index: 4; text-align: center; padding: 0 60px; }
+.spot-pr-v4 { display: inline-block; font-family: var(--hb); font-size: 30px; letter-spacing: 4px;
+  color: #1a1206; background: var(--yel); padding: 8px 26px; border-radius: 999px; text-transform: uppercase;
+  box-shadow: 0 8px 26px rgba(245, 200, 0, 0.4); }
+.spot-stat-num-v4 { font-family: var(--hb); font-size: 300px; line-height: 0.82; letter-spacing: 2px;
+  color: var(--wht); margin-top: 18px; text-shadow: 0 10px 40px rgba(0, 0, 0, 0.65); }
+.spot-stat-unit-v4 { font-size: 0.4em; color: var(--yel); margin-left: 14px; letter-spacing: 4px; }
+.spot-stat-lift-v4 { font-family: var(--hb); font-size: 66px; letter-spacing: 8px; color: #ece4f6;
+  margin-top: 6px; text-transform: uppercase; text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6); }
+.spot-stat-rep-v4 { font-weight: 700; font-size: 34px; letter-spacing: 2px; color: rgba(235, 225, 250, 0.85);
+  margin-top: 16px; }
+
+.spot-vid-foot-v4 { position: absolute; bottom: 88px; left: 0; right: 0; z-index: 4; text-align: center; padding: 0 60px; }
+.spot-vid-name-v4 { font-family: var(--hb); font-size: 92px; line-height: 0.9; letter-spacing: 4px;
+  color: var(--wht); text-transform: uppercase; text-shadow: 0 6px 24px rgba(0, 0, 0, 0.7); }
+.spot-vid-cta-v4 { font-weight: 800; font-size: 30px; letter-spacing: 2px; color: rgba(235, 225, 250, 0.9);
+  margin-top: 12px; text-transform: uppercase; }
+
+/* live preview transport (stripped from the export overlay by captureOverlay) */
+.spot-play-v4 { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 6;
+  width: 130px; height: 130px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(13, 1, 24, 0.55); color: #fff; font-size: 52px;
+  box-shadow: 0 0 0 3px rgba(245, 200, 0, 0.5); }
+.spot-progress-v4 { position: absolute; bottom: 0; left: 0; right: 0; height: 10px; z-index: 6; background: rgba(255, 255, 255, 0.12); }
+.spot-progress-bar-v4 { height: 100%; background: linear-gradient(90deg, var(--pur), var(--yel)); }
+
+.stat-row-v4 { display: flex; gap: 8px; }
