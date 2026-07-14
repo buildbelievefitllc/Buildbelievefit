@@ -50,6 +50,7 @@ export const SPOT_DEFAULTS = {
   shoutout: 'INCREDIBLE WORK, JACKY.',
   quote1: SPOT_QUOTES1[0],
   quote2: SPOT_QUOTES2[0],
+  achievement: '',        // context that seeds the AI shoutout (e.g. "-40 lbs in 6 months")
   cta: 'READY FOR YOURS?  DM "PATHFINDER"  •  buildbelievefit.fitness',
   beforeImage: null,       // blob-backed { url } — BEFORE photo
   afterImage: null,        // blob-backed { url } — AFTER photo

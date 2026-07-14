@@ -133,6 +133,31 @@ export async function generateHook({ topic, spectrum, lang }) {
   return j;
 }
 
+// 🏆 CLIENT SPOTLIGHT copy auto-gen (Tier 3). Haiku writes the gold shoutout +
+// the two quote lines from the client name + achievement, in-language. Returns
+// { shoutout, quote1, quote2 }. Throws a display-ready Error on failure.
+export async function generateSpotlightCopy({ clientName, achievement, lang }) {
+  const token = getStoredVaultToken();
+  const res = await fetch(`${FUNCTIONS_BASE}/bbf-studio-voiceover`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      ...(token ? { 'x-bbf-vault-token': token } : {}),
+    },
+    body: JSON.stringify({ action: 'spotlight', client_name: clientName, achievement: achievement || '', lang: lang || 'en', vault_token: token }),
+  });
+  if (!res.ok) {
+    let detail = `spotlight_failed_${res.status}`;
+    try { const j = await res.json(); detail = j.error || j.detail || detail; } catch { /* non-JSON */ }
+    throw new Error(detail);
+  }
+  const j = await res.json().catch(() => null);
+  if (!j || !j.shoutout) throw new Error('spotlight_no_data');
+  return j;
+}
+
 // Optional: fetch the Vibe Matrix from the server (the UI ships its own copy, so
 // this is only a diagnostic / future-proofing hook).
 export async function fetchStudioVibes() {

@@ -295,6 +295,38 @@ async function writeHook(apiKey: string, model: string, opts: { topic: string; s
   }
 }
 
+// 🏆 CLIENT SPOTLIGHT auto-gen — Haiku writes the gold shoutout + the two quote
+// lines (proof + coach) for a client win, trilingual. Low-stakes copy -> HAIKU.
+async function writeSpotlight(apiKey: string, model: string, opts: { clientName: string; achievement: string; lang: string }): Promise<{ ok: true; shoutout: string; quote1: string; quote2: string; usage: any } | { ok: false; status: number; detail: string }> {
+  const langName = ({ en: 'English', es: 'Spanish', pt: 'Portuguese' } as Record<string, string>)[opts.lang] || 'English';
+  const ach = opts.achievement ? ` Achievement / context: ${opts.achievement}.` : ' Context: consistent training and a real transformation.';
+  const sys = `You are BBF Coach Akeem writing a CLIENT SPOTLIGHT for a Build Believe Fit social post celebrating ${opts.clientName}. Output STRICT JSON only: {"shoutout":"...","quote1":"...","quote2":"..."}. Rules: write in ${langName}; "shoutout" is a punchy ALL-CAPS gold headline celebrating the client (<= 42 chars, may end with a period); "quote1" is a proof / identity line about their consistency or transformation (<= 90 chars); "quote2" is a warm first-person coach shoutout (<= 80 chars). No markdown, no extra keys, no hashtags, no emojis, no quotes around the whole line.`;
+  const user = `Client: ${opts.clientName}.${ach} Write the spotlight now as JSON.`;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model, max_tokens: 400, system: sys, messages: [{ role: 'user', content: user }] }),
+  });
+  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    const detail = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
+    return { ok: false, status: res.status, detail: String(detail).slice(0, 200) };
+  }
+  const block = Array.isArray(body?.content) ? body.content.find((b: any) => b?.type === 'text' && typeof b.text === 'string') : null;
+  const text = (block?.text || '').trim();
+  try {
+    const m = text.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(m ? m[0] : text);
+    const shoutout = String(parsed.shoutout || '').trim();
+    const quote1 = String(parsed.quote1 || '').trim();
+    const quote2 = String(parsed.quote2 || '').trim();
+    if (!shoutout) return { ok: false, status: 502, detail: 'empty_spotlight' };
+    return { ok: true, shoutout, quote1, quote2, usage: body?.usage ?? null };
+  } catch {
+    return { ok: false, status: 502, detail: 'spotlight_parse_failed' };
+  }
+}
+
 // Wrap the spoken script in the CEO-specified <break time="0.5s"/> head/tail
 // padding (and light sentence-level pauses for the slow Sanctuary tone).
 function buildSsml(raw: string, vibe: Vibe): string {
@@ -367,12 +399,29 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'not_admin', detail: 'The Sovereign Studio voiceover vault is restricted to the administrative tier.' }, 401);
   }
 
+  const lang = (['en', 'es', 'pt'].includes(String(payload?.lang || 'en'))) ? String(payload?.lang || 'en') : 'en';
+
+  // ── 🏆 CLIENT SPOTLIGHT AUTO-GEN (text only, no audio/cache) ──
+  if (payload?.action === 'spotlight') {
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!ANTHROPIC_API_KEY) return jsonResponse({ error: 'llm_unconfigured', detail: 'ANTHROPIC_API_KEY is not set.' }, 503);
+    const clientName = String(payload?.client_name ?? payload?.clientName ?? '').trim();
+    if (!clientName) return jsonResponse({ error: 'missing_client', detail: 'Provide a client name.' }, 400);
+    const achievement = String(payload?.achievement ?? '').trim();
+    const spotModel = routeAndLog(FN, 'studio_voiceover_script');
+    const s = await writeSpotlight(ANTHROPIC_API_KEY, spotModel, { clientName, achievement, lang });
+    if (!s.ok) {
+      console.error(`[${FN}] spotlight gen failed ${s.status}: ${s.detail}`);
+      return jsonResponse({ error: 'spotlight_failed', detail: `Spotlight engine failed (${s.status}).` }, 502);
+    }
+    return jsonResponse({ ok: true, shoutout: s.shoutout, quote1: s.quote1, quote2: s.quote2, model: spotModel, usage: s.usage });
+  }
+
   // ── inputs ──
   const topic = String(payload?.topic ?? payload?.exercise ?? '').trim();
   if (!topic) return jsonResponse({ error: 'missing_topic', detail: 'Provide an Exercise/Topic.' }, 400);
   const series = String(payload?.series ?? '').trim();
   const vibe = resolveVibe(payload?.vibe);
-  const lang = (['en', 'es', 'pt'].includes(String(payload?.lang || 'en'))) ? String(payload?.lang || 'en') : 'en';
 
   // ── HOOK AUTO-GEN (text only, no audio/cache) ──
   if (payload?.action === 'hook' || payload?.mode === 'hook') {

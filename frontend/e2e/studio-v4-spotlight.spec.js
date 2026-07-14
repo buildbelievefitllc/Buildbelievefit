@@ -96,4 +96,25 @@ test.describe('Studio V4 — Client Spotlight (Tier 1 restore)', () => {
     await page.getByTestId('spot-pr-toggle').uncheck();
     await expect(page.locator('.spot-pr-v4')).toHaveCount(0);
   });
+
+  test('🤖 AI shoutout fills the shoutout + both quotes and drives the card', async ({ page }) => {
+    const CORS = { 'Access-Control-Allow-Origin': '*' };
+    await page.route('**/functions/v1/bbf-studio-voiceover', async (route) => {
+      if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 200, headers: CORS }); return; }
+      const body = JSON.parse(route.request().postData() || '{}');
+      if (body.action !== 'spotlight') { await route.fulfill({ status: 400, headers: CORS, body: '{}' }); return; }
+      await route.fulfill({
+        status: 200, contentType: 'application/json', headers: CORS,
+        body: JSON.stringify({ ok: true, shoutout: 'UNSTOPPABLE, MARCUS.', quote1: 'Forty pounds down, every week earned.', quote2: 'Proud to coach this grind.' }),
+      });
+    });
+    await openSpotlight(page);
+    await page.getByTestId('spot-name').fill('MARCUS');
+    await page.getByTestId('spot-achievement').fill('-40 lbs in 6 months');
+    await page.getByTestId('spot-ai-shoutout').click();
+
+    // The generated copy lands in the fields AND the stage.
+    await expect(page.locator('.spot-shout-v4')).toHaveText('UNSTOPPABLE, MARCUS.');
+    await expect(page.locator('.spot-q-v4').first()).toHaveText('Forty pounds down, every week earned.');
+  });
 });

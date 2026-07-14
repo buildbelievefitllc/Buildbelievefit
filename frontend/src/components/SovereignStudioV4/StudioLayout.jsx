@@ -388,6 +388,30 @@ export default function StudioLayout({
     handleSpotChange(key, file ? { file, url: URL.createObjectURL(file) } : null);
   };
 
+  // 🤖 AI SHOUTOUT (Tier 3) — Haiku writes the gold shoutout + both quote lines from
+  // the client name + achievement, in-language. Fills the three fields in one tap.
+  const [spotAiBusy, setSpotAiBusy] = useState(false);
+  const [spotAiNote, setSpotAiNote] = useState(null); // { ok, text } | null
+  async function generateSpotlightAi() {
+    if (spotAiBusy) return;
+    const clientName = (spotData.clientName || '').trim();
+    if (!clientName) { setSpotAiNote({ ok: false, text: 'Add the client name first — it seeds the shoutout.' }); return; }
+    setSpotAiBusy(true);
+    setSpotAiNote(null);
+    try {
+      const { generateSpotlightCopy } = await import('../../lib/studioApi.js');
+      const r = await generateSpotlightCopy({ clientName, achievement: spotData.achievement, lang: 'en' });
+      handleSpotChange('shoutout', r.shoutout);
+      if (r.quote1) handleSpotChange('quote1', r.quote1);
+      if (r.quote2) handleSpotChange('quote2', r.quote2);
+      setSpotAiNote({ ok: true, text: `Shoutout + quotes written for ${clientName} via Haiku.` });
+    } catch (e) {
+      setSpotAiNote({ ok: false, text: e?.message === 'no_admin_session' ? 'Sign in to the Command Center first.' : 'AI shoutout failed — try again, or write it by hand.' });
+    } finally {
+      setSpotAiBusy(false);
+    }
+  }
+
   // Bake the reel via SovereignFoundry — the shared core behind the plain
   // EXPORT/POST flow and the TikTok bridge (which always renders a full,
   // un-posted export regardless of the IG/FB toggle state). Throws on failure
@@ -1088,6 +1112,15 @@ export default function StudioLayout({
             <div className="ctl-group-v4">
               <label className="ctl-label-v4">Sub-line</label>
               <input type="text" value={spotData.subLine} onChange={(e) => handleSpotChange('subLine', e.target.value)} className="input-v4" />
+            </div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">Achievement / context (seeds the AI shoutout)</label>
+              <input type="text" value={spotData.achievement} onChange={(e) => handleSpotChange('achievement', e.target.value)} className="input-v4" placeholder='e.g. "-40 lbs in 6 months" or "first-ever pull-up"' data-testid="spot-achievement" />
+              <button type="button" className="spin-btn-v4" onClick={generateSpotlightAi} disabled={spotAiBusy} data-testid="spot-ai-shoutout">
+                {spotAiBusy ? '… WRITING' : '🤖 AI SHOUTOUT + QUOTES'}
+              </button>
+              {spotAiNote && (<div className="hint-v4" style={{ color: spotAiNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{spotAiNote.text}</div>)}
             </div>
 
             <div className="ctl-group-v4">
