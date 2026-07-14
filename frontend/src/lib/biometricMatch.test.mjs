@@ -87,3 +87,45 @@ test('missing load axis is excluded from the distance, never defaulted to 0', ()
 test('empty pool returns null instead of throwing', () => {
   assert.equal(nearestByCnsThenVibe({ cns: 50, sleep: 50, stress: 50, load: 100 }, []), null);
 });
+
+// ── CNS<40 blind-spot fix regression lock ────────────────────────────────────
+// Prior to this, the grid's floor was CNS 40 — any real score below that (a
+// genuine CNS crash) still spoke "forty" out loud, contradicting the separate
+// exact-score clip. Two new states (Mobility + Recovery, CNS 20) were baked to
+// close it. EN_POOL above is left untouched (byte-identical to production
+// pre-fix) so every existing assertion stays a true regression lock; this pool
+// is EN_POOL plus exactly the two new states, mirroring the real matrix update.
+const EN_POOL_WITH_CNS20 = [
+  ...EN_POOL,
+  { cns: 20, sleep: 40, stress: 100, load: 50 }, // EN_20_40_100_50_mobility
+  { cns: 20, sleep: 70, stress: 100, load: 50 }, // EN_20_70_100_50_recovery
+];
+
+test('CNS<40 fix: a true CNS in 0-29 always speaks the new "twenty" bucket, never "forty" or higher', () => {
+  for (let cns = 0; cns <= 29; cns++) {
+    for (let sleep = 0; sleep <= 100; sleep += 10) {
+      for (let stress = 0; stress <= 100; stress += 10) {
+        for (const load of [50, 100, 150, 165]) {
+          const target = { cns, sleep, stress, load };
+          const match = nearestByCnsThenVibe(target, EN_POOL_WITH_CNS20);
+          assert.equal(
+            match.best.cns, 20,
+            `cns=${cns} sleep=${sleep} stress=${stress} load=${load} → matched bucket ${match.best.cns}, expected 20`,
+          );
+        }
+      }
+    }
+  }
+});
+
+test('CNS=30 sits exactly equidistant between 20 and 40 (10 away from each) — ties on vibe, never a THIRD bucket', () => {
+  const target = { cns: 30, sleep: 70, stress: 70, load: 150 };
+  const match = nearestByCnsThenVibe(target, EN_POOL_WITH_CNS20);
+  assert.ok([20, 40].includes(match.best.cns), `expected 20 or 40, got ${match.best.cns}`);
+});
+
+test('adding the CNS=20 states never regresses the 44-vs-60 fix (40 is still nearer to 44 than 20 is)', () => {
+  const target = { cns: 44, sleep: 40, stress: 100, load: 50 };
+  const match = nearestByCnsThenVibe(target, EN_POOL_WITH_CNS20);
+  assert.equal(match.best.cns, 40);
+});

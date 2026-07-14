@@ -586,5 +586,47 @@
     "scenario": "Portuguese · CNS 100/100 · Sleep 40 · Stress 100 · Load 100lb",
     "target_duration": "54s",
     "script": "Me escuta... isto aqui é a definição de cansado e acelerado... O seu sono foi lixo absoluto... e o seu estresse está na zona vermelha... mas de alguma forma, o seu CNS continua disparando em capacidade máxima... Você está produzindo força, mas está estruturalmente vulnerável... Com uma carga padrão hoje... nos focamos estritamente na estabilidade mecânica do core... Sem repetições desleixadas... Martelamos Pallof Presses e Dead Bugs... trave a coluna em um pilar rígido... Proteja a sua lombar a todo custo... O seu sistema nervoso está assinando cheques que as suas articulações não conseguem pagar se você perder a forma hoje... Respire fundo... faça o bracing forte... e execute com um controle absoluto e afiado... Deixe o core fazer o trabalho pesado para estabilizar o chassi... Mantenha o trabalho na barra hexagonal nítido e técnico... Não deixe a fadiga quebrar a sua mecânica... Concentre-se... e execute..."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "EN_20_40_100_50_mobility",
+    "scenario": "English · CNS 20/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "target_duration": "~35s",
+    "script": "Look... your CNS is running on fumes today... sitting down at a twenty. You're red-lined. When your nervous system is playing defense like this... we do not force the heavy steel. We protect the engine. Today is about decompression... opening up your joints... and letting your body breathe. Grab your mat... slow down your pace... and focus entirely on your range of motion. No rushing... no grinding. Just smooth... controlled mobility. Let's get the body moving... safely."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "EN_20_70_100_50_recovery",
+    "scenario": "English · CNS 20/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "target_duration": "~38s",
+    "script": "Alright... check the dashboard. Your CNS is flat-lined down at a twenty. Sleep might have been decent... but your body is still carrying a massive physical deficit. If you try to push the pace today... you're just begging for an injury. We are taking the foot completely off the gas. Today is pure... active recovery. Focus on deep... parasympathetic breathing... and static tissue release. We are flushing out the fatigue... resetting your nervous system... and preparing your joints to fight another day. Treat this session like medicine. Protect your body... execute the recovery... and rest."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "ES_20_40_100_50_mobility",
+    "scenario": "Spanish · CNS 20/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "target_duration": "~35s",
+    "script": "Mira... tu sistema nervioso está en reserva hoy... de camino a un veinte. Estás en la zona roja. Cuando tu sistema nervioso juega a la defensiva así... no forzamos el acero pesado. Protegemos el motor. Hoy se trata de descompresión... abrir tus articulaciones... y dejar que tu cuerpo respire. Agarra tu colchoneta... baja el ritmo... y enfócate completamente en tu rango de movimiento. Sin prisas... sin presiones. Solo movilidad suave... y controlada. Pongamos el cuerpo en movimiento... de forma segura."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "ES_20_70_100_50_recovery",
+    "scenario": "Spanish · CNS 20/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "target_duration": "~38s",
+    "script": "Muy bien... revisa el panel de control. Tu sistema nervioso está plano, abajo en un veinte. Puede que hayas dormido decentemente... pero tu cuerpo sigue cargando con un déficit físico enorme. Si intentas forzar el ritmo hoy... te estás buscando una lesión. Vamos a quitar el pie por completo del acelerador. Hoy es pura... recuperación activa. Enfócate en una respiración profunda... parasimpática... y en la liberación de tejido estático. Vamos a eliminar la fatiga... restablecer tu sistema nervioso... y preparar tus articulaciones para luchar otro día. Trata esta sesión como medicina. Protege tu cuerpo... ejecuta la recuperación... y descansa."
+  },
+  {
+    "category": "Mobility",
+    "subject_line": "PT_20_40_100_50_mobility",
+    "scenario": "Portuguese · CNS 20/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "target_duration": "~35s",
+    "script": "Olha... o teu sistema nervoso está no limite hoje... batendo nos vinte. Estás na zona vermelha. Quando o teu sistema nervoso joga à defesa assim... nós não forçamos o aço pesado. Protegemos o motor. Hoje o foco é descompressão... abrir as tuas articulações... e deixar o teu corpo respirar. Pega no teu tapete... abranda o ritmo... e foca-te totalmente na tua amplitude de movimento. Sem pressas... sem pressões. Apenas mobilidade suave... e controlada. Vamos pôr o corpo a mexer... em segurança."
+  },
+  {
+    "category": "Recovery",
+    "subject_line": "PT_20_70_100_50_recovery",
+    "scenario": "Portuguese · CNS 20/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "target_duration": "~38s",
+    "script": "Muito bem... olha para o painel de controlo. O teu sistema nervoso está em baixo, nos vinte. Podes ter dormido bem... mas o teu corpo continua a carregar um défice físico enorme. Se dares o máximo hoje... estás apenas a pedir uma lesão. Vamos tirar o pé completamente do acelerador. Hoje é pura... recuperação ativa. Foca-te numa respiração profunda... parassimpática... e na libertação de tecido estático. Vamos limpar a fadiga... redefinir o teu sistema nervoso... e preparar as tuas articulações para lutar outro dia. Trata esta sessão como se fosse medicina. Protege o teu corpo... executa a recuperação... e descansa."
   }
 ]
