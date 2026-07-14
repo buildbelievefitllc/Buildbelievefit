@@ -36,9 +36,19 @@
   --bd: 'Barlow Condensed', Arial, sans-serif;           /* body */
   --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Roboto Mono', Menlo, monospace; /* clinical data points */
 
-  /* — safe-area insets (PWA) — */
+  /* — safe-area insets (PWA / native Capacitor container) —
+     Two register sets: --st/--sb are the *ambient* insets (0px fallback) used by
+     surfaces that only need real device padding; --safe-top/--safe-bottom carry
+     the hardware-boundary FALLBACKS (notch / Dynamic Island ≈ 20px, home-swipe
+     indicator ≈ 16px) so a non-inset browser still clears the iOS chrome. Top
+     nav headers push below the notch; bottom action rails ride above the home
+     indicator. */
   --st: env(safe-area-inset-top, 0px);
   --sb: env(safe-area-inset-bottom, 0px);
+  --sl: env(safe-area-inset-left, 0px);
+  --sr: env(safe-area-inset-right, 0px);
+  --safe-top: env(safe-area-inset-top, 20px);
+  --safe-bottom: env(safe-area-inset-bottom, 16px);
 
   /* — Sovereign Dossier · Material Upgrade (CEO order) —
      Void ambient SURFACE system: pitch-black canvas + deep void purples. These
@@ -176,6 +186,22 @@ h1, h2, h3 {
 
 a { color: var(--gold-soft); text-decoration: none; }
 
+/* ── Native touch hardening — static presentation chrome ──────────────────────
+   Headers and interactive controls are non-selectable brand chrome: on a native
+   iOS/Capacitor shell a fast thumb-scroll or long-press over them must NOT raise
+   the web-style text-selection highlight or the callout menu. Body copy and form
+   inputs are intentionally EXCLUDED so real content stays selectable/copyable. */
+h1, h2, h3,
+button,
+.bbf-btn, .bbf-label,
+[role='tab'], [role='button'] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* Re-enable selection inside any element that opts in (long-form copy blocks). */
+.bbf-selectable, .bbf-selectable * { -webkit-user-select: text; user-select: text; }
+
 /* ── brutalist primitives (shared by Login / MasterLayout) ──────────────────── */
 
 /* Gold CTA — matches the monolith sign-in button (#ebtn): gold fill, black ink.
@@ -249,21 +275,37 @@ a { color: var(--gold-soft); text-decoration: none; }
    ONLY the @media block changes behavior, so desktop is unchanged. */
 .bbf-shell { display: flex; min-height: 100%; background: var(--blk); color: var(--wht); }
 .bbf-sidebar {
-  width: 248px; flex-shrink: 0; display: flex; flex-direction: column; padding: 1.5rem 1rem;
+  width: 248px; flex-shrink: 0; display: flex; flex-direction: column;
+  /* Desktop: the sidebar is the fixed left rail — clear the notch at the top and
+     the home indicator at the bottom (portrait iPad / landscape phone). */
+  padding: calc(1.5rem + var(--safe-top)) 1rem calc(1.5rem + var(--safe-bottom));
+  padding-left: max(1rem, var(--sl));
   background: linear-gradient(180deg, var(--purp) 0%, var(--blk) 60%); border-right: 1px solid var(--line);
+  -webkit-overflow-scrolling: touch;
 }
 .bbf-sidebar-nav { display: flex; flex-direction: column; gap: .25rem; flex: 1; }
 .bbf-sidebar-foot { border-top: 1px solid var(--line); padding-top: 1rem; margin-top: 1rem; }
-.bbf-viewport { flex: 1 1 auto; min-width: 0; overflow-y: auto; padding: 2rem; }
+.bbf-viewport {
+  flex: 1 1 auto; min-width: 0; overflow-y: auto; padding: 2rem;
+  /* Primary data scroll view — native iOS inertial/kinetic momentum, and keep the
+     last row of content above the home-swipe indicator. */
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(2rem + var(--safe-bottom));
+  scroll-padding-bottom: var(--safe-bottom);
+}
 
 @media (max-width: 768px) {
   .bbf-shell { flex-direction: column; }
   .bbf-sidebar {
-    width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .7rem 1rem;
+    /* Mobile: the sidebar collapses to the TOP nav row — push it below the notch /
+       Dynamic Island. Bottom reverts to the compact row padding (the viewport
+       below now owns the home-indicator clearance). */
+    width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; gap: .5rem;
+    padding: calc(.7rem + var(--safe-top)) max(1rem, var(--sr)) .7rem max(1rem, var(--sl));
     background: linear-gradient(90deg, var(--purp) 0%, var(--blk) 85%);
     border-right: 0; border-bottom: 1px solid var(--line);
   }
   .bbf-sidebar-nav { flex-direction: row; flex-wrap: wrap; flex: 1 1 100%; }
   .bbf-sidebar-foot { border-top: 0; padding-top: 0; margin-top: 0; margin-left: auto; }
-  .bbf-viewport { padding: 1.1rem; }
+  .bbf-viewport { padding: 1.1rem; padding-bottom: calc(1.1rem + var(--safe-bottom)); }
 }
