@@ -59,7 +59,7 @@ export async function generateStudioVoice({ script, vibe }) {
 // get back a permanent Supabase Storage public URL. Returns the parsed JSON
 // ({ ok, cached, slug, url, vibe, duration, model?, usage? }); throws a
 // display-ready Error on failure.
-export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang }) {
+export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang, providedScript }) {
   // Zero-latency manifest cache: exact topic match returns the pre-seeded vault URL
   // instantly, skipping the Edge Function. But `audioVaultManifest` is ENGLISH-ONLY
   // (keyed by exercise name with NO locale dimension), so short-circuiting to it for
@@ -67,7 +67,9 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
   // Spanish/Portuguese + Generate played English. Only take the fast path for EN; es/pt
   // fall through to bbf-studio-voiceover, which writes the script in-language and caches
   // the result server-side (slug includes lang, so the next es/pt hit is a $0 cache hit).
-  const cachedUrl = (lang || 'en') === 'en' ? lookupVaultUrl(topic) : null;
+  // A providedScript (Spotlight VO voices EXACT text) always goes to the Edge Function —
+  // the manifest can't answer a custom line.
+  const cachedUrl = (!providedScript && (lang || 'en') === 'en') ? lookupVaultUrl(topic) : null;
   if (cachedUrl) {
     return { ok: true, cached: true, fromManifest: true, url: cachedUrl, vibe };
   }
@@ -87,6 +89,7 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
       series: series || '',
       vibe,
       lang: lang || 'en',
+      ...(providedScript ? { provided_script: providedScript } : {}),
       vault_token: token,
     }),
   });

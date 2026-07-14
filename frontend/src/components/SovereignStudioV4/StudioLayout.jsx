@@ -412,6 +412,49 @@ export default function StudioLayout({
     }
   }
 
+  // 🎙 AI VOICEOVER + CAPTIONS (Tier 3b) — voice a short hype line built from the
+  // client + stat + shoutout, then bake it (with its free ElevenLabs word timings)
+  // as karaoke captions onto the video spotlight. Reuses the whole VO/caption pipeline.
+  const [spotVoBusy, setSpotVoBusy] = useState(false);
+  const [spotVoNote, setSpotVoNote] = useState(null); // { ok, text } | null
+  function spotVoScript() {
+    const name = (spotData.clientName || '').trim();
+    const num = (spotData.statNumber || '').trim();
+    const unit = (spotData.statUnit || '').trim();
+    const lift = (spotData.statLift || '').trim();
+    const parts = [];
+    if (name) parts.push(`${name}.`);
+    if (num) parts.push(`${num} ${unit} ${lift}.`.replace(/\s+/g, ' ').trim());
+    if (spotData.prBadge) parts.push('New personal record.');
+    if (spotData.shoutout) parts.push(spotData.shoutout);
+    return parts.join(' ').replace(/\s+/g, ' ').trim() || 'Client spotlight. A new personal record.';
+  }
+  async function generateSpotlightVo() {
+    if (spotVoBusy) return;
+    const script = spotVoScript();
+    setSpotVoBusy(true);
+    setSpotVoNote(null);
+    try {
+      const { generateStudioVoiceover } = await import('../../lib/studioApi.js');
+      // Fold the script into the topic so the cache key is content-addressed (a
+      // reworded line = a new slug, never a stale cache hit on the old audio).
+      const r = await generateStudioVoiceover({ topic: `spotlight ${script}`.slice(0, 120), targetDuration: 15, series: 'spotlight', vibe: 'the_mechanic', lang: 'en', providedScript: script });
+      handleSpotChange('spotVoUrl', r.url);
+      const words = Array.isArray(r.words) ? r.words : null;
+      if (words && words.length) {
+        handleSpotChange('spotCaptions', { words });
+        handleSpotChange('spotCaptionsEnabled', true);
+        setSpotVoNote({ ok: true, text: `Voiceover ready + captions auto-timed (${words.length} words). Press ▶ to preview.` });
+      } else {
+        setSpotVoNote({ ok: true, text: 'Voiceover ready. (No caption timings returned — generate captions separately if needed.)' });
+      }
+    } catch (e) {
+      setSpotVoNote({ ok: false, text: `Voiceover failed (${humanizeReelErr(e?.message)}).` });
+    } finally {
+      setSpotVoBusy(false);
+    }
+  }
+
   // Bake the reel via SovereignFoundry — the shared core behind the plain
   // EXPORT/POST flow and the TikTok bridge (which always renders a full,
   // un-posted export regardless of the IG/FB toggle state). Throws on failure
@@ -619,16 +662,23 @@ export default function StudioLayout({
     if (!videoUrl) throw new Error('no_footage');
     const overlay = await SovereignFoundry.captureOverlay(stageRef.current);
     const foundry = new SovereignFoundry(document.body);
+    const voiceUrl = spotData.spotVoUrl || null;
     const result = await foundry.render({
       videoUrl,
-      footageUrl: videoUrl, // bake the clip's own sound (gym ambience / hype track)
-      footageGain: 1,
+      voUrl: voiceUrl,                        // AI voiceover (drives the baked captions)
+      footageUrl: videoUrl,                   // the clip's own sound
+      voGain: 1,
+      footageGain: voiceUrl ? 0.35 : 1,       // duck the clip under the voiceover when present
+      captions: spotData.spotCaptions,
+      captionsEnabled: !!spotData.spotCaptionsEnabled,
+      captionPos: spotData.spotCaptionPos ?? 78,
       overlay,
       durationCap: durationCapSec,
       onProgress: (p) => setRecordPct(Math.round(p * 100)),
     });
     if (!result || !result.blob) throw new Error('record_failed');
-    const audioMsg = result.audio ? '🎙 Clip audio baked in.' : 'Clip had no audio track — exported silent.';
+    const chans = [voiceUrl && 'voice', 'clip sound'].filter(Boolean);
+    const audioMsg = result.audio ? `🎙 ${chans.join(' + ')} baked in.` : 'Clip had no audio track — exported silent.';
     return { result, audioMsg };
   };
 
@@ -1038,6 +1088,26 @@ export default function StudioLayout({
                 <div className="ctl-group-v4">
                   <label className="ctl-label-v4">Stat Position — {spotData.statPos ?? 24}% from top</label>
                   <input type="range" min="8" max="70" value={spotData.statPos ?? 24} onChange={(e) => handleSpotChange('statPos', Number(e.target.value))} className="range-v4" data-testid="spot-stat-pos" />
+                </div>
+
+                <div className="divider-v4"></div>
+
+                <div className="ctl-group-v4">
+                  <label className="ctl-label-v4">🎙 AI Voiceover + Captions</label>
+                  <button type="button" className="spin-btn-v4" onClick={generateSpotlightVo} disabled={spotVoBusy} data-testid="spot-gen-vo">
+                    {spotVoBusy ? '… VOICING' : '🎙 VOICE THE STAT + BAKE CAPTIONS'}
+                  </button>
+                  <div className="hint-v4">Coach Akeem voices the client + stat + shoutout; the karaoke captions bake into the export automatically.</div>
+                  {spotVoNote && (<div className="hint-v4" style={{ color: spotVoNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{spotVoNote.text}</div>)}
+                  {spotData.spotCaptions?.words?.length ? (
+                    <>
+                      <label className="post-toggle-v4 spot-toggle-v4" style={{ display: 'inline-flex', marginTop: 8 }}>
+                        <input type="checkbox" checked={!!spotData.spotCaptionsEnabled} onChange={(e) => handleSpotChange('spotCaptionsEnabled', e.target.checked)} data-testid="spot-captions-toggle" /> Show / bake captions
+                      </label>
+                      <label className="ctl-label-v4" style={{ marginTop: 8 }}>Caption Position — {spotData.spotCaptionPos ?? 78}% from top</label>
+                      <input type="range" min="30" max="90" value={spotData.spotCaptionPos ?? 78} onChange={(e) => handleSpotChange('spotCaptionPos', Number(e.target.value))} className="range-v4" data-testid="spot-caption-pos" />
+                    </>
+                  ) : null}
                 </div>
 
                 <div className="ctl-group-v4">

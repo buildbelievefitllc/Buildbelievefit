@@ -117,4 +117,36 @@ test.describe('Studio V4 — Client Spotlight (Tier 1 restore)', () => {
     await expect(page.locator('.spot-shout-v4')).toHaveText('UNSTOPPABLE, MARCUS.');
     await expect(page.locator('.spot-q-v4').first()).toHaveText('Forty pounds down, every week earned.');
   });
+
+  test('🎙 AI voiceover bakes karaoke captions onto the video spotlight', async ({ page }) => {
+    const CORS = { 'Access-Control-Allow-Origin': '*' };
+    const WORDS = [
+      { text: 'Marcus', start: 0.0, end: 0.5 },
+      { text: 'six', start: 0.5, end: 0.8 },
+      { text: 'eighty-eight', start: 0.8, end: 1.4 },
+    ];
+    await page.route('**/functions/v1/bbf-studio-voiceover', async (route) => {
+      if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 200, headers: CORS }); return; }
+      await route.fulfill({
+        status: 200, contentType: 'application/json', headers: CORS,
+        body: JSON.stringify({ ok: true, cached: false, url: 'https://example.test/spot-vo.mp3', words: WORDS }),
+      });
+    });
+    await openSpotlight(page);
+    await page.getByTestId('spot-format').getByRole('button', { name: 'VIDEO 9:16' }).click();
+    await page.getByTestId('spot-gen-vo').click();
+
+    // VO audio element mounts + the captions toggle appears (auto-on).
+    await expect(page.getByTestId('spot-audio-voice')).toHaveCount(1);
+    await expect(page.getByTestId('spot-captions-toggle')).toBeChecked();
+
+    // Drive the VO playhead → the karaoke phrase renders with the active word lit.
+    await page.evaluate(() => {
+      const a = document.querySelector('audio[data-testid="spot-audio-voice"]');
+      a.currentTime = 0.6; a.dispatchEvent(new Event('timeupdate'));
+    });
+    const cap = page.getByTestId('spot-caption');
+    await expect(cap).toBeVisible();
+    await expect(cap.locator('.cap-word-v4.is-active')).toHaveText('six');
+  });
 });

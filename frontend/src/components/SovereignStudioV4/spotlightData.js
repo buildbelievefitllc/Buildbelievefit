@@ -64,4 +64,10 @@ export const SPOT_DEFAULTS = {
   prBadge: true,           // show the gold "NEW PR 🏆" pill
   repLine: '',             // secondary context line (e.g. "3×3 @ RPE 9", "2.4× bodyweight")
   statPos: 24,             // stat block vertical position, % of frame height (top-anchored)
+
+  // ── Tier 3b · AI VOICEOVER + baked captions on the video spotlight ──
+  spotVoUrl: null,         // durable Supabase VO URL (generated) — https, survives reload
+  spotCaptions: null,      // { words:[{text,start,end}] } from the VO (free ElevenLabs timings)
+  spotCaptionsEnabled: false, // render + bake the karaoke captions on the video spotlight
+  spotCaptionPos: 78,      // caption vertical position (% of frame height) — sits low by default
 };

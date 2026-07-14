@@ -712,5 +712,8 @@
   box-shadow: 0 0 0 3px rgba(245, 200, 0, 0.5); }
 .spot-progress-v4 { position: absolute; bottom: 0; left: 0; right: 0; height: 10px; z-index: 6; background: rgba(255, 255, 255, 0.12); }
 .spot-progress-bar-v4 { height: 100%; background: linear-gradient(90deg, var(--pur), var(--yel)); }
+.spot-vo-v4 { position: absolute; right: 28px; top: 150px; z-index: 6; cursor: pointer;
+  font-family: var(--hb); font-size: 26px; letter-spacing: 2px; padding: 10px 20px; border-radius: 999px;
+  background: rgba(13, 1, 24, 0.6); color: #fff; border: 1px solid rgba(245, 200, 0, 0.5); }
 
 .stat-row-v4 { display: flex; gap: 8px; }
