@@ -96,6 +96,56 @@
 /* Asset-size handle (VibeSelector → reelData.logoScale) — full-width brand-tinted range. */
 .range-v4 { width: 100%; accent-color: var(--pur); cursor: pointer; margin: 6px 0 2px; }
 
+/* ===== ADVANCED VOICE TUNING (VibeSelector) — native ElevenLabs fine-tuning ===== */
+/* Collapsible header — purple-tinted, gold accent when open. Mirrors the deck's
+   numbered-tab active state (purple→gold) so it reads as one system. */
+.advtune-head-v4 {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  background: linear-gradient(135deg, rgba(106, 13, 173, 0.28), rgba(20, 20, 20, 0.9));
+  border: 1px solid var(--gry3); border-radius: 8px;
+  color: var(--wht); font-family: var(--hb); font-size: 0.86rem; letter-spacing: 1.4px;
+  padding: 11px 13px; cursor: pointer; transition: all 0.15s; text-align: left;
+}
+.advtune-head-v4:hover { border-color: var(--pur); filter: brightness(1.1); }
+.advtune-head-v4:focus-visible { outline: 2px solid var(--yel); outline-offset: -3px; }
+.advtune-head-v4.is-open { border-color: var(--pur); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.advtune-ic-v4 { flex: none; font-size: 0.95rem; }
+.advtune-title-v4 { flex: 1; min-width: 0; }
+.advtune-chev-v4 { flex: none; color: var(--yel); font-size: 0.8rem; }
+/* "MODIFIED" pill — gold on purple, the override tell. */
+.advtune-badge-v4 {
+  flex: none; background: var(--yel); color: #090909; font-family: var(--hb);
+  font-size: 0.62rem; letter-spacing: 1px; padding: 2px 7px; border-radius: 999px;
+}
+.advtune-body-v4 {
+  border: 1px solid var(--pur); border-top: none;
+  border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
+  background: rgba(13, 1, 24, 0.35); padding: 12px 13px 14px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.advtune-slider-v4 { display: flex; flex-direction: column; }
+.advtune-slabel-v4 {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--bd); font-weight: 700; font-size: 0.9rem; color: var(--wht);
+  text-transform: uppercase; letter-spacing: 0.6px;
+}
+.advtune-val-v4 {
+  font-family: var(--hb); font-size: 0.95rem; letter-spacing: 1px; color: var(--yel);
+}
+.advtune-reset-v4 {
+  align-self: flex-start; background: transparent; border: 1px solid var(--gry3);
+  border-radius: 6px; color: var(--mut); font-family: var(--hb); font-size: 0.72rem;
+  letter-spacing: 1.2px; padding: 8px 12px; cursor: pointer; transition: all 0.15s;
+}
+.advtune-reset-v4:hover:not(:disabled) { border-color: var(--pur); color: var(--wht); }
+.advtune-reset-v4:disabled { opacity: 0.4; cursor: default; }
+/* "MODIFIED PRESET" inline badge on the Voice Character label. */
+.vibe-mod-badge-v4 {
+  margin-left: 8px; background: var(--yel); color: #090909; font-family: var(--hb);
+  font-size: 0.6rem; letter-spacing: 1px; padding: 2px 7px; border-radius: 999px;
+  vertical-align: middle;
+}
+
 .spin-btn-v4 {
   display: block; width: 100%; text-align: center; border-radius: 8px;
   background: linear-gradient(135deg, var(--pur), var(--purl)); color: var(--wht);

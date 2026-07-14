@@ -66,6 +66,18 @@ function resolveVibe(input: unknown): Vibe {
   return (v in VIBES) ? (v as Vibe) : 'the_architect';
 }
 
+// Native fine-tuning overrides — the Advanced Voice Tuning sliders send 0–100%
+// UI values (or, defensively, already-normalized 0.0–1.0). Normalize to the
+// ElevenLabs 0.0–1.0 scale and clamp; null ⇒ "no override sent, use the vibe
+// baseline". A value >1 is treated as a percentage (÷100); ≤1 is taken verbatim.
+function normSetting(v: unknown): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  if (!Number.isFinite(n)) return null;
+  const norm = n > 1 ? n / 100 : n;
+  return Math.max(0, Math.min(1, norm));
+}
+
 // ── slug / hash ─────────────────────────────────────────────────────────────
 function slugify(s: string): string {
   return String(s || '')
@@ -81,15 +93,22 @@ async function sha256Hex(s: string): Promise<string> {
 // Deterministic, human-readable cache key: readable prefix (vibe-series-topic-Ns)
 // + a short hash of the FULL normalized input set (collision-safe). Same inputs →
 // same slug → same vault object → cache hit.
-async function buildSlug(parts: { vibe: string; series: string; topic: string; duration: number; lang: string }): Promise<string> {
+// `tuning` is a stable fingerprint of any custom voice_settings override. It is
+// folded into the cache key ONLY when overrides are present, so a fine-tuned
+// render caches independently of the vibe-baseline render (same topic, different
+// physics → different audio → different object). Baseline renders keep their
+// historical slug untouched (backward-compatible cache hits).
+async function buildSlug(parts: { vibe: string; series: string; topic: string; duration: number; lang: string; tuning?: string }): Promise<string> {
   const readable = [slugify(parts.vibe), slugify(parts.series), slugify(parts.topic)]
     .filter(Boolean).join('-') || 'vo';
   const canonical = JSON.stringify({
     v: parts.vibe, s: parts.series.trim().toLowerCase(), t: parts.topic.trim().toLowerCase(),
     d: parts.duration, l: parts.lang, voice: AKEEM_VOICE_ID, m: VOICE_MODEL,
+    ...(parts.tuning ? { tune: parts.tuning } : {}),
   });
   const hash = (await sha256Hex(canonical)).slice(0, 10);
-  return `${readable}-${parts.duration}s-${hash}`;
+  const marker = parts.tuning ? 'x-' : ''; // human-visible flag that this is a tuned render
+  return `${readable}-${marker}${parts.duration}s-${hash}`;
 }
 
 // ── admin perimeter (vault/session token → god-mode role, or shared secret) ──
@@ -309,11 +328,31 @@ serve(async (req: Request) => {
   // this EXACT text (batch vault seeding). Empty/absent → fall back to LLM gen.
   const providedScript = typeof payload?.provided_script === 'string' ? payload.provided_script.trim() : '';
 
+  // ── CUSTOM VOICE PHYSICS (Advanced Voice Tuning sliders) ──
+  // Parse the optional per-render overrides. When present they replace the vibe's
+  // baseline for that ElevenLabs axis; when absent (null) the baseline stands.
+  const spec = VIBES[vibe];
+  const customStability = normSetting(payload?.stability);
+  const customSimilarity = normSetting(payload?.similarity_boost ?? payload?.similarity ?? payload?.clarity);
+  const customStyle = normSetting(payload?.style ?? payload?.style_exaggeration);
+  const hasCustom = customStability !== null || customSimilarity !== null || customStyle !== null;
+  const settings = {
+    ...BASE_SETTINGS,
+    stability: customStability ?? spec.stability,
+    similarity_boost: customSimilarity ?? BASE_SETTINGS.similarity_boost,
+    style: customStyle ?? spec.style,
+  };
+  // Fingerprint only the effective settings when an override is live — keeps
+  // baseline renders on their historical (untuned) cache key.
+  const tuning = hasCustom
+    ? `st${Math.round(settings.stability * 100)}-si${Math.round(settings.similarity_boost * 100)}-sy${Math.round(settings.style * 100)}`
+    : undefined;
+
   // ── 1 · CACHE LOOKUP ──
-  const slug = await buildSlug({ vibe, series, topic, duration, lang });
+  const slug = await buildSlug({ vibe, series, topic, duration, lang, tuning });
   if (!force && (await vaultHas(SUPABASE_URL, slug))) {
-    console.log(`[${FN}] cache HIT slug=${slug}`);
-    return jsonResponse({ ok: true, cached: true, slug, url: publicUrl(SUPABASE_URL, slug), vibe, duration });
+    console.log(`[${FN}] cache HIT slug=${slug} tuned=${hasCustom}`);
+    return jsonResponse({ ok: true, cached: true, slug, url: publicUrl(SUPABASE_URL, slug), vibe, duration, tuned: hasCustom });
   }
   console.log(`[${FN}] cache MISS slug=${slug} — generating`);
 
@@ -322,7 +361,6 @@ serve(async (req: Request) => {
 
   // ── 2 · SCRIPT (provided verbatim, or LLM-generated on miss) ──
   const words = Math.max(8, Math.round(duration * WORDS_PER_SEC));
-  const spec = VIBES[vibe];
   let script: string;
   let model: string | null = null;   // null when we voice a provided script (no LLM)
   let llmUsage: unknown = null;
@@ -349,7 +387,6 @@ serve(async (req: Request) => {
   if (script.length > MAX_SCRIPT_CHARS) script = script.slice(0, MAX_SCRIPT_CHARS);
 
   const ssml = buildSsml(script, vibe);
-  const settings = { ...BASE_SETTINGS, stability: spec.stability, style: spec.style };
   const tts = await synthesize(ELEVENLABS_API_KEY, ssml, settings);
   if (!tts.ok) {
     console.error(`[${FN}] tts failed ${tts.status}: ${tts.detail}`);
@@ -363,7 +400,7 @@ serve(async (req: Request) => {
     return jsonResponse({ error: 'vault_write_failed', detail: 'Synthesis succeeded but the audio could not be cached.' }, 502);
   }
 
-  console.log(`[${FN}] STORED slug=${slug} source=${source} model=${model ?? 'none'} words=${words} script_chars=${script.length} billed_chars=${ssml.length} bytes=${tts.buf.byteLength}`);
+  console.log(`[${FN}] STORED slug=${slug} source=${source} model=${model ?? 'none'} words=${words} script_chars=${script.length} billed_chars=${ssml.length} bytes=${tts.buf.byteLength} tuned=${hasCustom} settings=st${settings.stability},si${settings.similarity_boost},sy${settings.style}`);
   return jsonResponse({
     ok: true,
     cached: false,
@@ -373,6 +410,8 @@ serve(async (req: Request) => {
     duration,
     source,
     model,
+    tuned: hasCustom,
+    voice_settings: { stability: settings.stability, similarity_boost: settings.similarity_boost, style: settings.style },
     usage: {
       words_target: words,
       script_chars: script.length,

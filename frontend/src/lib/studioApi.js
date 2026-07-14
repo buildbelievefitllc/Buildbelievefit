@@ -59,7 +59,17 @@ export async function generateStudioVoice({ script, vibe }) {
 // get back a permanent Supabase Storage public URL. Returns the parsed JSON
 // ({ ok, cached, slug, url, vibe, duration, model?, usage? }); throws a
 // display-ready Error on failure.
-export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang }) {
+export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang, stability, similarityBoost, style }) {
+  // Advanced Voice Tuning overrides (0–100% UI values). Only present when the user
+  // has manually deviated from the vibe baseline — the caller omits them otherwise
+  // so the Edge Function falls back to the vibe defaults (and keeps the un-tuned
+  // cache key). Any override means the manifest fast-path below MUST be skipped:
+  // that pre-seeded vault is baseline-only, so serving it would ignore the tuning.
+  const overrides = {};
+  if (stability != null) overrides.stability = stability;
+  if (similarityBoost != null) overrides.similarity_boost = similarityBoost;
+  if (style != null) overrides.style = style;
+  const hasCustom = Object.keys(overrides).length > 0;
   // Zero-latency manifest cache: exact topic match returns the pre-seeded vault URL
   // instantly, skipping the Edge Function. But `audioVaultManifest` is ENGLISH-ONLY
   // (keyed by exercise name with NO locale dimension), so short-circuiting to it for
@@ -67,7 +77,7 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
   // Spanish/Portuguese + Generate played English. Only take the fast path for EN; es/pt
   // fall through to bbf-studio-voiceover, which writes the script in-language and caches
   // the result server-side (slug includes lang, so the next es/pt hit is a $0 cache hit).
-  const cachedUrl = (lang || 'en') === 'en' ? lookupVaultUrl(topic) : null;
+  const cachedUrl = (!hasCustom && (lang || 'en') === 'en') ? lookupVaultUrl(topic) : null;
   if (cachedUrl) {
     return { ok: true, cached: true, fromManifest: true, url: cachedUrl, vibe };
   }
@@ -87,6 +97,7 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
       series: series || '',
       vibe,
       lang: lang || 'en',
+      ...overrides, // stability / similarity_boost / style — only when user-tuned
       vault_token: token,
     }),
   });
