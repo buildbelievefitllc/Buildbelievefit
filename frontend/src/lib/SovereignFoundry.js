@@ -119,7 +119,13 @@ export class SovereignFoundry {
       // bezel with a punched-transparent screen hole (this WAS attempted via a
       // forced-transparent .phone-screen-v4 background; in practice it produced a
       // solid, undercut bezel shape and an opaque hole that buried the footage).
-      clone.querySelectorAll('.reel-video-v4, .reel-placeholder-v4, .reel-play-v4, .reel-vo-v4, .reel-progress-v4, .phone-frame-v4')
+      // CRITICAL — strip the LIVE karaoke caption layer (.reel-caption-v4) too. The
+      // export bakes captions PER FRAME via _drawCaptions (they move with the voice),
+      // so if we ALSO rasterize the live caption element into this one-shot overlay we
+      // get a second, FROZEN copy of whatever phrase was on screen at capture time —
+      // baked motionless behind the moving text (the "still shot behind the captions"
+      // reported on IG/FB posts). The dynamic baker is the single source of captions.
+      clone.querySelectorAll('.reel-video-v4, .reel-placeholder-v4, .reel-play-v4, .reel-vo-v4, .reel-progress-v4, .phone-frame-v4, .reel-caption-v4')
         .forEach((el) => el.remove());
       // Kill the opaque stage background so the footage isn't buried by the overlay.
       clone.style.transform = 'none';
