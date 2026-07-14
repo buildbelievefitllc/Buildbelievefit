@@ -49,6 +49,24 @@ const VOICES = [
   ['the_reframe', 'The Reframe — perspective shift'],
 ];
 
+// Vibe → native ElevenLabs baseline (0–100% UI scale). MUST mirror the Edge
+// Function's VIBES map (stability + style per-vibe) and BASE_SETTINGS
+// (similarity_boost 0.85, shared across all vibes today). Selecting a vibe snaps
+// the Advanced Voice Tuning sliders to these; the user can then override any axis.
+const VIBE_BASELINES = {
+  the_mechanic:  { stability: 42, similarity: 85, style: 12 },
+  real_talk:     { stability: 38, similarity: 85, style: 16 },
+  the_sanctuary: { stability: 30, similarity: 85, style: 8 },
+  the_reframe:   { stability: 35, similarity: 85, style: 28 },
+  the_architect: { stability: 34, similarity: 85, style: 22 },
+};
+// resolveVibe() server-side defaults an unknown vibe to The Architect — mirror it.
+const getVibeBaseline = (vibe) => VIBE_BASELINES[vibe] || VIBE_BASELINES.the_architect;
+const vibeShortLabel = (vibe) => {
+  const row = VOICES.find(([id]) => id === vibe);
+  return row ? row[1].split('—')[0].trim() : 'preset';
+};
+
 // Target runtime → seconds. Script length is derived server-side (~2.5 words/sec).
 const DURATIONS = [
   [15, '15s Hook'],
@@ -251,6 +269,39 @@ export default function VibeSelector({ reelData, handleReelChange }) {
     setHookNote({ ok: true, text: 'Restored your previous hook.' });
   };
 
+  const [advOpen, setAdvOpen] = useState(false); // Advanced Voice Tuning panel
+
+  // ── Advanced Voice Tuning: effective slider values + "modified" detection. Each
+  // axis falls back to the current vibe's baseline until the user overrides it, so
+  // an untouched panel exactly mirrors the preset (and sends NO overrides on
+  // Generate → the Edge Function uses the vibe defaults + keeps the un-tuned cache).
+  const vibeBase = getVibeBaseline(reelData.vibe);
+  const voStability = reelData.voStability ?? vibeBase.stability;
+  const voSimilarity = reelData.voSimilarity ?? vibeBase.similarity;
+  const voStyle = reelData.voStyle ?? vibeBase.style;
+  const voModified =
+    voStability !== vibeBase.stability ||
+    voSimilarity !== vibeBase.similarity ||
+    voStyle !== vibeBase.style;
+
+  // Selecting a Voice Character snaps all three sliders to that vibe's baseline,
+  // wiping any prior manual override (spec: "automatically snap … to that vibe's
+  // default baseline").
+  const handleVibeChange = (e) => {
+    const v = e.target.value;
+    const b = getVibeBaseline(v);
+    handleReelChange('vibe', v);
+    handleReelChange('voStability', b.stability);
+    handleReelChange('voSimilarity', b.similarity);
+    handleReelChange('voStyle', b.style);
+  };
+  const resetVibeTuning = () => {
+    const b = getVibeBaseline(reelData.vibe);
+    handleReelChange('voStability', b.stability);
+    handleReelChange('voSimilarity', b.similarity);
+    handleReelChange('voStyle', b.style);
+  };
+
   // Pull a random hook from the chosen spectrum, or across ALL spectrums when the
   // default "— all spectrums (shuffle) —" is selected (v3 parity — no dead button).
   const pullHook = (spectrum) => {
@@ -320,8 +371,14 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         series: reelData.series,
         vibe: reelData.vibe,
         lang: reelData.lang || 'en',
+        // Only forward overrides when the user has deviated from the preset — an
+        // un-modified panel falls back to the vibe defaults server-side.
+        ...(voModified
+          ? { stability: voStability, similarityBoost: voSimilarity, style: voStyle }
+          : {}),
       });
       applyVoiceUrl(r.url); // → ReelPreviewEngine <audio> (clears any stale transcript)
+      const tuneNote = voModified ? ' · custom tuning applied' : '';
       // OPTION 3 — free kinetic captions: the AI voice ships its own word timings
       // straight from the ElevenLabs generation payload (no separate Scribe pass).
       // applyVoiceUrl just cleared captions, so set them AFTER it.
@@ -329,9 +386,9 @@ export default function VibeSelector({ reelData, handleReelChange }) {
       if (aiWords && aiWords.length) {
         handleReelChange('captions', { words: aiWords });
         handleReelChange('captionsEnabled', true);
-        setVoNote({ ok: true, text: `${r.cached ? 'Loaded from vault — cache hit, $0 spend' : 'Generated & cached to the vault'} · captions auto-timed (${aiWords.length} words).` });
+        setVoNote({ ok: true, text: `${r.cached ? 'Loaded from vault — cache hit, $0 spend' : 'Generated & cached to the vault'} · captions auto-timed (${aiWords.length} words)${tuneNote}.` });
       } else {
-        setVoNote({ ok: true, text: r.cached ? 'Loaded from vault — cache hit, $0 spend.' : 'Generated & cached to the vault.' });
+        setVoNote({ ok: true, text: (r.cached ? 'Loaded from vault — cache hit, $0 spend' : 'Generated & cached to the vault') + tuneNote + '.' });
       }
     } catch (e) {
       setVoNote({ ok: false, text: humanizeVoErr(e?.message) });
@@ -594,16 +651,113 @@ export default function VibeSelector({ reelData, handleReelChange }) {
       </div>
 
       <div className="ctl-group-v4">
-        <label className="ctl-label-v4">Voice Character</label>
+        <label className="ctl-label-v4">
+          Voice Character
+          {voModified && (
+            <span className="vibe-mod-badge-v4" data-testid="reel-vibe-modified">MODIFIED PRESET</span>
+          )}
+        </label>
         <select
           value={reelData.vibe}
-          onChange={(e) => handleReelChange('vibe', e.target.value)}
+          onChange={handleVibeChange}
           className="select-v4"
         >
           {VOICES.map(([id, label]) => (
             <option key={id} value={id}>{label}</option>
           ))}
         </select>
+      </div>
+
+      {/* ── ADVANCED VOICE TUNING — native ElevenLabs fine-tuning sliders. Snaps to
+          the selected vibe's baseline; any manual slide overrides it (and flags the
+          preset above as "Modified"). Mirrors the ElevenLabs dashboard's 3 axes. ── */}
+      <div className="ctl-group-v4">
+        <button
+          type="button"
+          className={`advtune-head-v4${advOpen ? ' is-open' : ''}`}
+          aria-expanded={advOpen}
+          onClick={() => setAdvOpen((v) => !v)}
+          data-testid="reel-advtune-toggle"
+        >
+          <span className="advtune-ic-v4" aria-hidden="true">🎛</span>
+          <span className="advtune-title-v4">Advanced Voice Tuning</span>
+          {voModified && <span className="advtune-badge-v4">MODIFIED</span>}
+          <span className="advtune-chev-v4" aria-hidden="true">{advOpen ? '▾' : '▸'}</span>
+        </button>
+        {advOpen && (
+          <div className="advtune-body-v4" data-testid="reel-advtune-panel">
+            <div className="hint-v4" style={{ marginTop: 2 }}>
+              Native ElevenLabs physics. Picking a Voice Character snaps these to its baseline — slide any axis to override for this render.
+            </div>
+
+            <div className="advtune-slider-v4">
+              <div className="advtune-slabel-v4">
+                <span>Stability</span>
+                <span className="advtune-val-v4">{voStability}%</span>
+              </div>
+              <input
+                type="range"
+                className="range-v4"
+                min="0"
+                max="100"
+                step="1"
+                value={voStability}
+                onChange={(e) => handleReelChange('voStability', Number(e.target.value))}
+                aria-label="Voice stability"
+                data-testid="reel-vo-stability"
+              />
+              <div className="hint-v4">Vocal emotional variance &amp; natural pauses — lower is more expressive, higher is steadier.</div>
+            </div>
+
+            <div className="advtune-slider-v4">
+              <div className="advtune-slabel-v4">
+                <span>Clarity / Similarity Boost</span>
+                <span className="advtune-val-v4">{voSimilarity}%</span>
+              </div>
+              <input
+                type="range"
+                className="range-v4"
+                min="0"
+                max="100"
+                step="1"
+                value={voSimilarity}
+                onChange={(e) => handleReelChange('voSimilarity', Number(e.target.value))}
+                aria-label="Clarity / similarity boost"
+                data-testid="reel-vo-similarity"
+              />
+              <div className="hint-v4">How closely the engine matches the high-fidelity Akeem clone.</div>
+            </div>
+
+            <div className="advtune-slider-v4">
+              <div className="advtune-slabel-v4">
+                <span>Style Exaggeration</span>
+                <span className="advtune-val-v4">{voStyle}%</span>
+              </div>
+              <input
+                type="range"
+                className="range-v4"
+                min="0"
+                max="100"
+                step="1"
+                value={voStyle}
+                onChange={(e) => handleReelChange('voStyle', Number(e.target.value))}
+                aria-label="Style exaggeration"
+                data-testid="reel-vo-style"
+              />
+              <div className="hint-v4">Dramatic delivery scaling — higher pushes a more theatrical read.</div>
+            </div>
+
+            <button
+              type="button"
+              className="advtune-reset-v4"
+              onClick={resetVibeTuning}
+              disabled={!voModified}
+              data-testid="reel-advtune-reset"
+            >
+              ↺ Reset to “{vibeShortLabel(reelData.vibe)}” baseline
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="ctl-group-v4">

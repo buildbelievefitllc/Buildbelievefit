@@ -59,7 +59,17 @@ export async function generateStudioVoice({ script, vibe }) {
 // get back a permanent Supabase Storage public URL. Returns the parsed JSON
 // ({ ok, cached, slug, url, vibe, duration, model?, usage? }); throws a
 // display-ready Error on failure.
-export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang, providedScript }) {
+export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang, providedScript, stability, similarityBoost, style }) {
+  // Advanced Voice Tuning overrides (0–100% UI values). Only present when the user
+  // has manually deviated from the vibe baseline — the caller omits them otherwise
+  // so the Edge Function falls back to the vibe defaults (and keeps the un-tuned
+  // cache key). Any override means the manifest fast-path below MUST be skipped:
+  // that pre-seeded vault is baseline-only, so serving it would ignore the tuning.
+  const overrides = {};
+  if (stability != null) overrides.stability = stability;
+  if (similarityBoost != null) overrides.similarity_boost = similarityBoost;
+  if (style != null) overrides.style = style;
+  const hasCustom = Object.keys(overrides).length > 0;
   // Zero-latency manifest cache: exact topic match returns the pre-seeded vault URL
   // instantly, skipping the Edge Function. But `audioVaultManifest` is ENGLISH-ONLY
   // (keyed by exercise name with NO locale dimension), so short-circuiting to it for
@@ -68,8 +78,9 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
   // fall through to bbf-studio-voiceover, which writes the script in-language and caches
   // the result server-side (slug includes lang, so the next es/pt hit is a $0 cache hit).
   // A providedScript (Spotlight VO voices EXACT text) always goes to the Edge Function —
-  // the manifest can't answer a custom line.
-  const cachedUrl = (!providedScript && (lang || 'en') === 'en') ? lookupVaultUrl(topic) : null;
+  // the manifest can't answer a custom line. Custom tuning (hasCustom) likewise bypasses
+  // the baseline-only manifest so the overrides actually reach ElevenLabs.
+  const cachedUrl = (!providedScript && !hasCustom && (lang || 'en') === 'en') ? lookupVaultUrl(topic) : null;
   if (cachedUrl) {
     return { ok: true, cached: true, fromManifest: true, url: cachedUrl, vibe };
   }
@@ -90,6 +101,7 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
       vibe,
       lang: lang || 'en',
       ...(providedScript ? { provided_script: providedScript } : {}),
+      ...overrides, // stability / similarity_boost / style — only when user-tuned
       vault_token: token,
     }),
   });
