@@ -67,7 +67,10 @@
 }
 
 /* ── Fuel Targets · macro wheel (clone of .nl-wheel) ────────────────────────── */
-.xp-nl-wheel { position: relative; width: 200px; height: 200px; margin: 0 auto; border-radius: 50%; }
+/* Metric dial — fluid on narrow iOS viewports (never wider than the card), full
+   200px on anything roomier. Square via aspect-ratio so the conic ring stays
+   perfectly round as it scales; no fixed height to break alignment. */
+.xp-nl-wheel { position: relative; width: min(200px, 62vw); aspect-ratio: 1; height: auto; margin: 0 auto; border-radius: 50%; }
 .xp-nl-wheel-ring { position: absolute; inset: 0; border-radius: 50%; }
 .xp-nl-wheel-hole {
   position: absolute;
@@ -127,6 +130,7 @@
   border-radius: 10px;
   padding: .45rem .55rem;
   cursor: pointer;
+  touch-action: manipulation; /* no double-tap zoom / 300ms delay on iOS */
 }
 .xp-nl-pace-chip.is-active { border-color: var(--yel); box-shadow: 0 0 0 1px var(--yel); }
 .xp-nl-pace-chip.is-active .xp-nl-pace-ratio { color: var(--yel); }
@@ -220,8 +224,10 @@
 }
 .xp-sch-intel { display: grid; gap: 1rem; align-content: start; }
 
-/* Readiness dial (SVG arc ring) */
-.xp-sch-dial { position: relative; width: 198px; height: 198px; }
+/* Readiness dial (SVG arc ring) — fluid like the macro wheel. The SVG carries a
+   viewBox and scales to 100% of the box, and the dash arc is in viewBox units, so
+   shrinking the container never distorts the ring or the centered score. */
+.xp-sch-dial { position: relative; width: min(198px, 56vw); aspect-ratio: 1; height: auto; }
 .xp-sch-dial-svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
 .xp-sch-dial-track { fill: none; stroke: rgba(249, 245, 255, .08); stroke-width: 7; }
 .xp-sch-dial-fill {
@@ -310,6 +316,9 @@
   outline: none;
   margin: .5rem 0 .15rem;
   cursor: pointer;
+  /* pan-y lets a vertical thumb-scroll pass through the slider while the thumb
+     still drags horizontally — no scroll-trap on the custom range control. */
+  touch-action: pan-y;
 }
 .xp-sch-range::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -358,6 +367,7 @@
   padding: .7rem 1.2rem;
   cursor: pointer;
   box-shadow: 0 10px 30px rgba(245, 200, 0, .28);
+  touch-action: manipulation;
 }
 .xp-sch-mi-hint { font-family: var(--bd); font-size: .76rem; color: var(--mut); line-height: 1.5; margin: .7rem 0 0; }
 
@@ -386,4 +396,5 @@
   padding: .5rem .9rem;
   cursor: pointer;
   white-space: nowrap;
+  touch-action: manipulation;
 }

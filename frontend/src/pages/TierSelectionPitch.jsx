@@ -221,7 +221,11 @@ export default function TierSelectionPitch() {
 }
 
 const st = {
-  screen: { minHeight: '100vh', width: '100%', boxSizing: 'border-box', background: 'radial-gradient(120% 80% at 50% 0%, rgba(30,3,64,.6), #090909 70%)', padding: 'clamp(18px,4vw,48px) clamp(14px,4vw,24px)', display: 'flex', justifyContent: 'center' },
+  // Checkout action panel — the Select Plan / secure-checkout CTAs sit inside this
+  // screen, so the bottom pad rides above the iOS home-swipe indicator
+  // (env safe-area-inset-bottom, 16px) and the top clears the notch / Dynamic
+  // Island (env safe-area-inset-top, 20px). Native inertial scroll on the surface.
+  screen: { minHeight: '100vh', width: '100%', boxSizing: 'border-box', background: 'radial-gradient(120% 80% at 50% 0%, rgba(30,3,64,.6), #090909 70%)', padding: 'calc(clamp(18px,4vw,48px) + env(safe-area-inset-top, 20px)) clamp(14px,4vw,24px) calc(clamp(18px,4vw,48px) + env(safe-area-inset-bottom, 16px))', display: 'flex', justifyContent: 'center', WebkitOverflowScrolling: 'touch' },
   shell: { width: '100%', maxWidth: 720 },
   back: { display: 'inline-block', fontFamily: BODY, fontSize: '.85rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,.55)', textDecoration: 'none', marginBottom: 'clamp(16px,3vw,26px)' },
   head: { textAlign: 'center', marginBottom: 24 },

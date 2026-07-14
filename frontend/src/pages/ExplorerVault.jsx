@@ -345,7 +345,18 @@ const PUR = '#6a0dad';
 const GOLD = '#f5c800';
 
 const s = {
-  shell: { minHeight: '100vh', background: '#090909', color: '#f9f5ff', padding: '1.2rem clamp(1rem, 4vw, 2.4rem) 3rem' },
+  // Native viewport hardening: the top nav header pushes below the iPhone notch /
+  // Dynamic Island (env safe-area-inset-top, 20px hardware fallback), the scroll
+  // surface uses iOS inertial momentum, and the bottom clears the home-swipe
+  // indicator (env safe-area-inset-bottom, 16px). userSelect:none stops accidental
+  // web-style highlight during fast thumb-scroll across this presentational shell.
+  shell: {
+    minHeight: '100vh', background: '#090909', color: '#f9f5ff',
+    padding: 'calc(1.2rem + env(safe-area-inset-top, 20px)) clamp(1rem, 4vw, 2.4rem) calc(3rem + env(safe-area-inset-bottom, 16px))',
+    WebkitOverflowScrolling: 'touch',
+    WebkitUserSelect: 'none', userSelect: 'none',
+    WebkitTapHighlightColor: 'transparent',
+  },
   head: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.1rem' },
   modeChip: {
     display: 'inline-block', fontFamily: HEAD, fontSize: '1.05rem', letterSpacing: '3px', textTransform: 'uppercase',
@@ -396,7 +407,10 @@ const s = {
   exNotes: { fontFamily: BODY, fontSize: '.9rem', color: 'rgba(249,245,255,.75)', lineHeight: 1.5, margin: '.35rem 0 0' },
   modalScrim: {
     position: 'fixed', inset: 0, zIndex: 100, display: 'grid', placeItems: 'center',
-    background: 'radial-gradient(ellipse at center, rgba(106,13,173,.22), rgba(9,9,9,.94) 70%)', padding: '1rem',
+    background: 'radial-gradient(ellipse at center, rgba(106,13,173,.22), rgba(9,9,9,.94) 70%)',
+    // Clear both hardware boundaries so the conversion CTA is never occluded by
+    // the notch (top) or the home-swipe indicator (bottom) on a native shell.
+    padding: 'calc(1rem + env(safe-area-inset-top, 20px)) 1rem calc(1rem + env(safe-area-inset-bottom, 16px))',
   },
   modalCard: {
     width: 'min(440px, 100%)', background: 'linear-gradient(180deg, #160a26, #0a0710)',
