@@ -118,6 +118,24 @@ test.describe('Studio V4 — Client Spotlight (Tier 1 restore)', () => {
     await expect(page.locator('.spot-q-v4').first()).toHaveText('Forty pounds down, every week earned.');
   });
 
+  test('🧾 roster pull fills the client name from a real client', async ({ page }) => {
+    const CORS = { 'Access-Control-Allow-Origin': '*' };
+    await page.route('**/functions/v1/bbf-admin-roster', async (route) => {
+      if (route.request().method() === 'OPTIONS') { await route.fulfill({ status: 200, headers: CORS }); return; }
+      await route.fulfill({
+        status: 200, contentType: 'application/json', headers: CORS,
+        body: JSON.stringify({ ok: true, count: 2, clients: [{ id: '1', uid: 'marcus', name: 'Marcus Vale' }, { id: '2', uid: 'jacky', name: 'Jacky Rios' }] }),
+      });
+    });
+    await openSpotlight(page);
+    const roster = page.getByTestId('spot-roster');
+    await roster.focus();
+    await expect(roster.locator('option', { hasText: 'Marcus Vale' })).toHaveCount(1);
+    await roster.selectOption('Jacky Rios');
+    await expect(page.getByTestId('spot-name')).toHaveValue('Jacky Rios');
+    await expect(page.locator('.spot-name-v4')).toHaveText('Jacky Rios');
+  });
+
   test('🎙 AI voiceover bakes karaoke captions onto the video spotlight', async ({ page }) => {
     const CORS = { 'Access-Control-Allow-Origin': '*' };
     const WORDS = [

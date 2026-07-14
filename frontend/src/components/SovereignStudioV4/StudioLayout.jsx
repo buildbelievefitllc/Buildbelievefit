@@ -388,6 +388,27 @@ export default function StudioLayout({
     handleSpotChange(key, file ? { file, url: URL.createObjectURL(file) } : null);
   };
 
+  // 🧾 ROSTER PULL (Tier 3) — lazily fetch the Command Center client roster so the
+  // operator can auto-fill the client name from a real client instead of typing it.
+  const [spotRoster, setSpotRoster] = useState([]);
+  const [spotRosterBusy, setSpotRosterBusy] = useState(false);
+  const [spotRosterLoaded, setSpotRosterLoaded] = useState(false);
+  async function loadSpotRoster() {
+    if (spotRosterLoaded || spotRosterBusy) return;
+    setSpotRosterBusy(true);
+    try {
+      const { rosterCall } = await import('../../lib/rosterApi.js');
+      const body = await rosterCall('roster');
+      const list = (Array.isArray(body?.clients) ? body.clients : [])
+        .map((c) => String(c?.name || '').trim()).filter(Boolean)
+        .filter((v, i, a) => a.indexOf(v) === i).sort();
+      setSpotRoster(list);
+      setSpotRosterLoaded(true);
+    } catch { /* leave empty — manual entry still works */ } finally {
+      setSpotRosterBusy(false);
+    }
+  }
+
   // 🤖 AI SHOUTOUT (Tier 3) — Haiku writes the gold shoutout + both quote lines from
   // the client name + achievement, in-language. Fills the three fields in one tap.
   const [spotAiBusy, setSpotAiBusy] = useState(false);
@@ -1044,6 +1065,18 @@ export default function StudioLayout({
             <div className="ctl-group-v4">
               <label className="ctl-label-v4">Client Name</label>
               <input type="text" value={spotData.clientName} onChange={(e) => handleSpotChange('clientName', e.target.value)} className="input-v4" data-testid="spot-name" />
+              <select
+                className="select-v4"
+                style={{ marginTop: 6 }}
+                value=""
+                data-testid="spot-roster"
+                onMouseDown={loadSpotRoster}
+                onFocus={loadSpotRoster}
+                onChange={(e) => { if (e.target.value) handleSpotChange('clientName', e.target.value); }}
+              >
+                <option value="">{spotRosterBusy ? '… loading roster' : spotRosterLoaded ? `— pull from roster (${spotRoster.length}) —` : '— pull client from roster —'}</option>
+                {spotRoster.map((n, i) => <option key={i} value={n}>{n}</option>)}
+              </select>
             </div>
 
             {spotData.format === 'video' ? (
