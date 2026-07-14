@@ -11,6 +11,7 @@ import { renderMarkup } from './markup.jsx';
 import { REEL_PHONE_FRAME, REEL_PHONE_SCREEN } from '../../lib/reelPhoneBackdrop.js';
 import { seriesLabel } from '../../lib/reelSeriesLabels.js';
 import { saveBlobToDevice, isMobileish } from '../../lib/exportDelivery.js';
+import { SPOT_QUOTES1, SPOT_QUOTES2 } from './spotlightData';
 
 const PLATFORMS = [
   ['instagram', 'Instagram'],
@@ -35,6 +36,7 @@ const HASHTAGS = {
   cta: `#BuildBelieveFit #MindsetMatters #DisciplineEqualsFreedom ${LOCAL_HASHTAGS}`,
   phone: `#BuildBelieveFit #AICoach #FitnessApp #SmartTraining ${LOCAL_HASHTAGS}`,
   reel: `#BuildBelieveFit #FitnessReels #FormCheck #TrainSmarter ${LOCAL_HASHTAGS}`,
+  spot: `#BuildBelieveFit #ClientSpotlight #Transformation #ProgressNotPerfection ${LOCAL_HASHTAGS}`,
 };
 
 // Which phone frames to render for a given layout, front-to-back (CSS z-index/
@@ -95,6 +97,8 @@ export default function StudioLayout({
   handlePhoneChange,
   reelData,
   handleReelChange,
+  spotData,
+  handleSpotChange,
 }) {
   // Ref to the active export stage (the un-scaled 1080-wide node). The preview
   // shows it visually shrunk via StageScaler's transform; for export/post we
@@ -343,6 +347,44 @@ export default function StudioLayout({
       color_palette: 'custom',
       caption: blocks.filter(Boolean).join('\n\n'),
     };
+  };
+
+  // ── 🏆 CLIENT SPOTLIGHT (image card) ──────────────────────────────────────
+  // Auto-caption mirrors the legacy buildSpCaption(): gold shoutout 🏆, the two
+  // quote lines, the CTA + site, then the spotlight hashtag flavor.
+  const spotFields = () => {
+    const name = (spotData.clientName || '').trim();
+    const shout = (spotData.shoutout || '').trim();
+    const q1 = (spotData.quote1 || '').trim();
+    const q2 = (spotData.quote2 || '').trim();
+    const cta = (spotData.cta || '').trim();
+    const blocks = [
+      shout ? `${shout} 🏆` : '🏆 CLIENT SPOTLIGHT',
+      [q1, q2].filter(Boolean).join('\n'),
+      [cta, '🌐 buildbelievefit.fitness'].filter(Boolean).join('\n'),
+      HASHTAGS.spot,
+    ];
+    return {
+      headline: shout || (name ? `Client Spotlight — ${name}` : 'Client Spotlight'),
+      body: [q1, q2].filter(Boolean).join(' '),
+      eye_label: name ? `CLIENT SPOTLIGHT — ${name}` : 'CLIENT SPOTLIGHT',
+      color_palette: 'custom',
+      caption: blocks.filter(Boolean).join('\n\n'),
+    };
+  };
+
+  // 🎰 SPIN — pull a fresh proof line (bank 1) + coach shoutout (bank 2). Two
+  // functional updates so the pair lands atomically without a lost-update race.
+  const spinSpotQuotes = () => {
+    handleSpotChange('quote1', SPOT_QUOTES1[Math.floor(Math.random() * SPOT_QUOTES1.length)]);
+    handleSpotChange('quote2', SPOT_QUOTES2[Math.floor(Math.random() * SPOT_QUOTES2.length)]);
+  };
+
+  // Single writer for a spotlight photo slot (before / after / logo). Revokes the
+  // prior object URL before swapping so repeated uploads never leak.
+  const setSpotPhoto = (key, file) => {
+    if (spotData[key]?.url) URL.revokeObjectURL(spotData[key].url);
+    handleSpotChange(key, file ? { file, url: URL.createObjectURL(file) } : null);
   };
 
   // Bake the reel via SovereignFoundry — the shared core behind the plain
@@ -835,6 +877,108 @@ export default function StudioLayout({
           </div>
         )}
 
+        {mode === 'spot' && (
+          <div className="panel-v4 active">
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">🏆 Client Spotlight — before / after card</label>
+              <div className="hint-v4">Celebrate a client win — drop a before &amp; after, drop in the shoutout, spin a quote pair, export a 1080×1350 post.</div>
+            </div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">📷 Before Photo</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="input-v4"
+                data-testid="spot-before-input"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) setSpotPhoto('beforeImage', f); }}
+              />
+              {spotData.beforeImage?.url && (
+                <button type="button" className="ph-clear-v4" onClick={() => setSpotPhoto('beforeImage', null)}>✕ Remove before photo</button>
+              )}
+            </div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">📷 After Photo</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="input-v4"
+                data-testid="spot-after-input"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) setSpotPhoto('afterImage', f); }}
+              />
+              {spotData.afterImage?.url && (
+                <button type="button" className="ph-clear-v4" onClick={() => setSpotPhoto('afterImage', null)}>✕ Remove after photo</button>
+              )}
+            </div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">🏷 Logo / Watermark (optional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="input-v4"
+                data-testid="spot-logo-input"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) setSpotPhoto('spotLogo', f); }}
+              />
+              {spotData.spotLogo?.url && (
+                <button type="button" className="ph-clear-v4" onClick={() => setSpotPhoto('spotLogo', null)}>✕ Remove logo</button>
+              )}
+            </div>
+
+            <div className="divider-v4"></div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">Client Name</label>
+              <input type="text" value={spotData.clientName} onChange={(e) => handleSpotChange('clientName', e.target.value)} className="input-v4" data-testid="spot-name" />
+            </div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">Sub-line</label>
+              <input type="text" value={spotData.subLine} onChange={(e) => handleSpotChange('subLine', e.target.value)} className="input-v4" />
+            </div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">Gold Shoutout</label>
+              <input type="text" value={spotData.shoutout} onChange={(e) => handleSpotChange('shoutout', e.target.value)} className="input-v4" />
+            </div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">Quote Line 1 — proof (pick from the bank or write your own)</label>
+              <select className="select-v4" value="" onChange={(e) => { if (e.target.value) handleSpotChange('quote1', e.target.value); }}>
+                <option value="">— quote bank (16) —</option>
+                {SPOT_QUOTES1.map((q, i) => <option key={i} value={q}>{q}</option>)}
+              </select>
+              <input type="text" style={{ marginTop: 6 }} value={spotData.quote1} onChange={(e) => handleSpotChange('quote1', e.target.value)} className="input-v4" />
+            </div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">Quote Line 2 — coach shoutout (pick from the bank or write your own)</label>
+              <select className="select-v4" value="" onChange={(e) => { if (e.target.value) handleSpotChange('quote2', e.target.value); }}>
+                <option value="">— quote bank (16) —</option>
+                {SPOT_QUOTES2.map((q, i) => <option key={i} value={q}>{q}</option>)}
+              </select>
+              <input type="text" style={{ marginTop: 6 }} value={spotData.quote2} onChange={(e) => handleSpotChange('quote2', e.target.value)} className="input-v4" />
+            </div>
+
+            <div className="ctl-group-v4">
+              <button type="button" className="spin-btn-v4" onClick={spinSpotQuotes} data-testid="spot-spin-quotes">🎰 SPIN QUOTE PAIR</button>
+            </div>
+
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">CTA Line</label>
+              <input type="text" value={spotData.cta} onChange={(e) => handleSpotChange('cta', e.target.value)} className="input-v4" />
+            </div>
+
+            <div className="ctl-group-v4">
+              <button className="export-btn-v4" onClick={() => exportImage('spotlight')} disabled={exporting} data-testid="spot-export">
+                {exporting ? '… RENDERING' : '⬇ EXPORT 1080×1350'}
+              </button>
+              {postControls(spotFields())}
+            </div>
+          </div>
+        )}
+
         {mode === 'queue' && (
           <div className="panel-v4 active">
             <div className="ctl-group-v4">
@@ -951,6 +1095,47 @@ export default function StudioLayout({
                     </div>
                   </div>
                 ))}
+              </div>
+            </StageScaler>
+          </div>
+        )}
+
+        {mode === 'spot' && (
+          <div className="stage-host-v4 active">
+            <StageScaler designWidth={1080} designHeight={1350}>
+              <div className="stage-spot-v4" ref={stageRef}>
+                <div className="spot-strip-v4" />
+                <div className="spot-hdr-v4">
+                  {spotData.spotLogo?.url && (
+                    <div className="spot-hdr-logo-v4"><img src={spotData.spotLogo.url} alt="" crossOrigin="anonymous" /></div>
+                  )}
+                  <div className="spot-htext-v4">
+                    <div className="spot-eye-v4">CLIENT SPOTLIGHT</div>
+                    <div className="spot-name-v4">{spotData.clientName}</div>
+                    <div className="spot-sub-v4">{spotData.subLine}</div>
+                  </div>
+                </div>
+                <div className="spot-photos-v4">
+                  <div className="spot-ph-v4">
+                    {spotData.beforeImage?.url
+                      ? <img src={spotData.beforeImage.url} alt="Before" className="spot-photo-img-v4" crossOrigin="anonymous" />
+                      : <div className="spot-ph-placeholder-v4">UPLOAD<br />BEFORE 📷</div>}
+                    <div className="spot-badge-v4 before">BEFORE</div>
+                  </div>
+                  <div className="spot-ph-v4">
+                    {spotData.afterImage?.url
+                      ? <img src={spotData.afterImage.url} alt="After" className="spot-photo-img-v4" crossOrigin="anonymous" />
+                      : <div className="spot-ph-placeholder-v4">UPLOAD<br />AFTER 📷</div>}
+                    <div className="spot-badge-v4 after">AFTER</div>
+                  </div>
+                </div>
+                <div className="spot-ftr-v4">
+                  <div className="spot-shout-v4">{spotData.shoutout}</div>
+                  {spotData.quote1 && <div className="spot-q-v4">{spotData.quote1}</div>}
+                  {spotData.quote2 && <div className="spot-q-v4 two">{spotData.quote2}</div>}
+                  <div className="spot-cta-v4">{spotData.cta}</div>
+                  <div className="spot-brand-v4">BUILD<span>BELIEVE</span>FIT</div>
+                </div>
               </div>
             </StageScaler>
           </div>

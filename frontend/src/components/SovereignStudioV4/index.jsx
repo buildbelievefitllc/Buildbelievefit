@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import StudioLayout from './StudioLayout';
 import StudioCompilerPanel from './StudioCompilerPanel';
 import DraftHistoryPanel from './DraftHistoryPanel';
+import { SPOT_DEFAULTS } from './spotlightData';
 import './sovereignStudioV4.css';
 
 // ── WORK-IN-PROGRESS PERSISTENCE ─────────────────────────────────────────────
@@ -19,6 +20,7 @@ const EDITOR_STATE_KEY = 'bbf-studio-v4-editor-v1';
 const NONPERSISTED_KEYS = new Set([
   'backgroundImage', 'backgroundImage2', 'backgroundImage3', // phone screenshots
   'logoImage', 'videoFile', 'musicFile',                      // reel uploads
+  'beforeImage', 'afterImage', 'spotLogo', 'spotVideo',       // spotlight uploads
 ]);
 
 // Hydrate one state slice: defaults overlaid with the saved snapshot, but only
@@ -131,6 +133,12 @@ export default function SovereignStudioV4() {
     captionPos: 62,         // caption vertical position as a % of reel height (20 = high, 90 = low); adjustable so it clears the subject/action
   }));
 
+  // 🏆 CLIENT SPOTLIGHT — restored from the legacy studio, now a first-class V4 mode.
+  // Blob-backed photo/video uploads (beforeImage / afterImage / spotLogo) can't
+  // survive a reload (their object URLs die with the session), so they're excluded
+  // from the snapshot; the copy fields persist like every other card.
+  const [spotData, setSpotData] = useState(() => hydrateSlice('spot', SPOT_DEFAULTS));
+
   // Debounced localStorage mirror of the three editor slices (blob fields
   // stripped). 400ms coalesces per-keystroke updates into one write.
   const persistTimerRef = useRef(null);
@@ -149,12 +157,12 @@ export default function SovereignStudioV4() {
             .map(([k, v]) => [k, (typeof v === 'string' && v.startsWith('blob:')) ? null : v]),
         );
         localStorage.setItem(EDITOR_STATE_KEY, JSON.stringify({
-          cta: strip(ctaData), phone: strip(phoneData), reel: strip(reelData),
+          cta: strip(ctaData), phone: strip(phoneData), reel: strip(reelData), spot: strip(spotData),
         }));
       } catch { /* private mode / storage full — persistence is best-effort */ }
     }, 400);
     return () => { if (persistTimerRef.current) clearTimeout(persistTimerRef.current); };
-  }, [ctaData, phoneData, reelData]);
+  }, [ctaData, phoneData, reelData, spotData]);
 
   // Keep a live ref to the reel blob URLs so the unmount cleanup revokes whatever
   // is current. Synced in an effect (never during render) per the hooks rules.
@@ -167,16 +175,24 @@ export default function SovereignStudioV4() {
       phone2: phoneData.backgroundImage2?.url || null,
       phone3: phoneData.backgroundImage3?.url || null,
       music: reelData.musicFile?.url || null,
+      spotBefore: spotData.beforeImage?.url || null,
+      spotAfter: spotData.afterImage?.url || null,
+      spotLogo: spotData.spotLogo?.url || null,
+      spotVideo: spotData.spotVideo?.url || null,
     };
-  }, [reelData.videoFile?.url, reelData.logoImage?.url, reelData.musicFile?.url, phoneData.backgroundImage?.url, phoneData.backgroundImage2?.url, phoneData.backgroundImage3?.url]);
+  }, [reelData.videoFile?.url, reelData.logoImage?.url, reelData.musicFile?.url, phoneData.backgroundImage?.url, phoneData.backgroundImage2?.url, phoneData.backgroundImage3?.url, spotData.beforeImage?.url, spotData.afterImage?.url, spotData.spotLogo?.url, spotData.spotVideo?.url]);
   useEffect(() => () => {
-    const { video, logo, phone, phone2, phone3, music } = blobUrlsRef.current;
+    const { video, logo, phone, phone2, phone3, music, spotBefore, spotAfter, spotLogo, spotVideo } = blobUrlsRef.current;
     if (video) URL.revokeObjectURL(video);
     if (logo) URL.revokeObjectURL(logo);
     if (phone) URL.revokeObjectURL(phone);
     if (phone2) URL.revokeObjectURL(phone2);
     if (phone3) URL.revokeObjectURL(phone3);
     if (music) URL.revokeObjectURL(music);
+    if (spotBefore) URL.revokeObjectURL(spotBefore);
+    if (spotAfter) URL.revokeObjectURL(spotAfter);
+    if (spotLogo) URL.revokeObjectURL(spotLogo);
+    if (spotVideo) URL.revokeObjectURL(spotVideo);
   }, []);
 
   const handleModeChange = (newMode) => {
@@ -193,6 +209,10 @@ export default function SovereignStudioV4() {
 
   const handleReelChange = (key, value) => {
     setReelData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSpotChange = (key, value) => {
+    setSpotData(prev => ({ ...prev, [key]: value }));
   };
 
   // SPIN overwrites four hand-editable fields at once — keep a one-step undo
@@ -235,6 +255,7 @@ export default function SovereignStudioV4() {
           {[
             ['cta', '🃏 CTA CARDS'],
             ['phone', '📱 PHONE'],
+            ['spot', '🏆 SPOTLIGHT'],
             ['reel', '🎬 VIDEO ENGINE'],
             ['compiler', '⚙ AD COMPILER'],
             ['queue', '📡 QUEUE'],
@@ -273,6 +294,8 @@ export default function SovereignStudioV4() {
           handlePhoneChange={handlePhoneChange}
           reelData={reelData}
           handleReelChange={handleReelChange}
+          spotData={spotData}
+          handleSpotChange={handleSpotChange}
         />
       )}
     </div>

@@ -615,3 +615,51 @@
   color: #ffffff;
   box-shadow: 0 4px 16px rgba(245, 200, 0, 0.4);
 }
+
+/* ============ 🏆 CLIENT SPOTLIGHT STAGE (1080×1350 card) ============ */
+/* Restored from the legacy studio's SPOTLIGHT mode, rebuilt on-brand. Static
+   rgba only (no color-mix / color()) so html2canvas rasterizes it cleanly. */
+.stage-spot-v4 {
+  width: 1080px; height: 1350px;
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+  background: linear-gradient(158deg, var(--purx) 0%, #08060a 52%, #12061f 100%);
+  font-family: var(--bd); color: var(--wht);
+}
+.spot-strip-v4 { position: absolute; top: 0; left: 0; right: 0; height: 12px; z-index: 5;
+  background: linear-gradient(90deg, var(--pur), var(--yel)); }
+
+.spot-hdr-v4 { display: flex; align-items: center; gap: 26px; padding: 58px 74px 20px; z-index: 2; }
+.spot-hdr-logo-v4 { width: 128px; height: 128px; flex-shrink: 0; border-radius: 18px; overflow: hidden;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(245, 200, 0, 0.25);
+  display: grid; place-items: center; }
+.spot-hdr-logo-v4 img { width: 100%; height: 100%; object-fit: contain; }
+.spot-htext-v4 { min-width: 0; }
+.spot-eye-v4 { font-family: var(--hb); font-weight: 400; font-size: 34px; letter-spacing: 9px;
+  text-transform: uppercase; color: var(--yel); }
+.spot-name-v4 { font-family: var(--hb); font-size: 116px; line-height: 0.9; letter-spacing: 4px;
+  color: var(--wht); text-transform: uppercase; margin-top: 4px; }
+.spot-sub-v4 { font-weight: 700; font-size: 27px; letter-spacing: 2px; color: rgba(235, 225, 250, 0.82); margin-top: 8px; }
+
+.spot-photos-v4 { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 22px; min-height: 0; z-index: 2; }
+.spot-ph-v4 { position: relative; border-radius: 16px; overflow: hidden;
+  background: linear-gradient(160deg, #241c30, #14101b);
+  display: grid; place-items: center; }
+.spot-photo-img-v4 { width: 100%; height: 100%; object-fit: cover; display: block; }
+.spot-ph-placeholder-v4 { font-family: var(--hb); font-size: 40px; letter-spacing: 3px; line-height: 1.15;
+  text-align: center; color: rgba(180, 170, 195, 0.6); }
+.spot-badge-v4 { position: absolute; top: 16px; left: 16px; font-family: var(--hb); font-size: 26px;
+  letter-spacing: 3px; padding: 6px 16px; border-radius: 8px; text-transform: uppercase; }
+.spot-badge-v4.before { background: rgba(13, 1, 24, 0.8); color: rgba(235, 225, 250, 0.8); border: 1px solid rgba(139, 26, 191, 0.5); }
+.spot-badge-v4.after { background: var(--yel); color: #1a1206; }
+
+.spot-ftr-v4 { padding: 22px 74px 52px; z-index: 2; }
+.spot-shout-v4 { font-family: var(--hb); font-size: 62px; letter-spacing: 3px; line-height: 0.98;
+  color: var(--yel); text-transform: uppercase; }
+.spot-q-v4 { font-style: italic; font-weight: 600; font-size: 33px; line-height: 1.28; color: var(--wht); margin-top: 12px; }
+.spot-q-v4.two { color: rgba(235, 225, 250, 0.72); font-size: 30px; margin-top: 6px; }
+.spot-cta-v4 { font-weight: 800; font-size: 27px; letter-spacing: 2px; color: rgba(235, 225, 250, 0.85);
+  margin-top: 18px; text-transform: uppercase; }
+.spot-brand-v4 { font-family: var(--hb); font-size: 30px; letter-spacing: 7px; color: rgba(255, 255, 255, 0.3);
+  margin-top: 16px; }
+.spot-brand-v4 span { color: var(--yel); }
