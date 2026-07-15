@@ -1,6 +1,7 @@
 # MODULES POWERHOUSE UPGRADE PLAN — Content · Knowledge · Coaching
 
-**Status:** APPROVED-FOR-PLANNING draft — awaiting CEO green light to begin execution.
+**Status:** ISOLATED STRATEGY DRAFT (In-House Equity revision) — held on
+`claude/modules-upgrade-strategy-xmzv4m`, no PR, no merge until the CEO locks it down.
 **Scope:** the three Command Center executive domains (`frontend/src/pages/CommandCenter.jsx:135-141`)
 and every module inside them. This is the full-blown escalation blueprint: current state →
 powerhouse state, per module, plus the cross-domain flywheel that makes the whole worth more
@@ -8,6 +9,28 @@ than the parts.
 **Doctrine:** everything below honors the constraint envelope — LOCKED brand (§2), model router
 (§4), tab-deck UI standard (§10), RLS boundaries (§7), and the bake-first / cache-first
 burn-rate discipline already proven in the language lab and science digest.
+
+### ⚖️ IN-HOUSE EQUITY MANDATE (governs every directive in Part II)
+
+We own the compute, the logic, and the data — we do not rent them. Concretely:
+
+1. **No unthrottled external AI evaluation loops.** Every AI call routes through our own
+   Claude model router (§4), runs on-demand or in a scheduled batch (never free-running),
+   and is cache-first / bake-once so a given output is billed at most once. No second AI
+   vendor enters the stack. Deterministic native code owns every final write; AI proposes,
+   our code disposes.
+2. **No paid third-party middleware APIs.** Compute that can live inside Postgres / Supabase
+   Edge / our own Render server stays there. We do not add Brevo, Resend, Zapier-as-logic,
+   hosted vector services, or any rented middleware. The only external endpoints permitted
+   are (a) **first-party distribution surfaces we post to with our own accounts** (Meta,
+   TikTok), (b) **free first-party data sources** (NCBI E-utilities), and (c) infrastructure
+   **we already own and operate** (ElevenLabs voice, the existing Twilio/VAPI account).
+3. **Native-first math & search.** Load metrics (ACWR), semantic search (pgvector), lead
+   scoring, and health checks are deterministic Postgres / in-edge operations at **zero
+   recurring API cost** — never outsourced.
+4. **Single-tenant distribution.** We are one operator posting to our own brand accounts, so
+   distribution uses single-tenant token patterns and sandbox-legal draft pipelines, not
+   multi-user OAuth machinery we don't need.
 
 ---
 
@@ -76,7 +99,9 @@ nutrition and wearable-driven load management — unbuilt or dormant.
 Each move below is numbered `<Domain>-<n>`, states what it builds ON (existing asset) and
 what it ships. Model tiers follow §4 discipline: **Haiku for bulk/baked generation, Sonnet
 for judgment, Opus only where safety-critical** — and generation is batch-and-bake wherever
-possible so recurring spend stays near zero.
+possible so recurring spend stays near zero. Per the In-House Equity Mandate above, every AI
+directive is throttled + cache-first through our own router, and no directive introduces a
+paid third-party middleware dependency.
 
 ## II.A · CONTENT → the Autonomous Content Foundry
 
@@ -100,23 +125,39 @@ proof-points (anonymized velocity/tonnage wins), seasonal calendar. The CEO's jo
 to Review Bucket curation — the machine drafts, the founder green-lights. Static JSON becomes
 the fallback seed, not the ceiling.
 
-**C-3 · Distribution goes fully live.**
+**C-3 · Distribution goes live — single-tenant, in-house.**
 Builds on: `bbf-card-distributor` / `bbf-reel-distributor` scaffolds with their four safety
-gates and FLIP RULE.
-Ships: (a) activate Meta tokens in Supabase Vault + flip dry-run (operational, near-zero
-code); (b) **TikTok Content Posting API** integration in both distributors (the switch is
-already stubbed), replacing the manual bridge; (c) unified `bbf_distribution_ledger` view
-across queue + both batch tables so QUEUE/HISTORY show one truth; (d) Meta token watchdog
-upgraded to auto-refresh long-lived tokens instead of a hardcoded Aug-5 banner.
+gates and FLIP RULE. We post only to **our own** BBF brand accounts, so we use single-tenant
+token patterns — no multi-user OAuth broker, no rented distribution middleware.
+Ships:
+- (a) **Meta — permanent long-lived system token flow.** Implement the Page Token exchange
+  as a one-time server-side ritual in a `bbf-meta-token` edge fn: short-lived user token →
+  long-lived user token → **Page/System-User access token** for our own Page + linked IG
+  Business account, persisted in Supabase Vault. Because it is minted against a System User
+  on our own business asset, it is effectively non-expiring; the token watchdog just
+  re-validates it and re-runs the exchange server-to-server if Meta ever rotates it — no
+  hardcoded Aug-5 banner, no manual re-mint, zero third-party middleware.
+- (b) **TikTok — Direct Post API under our Unaudited Sandbox client.** Wire the already-
+  stubbed TikTok switch in both distributors to the Content Posting **Direct Post** endpoint
+  using our sandbox client credentials. Under the unaudited sandbox, TikTok scopes every
+  upload to `SELF_ONLY` — so uploads route **seamlessly into our own private TikTok draft
+  pipeline**, landing as ready-to-publish drafts on our account inbox. The CEO taps publish
+  in the TikTok app for quick manual activation. This works entirely within the sandbox's
+  documented constraint (draft-only until audit) — no audit dependency to unblock shipping,
+  no middleware, and the human-in-the-loop publish is the sandbox's intended flow.
+- (c) unified `bbf_distribution_ledger` view across queue + both batch tables so QUEUE/
+  HISTORY show one truth, TikTok drafts included with a `pending_manual_publish` status.
 
 **C-4 · Performance feedback loop (the missing half of "algorithmic").**
 Builds on: the client-side Algorithm Health heuristic and platform calibration matrix.
-Ships: `bbf-engagement-harvester` cron — pulls post-level insights from Meta Graph (views,
-reach, saves, shares) into `bbf_content_performance`; the Distribution Calendar gains a
-performance overlay; a weekly Haiku digest ("what worked, what to make more of") lands in
-the founder brief; and C-2's foundry reads the winners table so **generation is steered by
-real engagement data**, not guesses. The Algorithm Health bar graduates from heuristic to
-measured.
+Ships: `bbf-engagement-harvester` cron — pulls post-level insights from the **first-party
+Meta Graph insights API** (our own posts' views, reach, saves, shares) into
+`bbf_content_performance`; the Distribution Calendar gains a performance overlay; a **weekly
+(throttled, one batch call) Haiku digest** through our router — "what worked, what to make
+more of" — lands in the founder brief; and C-2's foundry reads the winners table so
+**generation is steered by real engagement data**, not guesses. All aggregation is native
+SQL; the only external read is our own Graph metrics. The Algorithm Health bar graduates
+from heuristic to measured.
 
 **C-5 · Server render farm (finish the Batch Compiler's back half).**
 Builds on: `studio_render_jobs` (compiled z-ordered timelines nobody consumes) +
@@ -144,16 +185,26 @@ trilingual + foundry-refreshable instead of 14 hardcoded EN variants.
 
 ## II.B · KNOWLEDGE → the Living Research Engine
 
-**K-1 · Research Vault → PubMed-wired, searchable, self-feeding.**
+**K-1 · Research Vault → self-feeding, searchable entirely in our own database.**
 Builds on: `coach_knowledge_base` + the ingest→structure pipeline that already works.
-Ships: (a) `bbf-pubmed-scout` edge fn hitting NCBI E-utilities (free API) — search by topic,
-pull abstracts/PMIDs, one-click ingest into the existing Claude structuring flow (no more
-manual paste); (b) **pgvector semantic search** over `coach_knowledge_base` + the 100-study
-static grid (embed once, search forever — bake-first); (c) a weekly `bbf-research-sweep`
-cron that runs saved topic queries (hypertrophy, youth periodization, fasting, prehab) and
-stages new findings in a review queue — the Vault grows while the CEO sleeps; (d) trilingual
-card summaries (Haiku batch-bake on ingest). Fix the stale "1 of 4 pillars" copy while in
-the file.
+Ships:
+- (a) `bbf-pubmed-scout` edge fn hitting **NCBI E-utilities** — a *free, first-party*
+  government data source (not paid middleware) — throttled to NCBI's rate guidance; search
+  by topic, pull abstracts/PMIDs, one-click ingest into the existing in-house Claude
+  structuring flow (no more manual paste).
+- (b) **Native pgvector semantic search, completely in-database.** Add a `vector` column to
+  `coach_knowledge_base` (and an embedding of the 100-study static grid). Embeddings are
+  generated **inside Supabase Edge** with the runtime's native `gte-small` model
+  (`Supabase.ai.Session('gte-small')`) — no external embedding API, no per-call cost — and
+  stored locally; search is a native `<=>` cosine query behind an RPC. Embed once on
+  ingest, search forever. There is no hosted vector service and no outbound search call: the
+  entire semantic index and its queries live in our Postgres.
+- (c) a weekly `bbf-research-sweep` cron that runs saved topic queries (hypertrophy, youth
+  periodization, fasting, prehab) and **stages** new findings in a review queue — a
+  scheduled batch, not a free-running loop; the Vault grows while the CEO sleeps, the CEO
+  approves.
+- (d) trilingual card summaries (Haiku batch-bake once on ingest).
+Fix the stale "1 of 4 pillars" copy while in the file.
 
 **K-2 · Kinesiology Lab → server-backed adaptive curriculum.**
 Builds on: the Leitner drill engine and the Language Lab's proven SRS architecture
@@ -168,20 +219,23 @@ the same table so it survives devices.
 **K-3 · Coach's Arena → career-grade simulator with a memory.**
 Builds on: the critique engine (0-100 vs NASM/NSCA) that already works but forgets.
 Ships: `bbf_arena_history` table (case, protocol, score, gaps, timestamp) → score trendline
-and weakness heatmap by domain; **case generation seeded from real anonymized roster
-telemetry** (a stalled Founder-Five pattern becomes tomorrow's case — Coaching flywheel);
-difficulty ladder (case complexity scales with rolling score); weakness-targeted case
-selection (your lowest NASM domain gets drawn more often — Leitner for coaching judgment).
+and weakness heatmap by domain; **cases bake in one-shot batches** seeded from real
+anonymized roster telemetry (a stalled Founder-Five pattern becomes tomorrow's case —
+Coaching flywheel), drawn from the baked pool at drill time rather than generated live so
+there is no per-draw AI loop; difficulty ladder (case complexity scales with rolling score);
+weakness-targeted case selection (your lowest NASM domain gets drawn more often — Leitner for
+coaching judgment). The critique call stays on our in-house router, throttled and cache-keyed
+per (case, protocol) so a re-submit is free.
 
 **K-4 · Broadcast Hub → wired into the Content Foundry.**
 Builds on: the synthesis that already produces client-ready newsletters, and the Content
 domain's queue + distributors.
 Ships: "Broadcast" gains three real destinations beyond clipboard — (a) push to
 `bbf_content_manager_queue` as a drafted post series (research → social content in one
-click), (b) email dispatch via the Brevo/Resend path (the long-deferred welcome-email
-migration finally gets a second customer), (c) directed delivery to specific athletes via
-the existing `bbf-studio-directed-delivery` rails. Trilingual output per the recipient's
-`preferred_language`.
+click), (b) email dispatch through the **owned Render Express server sending direct** (no
+Brevo, Resend, or any rented email middleware — our own server is the rail), (c) directed
+delivery to specific athletes via the existing `bbf-studio-directed-delivery` rails.
+Trilingual output per the recipient's `preferred_language`.
 
 **K-5 · Coach's Cave → active study room.**
 Builds on: the 90-film trilingual library and its deck structure.
@@ -224,36 +278,48 @@ dip this week, deload candidate") generated in one nightly batch (Haiku), not pe
 Builds on: the complete Autonomous Cycle (verdicts → nudges → escalations → founder approval
 queue) that today waits for a button press.
 Ships: nightly pg_cron (`bbf-eagle-eye-nightly`, dry-run ledger + morning digest first, live
-after one week of clean dry-runs); **multi-channel interventions** — email via the Brevo/
-Resend rail (K-4 shares it) and SMS via the existing Twilio/VAPI plumbing
-(`vapi-sms-closer` proves the pipe), channel-escalation ladder in-app → email → SMS by
-severity; and **outcome tracking** on `bbf_eagle_eye_interventions` (did the client log in /
-train within 72h? → `outcome` column) so the escalation scripts learn what actually
-re-engages people (feeds H-1's context and C-4's digest).
+after one week of clean dry-runs — a scheduled batch, never a free-running loop);
+**multi-channel interventions on owned rails only** — email through the **owned Render
+server** (the same direct-send rail as K-4, no Brevo/Resend) and SMS through the **existing
+Twilio/VAPI account we already operate** (`vapi-sms-closer` proves the pipe — no new
+middleware), channel-escalation ladder in-app → email → SMS by severity; and **outcome
+tracking** on `bbf_eagle_eye_interventions` (did the client log in / train within 72h? →
+`outcome` column) so the escalation scripts learn what actually re-engages people (feeds
+H-1's context and C-4's digest).
 
 **H-3 · Terminal H — build the real generative nutrition engine.**
 Builds on: the Locker's already-excellent console (diet styles, allergies, kcal, fasting
 paces, oversight push) and the `bbf_admin_set_meal_plan` write path.
-Ships: `bbf-terminal-h` edge fn — Sonnet generates the 7-day plan from the console dials
-**plus live athlete telemetry** (goals, `nutrition_daily_sync` adherence history, body comp,
-training phase), with a **deterministic macro-validation layer** after generation (the
-nutritionEngine math verifies every day hits the kcal/macro envelope — AI proposes,
+Ships: `bbf-terminal-h` edge fn — Sonnet (in-house router, **on-demand per generate, not a
+loop**) drafts the 7-day plan from the console dials **plus live athlete telemetry** (goals,
+`nutrition_daily_sync` adherence history, body comp, training phase), with a **deterministic
+macro-validation layer** after generation (the native `nutritionEngine` math verifies every
+day hits the kcal/macro envelope and re-scales in-code if not — AI proposes, our
 deterministic code disposes; generation is never trusted raw). Trilingual output keyed to
-`preferred_language`. Adherence feedback loop: weekly delta between plan and
+`preferred_language`. Adherence feedback loop: a **native SQL** weekly delta between plan and
 `nutrition_daily_sync` auto-drafts next week's adjustments into the founder approval queue
 (same rail Eagle Eye uses). The template catalog remains the $0 fallback.
 
-**H-4 · Wearable spine revival — ACWR + RED-LOCKOUT (the moat).**
+**H-4 · Wearable spine revival — native ACWR + RED-LOCKOUT (the moat).**
 Builds on: `bbf-wearable-ingest` (exists), `bbf_wearable_readings` (empty),
 `bbf_athlete_load_logs` + `bbf-workload-sentinel` (running against 4 rows), and the staged
 deprecation file we will now **rescind instead of run**.
-Ships: (a) finish the ingest path for Apple Health export + Whoop/Oura webhook payloads;
-(b) ACWR computation as the Postgres function the Big Jim directive specified; (c) the
-RED-LOCKOUT state machine — acute:chronic ratio breach flags the athlete, Eagle Eye (H-2)
-carries the intervention, the dossier and `SovereignAthlete` panel display it; (d) replace
-`SovereignAthlete`'s mock telemetry with the now-live readings. This is the highest-
-complexity item in the plan and the strongest defensible feature: no competitor at this
-price point runs autonomous overtraining protection.
+Ships:
+- (a) finish the ingest path for Apple Health export + Whoop/Oura webhook payloads (our own
+  inbound endpoints — the wearable vendors push to us, no rented middleware between).
+- (b) **ACWR computed by a native deterministic PL/pgSQL function, `bbf_compute_acwr()`,
+  entirely in-database at zero API cost.** Rolling 7-day acute vs 28-day chronic load, the
+  acute:chronic ratio, and EWMA smoothing are all plain SQL window functions over
+  `bbf_athlete_load_logs`. No AI, no external compute, no outbound call — the existing
+  nightly `bbf-workload-sentinel` cron simply invokes the function. This is the literal
+  In-House Equity form of the metric the Big Jim directive specified.
+- (c) the **RED-LOCKOUT state machine as a deterministic SQL trigger/function** — an
+  acute:chronic breach threshold flips athlete state, Eagle Eye (H-2) carries the
+  intervention on our owned channels, the dossier and `SovereignAthlete` panel display it.
+- (d) replace `SovereignAthlete`'s mock telemetry with the now-live readings.
+This is the highest-complexity item in the plan and the strongest defensible feature: no
+competitor at this price point runs autonomous overtraining protection — and we run it with
+zero recurring cost because the whole computation lives in our own database.
 
 **H-5 · Dossier consolidation + realtime (finish R2/R3, then go live-wire).**
 Builds on: `useAthleteDossier` + the `bbf_athlete_dossier` RPC (built, only DossierPulse
@@ -334,10 +400,11 @@ expansion · K-7 Language densification · H-6 Comlink actions + lead scoring.
 guardrail and its founder review queue.*
 
 **Wave 3 — Autonomy & distribution.**
-H-2 Eagle Eye nightly + multi-channel · C-3 live distributors + TikTok API · C-4 engagement
-harvester · K-4 Broadcast→queue/email · K-3 Arena memory · K-5 Cave study room.
+H-2 Eagle Eye nightly + multi-channel (owned rails) · C-3 single-tenant distribution (Meta
+long-lived system token + TikTok sandbox draft pipeline) · C-4 engagement harvester · K-4
+Broadcast→queue/owned-email · K-3 Arena memory · K-5 Cave study room.
 *The system starts acting on a schedule and reporting back. Dry-run-first discipline on
-every autonomous actor.*
+every autonomous actor; every channel is one we own.*
 
 **Wave 4 — The moat.**
 H-4 wearable spine + ACWR + RED-LOCKOUT · C-5 server render farm · H-7 youth dossier ·
@@ -345,19 +412,32 @@ H-8 tier gating + Stripe reconciliation.
 *The heaviest schema and infrastructure work, deliberately last — it lands on a platform
 that is by then generative, autonomous, and instrumented.*
 
-**Standing rules for every wave:** model router only (§4) · bake-first, cache-first, Haiku
-for bulk · deterministic validation wraps every generative write · founder approval queue
-gates every client-facing autonomous change · trilingual is structural in all new content
-paths · RLS + `approved_public` flags on any private→public projection · lint+build green
-before every push, `sw.js`/SPA cache bump on frontend changes (§3/§6).
+**Standing rules for every wave (In-House Equity enforced):** in-house Claude model router
+only, throttled + cache-first, never a free-running loop (§4) · **no paid third-party
+middleware** — compute stays in Postgres / Supabase Edge / our own Render server · native
+math & search (ACWR PL/pgSQL, pgvector `gte-small` in-edge embeddings) at zero recurring
+cost · external endpoints limited to first-party surfaces we post to with our own accounts
+(Meta, TikTok), free first-party data (NCBI), and infra we already own (ElevenLabs, Twilio/
+VAPI) · deterministic validation wraps every generative write · founder approval queue gates
+every client-facing autonomous change · trilingual is structural in all new content paths ·
+RLS + `approved_public` flags on any private→public projection · lint+build green before
+every push, `sw.js`/SPA cache bump on frontend changes (§3/§6).
 
 **Explicit decision points reserved for the CEO (flagged, not assumed):**
 1. H-4 rescinds the staged ACWR deprecation — revival is this plan's recommendation, but it
    reverses a staged decision and needs a direct order.
-2. C-3 requires live Meta/TikTok API tokens injected into Supabase Vault (external-platform
-   credentials only the CEO can mint).
+2. C-3 credentials, all for **our own accounts**, minted by the CEO into Supabase Vault: the
+   Meta long-lived System-User/Page token, and the TikTok Unaudited Sandbox client id/secret.
+   No multi-user OAuth broker is provisioned — single-tenant by design.
 3. H-8 tier gating changes what paying tiers receive — pricing is a CEO call.
-4. Brevo (vs. current Gmail/Zap) becomes the email rail for K-4 + H-2 — cutover approval.
+4. **Email rides our owned Render server (direct send); no Brevo/Resend/Zapier email rail is
+   adopted.** Flagged only to confirm we are *not* taking on that middleware — the mandate's
+   default. If the CEO ever wants managed deliverability later, that is a separate order.
+
+**Isolation status (CEO directive #5):** this strategy stays on
+`claude/modules-upgrade-strategy-xmzv4m` — committed, pushed for safekeeping, **no pull
+request opened and no merge to `main`** — until the CEO declares the In-House Equity revision
+locked down.
 
 ---
 
