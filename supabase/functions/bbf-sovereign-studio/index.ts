@@ -191,13 +191,30 @@ serve(async (req: Request) => {
   const ssml = buildSsml(rawScript, spec);
   const settings = { ...BASE_SETTINGS, stability: spec.stability, style: spec.style };
 
+  // Advanced Voice Tuning overrides (0.0–1.0). The studio console sends these ONLY
+  // when the admin manually deviates from the vibe baseline; absent → the vibe
+  // defaults stand (identical to the pre-tuning behavior, so the clean cached
+  // baseline routes are untouched). Clamp to ElevenLabs' valid [0,1] range so a bad
+  // client value can never 4xx/502 the synthesis.
+  const clamp01 = (n: unknown): number | null => {
+    const x = Number(n);
+    return Number.isFinite(x) ? Math.min(1, Math.max(0, x)) : null;
+  };
+  const ovStability = clamp01(payload?.stability);
+  const ovSimilarity = clamp01(payload?.similarity_boost);
+  const ovStyle = clamp01(payload?.style);
+  if (ovStability != null) settings.stability = ovStability;
+  if (ovSimilarity != null) settings.similarity_boost = ovSimilarity;
+  if (ovStyle != null) settings.style = ovStyle;
+  const tuned = ovStability != null || ovSimilarity != null || ovStyle != null;
+
   const tts = await synthesize(ELEVENLABS_API_KEY, ssml, settings);
   if (!tts.ok) {
     console.error(`[bbf-sovereign-studio] tts ${tts.status}: ${tts.detail}`);
     return jsonResponse({ error: 'tts_failed', detail: `ElevenLabs returned ${tts.status}.`, eleven_status: tts.status }, 502);
   }
 
-  console.log(`[bbf-sovereign-studio] vibe=${vibe} raw_chars=${rawScript.length} billed_chars=${ssml.length} bytes=${tts.buf.byteLength}`);
+  console.log(`[bbf-sovereign-studio] vibe=${vibe} tuned=${tuned} stability=${settings.stability} similarity=${settings.similarity_boost} style=${settings.style} raw_chars=${rawScript.length} billed_chars=${ssml.length} bytes=${tts.buf.byteLength}`);
   return new Response(tts.buf, {
     status: 200,
     headers: {
@@ -207,6 +224,7 @@ serve(async (req: Request) => {
       'X-BBF-Voice': AKEEM_VOICE_NAME,
       'X-BBF-Vibe': vibe,
       'X-BBF-State': spec.state,
+      'X-BBF-Tuned': String(tuned),
       'X-BBF-Raw-Chars': String(rawScript.length),
       'X-BBF-Billed-Chars': String(ssml.length),
     },

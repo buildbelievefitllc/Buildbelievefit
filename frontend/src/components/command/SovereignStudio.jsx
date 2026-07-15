@@ -23,6 +23,21 @@ const VIBES = [
   { id: 'the_architect', label: 'The Architect', desc: 'Resonant storytelling — build the philosophy.' },
 ];
 
+// Vibe → native ElevenLabs baseline on the 0–100% UI scale. MUST mirror the
+// bbf-sovereign-studio VIBES map (stability + style per vibe) and BASE_SETTINGS
+// (similarity_boost 0.85, shared across every vibe today). Selecting a vibe snaps
+// the Advanced Voice Tuning sliders to these; the admin can then override any axis.
+// (Same preset map Studio V4 uses — kept in lockstep with the webhook.)
+const VIBE_BASELINES = {
+  the_mechanic:  { stability: 42, similarity: 85, style: 12 },
+  real_talk:     { stability: 38, similarity: 85, style: 16 },
+  the_sanctuary: { stability: 30, similarity: 85, style: 8 },
+  the_reframe:   { stability: 35, similarity: 85, style: 28 },
+  the_architect: { stability: 34, similarity: 85, style: 22 },
+};
+// resolveVibe() server-side defaults an unknown vibe to The Architect — mirror it.
+const getVibeBaseline = (id) => VIBE_BASELINES[id] || VIBE_BASELINES.the_architect;
+
 // Brand signatures (Quick Insert).
 const INTRO = "Welcome to BBF Lab. Let's break the loop.";
 const OUTRO = "Keep building. I'll see you in the Lab.";
@@ -55,6 +70,15 @@ export default function SovereignStudio() {
   const [result, setResult] = useState(null); // { url, blob, billedChars, vibe }
   const taRef = useRef(null);
 
+  // ── Advanced Voice Tuning (0–100% UI scale). Sliders live in local state and
+  // snap to the active vibe's baseline whenever the Vibe Matrix changes; any manual
+  // slide flags the preset "MODIFIED" and lights the Reset button. Initialized to
+  // the default vibe's baseline so an untouched panel exactly mirrors the preset. ──
+  const [advOpen, setAdvOpen] = useState(false);
+  const [stability, setStability] = useState(() => getVibeBaseline('the_architect').stability);
+  const [similarity, setSimilarity] = useState(() => getVibeBaseline('the_architect').similarity);
+  const [style, setStyle] = useState(() => getVibeBaseline('the_architect').style);
+
   // Own the object URL: revoke the previous take when a new one lands and on
   // unmount. No setState here — clean of the house set-state-in-effect rule.
   useEffect(() => () => { if (result?.url) URL.revokeObjectURL(result.url); }, [result]);
@@ -62,6 +86,26 @@ export default function SovereignStudio() {
   const len = script.length;
   const over = len > MAX_CHARS;
   const activeVibe = VIBES.find((v) => v.id === vibe) || VIBES[0];
+
+  // Preset drift: true once any axis leaves the current vibe's baseline.
+  const base = getVibeBaseline(vibe);
+  const tuningModified = stability !== base.stability || similarity !== base.similarity || style !== base.style;
+
+  // Selecting a vibe snaps all three sliders to that vibe's baseline, wiping any
+  // prior manual override (spec: "automatically snap … to that card's baseline").
+  function selectVibe(id) {
+    const b = getVibeBaseline(id);
+    setVibe(id);
+    setStability(b.stability);
+    setSimilarity(b.similarity);
+    setStyle(b.style);
+  }
+  function resetTuning() {
+    const b = getVibeBaseline(vibe);
+    setStability(b.stability);
+    setSimilarity(b.similarity);
+    setStyle(b.style);
+  }
 
   function insertIntro() {
     setScript((s) => (s.startsWith(INTRO) ? s : `${INTRO}${s ? `\n\n${s}` : ''}`));
@@ -81,7 +125,16 @@ export default function SovereignStudio() {
     setErr('');
     setResult(null); // triggers the effect cleanup → revokes the prior URL
     try {
-      const r = await generateStudioVoice({ script: text, vibe });
+      const r = await generateStudioVoice({
+        script: text,
+        vibe,
+        // Only forward overrides when the admin deviated from the preset — normalize
+        // the 0–100% sliders to ElevenLabs' 0.0–1.0 scale. An un-tuned generate sends
+        // nothing, so the webhook uses the clean vibe baseline (+ cached routes).
+        ...(tuningModified
+          ? { stability: stability / 100, similarityBoost: similarity / 100, style: style / 100 }
+          : {}),
+      });
       setResult(r);
       requestAnimationFrame(() => {
         const el = document.getElementById('studio-audio');
@@ -118,16 +171,102 @@ export default function SovereignStudio() {
 
       {/* Vibe Matrix */}
       <div className="sst-field">
-        <label className="sst-label" htmlFor="sst-vibe">Vibe Matrix</label>
+        <label className="sst-label" htmlFor="sst-vibe">
+          Vibe Matrix
+          {tuningModified ? (
+            <span className="sst-mod-pill" data-testid="sst-vibe-modified">MODIFIED PRESET</span>
+          ) : null}
+        </label>
         <select
           id="sst-vibe"
           className="sst-select"
           value={vibe}
-          onChange={(e) => setVibe(e.target.value)}
+          onChange={(e) => selectVibe(e.target.value)}
         >
           {VIBES.map((v) => <option key={v.id} value={v.id}>{v.label}</option>)}
         </select>
         <div className="sst-vibe-desc">{activeVibe.desc}</div>
+      </div>
+
+      {/* ── ADVANCED VOICE TUNING — native ElevenLabs fine-tuning sliders. Snaps to
+          the selected vibe's baseline; any manual slide overrides it for this render
+          (and flags the Vibe Matrix above as "Modified"). Mirrors Studio V4. ── */}
+      <div className="sst-field">
+        <button
+          type="button"
+          className={`sst-advtune-head${advOpen ? ' is-open' : ''}`}
+          aria-expanded={advOpen}
+          onClick={() => setAdvOpen((v) => !v)}
+          data-testid="sst-advtune-toggle"
+        >
+          <span className="sst-advtune-ic" aria-hidden="true">🎛</span>
+          <span className="sst-advtune-title">Advanced Voice Tuning</span>
+          {tuningModified ? <span className="sst-advtune-badge">MODIFIED</span> : null}
+          <span className="sst-advtune-chev" aria-hidden="true">{advOpen ? '▾' : '▸'}</span>
+        </button>
+        {advOpen ? (
+          <div className="sst-advtune-body" data-testid="sst-advtune-panel">
+            <p className="sst-advtune-hint">
+              Native ElevenLabs physics. Picking a vibe snaps these to its baseline —
+              slide any axis to override for this render.
+            </p>
+
+            <div className="sst-slider">
+              <div className="sst-slider-top">
+                <span>Stability</span>
+                <span className="sst-slider-val">{stability}%</span>
+              </div>
+              <input
+                type="range" className="sst-range" min="0" max="100" step="1"
+                value={stability}
+                onChange={(e) => setStability(Number(e.target.value))}
+                aria-label="Voice stability"
+                data-testid="sst-vo-stability"
+              />
+              <div className="sst-slider-hint">Vocal emotional variance &amp; natural pauses — lower is more expressive, higher is steadier.</div>
+            </div>
+
+            <div className="sst-slider">
+              <div className="sst-slider-top">
+                <span>Clarity / Similarity Boost</span>
+                <span className="sst-slider-val">{similarity}%</span>
+              </div>
+              <input
+                type="range" className="sst-range" min="0" max="100" step="1"
+                value={similarity}
+                onChange={(e) => setSimilarity(Number(e.target.value))}
+                aria-label="Clarity / similarity boost"
+                data-testid="sst-vo-similarity"
+              />
+              <div className="sst-slider-hint">High-fidelity clone precision — how closely the engine matches the Akeem clone.</div>
+            </div>
+
+            <div className="sst-slider">
+              <div className="sst-slider-top">
+                <span>Style Exaggeration</span>
+                <span className="sst-slider-val">{style}%</span>
+              </div>
+              <input
+                type="range" className="sst-range" min="0" max="100" step="1"
+                value={style}
+                onChange={(e) => setStyle(Number(e.target.value))}
+                aria-label="Style exaggeration"
+                data-testid="sst-vo-style"
+              />
+              <div className="sst-slider-hint">Dramatic / theatrical delivery scaling — higher pushes a more theatrical read.</div>
+            </div>
+
+            <button
+              type="button"
+              className="sst-advtune-reset"
+              onClick={resetTuning}
+              disabled={!tuningModified}
+              data-testid="sst-advtune-reset"
+            >
+              ↺ Reset to “{activeVibe.label}” baseline
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {/* Quick Insert brand signatures */}

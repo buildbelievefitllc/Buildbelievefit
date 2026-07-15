@@ -21,9 +21,19 @@ function lookupVaultUrl(topic) {
   return typeof url === 'string' && url ? url : null;
 }
 
-// Generate a voiceover. Returns { url, blob, billedChars, vibe }. The caller owns
-// the object URL and must revoke it. Throws a display-ready Error on any failure.
-export async function generateStudioVoice({ script, vibe }) {
+// Generate a voiceover. Returns { url, blob, billedChars, vibe, tuned }. The caller
+// owns the object URL and must revoke it. Throws a display-ready Error on failure.
+//
+// Advanced Voice Tuning: stability / similarityBoost / style are the native
+// ElevenLabs 0.0–1.0 decimals (the UI normalizes its 0–100% sliders before calling).
+// They're forwarded ONLY when present — an un-tuned generate sends no overrides, so
+// the webhook falls back to the clean vibe baseline (and its cached routes).
+export async function generateStudioVoice({ script, vibe, stability, similarityBoost, style }) {
+  const overrides = {};
+  if (stability != null) overrides.stability = stability;
+  if (similarityBoost != null) overrides.similarity_boost = similarityBoost;
+  if (style != null) overrides.style = style;
+
   const token = getStoredVaultToken();
   const res = await fetch(`${FUNCTIONS_BASE}/bbf-sovereign-studio`, {
     method: 'POST',
@@ -33,7 +43,7 @@ export async function generateStudioVoice({ script, vibe }) {
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       ...(token ? { 'x-bbf-vault-token': token } : {}),
     },
-    body: JSON.stringify({ script, vibe, vault_token: token }),
+    body: JSON.stringify({ script, vibe, ...overrides, vault_token: token }),
   });
 
   if (!res.ok) {
@@ -50,6 +60,7 @@ export async function generateStudioVoice({ script, vibe }) {
     blob,
     billedChars: Number(res.headers.get('X-BBF-Billed-Chars')) || null,
     vibe: res.headers.get('X-BBF-Vibe') || vibe,
+    tuned: res.headers.get('X-BBF-Tuned') === 'true',
   };
 }
 
