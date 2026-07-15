@@ -1,11 +1,40 @@
 # CLAUDE.md — Build Believe Fit (BBF)
 
+> # ⛔ STOP — DATABASE GUARDRAIL (read before ANY database action)
+>
+> **This repository's local migration history has diverged from the production
+> ledger and CANNOT be reconciled by timestamp repair.** Before running any
+> database command, reading `supabase/migrations/`, or reasoning about schema
+> state, **read [`DATABASE_SAFETY.md`](./DATABASE_SAFETY.md) in full.**
+>
+> Two rules are **binding on every human and every agent session**:
+>
+> 1. **`supabase db push` is STRICTLY FORBIDDEN on this repository.** It compares by
+>    version string only, would misread **~148 of 201 local files as unapplied**, and
+>    would replay them against live production — **silently reopening the
+>    `bbf_compute_acwr` IDOR closed on 2026-07-15.** Also forbidden: `supabase db
+>    reset` against a linked remote, `supabase migration repair`, and `supabase db
+>    remote commit`. *(The CLI is not installed on the primary workstation, so this
+>    cannot fire from there today — that is luck, not a control. It is live on any CI
+>    runner or machine with the CLI linked.)*
+> 2. **`apply_migration` is the ONLY authorized pathway** for schema changes
+>    (reaffirms §3 — now mandatory, not preferred). `execute_sql` is for reads and
+>    verification only, never DDL. Always verify against the live catalog
+>    (`pg_proc.proacl`, `pg_policies`, `has_function_privilege()`) — never trust a
+>    `{"success": true}` flag.
+>
+> **~33 migrations exist in production but were never committed to git — the repo
+> cannot rebuild the database.** Any tooling that reports "in sync" is wrong by
+> construction. Full drift report, the rejected-repair rationale, and the baseline-squash
+> remedy are all in `DATABASE_SAFETY.md`.
+
 Authoritative project brain for Claude Code sessions. This file consolidates the
 durable architecture, standards, and guardrails previously scattered across the
 `PHASE_*`, `*_HANDOFF`, and `*_PASSOVER` documents. Read it first, every session.
 
 > **Source of truth hierarchy:** `AI_DIRECTIVES.md` (brand + operating constitution,
-> CEO-owned) → this file (engineering standards) → any active session handoff note.
+> CEO-owned) → this file (engineering standards) → `DATABASE_SAFETY.md` (binding for
+> all database operations) → any active session handoff note.
 > If they conflict, stop and surface it before writing code.
 
 ---
@@ -50,7 +79,7 @@ Trilingual (EN / ES / PT) is **structural, not optional**.
 | PWA frontend | `bbf-app.html`, `admin.html`, `index.html`, `sw.js` | Merge to `main` → **GitHub Pages** (~1–2 min) | Live: `buildbelievefit.fitness` |
 | Express/WS proxy | `index.js`, `api/` | Merge to `main` → **Render** auto-deploy (~1–2 min) | Health: `https://buildbelievefit.onrender.com/health` |
 | AI agents | `supabase/functions/*` (Deno edge functions) | `mcp__<supabase>__deploy_edge_function` | Project `ihclbceghxpuawymlvgi`, Postgres 17.6 |
-| Data | Supabase Postgres + RLS | `apply_migration` (never ad-hoc prod SQL) | Canonical schema: `api/supabase-schema-actual.sql` |
+| Data | Supabase Postgres + RLS | `apply_migration` **only** — see `DATABASE_SAFETY.md`; `db push` is FORBIDDEN | Canonical schema: `api/supabase-schema-actual.sql` |
 
 > **`sw.js` cache bump:** any change to frontend files **must** bump the `CACHE`
 > version in `sw.js`, or users won't receive the update.
