@@ -283,8 +283,14 @@
   box-shadow: 0 6px 20px -6px rgba(245, 200, 0, .55);
 }
 .sh-deck-tab.is-active .sh-deck-ic { opacity: 1; }
-/* Active domain panel — fade/slide in on each tab swap (keyed remount). */
+/* Keep-alive domain panels — only the active one is visible; others stay mounted
+   (hidden) so Fuel / Mindset do not re-run mount effects on every tab swap. */
+.sh-deck-panels { position: relative; }
 .sh-deck-panel { animation: sh-panel-in .26s ease both; }
+.sh-deck-panel[hidden],
+.sh-deck-panel[aria-hidden="true"]:not(.is-active) {
+  display: none !important;
+}
 
 /* ── Baseline mobility (Recovery tab — engine recovery floor) ─────────────────── */
 .sh-mob { margin-top: 1.1rem; background: var(--sh-card2); border: 1px solid var(--sh-line); border-radius: 16px; padding: 1.1rem 1.2rem; }

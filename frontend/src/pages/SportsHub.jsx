@@ -7,9 +7,11 @@
 // PAR-Q+ intake gate), bypassing the adult Sovereign Vault entirely.
 //
 // STRICT TAB-DECK (CEO order — kill the scroll fest): the hub mirrors the adult
-// Vault's navigation — a horizontal tab rail over a SINGLE mounted domain. Exactly
-// one data domain is on screen at a time; switching tabs unmounts the rest (no
-// vertical stacking). Five domains:
+// Vault's navigation — a horizontal tab rail over a SINGLE VISIBLE domain. Exactly
+// one panel is shown at a time (no vertical stacking). Phase 3 keep-alive: panels
+// mount on first visit and STAY mounted (CSS-hidden when inactive) so Fuel /
+// Mindset never re-fire their network/audio lifecycles on every tab swap.
+// Domains:
 //   Protocol  — field work (Native Sport Engine) + the Day 1–7 drill/film execution
 //               protocol + the Combine & Measurables calculators.
 //   Program   — the weight room (AthleteBlueprint, room="weight").
@@ -237,9 +239,11 @@ export default function SportsHub({ selection = null, progress = null }) {
   const profile = useMemo(() => user?.sportsProfile || resolveSportsProfile(user) || {}, [user]);
 
   // Effective sport/position: the chosen/persisted selection over the seed.
+  // No football/OL hard-default — multi-sport / pre-intake athletes stay generic
+  // until intake (or a real profile) supplies a discipline.
   const effProfile = useMemo(() => {
-    const sportId = selection?.sportId || profile.sportId || 'football';
-    const positionCode = selection?.positionCode || profile.positionCode || 'OL';
+    const sportId = selection?.sportId || profile.sportId || '';
+    const positionCode = selection?.positionCode || profile.positionCode || '';
     const cfg = YOUTH_SPORTS.find((s) => s.id === sportId);
     const sport = cfg ? t(cfg.labelKey) : (profile.sport || 'Multi-Sport');
     return { ...profile, sportId, positionCode, sport, position: positionLabel(sportId, positionCode) };
@@ -259,14 +263,25 @@ export default function SportsHub({ selection = null, progress = null }) {
   const [week, setWeek] = useState(() => applyProgress(buildWeek(model), progress));
   const [activeDay, setActiveDay] = useState(() => firstTrainingDay(week));
   const [phase, setPhase] = useState('offseason'); // 'offseason' | 'inseason'
-  // Strict tab-deck — the active data domain. One panel mounts at a time. The athlete
-  // LANDS on Check-In (the morning readiness scan) before any daily work.
+  // Strict tab-deck — one panel visible at a time. Keep-alive: mount each domain on
+  // first visit, then hide (don't unmount) so Fuel/Mindset network + audio effects
+  // don't re-run on every rail click. Athlete LANDS on Check-In first.
   const [activeTab, setActiveTab] = useState('checkin');
+  const [visitedTabs, setVisitedTabs] = useState(() => new Set(['checkin']));
+  const visitTab = useCallback((id) => {
+    setActiveTab(id);
+    setVisitedTabs((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }, []);
 
   // THE GAMEPLAN — the guided youth sequence drives tab swaps through one callback
   // (mirrors the adult Vault's onNavigate). The Post-Game Check lifts the reported
   // friction zone here so the Prehab tab can prescribe the targeted fix.
-  const onNavigate = useCallback((id) => setActiveTab(id), []);
+  const onNavigate = useCallback((id) => visitTab(id), [visitTab]);
   const [lastFriction, setLastFriction] = useState(() => loadFriction(uid));
   const onLogFriction = useCallback((f) => { setLastFriction(f); saveFriction(uid, f); }, [uid]);
 
@@ -427,7 +442,7 @@ export default function SportsHub({ selection = null, progress = null }) {
                 aria-selected={active}
                 className={`sh-deck-tab${active ? ' is-active' : ''}`}
                 data-testid={`sh-deck-tab-${tab.id}`}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => visitTab(tab.id)}
               >
                 <span className="sh-deck-ic" aria-hidden="true">{tab.icon}</span>
                 {tab[lang] || tab.en}
@@ -436,27 +451,38 @@ export default function SportsHub({ selection = null, progress = null }) {
           })}
         </nav>
 
-        {/* key={activeTab} → clean unmount/remount per swap; no domain ever bleeds
-            into another. The lifted week/model state lives on the component (not the
-            panel), so day check-offs survive a tab switch. */}
-        <div className="sh-deck-panel" role="tabpanel" key={activeTab}>
+        {/* Keep-alive deck: each domain mounts once on first visit, then toggles
+            visibility (no remount). Lifted week/model state still lives here. */}
+        <div className="sh-deck-panels">
           {/* ── CHECK-IN — the morning CNS readiness scan; the athlete lands here
               first and sets today's training volume before any daily work. ─────── */}
-          {activeTab === 'checkin' ? (
-            <>
+          {visitedTabs.has('checkin') ? (
+            <div
+              className={`sh-deck-panel${activeTab === 'checkin' ? ' is-active' : ''}`}
+              role="tabpanel"
+              aria-hidden={activeTab !== 'checkin'}
+              hidden={activeTab !== 'checkin'}
+              data-testid="sh-panel-checkin"
+            >
               {/* PHASE 1 · THE GAMEPLAN — audio pep-talk + the daily-gameplan shield,
                   the FIRST thing the athlete sees, before they log their sleep. */}
               <YouthGameplan />
               <SovereignReadinessDashboard />
               {/* Step 2 hand-off → Armor Prep (Recovery). */}
               <YouthNext label={seq.armor} onClick={() => onNavigate('recovery')} testid="youth-step-2" />
-            </>
+            </div>
           ) : null}
 
           {/* ── DRILLS — sport drills distributed across Off/In × Day 1–7, ONE day at
               a time (no vertical protocol dump). Combine calculators one tap away. ── */}
-          {activeTab === 'protocol' ? (
-            <>
+          {visitedTabs.has('protocol') ? (
+            <div
+              className={`sh-deck-panel${activeTab === 'protocol' ? ' is-active' : ''}`}
+              role="tabpanel"
+              aria-hidden={activeTab !== 'protocol'}
+              hidden={activeTab !== 'protocol'}
+              data-testid="sh-panel-protocol"
+            >
               <DayDeck
                 view="drills"
                 phase={phase} setPhase={setPhase}
@@ -484,34 +510,56 @@ export default function SportsHub({ selection = null, progress = null }) {
                   SAME session_feedback the recovery engine reads) + PHASE 4 fork:
                   Cool Down → Mindset, and Fix the Pain → Prehab when sore. */}
               <YouthPostGameCheck onNavigate={onNavigate} onLogged={onLogFriction} />
-            </>
+            </div>
           ) : null}
 
           {/* ── EXERCISES — the weight room as per-day interactive video cards
               (Off/In × Day 1–7), matching the adult side's card layout. ─────────── */}
-          {activeTab === 'program' ? (
-            <DayDeck
-              view="exercises"
-              phase={phase} setPhase={setPhase}
-              week={week} activeDay={activeDay} setActiveDay={setActiveDay}
-              telemetry={telemetry}
-              onToggleExercise={onToggleExercise}
-              onToggleDrill={onToggleDrill}
-              onCycleStatus={onCycleStatus}
-            />
+          {visitedTabs.has('program') ? (
+            <div
+              className={`sh-deck-panel${activeTab === 'program' ? ' is-active' : ''}`}
+              role="tabpanel"
+              aria-hidden={activeTab !== 'program'}
+              hidden={activeTab !== 'program'}
+              data-testid="sh-panel-program"
+            >
+              <DayDeck
+                view="exercises"
+                phase={phase} setPhase={setPhase}
+                week={week} activeDay={activeDay} setActiveDay={setActiveDay}
+                telemetry={telemetry}
+                onToggleExercise={onToggleExercise}
+                onToggleDrill={onToggleDrill}
+                onCycleStatus={onCycleStatus}
+              />
+            </div>
           ) : null}
 
           {/* ── FUEL — nutrition / macros (buildMealPlan output). READ-ONLY: the
               Program tab is the single forge control; Fuel purely displays. ────── */}
-          {activeTab === 'fuel' ? (
-            <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="fuel" readOnly />
+          {visitedTabs.has('fuel') ? (
+            <div
+              className={`sh-deck-panel${activeTab === 'fuel' ? ' is-active' : ''}`}
+              role="tabpanel"
+              aria-hidden={activeTab !== 'fuel'}
+              hidden={activeTab !== 'fuel'}
+              data-testid="sh-panel-fuel"
+            >
+              <AthleteBlueprint sportLabel={effProfile.sport} positionLabel={effProfile.position} room="fuel" readOnly />
+            </div>
           ) : null}
 
           {/* ── RECOVERY — engine prescription + the transplanted media-rich prep
               (foam rolling → static stretching → dynamic drills), same UI as the
               adult ClientHub via SovereignPrepPanels. ─────────────────────────── */}
-          {activeTab === 'recovery' ? (
-            <>
+          {visitedTabs.has('recovery') ? (
+            <div
+              className={`sh-deck-panel${activeTab === 'recovery' ? ' is-active' : ''}`}
+              role="tabpanel"
+              aria-hidden={activeTab !== 'recovery'}
+              hidden={activeTab !== 'recovery'}
+              data-testid="sh-panel-recovery"
+            >
               {/* The interactive 3-phase prep deck FIRST (Tissue Release · Static
                   Elongation · Dynamic Potentiation) — the same component the adult
                   ClientHub uses. The engine-generated prescription sits below it. */}
@@ -526,19 +574,35 @@ export default function SportsHub({ selection = null, progress = null }) {
               <RecoveryPrescriptionCard />
               {/* Step 3 hand-off → Hit the Drills (Program/Drills). */}
               <YouthNext label={seq.drills} onClick={() => onNavigate('protocol')} testid="youth-step-3" />
-            </>
+            </div>
           ) : null}
 
           {/* ── PREHAB — prescription-only fix (CEO "Netflix rule"): the Post-Game
               fork lands here with a hard-capped, zone-targeted routine. No library,
               no browse — just the fix for the zone the athlete flagged. ───────── */}
-          {activeTab === 'prehab' ? (
-            <YouthPrehab friction={lastFriction} />
+          {visitedTabs.has('prehab') ? (
+            <div
+              className={`sh-deck-panel${activeTab === 'prehab' ? ' is-active' : ''}`}
+              role="tabpanel"
+              aria-hidden={activeTab !== 'prehab'}
+              hidden={activeTab !== 'prehab'}
+              data-testid="sh-panel-prehab"
+            >
+              <YouthPrehab friction={lastFriction} />
+            </div>
           ) : null}
 
           {/* ── MINDSET — sport/language-aware Champion Mindset film deck ──────── */}
-          {activeTab === 'mindset' ? (
-            <YouthChampionMindset sportId={effProfile.sportId} />
+          {visitedTabs.has('mindset') ? (
+            <div
+              className={`sh-deck-panel${activeTab === 'mindset' ? ' is-active' : ''}`}
+              role="tabpanel"
+              aria-hidden={activeTab !== 'mindset'}
+              hidden={activeTab !== 'mindset'}
+              data-testid="sh-panel-mindset"
+            >
+              <YouthChampionMindset sportId={effProfile.sportId} />
+            </div>
           ) : null}
         </div>
 

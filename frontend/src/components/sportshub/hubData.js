@@ -258,11 +258,16 @@ function roundMark(value, unit) {
   return Math.round(value);
 }
 
+// Multi-sport / pre-intake fallback — athletic (not football-OL) generic targets.
+const GENERIC_COMBINE = Object.freeze({ forty: 4.80, vert: 32, broad: 108, bench: 15 });
+
 function resolveBenchmark(sportId, positionCode) {
   if (sportId === 'track') return TRACK_BENCHMARKS[positionCode] || TRACK_BENCHMARKS.sprints;
   const sport = COMBINE_BENCHMARKS[sportId];
-  if (!sport) return COMBINE_BENCHMARKS.football.OL;
-  return sport[positionCode] || sport.OL || Object.values(sport)[0];
+  if (!sport) return GENERIC_COMBINE;
+  // Prefer the athlete's position; never silently fall back to football OL on
+  // another sport's map — first listed position is the neutral default.
+  return sport[positionCode] || Object.values(sport)[0] || GENERIC_COMBINE;
 }
 
 // Default film status / coach-note pattern (varies cards for a live-looking board).
@@ -270,9 +275,10 @@ const FILM_STATUS = ['assigned', 'complete', 'in-review', 'assigned'];
 const FILM_NOTES = [2, 3, 1, 0];
 
 export function buildHubModel(profile) {
-  const sportId = profile?.sportId || 'football';
-  const positionCode = profile?.positionCode || 'OL';
-  const content = SPORT_CONTENT[sportId] || SPORT_CONTENT.default;
+  // Empty/missing sport → multi-sport default content (never silent football OL).
+  const sportId = profile?.sportId || '';
+  const positionCode = profile?.positionCode || '';
+  const content = (sportId && SPORT_CONTENT[sportId]) || SPORT_CONTENT.default;
   const bench = resolveBenchmark(sportId, positionCode);
 
   const metrics = Object.keys(bench).map((key) => {

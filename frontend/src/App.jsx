@@ -74,6 +74,11 @@ function VaultRoute() {
 // Symmetric isolation: an ordinary adult client who deep-links here is sent to
 // their Vault; admins may pass through to preview the youth surface.
 //
+// Phase 2.4 — Route Entitlement Mirror: after division isolation, the Hub is
+// gated on the live `sports_hub` feature (Youth + God Tier) via <TierGate>,
+// matching /sports. Fail-open while the tier resolves so a payer is never
+// padlocked by a blip.
+//
 // First-run gate: a flagged athlete is wrapped in <YouthIntakeGate>, which blocks
 // the Hub behind a forced PAR-Q+ intake until the DB confirms a completed
 // screening (the gate self-skips for admins, so previewing stays ungated).
@@ -81,10 +86,16 @@ function SportsHubRoute() {
   const { user, loading, isAdmin } = useAuth();
   if (loading) return <div style={bootStyle}>Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
+  // Division isolation (not entitlement): ordinary adult clients never land on
+  // the youth surface. Entitlement is enforced by TierGate below.
   if (!isSportsAthlete(user) && !isAdmin) return <Navigate to="/vault" replace />;
   // The gate renders the intake (until cleared) then the Hub itself, scoped to the
-  // athlete's chosen sport/position.
-  return <YouthIntakeGate />;
+  // athlete's chosen sport/position — only when sports_hub is unlocked.
+  return (
+    <TierGate feature="sports_hub" featureLabelKey="uplock-sports-feature" testId="sports-hub-upgrade-overlay">
+      <YouthIntakeGate />
+    </TierGate>
+  );
 }
 
 const bootStyle = {

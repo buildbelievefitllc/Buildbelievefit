@@ -100,7 +100,7 @@ export function CombineMetrics({ combine, onMetricChange }) {
           </div>
         ))}
       </div>
-      <p className="sh-hint">Edit a mark to recompute attainment against the collegiate OL threshold in real time.</p>
+      <p className="sh-hint">Edit a mark to recompute attainment against the sport benchmark in real time.</p>
       <VideoSlot videoId={METRIC_VIDEOS.velocity.id} title={METRIC_VIDEOS.velocity.title} caption={METRIC_VIDEOS.velocity.caption} />
     </SectionCard>
   );
@@ -147,9 +147,10 @@ export function ExplosivePower({ power, onPowerChange }) {
   );
 }
 
-// ── Size & Mass — anthropometrics; weight tracks live toward a lineman frame ───
+// ── Size & Mass — anthropometrics; weight tracks live toward the sport frame ───
 export function SizeMass({ size, onSizeChange }) {
   const weightPct = progressToward(size.weightLbs, size.weightTarget, false);
+  const frameLabel = size.reference || 'Athletic frame target';
   return (
     <SectionCard tag="Anthropometrics" title={size.title} meta={size.reference} testId="sh-section-size">
       <div className="sh-sizebar">
@@ -185,7 +186,7 @@ export function SizeMass({ size, onSizeChange }) {
         </div>
         <div className="sh-combine-foot">
           <span data-testid="sh-size-pct">{weightPct}% to frame target</span>
-          <span className="sh-combine-target">Collegiate OL ≈ {size.weightTarget} lbs</span>
+          <span className="sh-combine-target">{frameLabel} ≈ {size.weightTarget} lbs</span>
         </div>
       </div>
       <VideoSlot videoId={METRIC_VIDEOS.force.id} title={METRIC_VIDEOS.force.title} caption={METRIC_VIDEOS.force.caption} />
