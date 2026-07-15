@@ -27,6 +27,8 @@ import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import ClientDossier from './ClientDossier.jsx';
 import { velocityMap, floatCriticalFirst, VELOCITY_BANDS } from '../../lib/coachingVelocity.js';
+import { fetchAcwrBatch } from '../../lib/acwrApi.js';
+import BiometricStrainBadge from './BiometricStrainBadge.jsx';
 import ForgeAthlete from './ForgeAthlete.jsx';
 import './founderfive.css';
 
@@ -55,6 +57,10 @@ export default function ClientHub() {
   // A ClientHub-only enrichment (Nutrition Locker doesn't need it), kept separate
   // from the shared roster so it never re-triggers the base fetch.
   const [calMap, setCalMap] = useState({});
+  // Biometric Strain overlay — { [id]: { subjective, tonnage } }. Dual-engine ACWR
+  // (in-house bbf_compute_acwr + tonnage), batch-loaded server-side after the
+  // roster paints. Non-blocking; a failure just leaves cards strain-badge-free.
+  const [acwrMap, setAcwrMap] = useState({});
   // The Hardwire Gateway — Forge Athlete modal (god-mode onboarding bypass).
   const [forgeOpen, setForgeOpen] = useState(false);
   // Optimistic roster injection now routes through the shared provider so the
@@ -82,6 +88,15 @@ export default function ClientHub() {
     } catch { /* radar is an overlay — a failure just leaves the cards un-lit */ }
   }, []);
 
+  // Biometric Strain radar — one batch ACWR pull for the whole roster group,
+  // keyed on the bbf_users id (what bbf_compute_acwr expects). Non-fatal overlay.
+  const fetchAcwr = useCallback(async (ids) => {
+    try {
+      const map = await fetchAcwrBatch(ids);
+      setAcwrMap(map || {});
+    } catch { /* strain radar is an overlay — a failure leaves cards un-badged */ }
+  }, []);
+
   // The base roster loads via the provider. ClientHub only fires its own
   // enrichments (calibration + telemetry) on mount. Deferred via microtask.
   useEffect(() => {
@@ -89,6 +104,21 @@ export default function ClientHub() {
     queueMicrotask(() => { if (!cancelled) { fetchCalibration(); fetchTelemetry(); } });
     return () => { cancelled = true; };
   }, [fetchCalibration, fetchTelemetry]);
+
+  // Strain overlay re-runs whenever the roster identity set changes (initial load
+  // + refresh + optimistic inject). Keyed on the id list so it never loops.
+  const rosterIdKey = useMemo(
+    () => roster.map((c) => c.id).filter(Boolean).join(','),
+    [roster],
+  );
+  useEffect(() => {
+    if (!rosterIdKey) return undefined;
+    let cancelled = false;
+    // Defer via microtask (parity with the calibration/telemetry overlays) so the
+    // state update never fires synchronously inside the effect body.
+    queueMicrotask(() => { if (!cancelled) fetchAcwr(rosterIdKey.split(',')); });
+    return () => { cancelled = true; };
+  }, [rosterIdKey, fetchAcwr]);
 
   // A manual refresh re-pulls the shared roster AND both local overlays.
   const refreshAll = useCallback(() => {
@@ -266,6 +296,7 @@ export default function ClientHub() {
                   onSelect={() => setActiveId(rowKey(c))}
                   tel={telemetry[rowKey(c)] || null}
                   vel={velMap[rowKey(c)] || null}
+                  acwr={acwrMap[c.id] || null}
                 />
               ))}
             </ul>
@@ -330,7 +361,7 @@ function Sparkline({ points, color = 'var(--yel)' }) {
 }
 
 // ── One roster row — clickable, active glass border, division + telemetry radar. ─
-function ClientRow({ client, active, onSelect, tel, vel }) {
+function ClientRow({ client, active, onSelect, tel, vel, acwr }) {
   const name = client.name || client.uid || 'Unnamed';
   const div = division(client);
   const tier = client.subscription_tier || client.role || null;
@@ -384,6 +415,8 @@ function ClientRow({ client, active, onSelect, tel, vel }) {
             </span>
           ) : null}
           {cal ? <span className="ff-cal" style={{ ...CAL_BASE, ...CAL_TONE[cal.tone] }}>{cal.text}</span> : null}
+          {/* Biometric Strain (subjective sRPE ACWR) — self-hides when no data. */}
+          <BiometricStrainBadge data={acwr} />
         </span>
         <span className="ff-row-meta">
           <span className="ff-badge" style={{ color, borderColor: color }}>{tier || '—'}</span>
