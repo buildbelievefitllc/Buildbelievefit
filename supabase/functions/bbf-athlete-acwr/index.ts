@@ -3,8 +3,9 @@
 // Batch ACWR for a roster group, computed 100% in-house at zero API cost:
 //   • SUBJECTIVE (Foster sRPE): the deterministic bbf_compute_acwr(p_athlete_id)
 //     RPC (duration*sRPE, acute EWMA N=7 / chronic N=28). The RPC is locked to
-//     service_role/authenticated (anon revoked, §7), so it runs HERE server-side
-//     and is never exposed to the browser's anon client.
+//     service_role/postgres ONLY (anon AND authenticated revoked, §7) — it takes
+//     a caller-supplied athlete id with no ownership check, so it must only ever
+//     run HERE, server-side, behind this function's admin gate.
 //   • PHYSICAL (mechanical tonnage): the latest athlete_workload_daily.acwr,
 //     bridged bbf_users.id → athlete_profiles.user_id → athlete_profiles.id.
 // Missing data ⇒ null (never a fabricated number).
