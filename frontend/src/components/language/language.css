@@ -276,13 +276,49 @@
 .vv-name { font-family: var(--bd); font-weight: 700; font-size: .92rem; color: #fff; }
 .vv-channel { font-family: var(--bd); font-size: .76rem; color: #9c92b5; }
 .vv-actions { display: flex; gap: .45rem; flex: none; }
-.vv-watch { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, #6a0dad, #4a0979); border: 1px solid rgba(245, 200, 0, .35); border-radius: 999px; padding: .4rem .85rem; text-decoration: none; white-space: nowrap; }
+.vv-watch { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, #6a0dad, #4a0979); border: 1px solid rgba(245, 200, 0, .35); border-radius: 999px; padding: .4rem .85rem; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.vv-watch:hover { border-color: rgba(245, 200, 0, .65); }
+.vv-watch:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
 .vv-hear { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); background: transparent; border: 1px solid var(--panel-edge, rgba(106, 13, 173, .3)); border-radius: 999px; padding: .4rem .85rem; cursor: pointer; white-space: nowrap; }
 .vv-hear:hover { color: var(--yel, #f5c800); border-color: var(--yel, #f5c800); }
 .vv-mark { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: #0e0a16; background: linear-gradient(90deg, #f5c800, #ffd83a); border: none; border-radius: 999px; padding: .4rem .85rem; cursor: pointer; white-space: nowrap; }
 .vv-mark:disabled { cursor: default; }
 .vv-mark.is-done { background: none; border: 1px solid rgba(245, 200, 0, .6); color: var(--yel, #f5c800); }
 @media (max-width: 560px) { .vv-row { flex-direction: column; align-items: stretch; } .vv-actions { justify-content: flex-end; } }
+
+/* ── INLINE MINI-PLAYER — native-feeling YouTube modal (no external eject). ──── */
+.vv-player-scrim {
+  position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, .8);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  /* Full safe-area clearance — notch (top) + home indicator (bottom) on iOS. */
+  padding: calc(1rem + env(safe-area-inset-top, 0px)) clamp(.9rem, 4vw, 2rem) calc(1rem + env(safe-area-inset-bottom, 0px));
+  animation: vv-player-in .2s ease;
+}
+.vv-player-card {
+  position: relative; width: min(880px, 100%);
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+}
+.vv-player-frame {
+  display: block; width: 100%; aspect-ratio: 16 / 9;
+  border-radius: 14px; border: 1px solid rgba(106, 13, 173, .55);
+  background: #000;
+}
+.vv-player-close {
+  position: absolute; top: -14px; right: -14px; z-index: 1;
+  width: 40px; height: 40px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.05rem; line-height: 1; color: #fff;
+  background: linear-gradient(135deg, #6a0dad, #4a0979);
+  border: 1px solid rgba(245, 200, 0, .6);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .5);
+}
+.vv-player-close:hover { border-color: var(--yel, #f5c800); }
+.vv-player-close:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
+@media (max-width: 560px) { .vv-player-close { top: -10px; right: -6px; } }
+@keyframes vv-player-in { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .vv-player-scrim { animation: none; } }
 
 /* ── IMMERSION SCAFFOLD (guided A/B dialogue options) ────────────────────────── */
 .im-scaffold {
