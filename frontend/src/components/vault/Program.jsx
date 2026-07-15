@@ -43,6 +43,7 @@ import { SequenceCTA } from './SovereignSequence.jsx';
 import PremiumSessionPlayer from './PremiumSessionPlayer.jsx';
 import { createHrSource } from '../../lib/liveHeartRate.js';
 import { GuideLauncher } from '../BbfMediaPortal.jsx';
+import SessionLoadLogger from './SessionLoadLogger.jsx';
 
 // Trilingual UI chrome (EN verbatim to the prior hardcoded copy so the default
 // language keeps the vault-logging E2E selectors green). Module-local dictionary
@@ -53,21 +54,21 @@ const STR = {
     written: 'Coach’s written protocol', anSub: 'Dossier · volume & balance',
     prep: 'Prep', coach: 'Coach', data: 'Data',
     prepFull: 'Sovereign Prep', coachFull: 'Coach Audio', dataFull: 'Weekly Analytics',
-    railLabel: 'Session prep', close: 'Close',
+    railLabel: 'Session prep', close: 'Close', logLoad: 'Log Load',
   },
   es: {
     head: 'Protocolo de Entrenamiento', streak: (n) => `racha de ${n} días`,
     written: 'Protocolo escrito del coach', anSub: 'Expediente · volumen y balance',
     prep: 'Prep', coach: 'Coach', data: 'Datos',
     prepFull: 'Preparación Soberana', coachFull: 'Audio del Coach', dataFull: 'Análisis Semanal',
-    railLabel: 'Preparación de sesión', close: 'Cerrar',
+    railLabel: 'Preparación de sesión', close: 'Cerrar', logLoad: 'Registrar Carga',
   },
   pt: {
     head: 'Protocolo de Treino', streak: (n) => `sequência de ${n} dias`,
     written: 'Protocolo escrito do coach', anSub: 'Dossiê · volume e equilíbrio',
     prep: 'Prep', coach: 'Coach', data: 'Dados',
     prepFull: 'Preparação Soberana', coachFull: 'Áudio do Coach', dataFull: 'Análise Semanal',
-    railLabel: 'Preparação de sessão', close: 'Fechar',
+    railLabel: 'Preparação de sessão', close: 'Fechar', logLoad: 'Registrar Carga',
   },
 };
 
@@ -192,6 +193,8 @@ export default function Program({ plans, profile, onSequence }) {
   // null | 'prep' | 'coach' | 'data' — which collapsed action drawer is open.
   const [drawer, setDrawer] = useState(null);
   const toggle = (key) => setDrawer((d) => (d === key ? null : key));
+  // Session Load Logger (sRPE + duration → bbf_athlete_load_logs → ACWR engine).
+  const [loadOpen, setLoadOpen] = useState(false);
 
   // The assigned plan is a structured JSON array (day/focus/exercises) written by
   // the AI engine. When present it IS the user's real program — render the grid
@@ -212,12 +215,24 @@ export default function Program({ plans, profile, onSequence }) {
           moved into the Sovereign Prep rail below (Phase 19 de-clutter). */}
       <div style={styles.bar}>
         <h2 style={styles.head}>{tr.head}</h2>
-        {profile ? (
-          <Badge
-            label={tr.streak(profile.currentStreak)}
-            color={profile.currentStreak > 0 ? 'var(--grn)' : 'var(--mut)'}
-          />
-        ) : null}
+        <div style={styles.barActions}>
+          {profile ? (
+            <Badge
+              label={tr.streak(profile.currentStreak)}
+              color={profile.currentStreak > 0 ? 'var(--grn)' : 'var(--mut)'}
+            />
+          ) : null}
+          {/* Session Load Logger launcher — sRPE + duration → in-house ACWR engine. */}
+          <button
+            type="button"
+            className="sll-launch"
+            onClick={() => setLoadOpen(true)}
+            data-testid="log-load-launch"
+          >
+            <span className="sll-launch-ic" aria-hidden="true">⚡</span>
+            {tr.logLoad}
+          </button>
+        </div>
       </div>
 
       {/* SOVEREIGN PREP rail — the minimalist horizontal menu that collapses the
@@ -278,12 +293,16 @@ export default function Program({ plans, profile, onSequence }) {
           coachCue={coachCue}
         />
       ) : null}
+
+      {/* Session Load Logger — sRPE + duration capture (bottom sheet). */}
+      <SessionLoadLogger open={loadOpen} onClose={() => setLoadOpen(false)} />
     </div>
   );
 }
 
 const styles = {
   bar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' },
+  barActions: { display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' },
   head: { fontFamily: 'var(--display)', fontSize: '1.5rem', letterSpacing: '.5px', margin: 0 },
   details: {
     marginTop: '1.4rem',

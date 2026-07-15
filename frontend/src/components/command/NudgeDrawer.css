@@ -1,0 +1,157 @@
+/* NudgeDrawer.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Scoped under `.nudge-` (+ `nudge-slide`) — no global bleed. Brand-locked (§2):
+   BBF Purple #6a0dad · BBF Gold #f5c800 · void #090909. Slide-out from the right;
+   full-width sheet on narrow phones. */
+
+.nudge-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(6, 4, 12, 0.6);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.nudge-drawer {
+  width: min(420px, 100%);
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px;
+  background: linear-gradient(180deg, #14101d 0%, #0b0810 100%);
+  border-left: 1px solid rgba(245, 200, 0, 0.4);
+  box-shadow: -18px 0 60px rgba(0, 0, 0, 0.6);
+  animation: nudge-slide 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  font-family: 'Barlow Condensed', sans-serif;
+  color: #f9f5ff;
+}
+@keyframes nudge-slide {
+  from { transform: translateX(24px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nudge-drawer { animation: none; }
+}
+
+.nudge-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.nudge-kicker {
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #f5c800;
+}
+.nudge-title {
+  margin: 2px 0 0;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.9rem;
+  letter-spacing: 1px;
+  line-height: 1;
+  color: #fff;
+}
+.nudge-x {
+  background: transparent;
+  border: 1px solid rgba(249, 245, 255, 0.2);
+  color: #f9f5ff;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.nudge-x:hover { border-color: #f5c800; color: #f5c800; }
+
+.nudge-meta { display: flex; align-items: center; gap: 10px; margin: 16px 0 18px; flex-wrap: wrap; }
+.nudge-flag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  color: #ffd83a;
+  border: 1px solid rgba(245, 200, 0, 0.6);
+  background: rgba(245, 200, 0, 0.1);
+}
+.nudge-meta-sub { font-size: 0.82rem; opacity: 0.66; }
+
+.nudge-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.76rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #f5cf60;
+  margin-bottom: 6px;
+}
+.nudge-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 130px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(157, 39, 201, 0.4);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  outline: none;
+}
+.nudge-textarea:focus { border-color: #f5c800; box-shadow: 0 0 0 3px rgba(245, 200, 0, 0.14); }
+
+.nudge-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.nudge-btn {
+  flex: 1;
+  min-width: 140px;
+  text-align: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, box-shadow 0.2s ease;
+}
+.nudge-btn:active { transform: translateY(1px); }
+.nudge-btn--copy {
+  color: #ffd83a;
+  background: rgba(245, 200, 0, 0.08);
+  border-color: rgba(245, 200, 0, 0.55);
+}
+.nudge-btn--copy:hover { background: rgba(245, 200, 0, 0.16); }
+.nudge-btn--sms {
+  color: #0e0a16;
+  background: linear-gradient(90deg, #f5c800, #ffd83a);
+  box-shadow: 0 6px 18px rgba(245, 200, 0, 0.24);
+}
+
+.nudge-note { margin: 10px 2px 0; font-size: 0.78rem; opacity: 0.55; }
+
+/* [⚡ NUDGE] roster-row CTA — muted warning-gold border, high-contrast text.
+   Rendered as a span (the roster row itself is a <button>, so no nested button). */
+.nudge-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 0.62rem;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #ffd83a;
+  background: rgba(245, 200, 0, 0.08);
+  border: 1px solid rgba(245, 200, 0, 0.55);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.nudge-cta:hover { background: rgba(245, 200, 0, 0.18); color: #fff; }

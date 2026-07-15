@@ -29,8 +29,21 @@ import ClientDossier from './ClientDossier.jsx';
 import { velocityMap, floatCriticalFirst, VELOCITY_BANDS } from '../../lib/coachingVelocity.js';
 import { fetchAcwrBatch } from '../../lib/acwrApi.js';
 import BiometricStrainBadge from './BiometricStrainBadge.jsx';
+import NudgeDrawer from './NudgeDrawer.jsx';
 import ForgeAthlete from './ForgeAthlete.jsx';
 import './founderfive.css';
+import './NudgeDrawer.css';
+
+// 48-Hour Accountability — derive stagnancy from the athlete's most recent
+// check-in across any logging surface (last_logged_at, computed server-side).
+// Null (never logged) OR > 48h since = STAGNANT. days = whole days since.
+function computeStagnancy(lastLoggedAt, nowMs = Date.now()) {
+  if (!lastLoggedAt) return { stagnant: true, hours: null, days: null };
+  const t = new Date(lastLoggedAt).getTime();
+  if (!Number.isFinite(t)) return { stagnant: false, hours: null, days: null };
+  const hours = (nowMs - t) / 3600000;
+  return { stagnant: hours > 48, hours, days: Math.floor(hours / 24) };
+}
 
 // Roster sort modes. Adherence Low→High is the intervention view — slipping
 // clients bubble to the top (insufficient/no-score sink to the bottom).
@@ -63,6 +76,8 @@ export default function ClientHub() {
   const [acwrMap, setAcwrMap] = useState({});
   // The Hardwire Gateway — Forge Athlete modal (god-mode onboarding bypass).
   const [forgeOpen, setForgeOpen] = useState(false);
+  // 48-Hour Accountability nudge drawer — { client, stag } | null.
+  const [nudge, setNudge] = useState(null);
   // Optimistic roster injection now routes through the shared provider so the
   // forged athlete appears in EVERY consumer instantly.
   const onForged = useCallback((client) => injectClient(client), [injectClient]);
@@ -297,6 +312,7 @@ export default function ClientHub() {
                   tel={telemetry[rowKey(c)] || null}
                   vel={velMap[rowKey(c)] || null}
                   acwr={acwrMap[c.id] || null}
+                  onNudge={(client, stag) => setNudge({ client, stag })}
                 />
               ))}
             </ul>
@@ -325,6 +341,10 @@ export default function ClientHub() {
           onClose={() => { setForgeOpen(false); refreshRoster(); /* reconcile the optimistic row */ }}
           onForged={onForged}
         />
+      ) : null}
+
+      {nudge ? (
+        <NudgeDrawer client={nudge.client} stag={nudge.stag} onClose={() => setNudge(null)} />
       ) : null}
     </div>
   );
@@ -361,7 +381,9 @@ function Sparkline({ points, color = 'var(--yel)' }) {
 }
 
 // ── One roster row — clickable, active glass border, division + telemetry radar. ─
-function ClientRow({ client, active, onSelect, tel, vel, acwr }) {
+function ClientRow({ client, active, onSelect, tel, vel, acwr, onNudge }) {
+  // STAGNANT (>48h since last check-in) → surface the ⚡ NUDGE CTA.
+  const stag = computeStagnancy(acwr?.last_logged_at);
   const name = client.name || client.uid || 'Unnamed';
   const div = division(client);
   const tier = client.subscription_tier || client.role || null;
@@ -417,6 +439,20 @@ function ClientRow({ client, active, onSelect, tel, vel, acwr }) {
           {cal ? <span className="ff-cal" style={{ ...CAL_BASE, ...CAL_TONE[cal.tone] }}>{cal.text}</span> : null}
           {/* Biometric Strain (subjective sRPE ACWR) — self-hides when no data. */}
           <BiometricStrainBadge data={acwr} />
+          {/* 48-Hour Accountability — ⚡ NUDGE when stagnant. Span (row is a button). */}
+          {stag.stagnant ? (
+            <span
+              className="nudge-cta"
+              role="button"
+              tabIndex={0}
+              data-testid="nudge-cta"
+              aria-label={`Nudge ${client.name || client.uid || 'athlete'} — stagnant`}
+              onClick={(e) => { e.stopPropagation(); onNudge?.(client, stag); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onNudge?.(client, stag); } }}
+            >
+              ⚡ NUDGE
+            </span>
+          ) : null}
         </span>
         <span className="ff-row-meta">
           <span className="ff-badge" style={{ color, borderColor: color }}>{tier || '—'}</span>

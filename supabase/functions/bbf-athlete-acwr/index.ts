@@ -135,10 +135,34 @@ serve(async (req) => {
       }
     } catch (_) { /* tonnage overlay non-fatal → leaves nulls */ }
 
+    // ── LAST ACTIVITY (48-Hour Accountability) — the most recent check-in across
+    //    ANY logging surface: sRPE load logs, post-workout check-ins, and daily
+    //    readiness. Newest wins; missing everywhere → null (never logged). Folding
+    //    all three keeps the STAGNANT flag honest — an athlete who logs readiness
+    //    but not sRPE is NOT stagnant.
+    const lastById: Record<string, string | null> = {};
+    const mergeLatest = (uid: string, ts: string | null | undefined) => {
+      if (!uid || !ts) return;
+      const prev = lastById[uid];
+      if (!prev || new Date(ts).getTime() > new Date(prev).getTime()) lastById[uid] = ts;
+    };
+    try {
+      const inAct = ids.map((i) => encodeURIComponent(i)).join(',');
+      const [loads, feedback, readiness] = await Promise.all([
+        pgGet(`bbf_athlete_load_logs?select=athlete_id,created_at&athlete_id=in.(${inAct})&order=created_at.desc`).catch(() => []),
+        pgGet(`session_feedback?select=user_id,created_at&user_id=in.(${inAct})&order=created_at.desc`).catch(() => []),
+        pgGet(`bbf_readiness?select=user_id,timestamp&user_id=in.(${inAct})&order=timestamp.desc`).catch(() => []),
+      ]);
+      for (const r of (Array.isArray(loads) ? loads : [])) mergeLatest(String(r.athlete_id), r.created_at);
+      for (const r of (Array.isArray(feedback) ? feedback : [])) mergeLatest(String(r.user_id), r.created_at);
+      for (const r of (Array.isArray(readiness) ? readiness : [])) mergeLatest(String(r.user_id), r.timestamp);
+    } catch (_) { /* last-activity overlay non-fatal → leaves nulls */ }
+
     // ── SUBJECTIVE sRPE ACWR — one deterministic RPC per athlete (bounded) ──────
     const out: Record<string, {
       subjective: { acute: number; chronic: number; ratio: number } | null;
       tonnage: number | null;
+      last_logged_at: string | null;
     }> = {};
     await Promise.all(ids.map(async (id) => {
       let subjective: { acute: number; chronic: number; ratio: number } | null = null;
@@ -153,7 +177,7 @@ serve(async (req) => {
           };
         }
       } catch (_) { /* leave subjective null for this athlete */ }
-      out[id] = { subjective, tonnage: tonnageById[id] ?? null };
+      out[id] = { subjective, tonnage: tonnageById[id] ?? null, last_logged_at: lastById[id] ?? null };
     }));
 
     return jsonResponse({ ok: true, acwr: out });
