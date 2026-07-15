@@ -670,5 +670,53 @@
     "scenario": "Portuguese · CNS 100/100 · Sleep 40 · Stress 100 · Load 100lb",
     "duration": "54s",
     "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/stability-pt-100-40-100-100-stability.mp3"
+  },
+  {
+    "id": "audio_170291db",
+    "category": "Mobility",
+    "subjectLine": "EN_20_40_100_50_mobility",
+    "scenario": "English · CNS 20/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "duration": "~35s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-en-20-40-100-50-mobility.mp3"
+  },
+  {
+    "id": "audio_27ffda29",
+    "category": "Recovery",
+    "subjectLine": "EN_20_70_100_50_recovery",
+    "scenario": "English · CNS 20/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "duration": "~38s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-en-20-70-100-50-recovery.mp3"
+  },
+  {
+    "id": "audio_5409b2bb",
+    "category": "Mobility",
+    "subjectLine": "ES_20_40_100_50_mobility",
+    "scenario": "Spanish · CNS 20/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "duration": "~35s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-es-20-40-100-50-mobility.mp3"
+  },
+  {
+    "id": "audio_53246671",
+    "category": "Recovery",
+    "subjectLine": "ES_20_70_100_50_recovery",
+    "scenario": "Spanish · CNS 20/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "duration": "~38s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-es-20-70-100-50-recovery.mp3"
+  },
+  {
+    "id": "audio_2cb04bc6",
+    "category": "Mobility",
+    "subjectLine": "PT_20_40_100_50_mobility",
+    "scenario": "Portuguese · CNS 20/100 · Sleep 40 · Stress 100 · Load 50lb",
+    "duration": "~35s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/mobility-pt-20-40-100-50-mobility.mp3"
+  },
+  {
+    "id": "audio_b224d70a",
+    "category": "Recovery",
+    "subjectLine": "PT_20_70_100_50_recovery",
+    "scenario": "Portuguese · CNS 20/100 · Sleep 70 · Stress 100 · Load 50lb",
+    "duration": "~38s",
+    "url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/studio-audio-vault/manifest-audio/recovery-pt-20-70-100-50-recovery.mp3"
   }
 ]
