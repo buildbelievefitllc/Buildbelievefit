@@ -27,8 +27,23 @@ import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
 import ClientDossier from './ClientDossier.jsx';
 import { velocityMap, floatCriticalFirst, VELOCITY_BANDS } from '../../lib/coachingVelocity.js';
+import { fetchAcwrBatch } from '../../lib/acwrApi.js';
+import BiometricStrainBadge from './BiometricStrainBadge.jsx';
+import NudgeDrawer from './NudgeDrawer.jsx';
 import ForgeAthlete from './ForgeAthlete.jsx';
 import './founderfive.css';
+import './NudgeDrawer.css';
+
+// 48-Hour Accountability — derive stagnancy from the athlete's most recent
+// check-in across any logging surface (last_logged_at, computed server-side).
+// Null (never logged) OR > 48h since = STAGNANT. days = whole days since.
+function computeStagnancy(lastLoggedAt, nowMs = Date.now()) {
+  if (!lastLoggedAt) return { stagnant: true, hours: null, days: null };
+  const t = new Date(lastLoggedAt).getTime();
+  if (!Number.isFinite(t)) return { stagnant: false, hours: null, days: null };
+  const hours = (nowMs - t) / 3600000;
+  return { stagnant: hours > 48, hours, days: Math.floor(hours / 24) };
+}
 
 // Roster sort modes. Adherence Low→High is the intervention view — slipping
 // clients bubble to the top (insufficient/no-score sink to the bottom).
@@ -55,8 +70,14 @@ export default function ClientHub() {
   // A ClientHub-only enrichment (Nutrition Locker doesn't need it), kept separate
   // from the shared roster so it never re-triggers the base fetch.
   const [calMap, setCalMap] = useState({});
+  // Biometric Strain overlay — { [id]: { subjective, tonnage } }. Dual-engine ACWR
+  // (in-house bbf_compute_acwr + tonnage), batch-loaded server-side after the
+  // roster paints. Non-blocking; a failure just leaves cards strain-badge-free.
+  const [acwrMap, setAcwrMap] = useState({});
   // The Hardwire Gateway — Forge Athlete modal (god-mode onboarding bypass).
   const [forgeOpen, setForgeOpen] = useState(false);
+  // 48-Hour Accountability nudge drawer — { client, stag } | null.
+  const [nudge, setNudge] = useState(null);
   // Optimistic roster injection now routes through the shared provider so the
   // forged athlete appears in EVERY consumer instantly.
   const onForged = useCallback((client) => injectClient(client), [injectClient]);
@@ -82,6 +103,15 @@ export default function ClientHub() {
     } catch { /* radar is an overlay — a failure just leaves the cards un-lit */ }
   }, []);
 
+  // Biometric Strain radar — one batch ACWR pull for the whole roster group,
+  // keyed on the bbf_users id (what bbf_compute_acwr expects). Non-fatal overlay.
+  const fetchAcwr = useCallback(async (ids) => {
+    try {
+      const map = await fetchAcwrBatch(ids);
+      setAcwrMap(map || {});
+    } catch { /* strain radar is an overlay — a failure leaves cards un-badged */ }
+  }, []);
+
   // The base roster loads via the provider. ClientHub only fires its own
   // enrichments (calibration + telemetry) on mount. Deferred via microtask.
   useEffect(() => {
@@ -89,6 +119,21 @@ export default function ClientHub() {
     queueMicrotask(() => { if (!cancelled) { fetchCalibration(); fetchTelemetry(); } });
     return () => { cancelled = true; };
   }, [fetchCalibration, fetchTelemetry]);
+
+  // Strain overlay re-runs whenever the roster identity set changes (initial load
+  // + refresh + optimistic inject). Keyed on the id list so it never loops.
+  const rosterIdKey = useMemo(
+    () => roster.map((c) => c.id).filter(Boolean).join(','),
+    [roster],
+  );
+  useEffect(() => {
+    if (!rosterIdKey) return undefined;
+    let cancelled = false;
+    // Defer via microtask (parity with the calibration/telemetry overlays) so the
+    // state update never fires synchronously inside the effect body.
+    queueMicrotask(() => { if (!cancelled) fetchAcwr(rosterIdKey.split(',')); });
+    return () => { cancelled = true; };
+  }, [rosterIdKey, fetchAcwr]);
 
   // A manual refresh re-pulls the shared roster AND both local overlays.
   const refreshAll = useCallback(() => {
@@ -266,6 +311,8 @@ export default function ClientHub() {
                   onSelect={() => setActiveId(rowKey(c))}
                   tel={telemetry[rowKey(c)] || null}
                   vel={velMap[rowKey(c)] || null}
+                  acwr={acwrMap[c.id] || null}
+                  onNudge={(client, stag) => setNudge({ client, stag })}
                 />
               ))}
             </ul>
@@ -294,6 +341,10 @@ export default function ClientHub() {
           onClose={() => { setForgeOpen(false); refreshRoster(); /* reconcile the optimistic row */ }}
           onForged={onForged}
         />
+      ) : null}
+
+      {nudge ? (
+        <NudgeDrawer client={nudge.client} stag={nudge.stag} onClose={() => setNudge(null)} />
       ) : null}
     </div>
   );
@@ -330,7 +381,9 @@ function Sparkline({ points, color = 'var(--yel)' }) {
 }
 
 // ── One roster row — clickable, active glass border, division + telemetry radar. ─
-function ClientRow({ client, active, onSelect, tel, vel }) {
+function ClientRow({ client, active, onSelect, tel, vel, acwr, onNudge }) {
+  // STAGNANT (>48h since last check-in) → surface the ⚡ NUDGE CTA.
+  const stag = computeStagnancy(acwr?.last_logged_at);
   const name = client.name || client.uid || 'Unnamed';
   const div = division(client);
   const tier = client.subscription_tier || client.role || null;
@@ -384,6 +437,22 @@ function ClientRow({ client, active, onSelect, tel, vel }) {
             </span>
           ) : null}
           {cal ? <span className="ff-cal" style={{ ...CAL_BASE, ...CAL_TONE[cal.tone] }}>{cal.text}</span> : null}
+          {/* Biometric Strain (subjective sRPE ACWR) — self-hides when no data. */}
+          <BiometricStrainBadge data={acwr} />
+          {/* 48-Hour Accountability — ⚡ NUDGE when stagnant. Span (row is a button). */}
+          {stag.stagnant ? (
+            <span
+              className="nudge-cta"
+              role="button"
+              tabIndex={0}
+              data-testid="nudge-cta"
+              aria-label={`Nudge ${client.name || client.uid || 'athlete'} — stagnant`}
+              onClick={(e) => { e.stopPropagation(); onNudge?.(client, stag); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onNudge?.(client, stag); } }}
+            >
+              ⚡ NUDGE
+            </span>
+          ) : null}
         </span>
         <span className="ff-row-meta">
           <span className="ff-badge" style={{ color, borderColor: color }}>{tier || '—'}</span>

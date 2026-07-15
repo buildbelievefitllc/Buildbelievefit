@@ -1,0 +1,120 @@
+/* BiometricStrainBadge.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Scoped entirely under the `.bsb-` namespace + a `bsb-pulse` keyframe so nothing
+   bleeds into Sovereign Studio, the Language Lab, or any other surface. Brand-locked
+   palette (§2): BBF Purple #6a0dad · BBF Gold #f5c800. Neon red is reserved for the
+   HIGH-RISK strain state only. */
+
+.bsb-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;   /* sit left in the flex-column roster row */
+  margin-top: 4px;
+}
+
+.bsb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.64rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.5;
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 999px;
+  cursor: help;
+  user-select: none;
+}
+.bsb-ic { font-size: 0.72rem; line-height: 1; }
+
+/* ── HIGH RISK (ratio ≥ 1.5) — pulsing neon red ─────────────────────────────── */
+.bsb-chip--high {
+  color: #ffffff;
+  border: 1px solid rgba(255, 45, 85, 0.85);
+  background: linear-gradient(90deg, rgba(255, 45, 85, 0.28), rgba(106, 13, 173, 0.22));
+  box-shadow: 0 0 6px rgba(255, 45, 85, 0.55);
+}
+.bsb-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff2d55;
+  box-shadow: 0 0 6px #ff2d55;
+  animation: bsb-pulse 1.15s ease-in-out infinite;
+}
+@keyframes bsb-pulse {
+  0%, 100% { opacity: 1;    transform: scale(1);    box-shadow: 0 0 4px #ff2d55; }
+  50%      { opacity: 0.35; transform: scale(1.55); box-shadow: 0 0 10px #ff2d55; }
+}
+
+/* ── SWEET SPOT (0.8 ≤ ratio ≤ 1.3) — clean gold-bordered green ──────────────── */
+.bsb-chip--sweet {
+  color: #7dffb0;
+  border: 1px solid #f5c800;
+  background: rgba(34, 197, 94, 0.14);
+}
+
+/* ── ELEVATED (1.3 < ratio < 1.5) — caution amber, fills the band gap ────────── */
+.bsb-chip--elevated {
+  color: #f5cf60;
+  border: 1px solid rgba(245, 200, 0, 0.5);
+  background: rgba(245, 200, 0, 0.1);
+}
+
+/* ── UNDER-TRAINED (ratio < 0.8) — muted grey/yellow ────────────────────────── */
+.bsb-chip--under {
+  color: #cfc9b3;
+  border: 1px solid rgba(207, 201, 179, 0.35);
+  background: rgba(120, 120, 120, 0.12);
+}
+
+/* ── Glassmorphism tooltip — absolute, never shifts row layout ──────────────── */
+.bsb-tip {
+  position: absolute;
+  z-index: 40;
+  left: 0;
+  top: calc(100% + 6px);
+  min-width: 196px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(16, 10, 26, 0.72);
+  border: 1px solid rgba(245, 200, 0, 0.35);
+  backdrop-filter: blur(12px) saturate(1.3);
+  -webkit-backdrop-filter: blur(12px) saturate(1.3);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(157, 39, 201, 0.25);
+  font-family: 'Barlow Condensed', sans-serif;
+  color: #f9f5ff;
+  pointer-events: none;
+}
+.bsb-tip-h {
+  font-weight: 800;
+  font-size: 0.66rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #f5c800;
+  margin-bottom: 2px;
+}
+.bsb-tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 0.74rem;
+}
+.bsb-tip-row em { font-style: normal; opacity: 0.72; }
+.bsb-tip-row b  { font-weight: 800; color: #ffffff; }
+.bsb-tip-div {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 3px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bsb-pulse { animation: none; }
+}
