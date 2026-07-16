@@ -16,7 +16,7 @@
 // transient errors render in-place with a Retry.
 
 import { useCallback, useEffect, useState } from 'react';
-import { fetchLeads, fetchConciergeLog, fetchTdeeLeads } from '../../lib/comlinkApi.js';
+import { fetchLeads, fetchConciergeLog, fetchTdeeLeads, fetchProspectInbox, processProspectCard } from '../../lib/comlinkApi.js';
 import { toErrorMessage } from '../../lib/rosterApi.js';
 import CommandSurface from './CommandSurface.jsx';
 import { Tile, Badge, Loading, Empty } from './primitives.jsx';
@@ -39,6 +39,11 @@ export default function Comlink() {
   const [tdee, setTdee] = useState(null);
   const [tdeeLoading, setTdeeLoading] = useState(true);
   const [tdeeError, setTdeeError] = useState(null);
+
+  // Prospects — Routine Interrogator lead-capture cards (NEW_PROSPECT).
+  const [prospects, setProspects] = useState(null);
+  const [prospectsLoading, setProspectsLoading] = useState(true);
+  const [prospectsError, setProspectsError] = useState(null);
 
   const loadLeads = useCallback(async () => {
     setLeadsLoading(true);
@@ -79,7 +84,28 @@ export default function Comlink() {
     }
   }, []);
 
-  // Auto-load all three feeds on mount. Deferred so the initial setState lands
+  const loadProspects = useCallback(async () => {
+    setProspectsLoading(true);
+    setProspectsError(null);
+    try {
+      setProspects(await fetchProspectInbox(100));
+    } catch (e) {
+      setProspects(null);
+      setProspectsError(toErrorMessage(e));
+    } finally {
+      setProspectsLoading(false);
+    }
+  }, []);
+
+  // Optimistically flip a card to APPROVED once its outreach is processed.
+  const markApproved = useCallback((cardId, processedAt) => {
+    setProspects((p) => (p ? {
+      ...p,
+      cards: (p.cards || []).map((c) => (c.id === cardId ? { ...c, status: 'APPROVED', processed_at: processedAt } : c)),
+    } : p));
+  }, []);
+
+  // Auto-load all feeds on mount. Deferred so the initial setState lands
   // outside the synchronous effect body.
   useEffect(() => {
     let cancelled = false;
@@ -88,9 +114,10 @@ export default function Comlink() {
       loadLeads();
       loadConcierge();
       loadTdee();
+      loadProspects();
     });
     return () => { cancelled = true; };
-  }, [loadLeads, loadConcierge, loadTdee]);
+  }, [loadLeads, loadConcierge, loadTdee, loadProspects]);
 
   return (
     <CommandSurface
@@ -117,6 +144,16 @@ export default function Comlink() {
           onClick={() => setView('tdee-signals')}
         >
           TDEE Signals
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'prospects'}
+          style={{ ...styles.viewTab, ...(view === 'prospects' ? styles.viewTabActive : null) }}
+          onClick={() => setView('prospects')}
+          data-testid="comlink-tab-prospects"
+        >
+          👥 Prospects{prospects?.pending ? ` · ${prospects.pending}` : ''}
         </button>
       </div>
 
@@ -175,7 +212,7 @@ export default function Comlink() {
             ) : null}
           </Section>
         </>
-      ) : (
+      ) : view === 'tdee-signals' ? (
         <>
           <div style={styles.toolbar}>
             <span style={styles.count}>
@@ -208,8 +245,115 @@ export default function Comlink() {
             ) : null}
           </Section>
         </>
+      ) : (
+        <>
+          <div style={styles.toolbar}>
+            <span style={styles.count}>
+              {prospectsLoading ? 'Loading…' : prospects ? `${prospects.total} prospect${prospects.total === 1 ? '' : 's'}` : '—'}
+            </span>
+            <button type="button" style={styles.refresh} onClick={loadProspects} disabled={prospectsLoading}>
+              ↻ Refresh
+            </button>
+          </div>
+
+          {!prospectsLoading && !prospectsError && prospects ? (
+            <div style={styles.summary}>
+              <Tile label="Total" value={prospects.total} unit="audited" accent="var(--gold-soft)" />
+              <Tile label="Pending" value={prospects.pending} unit="to reach out" accent="var(--orn)" />
+            </div>
+          ) : null}
+
+          <Section title="Interrogator Prospects">
+            {prospectsLoading ? <Loading label="Loading prospects…" /> : null}
+            {!prospectsLoading && prospectsError ? (
+              <ErrorBox message={prospectsError} onRetry={loadProspects} />
+            ) : null}
+            {!prospectsLoading && !prospectsError && prospects && (prospects.cards || []).length === 0 ? (
+              <Empty>No prospects yet. Routine Interrogator audits (with a contact handle) land here.</Empty>
+            ) : null}
+            {!prospectsLoading && !prospectsError && prospects && (prospects.cards || []).length > 0 ? (
+              <div style={styles.list}>
+                {prospects.cards.map((card) => (
+                  <ProspectCard key={card.id} card={card} onApprove={markApproved} />
+                ))}
+              </div>
+            ) : null}
+          </Section>
+        </>
       )}
     </CommandSurface>
+  );
+}
+
+// ── One prospect card. Gold 👥 badge; [⚡ SEND SMS] copies the Gemini outreach
+// draft, opens the native SMS composer, stamps processed_at + status APPROVED. ──
+function ProspectCard({ card, onApprove }) {
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const p = card.prospect || {};
+  const approved = String(card.status) === 'APPROVED';
+  const verdict = p.gap_verdict || card.prospect?.gap_report?.verdict?.recommended_tier || '—';
+  const gaps = Array.isArray(p.gap_report?.gaps) ? p.gap_report.gaps : [];
+  const color = approved ? 'var(--grn)' : 'var(--gold-soft)';
+
+  async function sendSms() {
+    if (busy || approved) return;
+    setBusy(true);
+    const text = card.draft_message || '';
+    // Copy the pre-written outreach.
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+    } catch { /* clipboard blocked — the sms: link still carries the body */ }
+    setCopied(true);
+    // Open the native SMS composer (handle may be a phone; the coach picks the recipient).
+    try {
+      const phone = /^[+0-9().\-\s]{7,}$/.test(String(p.contact_handle || '')) ? String(p.contact_handle).replace(/[^+0-9]/g, '') : '';
+      window.open(`sms:${phone}?body=${encodeURIComponent(text)}`, '_self');
+    } catch { /* no sms handler — copy already done */ }
+    // Stamp + approve server-side.
+    try {
+      const res = await processProspectCard(card.id);
+      onApprove?.(card.id, res?.card?.processed_at || new Date().toISOString());
+    } catch { /* leave as pending on failure */ }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <div style={{ ...styles.row, borderLeft: `3px solid ${color}` }} data-testid="prospect-card">
+      <div style={styles.rowHead}>
+        <span style={styles.rowMain}>
+          <span style={styles.rowName}>
+            <span style={styles.prospectBadge}>👥 PROSPECT</span>{' '}
+            {p.name || '(no name)'}
+          </span>
+          <span style={styles.rowSub}>{p.contact_handle || '—'}</span>
+        </span>
+        <span style={styles.rowMeta}>
+          <Badge label={approved ? 'Approved' : `Verdict: ${verdict}`} color={color} />
+          <span style={styles.when}>{timeAgo(card.created_at)}</span>
+        </span>
+      </div>
+
+      {card.insight_summary ? <div style={styles.bits}>{card.insight_summary}</div> : null}
+      {gaps.length ? (
+        <div style={styles.gapChips}>
+          {gaps.slice(0, 3).map((g, i) => <span key={i} style={styles.gapChip}>{g.title}</span>)}
+        </div>
+      ) : null}
+      {card.proposed_action ? <div style={styles.proposed}>▸ {card.proposed_action}</div> : null}
+
+      <div style={styles.prospectActions}>
+        <button
+          type="button"
+          style={{ ...styles.smsBtn, ...(approved ? styles.smsBtnDone : null) }}
+          onClick={sendSms}
+          disabled={busy || approved}
+          data-testid="prospect-send-sms"
+        >
+          {approved ? '✓ Approved' : busy ? 'Sending…' : copied ? '✓ Copied — Send SMS' : '⚡ Send SMS'}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -376,6 +520,14 @@ const styles = {
   when: { fontFamily: 'var(--bd)', fontSize: '.72rem', fontWeight: 700, color: 'var(--mut)' },
   bits: { fontFamily: 'var(--bd)', fontSize: '.82rem', fontWeight: 700, color: 'var(--mut)', marginTop: '.5rem' },
   mailto: { display: 'inline-block', marginTop: '.6rem', fontFamily: 'var(--hb)', fontSize: '.7rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--gold-soft)' },
+
+  prospectBadge: { fontFamily: 'var(--hb)', fontSize: '.62rem', letterSpacing: '1.5px', color: '#0e0a16', background: 'linear-gradient(90deg,#f5c800,#ffd83a)', border: '1px solid #f5c800', borderRadius: 999, padding: '1px 7px', marginRight: '.4rem', verticalAlign: 'middle' },
+  gapChips: { display: 'flex', flexWrap: 'wrap', gap: '.35rem', marginTop: '.55rem' },
+  gapChip: { fontFamily: 'var(--bd)', fontWeight: 700, fontSize: '.68rem', letterSpacing: '.5px', textTransform: 'uppercase', color: 'var(--gold-soft)', border: '1px solid rgba(245,200,0,.4)', background: 'rgba(245,200,0,.07)', borderRadius: 999, padding: '2px 9px' },
+  proposed: { fontFamily: 'var(--bd)', fontSize: '.82rem', fontWeight: 700, color: 'rgba(249,245,255,.72)', marginTop: '.6rem' },
+  prospectActions: { display: 'flex', gap: '.6rem', marginTop: '.7rem' },
+  smsBtn: { fontFamily: 'var(--hb)', fontSize: '.8rem', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#0e0a16', background: 'linear-gradient(90deg,#f5c800,#ffd83a)', border: '1px solid #f5c800', borderRadius: 10, padding: '.6rem 1.1rem', cursor: 'pointer' },
+  smsBtnDone: { color: '#0e1a10', background: 'linear-gradient(90deg,#22c55e,#7dffb0)', border: '1px solid #22c55e', cursor: 'default' },
 
   conciergeHead: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '.5rem', marginBottom: '.9rem' },
   runRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', background: 'var(--gry)', border: '1px solid var(--line)', borderRadius: 10, padding: '.55rem .9rem' },

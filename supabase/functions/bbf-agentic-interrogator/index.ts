@@ -1,38 +1,24 @@
-// bbf-agentic-interrogator — MOAB 3 · The Routine Interrogator
-// ─────────────────────────────────────────────────────────────────────
-// Public-facing lead-gen agent. The prospect pastes their current
-// workout split; Claude Opus 4.7 plays the role of a ruthless but
-// clinical exercise scientist who DOES NOT rewrite the routine —
-// instead, it surfaces 2–3 specific programming gaps, contrasts BBF's
-// proprietary systems against those gaps, and lands on a hard
-// recommendation to upgrade to Gateway or Architect.
+// bbf-agentic-interrogator — The Routine Interrogator (STATEFUL lead-capture)
+// ─────────────────────────────────────────────────────────────────────────────
+// Public lead-gen agent. A prospect pastes their current split; the engine
+// surfaces 2-3 clinical programming GAPS, contrasts BBF's proprietary systems,
+// and lands a hard tier VERDICT (gateway | architect).
 //
-// Output shape — three required sections per CEO directive:
-//   gaps              — 2-3 clinical programming failures
-//   sovereign_contrast— how BBF's systems solve those gaps
-//   verdict           — hard tier recommendation
+// UPGRADE (Stateful Gap Analyzer):
+//   • BRAIN: Google Gemini 2.5 Flash (cost-optimized) via x-goog-api-key +
+//     responseSchema-enforced strict JSON. Same 9-point audit framework + the
+//     2-tier verdict rule as before.
+//     ⚠ ARCHITECTURE NOTE: this is a second AI vendor and bypasses the Claude
+//       model router (§4) / In-House Equity Mandate — done on explicit CEO order
+//       for per-call cost. Flip back to the router (Haiku) by restoring routeAndLog.
+//   • STATE: on a successful audit WITH a contact handle, the service role writes
+//     public.prospect_leads (the ledger) + a public.coach_action_inbox
+//     'NEW_PROSPECT' card (the coach queue) — persistence never blocks the audit.
 //
-// Frictionless: no email gate, no captcha, no rate limit beyond the
-// shared apikey gate inherited from the public publishable key.
-//
-// Request shape:
-//   POST /functions/v1/bbf-agentic-interrogator
-//   Content-Type: application/json
-//   Body: { "routine": string, "session_id"?: string }
-//
-// Response shape (200 OK):
-//   {
-//     "gaps":               [{ title, body }, ...],
-//     "sovereign_contrast": [{ system, body }, ...],
-//     "verdict": {
-//       "headline":     string,
-//       "recommended_tier": "gateway" | "architect",
-//       "rationale":    string
-//     }
-//   }
-//
-// FAILURE POSTURE: every code path returns HTTP 200 with a graceful
-// fallback object explaining the engine couldn't process.
+// Request:  POST { routine, name?, contact_handle?, session_id? }
+// Response (200): { gaps:[{title,body}], sovereign_contrast:[{system,body}],
+//                   verdict:{ headline, recommended_tier, rationale } }
+// FAILURE POSTURE: every path returns HTTP 200 with a graceful fallback object.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -49,15 +35,15 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-// Phase 7 Workstream B · Routine audit · single-turn interview with
-// structured output. Sonnet 4.6 is the right tier per CEO routing.
-import { routeAndLog } from '../_shared/model-router.ts';
+const GEMINI_MODEL      = 'gemini-2.5-flash';
+const MAX_TOKENS        = 2048;
+const GEMINI_TIMEOUT_MS = 16000;
+const MAX_ROUTINE_LEN   = 4000;
+const MAX_HANDLE_LEN    = 160;
+const MAX_NAME_LEN      = 120;
 
-const MODEL           = routeAndLog('bbf-agentic-interrogator', 'onboarding_interview');
-const MAX_TOKENS      = 2048;
-const EFFORT_DEFAULT  = 'high';
-const CLAUDE_TIMEOUT_MS = 16000;
-const MAX_ROUTINE_LEN = 4000;
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
 const SYSTEM_PROMPT = [
   'You are the BBF Routine Interrogator — a ruthless but clinically precise exercise scientist auditing a prospect\'s current training routine. You hold credentials in occupational therapy, exercise physiology, and NASM-CPT biomechanics. You speak with the directness of a strength coach who has audited 10,000 programs and knows exactly where they fail.',
@@ -112,61 +98,59 @@ const SYSTEM_PROMPT = [
   'Return ONLY structured JSON matching the response schema. No markdown headings, no preamble, no closing remarks.',
 ].join('\n');
 
-const RESPONSE_SCHEMA = {
-  type: 'object',
+// Gemini responseSchema (OpenAPI-subset dialect — uppercase Type enums).
+const GEMINI_SCHEMA = {
+  type: 'OBJECT',
   properties: {
     gaps: {
-      type: 'array',
-      description: '2-3 clinical programming failures in the prospect\'s routine.',
+      type: 'ARRAY',
       minItems: 2,
       maxItems: 3,
       items: {
-        type: 'object',
+        type: 'OBJECT',
         properties: {
-          title: { type: 'string', description: 'Short all-caps title (3-6 words).' },
-          body:  { type: 'string', description: 'Clinical 1-3 sentence explanation referencing specific exercises/days from the prospect\'s routine.' },
+          title: { type: 'STRING' },
+          body:  { type: 'STRING' },
         },
         required: ['title', 'body'],
       },
     },
     sovereign_contrast: {
-      type: 'array',
-      description: 'BBF proprietary systems that solve each gap. Same count as gaps.',
+      type: 'ARRAY',
       minItems: 2,
       maxItems: 3,
       items: {
-        type: 'object',
+        type: 'OBJECT',
         properties: {
-          system: { type: 'string', description: 'BBF system name, exactly as listed in the prompt.' },
-          body:   { type: 'string', description: '1-3 sentence explanation of how this system closes the matched gap.' },
+          system: { type: 'STRING' },
+          body:   { type: 'STRING' },
         },
         required: ['system', 'body'],
       },
     },
     verdict: {
-      type: 'object',
+      type: 'OBJECT',
       properties: {
-        headline:         { type: 'string', description: 'One direct sentence naming the tier and the verdict. Under 110 chars.' },
-        recommended_tier: { type: 'string', enum: ['gateway', 'architect'], description: 'Exactly "gateway" or "architect".' },
-        rationale:        { type: 'string', description: '1-2 sentences linking gap → system → tier.' },
+        headline:         { type: 'STRING' },
+        recommended_tier: { type: 'STRING', enum: ['gateway', 'architect'] },
+        rationale:        { type: 'STRING' },
       },
       required: ['headline', 'recommended_tier', 'rationale'],
     },
   },
   required: ['gaps', 'sovereign_contrast', 'verdict'],
-  additionalProperties: false,
 };
 
-// ─── Static fallback if the upstream call fails ───────────────────────
+// ─── Static fallback if the upstream call fails ───────────────────────────────
 function defaultFallback(reason: string) {
   return {
     gaps: [
-      { title: 'AUDIT ENGINE OFFLINE',     body: 'The interrogator could not complete the clinical read (reason: ' + reason + '). Your routine was received but not analyzed in this transmission.' },
-      { title: 'PROGRAMMING UNCERTAINTY',  body: 'Without the audit, the structural risk in your current split is unknown. Most routines we receive show at least two of the eight common failures: junk volume, missing prehab, overlapping joint stress, or no periodization.' },
+      { title: 'AUDIT ENGINE OFFLINE',    body: 'The interrogator could not complete the clinical read (reason: ' + reason + '). Your routine was received but not analyzed in this transmission.' },
+      { title: 'PROGRAMMING UNCERTAINTY', body: 'Without the audit, the structural risk in your current split is unknown. Most routines we receive show at least two of the eight common failures: junk volume, missing prehab, overlapping joint stress, or no periodization.' },
     ],
     sovereign_contrast: [
-      { system: 'DYNAMIC PREHAB MATRIX',   body: 'Daily 3-movement OT-informed recovery protocol — runs regardless of the audit so the prehab gap closes from day one.' },
-      { system: 'MIDNIGHT HAIKU ENGINE',   body: 'Nightly readiness briefing that adjusts the next day\'s load based on actual recovery state. Eliminates the same-week-every-week trap.' },
+      { system: 'DYNAMIC PREHAB MATRIX', body: 'Daily 3-movement OT-informed recovery protocol — runs regardless of the audit so the prehab gap closes from day one.' },
+      { system: 'MIDNIGHT HAIKU ENGINE', body: 'Nightly readiness briefing that adjusts the next day\'s load based on actual recovery state. Eliminates the same-week-every-week trap.' },
     ],
     verdict: {
       headline:         'Gateway tier. Open the architecture — the audit re-runs the moment the engine\'s back online.',
@@ -176,72 +160,122 @@ function defaultFallback(reason: string) {
   };
 }
 
-// ─── Anthropic call w/ AbortController timeout ────────────────────────
-async function callClaude(userMessage: string, apiKey: string) {
+// ─── Gemini call w/ AbortController timeout ───────────────────────────────────
+async function callGemini(userMessage: string, apiKey: string) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
   const requestBody = {
-    model:      MODEL,
-    max_tokens: MAX_TOKENS,
-    thinking:   { type: 'adaptive' },
-    output_config: {
-      effort: EFFORT_DEFAULT,
-      format: { type: 'json_schema', schema: RESPONSE_SCHEMA },
+    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+    generationConfig: {
+      temperature: 0.4,
+      maxOutputTokens: MAX_TOKENS,
+      responseMimeType: 'application/json',
+      responseSchema: GEMINI_SCHEMA,
     },
-    system: [
-      {
-        type:          'text',
-        text:          SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
-    messages: [
-      { role: 'user', content: userMessage },
-    ],
   };
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        'x-api-key':         apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type':      'application/json',
-      },
-      body:   JSON.stringify(requestBody),
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
-
     let body: any;
-    try { body = await res.json(); }
-    catch (_) { body = null; }
-
+    try { body = await res.json(); } catch (_) { body = null; }
     if (!res.ok) {
-      const errMsg = (body && body.error && (body.error.message || body.error.type)) || `anthropic_${res.status}`;
-      console.error(`[bbf-agentic-interrogator] Anthropic API error: status=${res.status} body=${JSON.stringify(body).slice(0,600)}`);
-      return { ok: false as const, status: res.status, error: errMsg, raw: body };
+      const errMsg = (body && body.error && (body.error.message || body.error.status)) || `gemini_${res.status}`;
+      console.error(`[bbf-agentic-interrogator] Gemini API error: status=${res.status} body=${JSON.stringify(body).slice(0, 600)}`);
+      return { ok: false as const, status: res.status, error: errMsg };
     }
     return { ok: true as const, status: res.status, body };
   } catch (e) {
     const err = e as Error;
-    const reason = err.name === 'AbortError' ? `timeout_${CLAUDE_TIMEOUT_MS}ms` : err.message;
-    console.error(`[bbf-agentic-interrogator] Claude fetch threw: ${reason}`);
-    return { ok: false as const, status: 0, error: reason, raw: null };
+    const reason = err.name === 'AbortError' ? `timeout_${GEMINI_TIMEOUT_MS}ms` : err.message;
+    console.error(`[bbf-agentic-interrogator] Gemini fetch threw: ${reason}`);
+    return { ok: false as const, status: 0, error: reason };
   } finally {
     clearTimeout(timeout);
   }
 }
 
-function extractTextBlock(content: any[]): string | null {
-  if (!Array.isArray(content)) return null;
-  for (const block of content) {
-    if (block && block.type === 'text' && typeof block.text === 'string') return block.text;
-  }
-  return null;
+function geminiText(body: any): string | null {
+  const parts = body?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) return null;
+  const text = parts.map((p: any) => (p && typeof p.text === 'string' ? p.text : '')).join('');
+  return text || null;
 }
 
-// ─── Handler ──────────────────────────────────────────────────────────
+// ─── Service-role persistence (never blocks the audit) ────────────────────────
+async function pgPost(path: string, rows: unknown): Promise<any> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'POST',
+    headers: {
+      apikey: SERVICE_ROLE,
+      Authorization: `Bearer ${SERVICE_ROLE}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify(rows),
+  });
+  if (!res.ok) throw new Error(`pg_post_${res.status}:${(await res.text()).slice(0, 200)}`);
+  return res.json();
+}
+
+function firstNameOf(name: string, handle: string): string {
+  const n = String(name || '').trim().split(/\s+/)[0];
+  if (n) return n;
+  const h = String(handle || '').replace(/^@/, '').split(/[@.]/)[0];
+  return h || 'there';
+}
+
+function buildInsight(parsed: any, name: string, handle: string): string {
+  const titles = parsed.gaps.map((g: any) => g.title).join(', ');
+  const who = (name && name.trim()) || handle || 'Prospect';
+  return `${who}: ${parsed.gaps.length} programming gap${parsed.gaps.length === 1 ? '' : 's'} (${titles}). Verdict → ${parsed.verdict.recommended_tier}.`.slice(0, 600);
+}
+
+function buildProposedAction(parsed: any): string {
+  const sys = parsed.sovereign_contrast?.[0]?.system || 'Sovereign Contrast';
+  const loudest = parsed.gaps?.[0]?.title || 'their loudest gap';
+  return `Invite to try the ${sys} system — it matches their loudest gap (${loudest}).`.slice(0, 600);
+}
+
+function buildDraftMessage(parsed: any, name: string, handle: string): string {
+  const fn = firstNameOf(name, handle);
+  const gap = parsed.gaps?.[0]?.title ? String(parsed.gaps[0].title).toLowerCase() : 'a structural gap';
+  const sys = parsed.sovereign_contrast?.[0]?.system || 'BBF system';
+  return (
+    `Hey ${fn}, Coach Akeem here. I ran your split through our clinical audit — the loudest gap I flagged is ${gap}. ` +
+    `Our ${sys} is built to close exactly that. Want me to walk you through how it works for you? ` +
+    `— Coach Akeem, Build Believe Fit`
+  ).slice(0, 800);
+}
+
+async function persistLead(parsed: any, ctx: { name: string; contactHandle: string; routine: string }) {
+  const leadRows = await pgPost('prospect_leads', [{
+    name: ctx.name || null,
+    contact_handle: ctx.contactHandle,
+    raw_workout_split: ctx.routine,
+    gap_verdict: parsed.verdict.recommended_tier,
+    gap_report: parsed,
+  }]);
+  const prospectId = (Array.isArray(leadRows) && leadRows.length) ? leadRows[0].id : null;
+  await pgPost('coach_action_inbox', [{
+    type: 'NEW_PROSPECT',
+    risk_score: null,
+    insight_summary: buildInsight(parsed, ctx.name, ctx.contactHandle),
+    proposed_action: buildProposedAction(parsed),
+    draft_message: buildDraftMessage(parsed, ctx.name, ctx.contactHandle),
+    prospect_id: prospectId,
+  }]);
+  return prospectId;
+}
+
+// ─── Handler ──────────────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST')    return jsonResponse({ error: 'method_not_allowed' }, 405);
@@ -250,17 +284,19 @@ serve(async (req: Request) => {
   try { payload = await req.json(); }
   catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const { routine, session_id } = payload || {};
+  const { routine, name, contact_handle, session_id } = payload || {};
   if (typeof routine !== 'string' || !routine.trim()) {
     return jsonResponse({ error: 'missing_routine' }, 400);
   }
 
   const safeRoutine = routine.slice(0, MAX_ROUTINE_LEN);
   const safeSession = (typeof session_id === 'string' && session_id) ? session_id.slice(0, 64) : 'anonymous';
+  const safeName    = (typeof name === 'string' ? name : '').trim().slice(0, MAX_NAME_LEN);
+  const safeHandle  = (typeof contact_handle === 'string' ? contact_handle : '').trim().slice(0, MAX_HANDLE_LEN);
 
-  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-  if (!ANTHROPIC_API_KEY) {
-    console.error('[bbf-agentic-interrogator] missing ANTHROPIC_API_KEY — returning fallback');
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+  if (!GEMINI_API_KEY) {
+    console.error('[bbf-agentic-interrogator] missing GEMINI_API_KEY — returning fallback');
     return jsonResponse(defaultFallback('config_missing'), 200);
   }
 
@@ -272,19 +308,18 @@ serve(async (req: Request) => {
     'Audit per your system instructions. Return ONLY the JSON schema response — { gaps, sovereign_contrast, verdict }.';
 
   const t0     = Date.now();
-  const result = await callClaude(userMessage, ANTHROPIC_API_KEY);
+  const result = await callGemini(userMessage, GEMINI_API_KEY);
   const dur    = Date.now() - t0;
 
   if (!result.ok) {
-    console.warn(`[bbf-agentic-interrogator] Claude failed (${result.error}) after ${dur}ms — returning fallback`);
-    return jsonResponse(defaultFallback('claude_failed'), 200);
+    console.warn(`[bbf-agentic-interrogator] Gemini failed (${result.error}) after ${dur}ms — returning fallback`);
+    return jsonResponse(defaultFallback('gemini_failed'), 200);
   }
 
-  const respBody: any = result.body;
-  const text = extractTextBlock(respBody?.content);
+  const text = geminiText(result.body);
   if (!text) {
-    console.warn('[bbf-agentic-interrogator] no text block in response — returning fallback');
-    return jsonResponse(defaultFallback('no_text_block'), 200);
+    console.warn('[bbf-agentic-interrogator] no text in Gemini response — returning fallback');
+    return jsonResponse(defaultFallback('no_text'), 200);
   }
 
   let parsed: any;
@@ -303,7 +338,7 @@ serve(async (req: Request) => {
     (parsed.verdict.recommended_tier !== 'gateway' && parsed.verdict.recommended_tier !== 'architect') ||
     typeof parsed.verdict.rationale !== 'string'
   ) {
-    console.warn(`[bbf-agentic-interrogator] schema shape mismatch — fallback. got=${JSON.stringify(parsed).slice(0,200)}`);
+    console.warn(`[bbf-agentic-interrogator] schema shape mismatch — fallback. got=${JSON.stringify(parsed).slice(0, 200)}`);
     return jsonResponse(defaultFallback('schema_mismatch'), 200);
   }
 
@@ -321,12 +356,21 @@ serve(async (req: Request) => {
     recommended_tier: parsed.verdict.recommended_tier,
     rationale:        String(parsed.verdict.rationale).slice(0, 400),
   };
+  const audit = { gaps: cleanGaps, sovereign_contrast: cleanContrast, verdict: cleanVerdict };
 
-  console.log(`[bbf-agentic-interrogator] session=${safeSession} · routine_len=${safeRoutine.length} · gaps=${cleanGaps.length} · contrast=${cleanContrast.length} · tier=${cleanVerdict.recommended_tier} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
+  // ── STATE: persist the lead + coach inbox card (only with a contact handle;
+  //    never let a persistence failure break the prospect's audit response). ──
+  let persisted = false;
+  if (safeHandle) {
+    try {
+      await persistLead(audit, { name: safeName, contactHandle: safeHandle, routine: safeRoutine });
+      persisted = true;
+    } catch (e) {
+      console.error(`[bbf-agentic-interrogator] persistence failed (non-fatal): ${(e as Error).message}`);
+    }
+  }
 
-  return jsonResponse({
-    gaps:               cleanGaps,
-    sovereign_contrast: cleanContrast,
-    verdict:            cleanVerdict,
-  }, 200);
+  console.log(`[bbf-agentic-interrogator] session=${safeSession} · routine_len=${safeRoutine.length} · gaps=${cleanGaps.length} · tier=${cleanVerdict.recommended_tier} · handle=${safeHandle ? 'y' : 'n'} · persisted=${persisted} · model=${GEMINI_MODEL} · duration=${dur}ms`);
+
+  return jsonResponse(audit, 200);
 });

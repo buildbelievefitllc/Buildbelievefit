@@ -6,15 +6,17 @@
 // lead-gen audit where a prospect pastes their training split and the engine
 // surfaces structural GAPS → the Sovereign Contrast → a tier VERDICT.
 //
-// Per Phase 16 orders: this builds the COMPLETE interactive UI + state (message
-// history, input, loading) with a HARDCODED placeholder audit response. The real
-// engine (legacy: bbf-agentic-interrogator) is wired in a later phase — the
-// placeholder acknowledges the user's input so the layout is verifiable.
+// STATEFUL (Gap Analyzer): this is now LIVE-wired. The submit handler performs a
+// real fetch to the bbf-agentic-interrogator edge function (Gemini 2.5 Flash),
+// captures the prospect's name + contact handle, and renders the resolved gap
+// report + verdict. The engine also persists the lead + a coach inbox card
+// server-side, so every submission becomes a durable prospect record.
 //
 // Brand: true legacy palette — purple atmosphere, gold/cyan accents, Victory Gold
 // reserved for the recommended CTA only.
 
 import { useEffect, useRef, useState } from 'react';
+import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from '../lib/supabaseClient.js';
 
 // Phase 17 — brand correction: the legacy Interrogator leaned RED, which clashes
 // with BBF. Re-skinned to Purple/Gold. Cyan is retained ONLY as the subtle
@@ -37,36 +39,62 @@ const MONO = "'Menlo','Courier New',monospace";
 const MAX_LEN = 4000;
 const MIN_LEN = 18;
 
-// Hardcoded placeholder audit (Phase 16 — UI verification only). Mirrors the real
-// engine's { gaps[], contrast, verdict } shape so swapping in the live call later
-// is a drop-in. References the user's input so the interaction reads as real.
-function placeholderAudit(split) {
-  const lines = split.split('\n').filter((l) => l.trim()).length;
-  return {
-    gaps: [
-      { title: 'No Dedicated Posterior-Chain Day', body: `Your ${lines}-line split front-loads pressing volume. Hamstring and glute work is incidental, not programmed — a knee/lower-back risk under load.` },
-      { title: 'Zero Periodization Signal', body: 'Set/rep schemes look fixed week-to-week. Without a deload and intensity wave, adaptation stalls and joint stress accumulates.' },
-      { title: 'Recovery Is Unaccounted', body: 'No readiness gate between high-CNS days. The BBF engine sequences recovery around your real schedule — yours is left to chance.' },
-    ],
-    contrast: 'BBF architecture periodizes around your logged data: acute:chronic load is tracked, contraindicated movements are auto-swapped, and joint-protection prehab is built in — not bolted on.',
-    verdict: {
-      headline: 'You need the Autonomous Engine.',
-      rationale: 'Your split has the effort but not the system. The Autonomous Engine supplies the periodization, tracking, and AI adjustments your program is missing — at the scalable tier.',
-      recommended: { tier: 'The Autonomous Engine', sub: '$49.99/mo · App + AI' },
-      alt: { tier: 'The Sovereign Standard', sub: '$897 · Founder-Direct Hybrid' },
-    },
-  };
+// Recommended-tier → CTA copy. The engine returns 'gateway' | 'architect'; the
+// primary CTA reflects that verdict, the secondary opens the full tier deck.
+const TIER_CTA = {
+  gateway:   { tier: 'The Gateway',   sub: 'Entry architecture · App + AI' },
+  architect: { tier: 'The Architect', sub: 'Full system · Heatmap + coach check-ins' },
+};
+
+// Stable anonymous session id (parity with the legacy bbf_interrogator_session_v1).
+const SESSION_KEY = 'bbf_interrogator_session_v1';
+function ensureSessionId() {
+  try {
+    let sid = localStorage.getItem(SESSION_KEY);
+    if (!sid) {
+      sid = (crypto?.randomUUID?.() || `s_${Date.now()}_${Math.round(Math.random() * 1e9)}`);
+      localStorage.setItem(SESSION_KEY, sid);
+    }
+    return sid;
+  } catch { return 'anonymous'; }
+}
+
+// Live call to the bbf-agentic-interrogator edge function (Gemini 2.5 Flash).
+// Returns { gaps:[{title,body}], sovereign_contrast:[{system,body}],
+//           verdict:{ headline, recommended_tier, rationale } }.
+async function runInterrogation({ routine, name, contactHandle }) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (SUPABASE_ANON_KEY) {
+    headers.apikey = SUPABASE_ANON_KEY;
+    headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
+  }
+  const res = await fetch(`${FUNCTIONS_BASE}/bbf-agentic-interrogator`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      routine,
+      name: name || '',
+      contact_handle: contactHandle || '',
+      session_id: ensureSessionId(),
+    }),
+  });
+  const raw = await res.text();
+  let body = null;
+  try { body = raw ? JSON.parse(raw) : null; } catch { /* non-JSON */ }
+  if (!res.ok || !body || !Array.isArray(body.gaps)) {
+    throw new Error(body?.error || `audit_failed_${res.status}`);
+  }
+  return body;
 }
 
 export default function Interrogator({ onChooseTier }) {
   const [input, setInput] = useState('');
+  const [name, setName] = useState('');
+  const [handle, setHandle] = useState('');
   const [history, setHistory] = useState([]); // [{ role:'user'|'audit', ... }]
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const outputRef = useRef(null);
-  const timerRef = useRef(null);
-
-  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   // Scroll the latest result into view when an audit lands.
   useEffect(() => {
@@ -78,7 +106,7 @@ export default function Interrogator({ onChooseTier }) {
   const len = input.length;
   const counterState = len >= MAX_LEN ? 'cap' : len > MAX_LEN * 0.85 ? 'warn' : 'ok';
 
-  function runAudit(e) {
+  async function runAudit(e) {
     e.preventDefault();
     if (loading) return;
     const split = input.trim();
@@ -86,18 +114,27 @@ export default function Interrogator({ onChooseTier }) {
       setError(`Paste a bit more of your split (min ${MIN_LEN} characters) so the audit has something to dissect.`);
       return;
     }
+    if (!handle.trim()) {
+      setError('Add an email, phone, or IG handle so Coach Akeem can send your full breakdown.');
+      return;
+    }
     setError(null);
     setLoading(true);
     // Record the user's submission immediately (chat-style history).
     setHistory((h) => [...h, { role: 'user', text: split }]);
 
-    // Simulated engine latency → placeholder audit. (Real bbf-agentic-interrogator
-    // call lands here in a later phase; the response shape is identical.)
-    timerRef.current = setTimeout(() => {
-      setHistory((h) => [...h, { role: 'audit', data: placeholderAudit(split) }]);
-      setLoading(false);
+    try {
+      const data = await runInterrogation({ routine: split, name, contactHandle: handle });
+      setHistory((h) => [...h, { role: 'audit', data }]);
       setInput('');
-    }, 1400);
+    } catch (err) {
+      setError('The audit engine hit a snag — try again in a moment.');
+      // Roll back the optimistic user bubble so the transcript stays clean.
+      setHistory((h) => (h.length && h[h.length - 1].role === 'user' ? h.slice(0, -1) : h));
+      if (err) console.warn('[Interrogator] audit failed:', err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -131,6 +168,30 @@ export default function Interrogator({ onChooseTier }) {
 
           {/* Input form */}
           <form onSubmit={runAudit} style={st.form}>
+            {/* Lead capture — name (optional) + contact handle (required so the
+                coach can follow up with the full breakdown). */}
+            <div style={st.leadRow}>
+              <input
+                style={st.leadInput}
+                type="text"
+                value={name}
+                maxLength={120}
+                disabled={loading}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="First name (optional)"
+                aria-label="Your first name"
+              />
+              <input
+                style={st.leadInput}
+                type="text"
+                value={handle}
+                maxLength={160}
+                disabled={loading}
+                onChange={(e) => { setHandle(e.target.value); if (error) setError(null); }}
+                placeholder="Email, phone, or @IG — where to send your plan"
+                aria-label="Email, phone, or Instagram handle"
+              />
+            </div>
             <div style={st.labelRow}>
               <span style={st.labelL}>&gt; PASTE YOUR PROTOCOL</span>
               <span style={{ ...st.labelR, color: counterState === 'cap' ? C.goldVictory : counterState === 'warn' ? C.gold : 'rgba(255,255,255,.32)' }}>
@@ -170,6 +231,8 @@ function UserBubble({ text }) {
 function AuditBlock({ data, onChooseTier }) {
   if (!data) return null;
   const v = data.verdict || {};
+  const contrast = Array.isArray(data.sovereign_contrast) ? data.sovereign_contrast : [];
+  const rec = TIER_CTA[v.recommended_tier] || { tier: 'Apply Now', sub: '' };
   return (
     <div style={st.audit} role="region" aria-label="Interrogator audit results">
       <div style={st.scanComplete}><span style={st.scanDot} /> AUDIT · COMPLETE</div>
@@ -186,10 +249,15 @@ function AuditBlock({ data, onChooseTier }) {
         </div>
       ) : null}
 
-      {data.contrast ? (
+      {contrast.length ? (
         <div style={st.section}>
           <h3 style={{ ...st.sectionH, color: C.goldVictory }}>[ 02 ] THE SOVEREIGN CONTRAST</h3>
-          <p style={st.entryB}>{data.contrast}</p>
+          {contrast.map((c, i) => (
+            <div key={i} style={st.entry}>
+              <div style={{ ...st.entryT, color: C.goldVictory }}>{c.system}</div>
+              <p style={st.entryB}>{c.body}</p>
+            </div>
+          ))}
         </div>
       ) : null}
 
@@ -198,13 +266,13 @@ function AuditBlock({ data, onChooseTier }) {
         <div style={st.verdictHead}>{v.headline}</div>
         <p style={st.verdictRationale}>{v.rationale}</p>
         <div style={st.ctaRow}>
-          <button type="button" style={{ ...st.cta, ...st.ctaPrim }} onClick={() => onChooseTier?.()}>
-            {v.recommended?.tier || 'Apply Now'}
-            <span style={st.ctaSub}>{v.recommended?.sub || ''}</span>
+          <button type="button" style={{ ...st.cta, ...st.ctaPrim }} onClick={() => onChooseTier?.(v.recommended_tier)}>
+            {rec.tier}
+            <span style={st.ctaSub}>{rec.sub}</span>
           </button>
           <button type="button" style={{ ...st.cta, ...st.ctaSec }} onClick={() => onChooseTier?.()}>
-            {v.alt?.tier || 'See Options'}
-            <span style={st.ctaSub}>{v.alt?.sub || ''}</span>
+            See All Tiers
+            <span style={st.ctaSub}>Compare the full deck</span>
           </button>
         </div>
       </div>
@@ -232,6 +300,8 @@ const st = {
   loadingDot: { width: 12, height: 12, borderRadius: '50%', background: C.cyan, boxShadow: `0 0 12px ${C.cyan}`, animation: 'none' },
 
   form: { marginTop: '1rem' },
+  leadRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '.6rem', marginBottom: '.9rem' },
+  leadInput: { width: '100%', boxSizing: 'border-box', background: '#04040a', border: `1px solid rgba(157,39,201,.4)`, color: C.ink, fontFamily: BODY, fontWeight: 700, fontSize: '.9rem', padding: '.8rem 1rem', borderRadius: 10, outline: 'none' },
   labelRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.55rem' },
   labelL: { fontFamily: HEAD, fontSize: '.66rem', letterSpacing: '3px', textTransform: 'uppercase', color: C.cyan },
   labelR: { fontFamily: MONO, fontSize: '.62rem', letterSpacing: '2px', textTransform: 'uppercase' },

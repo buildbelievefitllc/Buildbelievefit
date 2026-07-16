@@ -21,6 +21,50 @@
 //   tdee_leads_list → { ok, total, converted, leads:[…] }
 
 import { rosterCall } from './rosterApi.js';
+import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
+import { getCoachAdminToken } from './adminAuth.js';
+import { getStoredVaultToken } from '../context/AuthContext.jsx';
+
+// ── Prospects (Routine Interrogator lead capture) ──────────────────────────────
+// NEW_PROSPECT cards in coach_action_inbox, served by the admin-gated
+// bbf-prospect-inbox edge function (same gateway + dual-auth shape as rosterCall).
+async function prospectCall(action, payload = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (SUPABASE_ANON_KEY) {
+    headers.apikey = SUPABASE_ANON_KEY;
+    headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
+  }
+  const sessionToken = getStoredVaultToken();
+  if (sessionToken) headers['X-BBF-Session-Token'] = sessionToken;
+  const adminToken = getCoachAdminToken();
+  if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
+
+  const res = await fetch(`${FUNCTIONS_BASE}/bbf-prospect-inbox`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ action, ...payload }),
+  });
+  const raw = await res.text();
+  let body = null;
+  try { body = raw ? JSON.parse(raw) : null; } catch { /* non-JSON */ }
+  if (!res.ok || !body?.ok) {
+    throw new Error(body?.error || body?.detail || `Error ${res.status}`);
+  }
+  return body;
+}
+
+// Prospect inbox — NEW_PROSPECT cards (+ embedded prospect lead), newest first.
+//   → { ok, total, pending, cards:[{ id, status, insight_summary, proposed_action,
+//        draft_message, created_at, processed_at, prospect:{…} }] }
+export function fetchProspectInbox(limit = 100) {
+  return prospectCall('list', { limit });
+}
+
+// Approve a prospect card: stamps processed_at + status='APPROVED'.
+//   → { ok, card:{ id, status, processed_at } }
+export function processProspectCard(cardId) {
+  return prospectCall('process', { card_id: cardId });
+}
 
 // Incoming Pathfinder leads (most recent first).
 export function fetchLeads(limit = 100) {
