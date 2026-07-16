@@ -266,6 +266,10 @@ async function persistLead(parsed: any, ctx: { name: string; contactHandle: stri
   const prospectId = (Array.isArray(leadRows) && leadRows.length) ? leadRows[0].id : null;
   await pgPost('coach_action_inbox', [{
     type: 'NEW_PROSPECT',
+    // status 'NEW' (not the default 'PENDING') keeps prospect cards OUT of the
+    // agentic Action Inbox desk (bbf-agent-brain lists status=PENDING only) — they
+    // live solely in the Comlink Prospects lane (bbf-prospect-inbox reads by type).
+    status: 'NEW',
     risk_score: null,
     insight_summary: buildInsight(parsed, ctx.name, ctx.contactHandle),
     proposed_action: buildProposedAction(parsed),
