@@ -1,21 +1,25 @@
 // src/components/vault/VoiceCoachButton.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// AI Voice Coach — the Program tab's LIVE voice-to-voice Sovereign Coach trigger.
-// Replaces the prior one-shot TTS briefing with a real-time conversation on the
-// Gemini 2.5 Flash native-audio bridge (/ws/phantom-eye), scope-locked server-side
-// to workout/prehab (PROMPT_VIRTUAL_COACH + the BBF Immutable Laws).
+// AI Voice Coach — the Program tab's LIVE voice-to-voice Coach Akeem trigger.
 //
-// Session lifecycle: idle → connecting → live (hard 5:00 countdown) → complete.
-// The session terminates GRACEFULLY at 0:00, on quota exhaustion (the ticket mint
-// refuses to start when the monthly balance is spent), on an upstream failure, or
-// on a user stop — tearing down the mic + WS + audio every time (no leaks). The
-// server commits the session's token delta to the monthly ledger on its teardown.
+// ✅ VOICE ENGINE (CEO order — "Both surfaces get Akeem"): this button now runs on
+// the ElevenLabs Agents platform (ConvAI 2.0, WebRTC) so the live coach speaks in
+// the BBF Coach Akeem professional voice clone (voice_id ZbKDEqxkr8Ub4psNm5XD) —
+// the SAME agent that powers the Live Mindset Check-In. It replaces the prior
+// Gemini native-audio bridge (/ws/phantom-eye), which could only use Google's
+// prebuilt realtime voices and had no slot for the Akeem clone.
+//
+// Session lifecycle: idle → connecting → live (hard cap countdown) → complete.
+// The connection is minted server-side (bbf-convai-session — the fail-closed Apex
+// gate + the shared voice-token ledger precheck); this component only drives the
+// button UI. Metering settles on the post-call webhook (bbf-convai-postcall).
 //
 // Drop-in for the existing mount (<VoiceCoachButton text={coachCue} lang={lang} />):
-// the `text` cue is forwarded to the coach as the session brief.
+// the ConvAI mint packages the athlete's own context (name, readiness, streak, last
+// commitments) server-side, so the `text` cue is no longer forwarded as a brief.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { startVoiceSession } from '../../lib/voiceSession.js';
+import { startConvaiSession } from '../../lib/convaiSession.js';
 
 // Classic line-art mic (Feather "mic"); inherits currentColor. aria-hidden.
 function MicIcon() {
@@ -30,19 +34,19 @@ function MicIcon() {
   );
 }
 
-const SESSION_SECONDS = 300;     // hard 5:00 cap
+const SESSION_SECONDS = 480;     // hard 8:00 UI cap (mirrors bbf-convai-session UI_SESSION_CAP_MIN)
 const RESET_MS = 6000;           // how long the complete / error state lingers
 
-// Server denial slug → member-facing copy.
+// Server denial slug → member-facing copy (ConvAI gateway slugs).
 const DENY_COPY = {
-  quota_exhausted: 'Monthly voice minutes used up — resets next cycle.',
-  not_entitled:    'Voice Coach unlocks on the Autonomous tier.',
-  account_locked:  'Account locked — contact support.',
-  invalid_session: 'Session expired — sign in again.',
-  no_session:      'Sign in to start a voice session.',
-  mic_denied:      'Microphone access is required.',
-  ticket_unreachable: 'Coach service unreachable — try again.',
-  upstream_failure:   'Coach connection dropped — try again.',
+  quota_exhausted:    'Monthly voice minutes used up — resets next cycle.',
+  tier_not_entitled:  'The live Coach unlocks on the Apex tier.',
+  account_locked:     'Account locked — contact support.',
+  invalid_session:    'Session expired — sign in again.',
+  missing_session:    'Sign in to start a voice session.',
+  agent_unconfigured: 'Live Coach is warming up — try again shortly.',
+  token_mint_failed:  'Coach connection dropped — try again.',
+  convai_no_transport:'Coach connection dropped — try again.',
 };
 
 function fmt(sec) {
@@ -51,19 +55,20 @@ function fmt(sec) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel = 'Voice Coach' }) {
+// `text`/`payload` props from the legacy Gemini mount are accepted-and-ignored:
+// the ConvAI mint packages the athlete's context server-side (see header note).
+export default function VoiceCoachButton({ lang = 'en', idleLabel = 'Voice Coach' }) {
   const [status, setStatus] = useState('idle'); // idle | connecting | live | complete | error
   const [errorMsg, setErrorMsg] = useState('');
   const [remaining, setRemaining] = useState(SESSION_SECONDS);
-  const [budget, setBudget] = useState(null);    // { remaining, ceiling, godMode }
+  const [agentTalking, setAgentTalking] = useState(false); // drives the EQ animation
 
-  const sessionRef = useRef(null);  // { stop } for the active session
+  const sessionRef = useRef(null);  // ConvAI controller { end } for the active session
   const timerRef = useRef(null);    // 1s countdown interval
   const resetRef = useRef(null);    // complete/error → idle timeout
   const remainingRef = useRef(SESSION_SECONDS);
   const terminalRef = useRef(false); // dedupes the terminal transition
   const wentLiveRef = useRef(false);
-  const godModeRef = useRef(false);  // server-authoritative God Mode (admin/coach/akeem/trial)
   const mountedRef = useRef(true);
 
   const clearTimers = useCallback(() => {
@@ -71,9 +76,9 @@ export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel
     if (resetRef.current) { clearTimeout(resetRef.current); resetRef.current = null; }
   }, []);
 
-  // Stop the live session (idempotent). Its onState('ended') drives the terminal UI.
-  const endSession = useCallback((reason) => {
-    if (sessionRef.current) { try { sessionRef.current.stop(reason); } catch { /* noop */ } }
+  // Stop the live session (idempotent). Its onDisconnect drives the terminal UI.
+  const endSession = useCallback(() => {
+    if (sessionRef.current) { try { sessionRef.current.end?.(); } catch { /* noop */ } }
   }, []);
 
   // Single terminal transition: 'complete' (ran), 'idle' (cancelled pre-live), 'error'.
@@ -83,6 +88,7 @@ export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel
     clearTimers();
     sessionRef.current = null;
     if (!mountedRef.current) return;
+    setAgentTalking(false);
     if (kind === 'error') { setStatus('error'); setErrorMsg(msg || 'Voice Coach unavailable.'); }
     else if (kind === 'complete') { setStatus('complete'); }
     else { setStatus('idle'); setRemaining(SESSION_SECONDS); }
@@ -94,82 +100,83 @@ export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel
     }
   }, [clearTimers]);
 
-  useEffect(() => () => { mountedRef.current = false; endSession('unmount'); clearTimers(); }, [endSession, clearTimers]);
+  useEffect(() => () => { mountedRef.current = false; endSession(); clearTimers(); }, [endSession, clearTimers]);
+
+  // Transition into the live state exactly once, and start the hard-cap countdown.
+  const goLive = useCallback(() => {
+    if (wentLiveRef.current || !mountedRef.current) return;
+    wentLiveRef.current = true;
+    setStatus('live');
+    remainingRef.current = SESSION_SECONDS;
+    setRemaining(SESSION_SECONDS);
+    clearTimers();
+    timerRef.current = setInterval(() => {
+      const next = remainingRef.current - 1;
+      if (next <= 0) {
+        remainingRef.current = 0;
+        setRemaining(0);
+        endSession(); // → onDisconnect → toTerminal('complete')
+      } else {
+        remainingRef.current = next;
+        setRemaining(next);
+      }
+    }, 1000);
+  }, [clearTimers, endSession]);
 
   const handleClick = useCallback(() => {
-    if (status === 'live' || status === 'connecting') { endSession('user-stop'); return; }
+    if (status === 'live' || status === 'connecting') { endSession(); if (status === 'connecting') toTerminal('idle'); return; }
     if (status === 'complete' || status === 'error') return; // wait out the reset
 
     terminalRef.current = false;
     wentLiveRef.current = false;
-    godModeRef.current = false;
     remainingRef.current = SESSION_SECONDS;
-    setErrorMsg(''); setBudget(null); setRemaining(SESSION_SECONDS);
+    setErrorMsg(''); setAgentTalking(false); setRemaining(SESSION_SECONDS);
     setStatus('connecting');
 
-    sessionRef.current = startVoiceSession({
-      payload: { ...(payload || {}), lang, session_brief: String(text ?? '').trim() || undefined },
-      onState: (s, meta) => {
-        if (!mountedRef.current) return;
-        if (meta && meta.godMode) godModeRef.current = true;
-        if (meta && (meta.remaining !== undefined || meta.godMode)) {
-          setBudget({ remaining: meta.remaining, ceiling: meta.ceiling, godMode: !!meta.godMode });
-        }
-        if (s === 'live') {
-          wentLiveRef.current = true;
-          setStatus('live');
-          clearTimers();
-          // God Mode (admin / coach / akeem / active trial) is UNMETERED — no
-          // forced 5-minute teardown. The session stays open until the admin
-          // clicks Stop or the connection drops.
-          if (!godModeRef.current) {
-            timerRef.current = setInterval(() => {
-              const next = remainingRef.current - 1;
-              if (next <= 0) {
-                remainingRef.current = 0;
-                setRemaining(0);
-                endSession('time-cap'); // → onState('ended') → toTerminal('complete')
-              } else {
-                remainingRef.current = next;
-                setRemaining(next);
-              }
-            }, 1000);
-          }
-        } else if (s === 'ended') {
-          toTerminal(wentLiveRef.current ? 'complete' : 'idle');
-        }
+    startConvaiSession({
+      mode: 'checkin',
+      locale: lang,
+      hooks: {
+        onStatus: (s) => {
+          if (!mountedRef.current) return;
+          if (s === 'connected') goLive();
+          else if (s === 'disconnected') toTerminal(wentLiveRef.current ? 'complete' : 'idle');
+        },
+        onModeChange: (m) => { if (mountedRef.current) setAgentTalking(m === 'speaking'); },
+        onDisconnect: () => { if (mountedRef.current) toTerminal(wentLiveRef.current ? 'complete' : 'idle'); },
+        onError: () => { /* transport hiccups surface through onDisconnect */ },
       },
-      onError: (code) => { toTerminal('error', DENY_COPY[code]); },
-    });
-  }, [status, payload, lang, text, endSession, toTerminal, clearTimers]);
+    })
+      .then((ctrl) => {
+        if (!mountedRef.current) { try { ctrl?.end?.(); } catch { /* noop */ } return; }
+        sessionRef.current = ctrl;
+        goLive(); // if onStatus('connected') hasn't already fired, promise resolution means we're live
+      })
+      .catch((e) => { toTerminal('error', DENY_COPY[e?.message]); });
+  }, [status, lang, endSession, toTerminal, goLive]);
 
   const connecting = status === 'connecting';
   const live = status === 'live';
   const complete = status === 'complete';
   const errored = status === 'error';
-  const unrestricted = live && !!budget?.godMode; // admin / God Mode — no 5:00 cap
 
   const label = errored ? errorMsg
     : connecting ? 'Connecting…'
-    : live ? (unrestricted ? 'Live · Unrestricted' : `Live · ${fmt(remaining)}`)
+    : live ? `Live · ${fmt(remaining)}`
     : complete ? 'Session Complete — Focus on your Next Set'
     : idleLabel;
 
   const cls = ['bbf-voice'];
   if (connecting) cls.push('is-loading', 'is-connecting');
   if (live) cls.push('is-playing', 'is-live');
-  if (unrestricted) cls.push('is-unrestricted');
   if (complete) cls.push('is-complete');
   if (errored) cls.push('is-error');
 
-  const budgetTitle = budget
-    ? (budget.godMode ? 'Unmetered (God Mode)' : (budget.remaining != null ? `${budget.remaining.toLocaleString()} tokens left this month` : ''))
-    : '';
   const title = live
-    ? (unrestricted ? 'Stop session — unrestricted (admin)' : `Stop session — ${fmt(remaining)} left`)
-    : connecting ? 'Connecting to the live coach…'
+    ? `Stop session — ${fmt(remaining)} left`
+    : connecting ? 'Connecting to Coach Akeem…'
     : complete ? 'Session complete'
-    : `Start a live voice coaching session${budgetTitle ? ` · ${budgetTitle}` : ''}`;
+    : 'Start a live voice session with Coach Akeem';
 
   return (
     <button
@@ -189,7 +196,7 @@ export default function VoiceCoachButton({ text, lang = 'en', payload, idleLabel
         {connecting ? (
           <span className="bbf-voice-dot" />
         ) : live ? (
-          <span className="bbf-voice-eq"><span /><span /><span /><span /></span>
+          <span className="bbf-voice-eq" data-talking={agentTalking ? '1' : '0'}><span /><span /><span /><span /></span>
         ) : (
           <MicIcon />
         )}
