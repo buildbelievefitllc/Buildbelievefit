@@ -52,8 +52,15 @@ export async function fetchActionInbox() {
 }
 
 // Approve (nudge sent) or dismiss a card. status: 'APPROVED' | 'DISMISSED'.
-export async function resolveInboxAction(id, status) {
+// With applyOverride=true the brain instead runs the one-tap applier RPC
+// server-side (bbf_apply_plan_override / bbf_apply_onboarding_plan) — the
+// status transition to APPROVED happens inside the database, atomically with
+// the plan write.
+export async function resolveInboxAction(id, status, applyOverride = false) {
   if (!id) throw new Error('agent_brain_missing_id');
-  const body = await brainCall({ action: 'resolve', id, status });
+  const payload = applyOverride
+    ? { action: 'resolve', id, apply_override: true }
+    : { action: 'resolve', id, status };
+  const body = await brainCall(payload);
   return body?.ok === true;
 }

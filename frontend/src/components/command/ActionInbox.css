@@ -139,8 +139,10 @@
   background: rgba(249, 245, 255, 0.035);
   padding: 14px;
 }
-.ainbox-card--spike { border-left: 3px solid rgba(255, 84, 112, 0.75); }
-.ainbox-card--stag  { border-left: 3px solid rgba(245, 200, 0, 0.7); }
+.ainbox-card--spike   { border-left: 3px solid rgba(255, 84, 112, 0.75); }
+.ainbox-card--stag    { border-left: 3px solid rgba(245, 200, 0, 0.7); }
+.ainbox-card--auto    { border-left: 3px solid rgba(154, 74, 255, 0.85); }
+.ainbox-card--onboard { border-left: 3px solid rgba(96, 180, 255, 0.75); }
 
 .ainbox-card-head {
   display: flex;
@@ -165,8 +167,10 @@
   border-radius: 999px;
   white-space: nowrap;
 }
-.ainbox-risk--spike { color: #ff9bb0; border: 1px solid rgba(255, 84, 112, 0.55); background: rgba(255, 84, 112, 0.12); }
-.ainbox-risk--stag  { color: #f5cf60; border: 1px solid rgba(245, 200, 0, 0.5);  background: rgba(245, 200, 0, 0.1); }
+.ainbox-risk--spike   { color: #ff9bb0; border: 1px solid rgba(255, 84, 112, 0.55); background: rgba(255, 84, 112, 0.12); }
+.ainbox-risk--stag    { color: #f5cf60; border: 1px solid rgba(245, 200, 0, 0.5);  background: rgba(245, 200, 0, 0.1); }
+.ainbox-risk--auto    { color: #c9a3ff; border: 1px solid rgba(154, 74, 255, 0.6); background: rgba(106, 13, 173, 0.18); }
+.ainbox-risk--onboard { color: #9ed0ff; border: 1px solid rgba(96, 180, 255, 0.5); background: rgba(96, 180, 255, 0.1); }
 
 /* Glassmorphism intel panels */
 .ainbox-glass {
@@ -198,6 +202,66 @@
   line-height: 1.4;
   color: rgba(249, 245, 255, 0.88);
 }
+
+/* Closed-loop panels — program override stats + onboarding blueprint */
+.ainbox-glass--mod {
+  border-color: rgba(154, 74, 255, 0.5);
+  background: rgba(106, 13, 173, 0.16);
+}
+.ainbox-mod-grid {
+  display: flex;
+  gap: 14px;
+  margin: 4px 0 6px;
+}
+.ainbox-mod-stat {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem;
+  color: rgba(249, 245, 255, 0.7);
+}
+.ainbox-mod-stat em {
+  font-style: normal;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.5px;
+  color: #f5c800;
+  margin-right: 4px;
+}
+.ainbox-glass--bp {
+  border-color: rgba(96, 180, 255, 0.45);
+  background: rgba(96, 180, 255, 0.07);
+  max-height: 340px;
+  overflow-y: auto;
+}
+.ainbox-bp-week { margin-top: 8px; }
+.ainbox-bp-focus {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  color: #9ed0ff;
+}
+.ainbox-bp-days {
+  margin: 4px 0 0;
+  padding-left: 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(249, 245, 255, 0.85);
+}
+.ainbox-bp-days li { margin-bottom: 2px; }
+.ainbox-bp-pacing { margin-top: 10px; }
+
+/* The one-tap closed-loop CTA — full-width, gold-loaded (never matte black) */
+.ainbox-btn--deploy {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  background: linear-gradient(90deg, #f5c800 0%, #ffd83a 100%);
+  border: 1px solid rgba(106, 13, 173, 0.6);
+  color: #0e0a16;
+  font-size: 1.05rem;
+}
+.ainbox-btn--deploy:hover:not(:disabled) { filter: brightness(1.06); }
 
 /* Editable outreach draft */
 .ainbox-draft-label {

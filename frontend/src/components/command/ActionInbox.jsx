@@ -22,16 +22,18 @@ import './ActionInbox.css';
 const POLL_MS = 120000; // background count refresh — light, non-blocking
 
 const RISK_META = {
-  ACWR_SPIKE:      { glyph: '🔴', label: 'ACWR Spike',  tone: 'spike' },
-  STAGNANCY_ALERT: { glyph: '🟡', label: 'Stagnant',    tone: 'stag'  },
+  ACWR_SPIKE:        { glyph: '🔴', label: 'ACWR Spike',       tone: 'spike'   },
+  STAGNANCY_ALERT:   { glyph: '🟡', label: 'Stagnant',         tone: 'stag'    },
+  AUTONOMIC_OVERUSE: { glyph: '🟣', label: 'Autonomic Crisis', tone: 'auto'    },
+  ONBOARDING_PLAN:   { glyph: '🔷', label: 'New Client',       tone: 'onboard' },
 };
 
 function riskLine(action) {
   const n = Number(action.risk_score);
   if (!Number.isFinite(n)) return null;
-  return action.type === 'ACWR_SPIKE'
-    ? `Ratio ${n.toFixed(2)}`
-    : `${Math.round(n)}h silent`;
+  if (action.type === 'ACWR_SPIKE' || action.type === 'AUTONOMIC_OVERUSE') return `Ratio ${n.toFixed(2)}`;
+  if (action.type === 'STAGNANCY_ALERT') return `${Math.round(n)}h silent`;
+  return null;
 }
 
 function firstNameOf(action) {
@@ -39,13 +41,59 @@ function firstNameOf(action) {
   return raw.split(/\s+/)[0] || 'Athlete';
 }
 
+// ── Closed-loop panels ───────────────────────────────────────────────────────
+// The structured Gemini modification block (spike/autonomic cards).
+function ModificationPanel({ mod }) {
+  const pct = (v) => `${Math.round(Number(v) * 100)}%`;
+  return (
+    <div className="ainbox-glass ainbox-glass--mod" data-testid="ainbox-mod">
+      <div className="ainbox-glass-label">Proposed Program Override</div>
+      <div className="ainbox-mod-grid">
+        <span className="ainbox-mod-stat"><em>{pct(mod.intensity_multiplier)}</em> intensity</span>
+        <span className="ainbox-mod-stat"><em>{pct(mod.volume_multiplier)}</em> volume</span>
+        <span className="ainbox-mod-stat"><em>{mod.target_days}</em> day{Number(mod.target_days) === 1 ? '' : 's'}</span>
+      </div>
+      <p className="ainbox-glass-body">{mod.modification_reason}</p>
+    </div>
+  );
+}
+
+// The 4-week onboarding blueprint (ONBOARDING_PLAN cards).
+function BlueprintPanel({ blueprint }) {
+  const weeks = Array.isArray(blueprint?.weeks) ? blueprint.weeks : [];
+  return (
+    <div className="ainbox-glass ainbox-glass--bp" data-testid="ainbox-blueprint">
+      <div className="ainbox-glass-label">4-Week Baseline Blueprint</div>
+      {blueprint?.overview ? <p className="ainbox-glass-body">{blueprint.overview}</p> : null}
+      {weeks.map((w) => (
+        <div key={w.week} className="ainbox-bp-week">
+          <div className="ainbox-bp-focus">W{w.week} · {w.focus}</div>
+          <ul className="ainbox-bp-days">
+            {(Array.isArray(w.days) ? w.days : []).map((d, i) => (
+              <li key={i}><strong>{d.day}:</strong> {d.session}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      {blueprint?.progression_pacing ? (
+        <p className="ainbox-glass-body ainbox-bp-pacing"><strong>Progression:</strong> {blueprint.progression_pacing}</p>
+      ) : null}
+    </div>
+  );
+}
+
 // ── One triage card ──────────────────────────────────────────────────────────
-function ActionCard({ action, onResolve }) {
+function ActionCard({ action, onResolve, onApply }) {
   const [text, setText] = useState(String(action.draft_message || ''));
   const [busy, setBusy] = useState(false);
   const meta = RISK_META[action.type] || { glyph: '⚠️', label: action.type, tone: 'stag' };
   const risk = riskLine(action);
   const name = String(action?.athlete?.name || action?.athlete?.uid || 'Athlete');
+  const isBlueprint = action.type === 'ONBOARDING_PLAN';
+  const mod = !isBlueprint && action.proposed_plan_modification
+    && action.proposed_plan_modification.volume_multiplier != null
+    ? action.proposed_plan_modification : null;
+  const blueprint = isBlueprint ? action.proposed_plan_modification?.blueprint : null;
 
   const copyText = useCallback(async (value) => {
     try {
@@ -76,6 +124,17 @@ function ActionCard({ action, onResolve }) {
     onResolve(action, 'DISMISSED');
   }, [busy, onResolve, action]);
 
+  // ⚡ One-tap closed loop — the applier RPC runs server-side (APPROVE happens
+  // atomically with the plan write); the outreach draft rides along: copied to
+  // the clipboard + handed to the native sms: composer.
+  const applyAndNudge = useCallback(async () => {
+    if (busy) return;
+    setBusy(true);
+    await copyText(text);
+    onApply(action);
+    window.location.href = `sms:?body=${encodeURIComponent(text)}`;
+  }, [busy, text, copyText, onApply, action]);
+
   return (
     <article className={`ainbox-card ainbox-card--${meta.tone}`} data-testid={`ainbox-card-${action.id}`}>
       <header className="ainbox-card-head">
@@ -94,6 +153,9 @@ function ActionCard({ action, onResolve }) {
         <p className="ainbox-glass-body">{action.proposed_action}</p>
       </div>
 
+      {mod ? <ModificationPanel mod={mod} /> : null}
+      {isBlueprint && blueprint ? <BlueprintPanel blueprint={blueprint} /> : null}
+
       <label className="ainbox-draft-label" htmlFor={`ainbox-draft-${action.id}`}>
         Draft message · {firstNameOf(action)}
       </label>
@@ -105,6 +167,18 @@ function ActionCard({ action, onResolve }) {
         rows={4}
         data-testid="ainbox-draft"
       />
+
+      {mod || isBlueprint ? (
+        <button
+          type="button"
+          className="ainbox-btn ainbox-btn--deploy"
+          onClick={applyAndNudge}
+          disabled={busy}
+          data-testid="ainbox-apply"
+        >
+          {isBlueprint ? '⚡ DEPLOY BASELINE PLAN' : '⚡ APPLY PROGRAM OVERRIDE'}
+        </button>
+      ) : null}
 
       <div className="ainbox-card-actions">
         <button type="button" className="ainbox-btn ainbox-btn--nudge" onClick={nudge} disabled={busy} data-testid="ainbox-nudge">
@@ -171,6 +245,17 @@ export default function ActionInbox() {
     }
   }, []);
 
+  // One-tap applier — same optimistic pattern; the server runs the plan-write
+  // RPC and APPROVEs atomically. A failed apply puts the card back for retry.
+  const onApply = useCallback(async (action) => {
+    setActions((prev) => prev.filter((a) => a.id !== action.id));
+    try {
+      await resolveInboxAction(action.id, 'APPROVED', true);
+    } catch {
+      setActions((prev) => (prev.some((a) => a.id === action.id) ? prev : [action, ...prev]));
+    }
+  }, []);
+
   const count = actions.length;
 
   return (
@@ -213,7 +298,7 @@ export default function ActionInbox() {
             ) : (
               <div className="ainbox-list">
                 {actions.map((a) => (
-                  <ActionCard key={a.id} action={a} onResolve={onResolve} />
+                  <ActionCard key={a.id} action={a} onResolve={onResolve} onApply={onApply} />
                 ))}
               </div>
             )}
