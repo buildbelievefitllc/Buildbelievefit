@@ -154,7 +154,7 @@ export class SovereignFoundry {
    * single-track approximation.
    * @returns {Promise<{blob:Blob, ext:'mp4', mime:'video/mp4', audio:boolean, frames:number, durationSec:number}>}
    */
-  async render({ videoUrl, voUrl = null, musicUrl = null, footageUrl = null, voGain = 1, musicGain = 1, footageGain = 1, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', captions = null, captionsEnabled = false, captionPos = 62, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
+  async render({ videoUrl, voUrl = null, musicUrl = null, footageUrl = null, voGain = 1, musicGain = 1, footageGain = 1, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', captions = null, captionsEnabled = false, captionPos = 62, captionStyle = null, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
     if (!videoUrl) throw new Error('no_footage');
 
@@ -166,9 +166,12 @@ export class SovereignFoundry {
     // Dynamic karaoke captions bake PER FRAME (they change with the voice time), so
     // they can't ride the static captured overlay. Resolve the transcript once and
     // ensure the caption face is loaded before the frame loop paints it on canvas.
+    // captionStyle (Caption Style Studio) carries { font, sizePx, color, highlight,
+    // chunk } — same values the DOM preview applied, so the bake matches 1:1.
     const captionWords = (captionsEnabled && Array.isArray(captions?.words) && captions.words.length) ? captions.words : null;
+    const capStyle = this._normalizeCaptionStyle(captionStyle);
     if (captionWords) {
-      try { await document.fonts?.load?.('800 58px "Barlow Condensed"'); } catch { /* fall back to the default sans */ }
+      try { await document.fonts?.load?.(`800 ${capStyle.sizePx}px ${capStyle.family}`); } catch { /* fall back to the default sans */ }
     }
 
     const video = this._makeVideo(videoUrl);
@@ -279,7 +282,7 @@ export class SovereignFoundry {
         if (overlay) { try { ctx.drawImage(overlay, 0, 0, W, H); } catch { /* overlay optional */ } }
         // Karaoke captions — drawn LAST (on top of everything) at this frame's voice
         // time. Wrapped so a caption glitch can never abort the encode.
-        if (captionWords) { try { this._drawCaptions(ctx, tSec, W, H, captionWords, captionPos); } catch { /* captions optional */ } }
+        if (captionWords) { try { this._drawCaptions(ctx, tSec, W, H, captionWords, captionPos, capStyle); } catch { /* captions optional */ } }
         const frame = new VideoFrame(canvas, { timestamp: Math.max(0, Math.round(tSec * 1e6)), duration: frameDurUs });
         venc.encode(frame, { keyFrame: frames % (fps * 2) === 0 });
         frame.close();
@@ -541,17 +544,35 @@ export class SovereignFoundry {
     ctx.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
   }
 
+  // Caption Style Studio → normalized canvas style. Defaults reproduce the
+  // historical baked-in look (Barlow Condensed 800 · 58px · white fill · BBF-gold
+  // active box · 4-word phrases) so an untouched editor exports byte-identically.
+  _normalizeCaptionStyle(style) {
+    const FAMILIES = {
+      barlow: '"Barlow Condensed", sans-serif',
+      bebas:  '"Bebas Neue", sans-serif',
+      anton:  '"Anton", sans-serif',
+    };
+    const family = FAMILIES[style?.font] || FAMILIES.barlow;
+    const sizePx = Math.max(32, Math.min(110, Math.round(Number(style?.sizePx) || 58)));
+    const color = /^#[0-9a-fA-F]{6}$/.test(String(style?.color || '')) ? style.color : '#ffffff';
+    const highlight = /^#[0-9a-fA-F]{6}$/.test(String(style?.highlight || '')) ? style.highlight : '#f5c800';
+    const chunk = Math.max(2, Math.min(6, Math.round(Number(style?.chunk) || 4)));
+    return { family, sizePx, color, highlight, chunk };
+  }
+
   // Karaoke captions, baked onto the frame — the canvas twin of the DOM preview's
-  // .reel-caption-v4 / .cap-word-v4 styling (Barlow Condensed 800, white fill,
-  // heavy black stroke, active word in a BBF-gold rounded box). Same captionState()
-  // timing the preview uses, so the exported words/highlight match frame-for-frame.
+  // .reel-caption-v4 / .cap-word-v4 styling. Same captionState() timing (and the
+  // same Caption Style Studio values) the preview uses, so the exported words,
+  // face, colors and highlight match frame-for-frame.
   // `posPct` is the vertical center (% of H) from the Caption Position slider.
-  _drawCaptions(ctx, tSec, W, H, words, posPct) {
-    const state = captionState(words, tSec);
+  _drawCaptions(ctx, tSec, W, H, words, posPct, style) {
+    const st = style || this._normalizeCaptionStyle(null);
+    const state = captionState(words, tSec, st.chunk);
     if (!state || !state.chunk.length) return;
-    const FS = 58, GAP = 14, LGAP = 12, PADX = 12, PADY = 6, RAD = 8;
+    const FS = st.sizePx, GAP = 14, LGAP = 12, PADX = 12, PADY = 6, RAD = 8;
     ctx.save();
-    ctx.font = `800 ${FS}px "Barlow Condensed", sans-serif`;
+    ctx.font = `800 ${FS}px ${st.family}`;
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'left';
     ctx.lineJoin = 'round';
@@ -577,7 +598,7 @@ export class SovereignFoundry {
       let x = (W - line.width) / 2;
       for (const it of line.items) {
         if (it.active) {
-          ctx.fillStyle = '#f5c800';
+          ctx.fillStyle = st.highlight;
           ctx.beginPath();
           roundRectPath(ctx, x - PADX / 2, baseline - FS + 4, it.w + PADX, FS + PADY, RAD);
           ctx.fill();
@@ -585,7 +606,7 @@ export class SovereignFoundry {
         ctx.lineWidth = 6;
         ctx.strokeStyle = '#000';
         ctx.strokeText(it.text, x, baseline);
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = st.color;
         ctx.fillText(it.text, x, baseline);
         x += it.w + GAP;
       }

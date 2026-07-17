@@ -64,13 +64,38 @@ export async function generateStudioVoice({ script, vibe, stability, similarityB
   };
 }
 
+// VOICE IDENTITY roster — lists the ElevenLabs voices available on the account
+// (bbf-studio-voiceover action:'voices'). Returns [{ voice_id, name, category }];
+// throws a display-ready Error on failure. Coach Akeem is always the default
+// client-side — this powers the "other voices" section of the picker.
+export async function listStudioVoices() {
+  const token = getStoredVaultToken();
+  const res = await fetch(`${FUNCTIONS_BASE}/bbf-studio-voiceover`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      ...(token ? { 'x-bbf-vault-token': token } : {}),
+    },
+    body: JSON.stringify({ action: 'voices', vault_token: token }),
+  });
+  if (!res.ok) {
+    let detail = `voices_failed_${res.status}`;
+    try { const j = await res.json(); detail = j.error || detail; } catch { /* non-JSON */ }
+    throw new Error(detail);
+  }
+  const j = await res.json().catch(() => null);
+  return Array.isArray(j?.voices) ? j.voices : [];
+}
+
 // FRONT 5 · Lazy-caching voiceover. Calls bbf-studio-voiceover with the reel's
 // (topic, target_duration, series, vibe, lang). The Edge Function either returns
 // a cached vault URL (zero spend) or generates + caches a new MP3 — either way we
 // get back a permanent Supabase Storage public URL. Returns the parsed JSON
 // ({ ok, cached, slug, url, vibe, duration, model?, usage? }); throws a
 // display-ready Error on failure.
-export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang, providedScript, stability, similarityBoost, style }) {
+export async function generateStudioVoiceover({ topic, targetDuration, series, vibe, lang, providedScript, stability, similarityBoost, style, voiceId }) {
   // Advanced Voice Tuning overrides (0–100% UI values). Only present when the user
   // has manually deviated from the vibe baseline — the caller omits them otherwise
   // so the Edge Function falls back to the vibe defaults (and keeps the un-tuned
@@ -90,8 +115,10 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
   // the result server-side (slug includes lang, so the next es/pt hit is a $0 cache hit).
   // A providedScript (Spotlight VO voices EXACT text) always goes to the Edge Function —
   // the manifest can't answer a custom line. Custom tuning (hasCustom) likewise bypasses
-  // the baseline-only manifest so the overrides actually reach ElevenLabs.
-  const cachedUrl = (!providedScript && !hasCustom && (lang || 'en') === 'en') ? lookupVaultUrl(topic) : null;
+  // the baseline-only manifest so the overrides actually reach ElevenLabs. A custom
+  // voiceId bypasses it too — the pre-seeded vault is Coach-Akeem-only.
+  const customVoice = typeof voiceId === 'string' && voiceId.trim() ? voiceId.trim() : null;
+  const cachedUrl = (!providedScript && !hasCustom && !customVoice && (lang || 'en') === 'en') ? lookupVaultUrl(topic) : null;
   if (cachedUrl) {
     return { ok: true, cached: true, fromManifest: true, url: cachedUrl, vibe };
   }
@@ -112,6 +139,7 @@ export async function generateStudioVoiceover({ topic, targetDuration, series, v
       vibe,
       lang: lang || 'en',
       ...(providedScript ? { provided_script: providedScript } : {}),
+      ...(customVoice ? { voice_id: customVoice } : {}), // VOICE IDENTITY — omit for Coach Akeem (keeps historical cache keys)
       ...overrides, // stability / similarity_boost / style — only when user-tuned
       vault_token: token,
     }),

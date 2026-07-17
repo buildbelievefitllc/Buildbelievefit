@@ -143,8 +143,9 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
   }, [reelData.voUrl]);
 
   // Active karaoke phrase for the current voice time (null when captions are off,
-  // absent, or the voice isn't within the spoken window).
-  const caption = reelData.captionsEnabled ? captionState(reelData.captions?.words, voTime) : null;
+  // absent, or the voice isn't within the spoken window). Chunk size comes from
+  // the Caption Style Studio — the export baker reads the same value.
+  const caption = reelData.captionsEnabled ? captionState(reelData.captions?.words, voTime, reelData.capChunk ?? 4) : null;
 
   // Audio-mix sliders — THREE independent channels, each bound DIRECTLY to its own
   // element's volume property: voiceVolume → the voiceover track, musicVolume → the
@@ -224,7 +225,15 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
           className="reel-caption-v4"
           data-testid="reel-caption"
           aria-hidden="true"
-          style={{ top: `${reelData.captionPos ?? 62}%` }}
+          style={{
+            top: `${reelData.captionPos ?? 62}%`,
+            // Caption Style Studio → the CSS vars .cap-word-v4 consumes; the
+            // foundry bakes the identical values so preview = export.
+            '--cap-font': HOOK_FONT_STACK[reelData.capFont] || undefined,
+            '--cap-size': reelData.capSize ? `${reelData.capSize}px` : undefined,
+            '--cap-color': reelData.capColor || undefined,
+            '--cap-hl': reelData.capHighlight || undefined,
+          }}
         >
           {caption.chunk.map((w, i) => (
             <span key={`${i}-${w.text}`} className={`cap-word-v4${i === caption.active ? ' is-active' : ''}`}>
@@ -252,6 +261,9 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
             style={{
               fontFamily: HOOK_FONT_STACK[reelData.hookFont] || undefined,
               fontSize: reelData.hookFontSize ? `${reelData.hookFontSize}px` : undefined,
+              // Hook Color — flows into the export automatically via the DOM
+              // overlay capture (empty string = the stylesheet default white).
+              color: reelData.hookColor || undefined,
             }}
           >
             {kineticClass ? <KineticHook text={reelData.hook} anim={kineticClass} /> : reelData.hook}

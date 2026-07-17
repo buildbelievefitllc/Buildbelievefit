@@ -131,6 +131,19 @@ export default function SovereignStudioV4() {
     captions: null,         // { words: [{ text, start, end }] } transcript of the voice track (ElevenLabs Scribe) → karaoke captions; cleared whenever the voice changes
     captionsEnabled: false, // render the karaoke captions overlay in the preview (and, later, the export)
     captionPos: 62,         // caption vertical position as a % of reel height (20 = high, 90 = low); adjustable so it clears the subject/action
+
+    // CAPTION STYLE STUDIO — the karaoke look, no longer baked-in (defaults
+    // reproduce the historical style exactly; preview CSS vars = foundry canvas).
+    capFont: 'barlow',      // caption typeface (barlow | bebas | anton) — same trio as the hook
+    capSize: 58,            // caption size in px, 1080-design space (old fixed value)
+    capChunk: 4,            // words per phrase (2–6) — shorter chunks read punchier
+    capColor: '#ffffff',    // caption text fill
+    capHighlight: '#f5c800',// active-word box (BBF Gold default — LOCKED brand accent)
+
+    // VOICE IDENTITY — '' = Coach Akeem (the CEO-pinned signature clone);
+    // any other value is an ElevenLabs voice_id from the account roster.
+    voiceId: '',
+    hookColor: '',          // hook headline color override ('' = stylesheet white)
   }));
 
   // 🏆 CLIENT SPOTLIGHT — restored from the legacy studio, now a first-class V4 mode.

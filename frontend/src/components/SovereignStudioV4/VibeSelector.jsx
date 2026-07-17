@@ -68,10 +68,17 @@ const vibeShortLabel = (vibe) => {
 };
 
 // Target runtime → seconds. Script length is derived server-side (~2.5 words/sec).
+// The engine accepts 8–180s (bbf-studio-voiceover MIN/MAX) — the old 3-option
+// menu was an artificial ceiling; the full ladder is now exposed.
 const DURATIONS = [
+  [10, '10s Quick-Hit'],
   [15, '15s Hook'],
+  [20, '20s Punch'],
   [30, '30s Breakdown'],
+  [45, '45s Deep Cut'],
   [60, '60s Masterclass'],
+  [90, '90s Sermon'],
+  [120, '120s Keynote'],
 ];
 
 // Trilingual — the lang the Claude script + ElevenLabs voice are generated in.
@@ -193,6 +200,19 @@ export default function VibeSelector({ reelData, handleReelChange }) {
   const uploadSeqRef = useRef(0); // guards a stale upload completion from clobbering a newer pick
   const [capBusy, setCapBusy] = useState(false); // caption transcription in flight
   const [capNote, setCapNote] = useState(null); // { ok, text }
+
+  // VOICE IDENTITY roster — fetched once per mount, best-effort: a failure just
+  // leaves Coach Akeem as the lone (default) option, never blocks generation.
+  const [voiceRoster, setVoiceRoster] = useState(null);
+  const [voiceRosterErr, setVoiceRosterErr] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    import('../../lib/studioApi.js')
+      .then(({ listStudioVoices }) => listStudioVoices())
+      .then((voices) => { if (alive) setVoiceRoster(voices); })
+      .catch(() => { if (alive) setVoiceRosterErr('Voice roster unavailable — Coach Akeem stays on the mic.'); });
+    return () => { alive = false; };
+  }, []);
 
   // Transcribe the current voice track into word-by-word timing for karaoke
   // captions. Works for a generated/vault voice OR a user upload — the client
@@ -371,6 +391,9 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         series: reelData.series,
         vibe: reelData.vibe,
         lang: reelData.lang || 'en',
+        // VOICE IDENTITY — omitted for Coach Akeem ('' default) so the historical
+        // cache keys keep hitting; any roster voice forks its own cache lane.
+        ...(reelData.voiceId ? { voiceId: reelData.voiceId } : {}),
         // Only forward overrides when the user has deviated from the preset — an
         // un-modified panel falls back to the vibe defaults server-side.
         ...(voModified
@@ -558,6 +581,25 @@ export default function VibeSelector({ reelData, handleReelChange }) {
       </div>
 
       <div className="ctl-group-v4">
+        <label className="ctl-label-v4" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          🎨 Hook Color
+          <input
+            type="color"
+            value={reelData.hookColor || '#ffffff'}
+            onChange={(e) => handleReelChange('hookColor', e.target.value)}
+            aria-label="Hook headline color"
+            data-testid="reel-hook-color"
+          />
+          {reelData.hookColor ? (
+            <button type="button" className="mini-btn-v4" onClick={() => handleReelChange('hookColor', '')}>
+              ↺ default
+            </button>
+          ) : null}
+        </label>
+        <div className="hint-v4">Overrides the headline fill for this reel — the export captures whatever the preview shows.</div>
+      </div>
+
+      <div className="ctl-group-v4">
         <label className="ctl-label-v4">Hook Sub-line</label>
         <textarea
           value={reelData.hookSub}
@@ -648,6 +690,31 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           ))}
         </div>
         <div className="hint-v4">Drives which language the Claude script + ElevenLabs voice are generated in (sports video library).</div>
+      </div>
+
+      {/* ── VOICE IDENTITY — the account's ElevenLabs roster. Coach Akeem stays
+          the default (and the only pre-seeded/vault-cached voice); any other
+          entry generates fresh audio in that voice on its own cache lane. ── */}
+      <div className="ctl-group-v4">
+        <label className="ctl-label-v4">Voice Identity</label>
+        <select
+          value={reelData.voiceId || ''}
+          onChange={(e) => handleReelChange('voiceId', e.target.value)}
+          className="select-v4"
+          data-testid="reel-voice-identity"
+        >
+          <option value="">Coach Akeem — the signature voice</option>
+          {(voiceRoster || [])
+            .filter((v) => !v.is_signature)
+            .map((v) => (
+              <option key={v.voice_id} value={v.voice_id}>
+                {v.name}{v.category ? ` — ${v.category}` : ''}
+              </option>
+            ))}
+        </select>
+        {voiceRosterErr ? <div className="hint-v4" style={{ color: '#fb923c' }}>{voiceRosterErr}</div> : (
+          <div className="hint-v4">Any voice on the ElevenLabs account. The vault fast-path and pre-rendered library are Akeem-only; other voices always generate fresh.</div>
+        )}
       </div>
 
       <div className="ctl-group-v4">
@@ -1007,6 +1074,73 @@ export default function VibeSelector({ reelData, handleReelChange }) {
                   aria-label="Caption position"
                   data-testid="reel-caption-pos"
                 />
+
+                {/* ── CAPTION STYLE STUDIO — face, size, phrase length, colors.
+                    The preview applies these as CSS vars and the foundry bakes
+                    the identical values, so what you style is what exports. ── */}
+                <label className="ctl-label-v4" style={{ fontSize: '.8rem', marginTop: 10 }}>Caption Font</label>
+                <div className="seg-v4" data-testid="reel-cap-font">
+                  {HOOK_FONTS.map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className={(reelData.capFont || 'barlow') === id ? 'active' : ''}
+                      onClick={() => handleReelChange('capFont', id)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <label className="ctl-label-v4" style={{ fontSize: '.8rem', marginTop: 8 }}>🔠 Caption Size — {reelData.capSize ?? 58}px</label>
+                <input
+                  type="range"
+                  className="range-v4"
+                  min="36"
+                  max="96"
+                  step="2"
+                  value={reelData.capSize ?? 58}
+                  onChange={(e) => handleReelChange('capSize', Number(e.target.value))}
+                  aria-label="Caption size"
+                  data-testid="reel-cap-size"
+                />
+
+                <label className="ctl-label-v4" style={{ fontSize: '.8rem', marginTop: 8 }}>💬 Words per Phrase — {reelData.capChunk ?? 4}</label>
+                <input
+                  type="range"
+                  className="range-v4"
+                  min="2"
+                  max="6"
+                  step="1"
+                  value={reelData.capChunk ?? 4}
+                  onChange={(e) => handleReelChange('capChunk', Number(e.target.value))}
+                  aria-label="Words per caption phrase"
+                  data-testid="reel-cap-chunk"
+                />
+                <div className="hint-v4">Shorter phrases hit harder (2–3 for punchy hooks); longer read smoother for teaching reels.</div>
+
+                <div style={{ display: 'flex', gap: 14, marginTop: 8, flexWrap: 'wrap' }}>
+                  <label className="ctl-label-v4" style={{ fontSize: '.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    Text
+                    <input
+                      type="color"
+                      value={reelData.capColor || '#ffffff'}
+                      onChange={(e) => handleReelChange('capColor', e.target.value)}
+                      aria-label="Caption text color"
+                      data-testid="reel-cap-color"
+                    />
+                  </label>
+                  <label className="ctl-label-v4" style={{ fontSize: '.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    Highlight box
+                    <input
+                      type="color"
+                      value={reelData.capHighlight || '#f5c800'}
+                      onChange={(e) => handleReelChange('capHighlight', e.target.value)}
+                      aria-label="Active word highlight color"
+                      data-testid="reel-cap-highlight"
+                    />
+                  </label>
+                </div>
               </div>
             ) : null}
           </>

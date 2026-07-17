@@ -144,17 +144,22 @@ async function sha256Hex(s: string): Promise<string> {
 // render caches independently of the vibe-baseline render (same topic, different
 // physics → different audio → different object). Baseline renders keep their
 // historical slug untouched (backward-compatible cache hits).
-async function buildSlug(parts: { vibe: string; series: string; topic: string; duration: number; lang: string; tuning?: string }): Promise<string> {
+async function buildSlug(parts: { vibe: string; series: string; topic: string; duration: number; lang: string; tuning?: string; voiceId?: string }): Promise<string> {
   const readable = [slugify(parts.vibe), slugify(parts.series), slugify(parts.topic)]
     .filter(Boolean).join('-') || 'vo';
+  // VOICE IDENTITY: the effective voice is part of the canonical — the default
+  // (Coach Akeem) produces the byte-identical historical canonical string, so
+  // every pre-existing cache entry keeps hitting; a custom voice_id forks the key.
+  const effectiveVoice = parts.voiceId || AKEEM_VOICE_ID;
   const canonical = JSON.stringify({
     v: parts.vibe, s: parts.series.trim().toLowerCase(), t: parts.topic.trim().toLowerCase(),
-    d: parts.duration, l: parts.lang, voice: AKEEM_VOICE_ID, m: VOICE_MODEL,
+    d: parts.duration, l: parts.lang, voice: effectiveVoice, m: VOICE_MODEL,
     ...(parts.tuning ? { tune: parts.tuning } : {}),
   });
   const hash = (await sha256Hex(canonical)).slice(0, 10);
+  const voiceMarker = effectiveVoice !== AKEEM_VOICE_ID ? 'v-' : ''; // human-visible flag: non-signature voice
   const marker = parts.tuning ? 'x-' : ''; // human-visible flag that this is a tuned render
-  return `${readable}-${marker}${parts.duration}s-${hash}`;
+  return `${readable}-${voiceMarker}${marker}${parts.duration}s-${hash}`;
 }
 
 // ── admin perimeter (vault/session token → god-mode role, or shared secret) ──
@@ -367,7 +372,7 @@ function buildSsml(raw: string, vibe: Vibe): string {
 // storage upload after synthesis.
 const SYNTH_TIMEOUT_MS = 120_000;
 
-async function synthesize(apiKey: string, text: string, settings: Record<string, unknown>): Promise<{ ok: true; buf: ArrayBuffer; words: Word[] } | { ok: false; status: number; detail: string }> {
+async function synthesize(apiKey: string, text: string, settings: Record<string, unknown>, voiceId: string = AKEEM_VOICE_ID): Promise<{ ok: true; buf: ArrayBuffer; words: Word[] } | { ok: false; status: number; detail: string }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), SYNTH_TIMEOUT_MS);
   try {
@@ -382,7 +387,7 @@ async function synthesize(apiKey: string, text: string, settings: Record<string,
     // character-level alignment we fold into free kinetic captions (Option 3). It
     // returns JSON { audio_base64, alignment } instead of a raw audio body.
     const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(AKEEM_VOICE_ID)}/with-timestamps?output_format=mp3_44100_192`,
+      `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}/with-timestamps?output_format=mp3_44100_192`,
       {
         method: 'POST',
         headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -419,6 +424,29 @@ serve(async (req: Request) => {
   }
 
   const lang = (['en', 'es', 'pt'].includes(String(payload?.lang || 'en'))) ? String(payload?.lang || 'en') : 'en';
+
+  // ── 🎤 VOICE IDENTITY ROSTER (list the account's ElevenLabs voices) ──
+  // Powers the reel editor's voice picker. Names/ids only — no keys, no samples.
+  if (payload?.action === 'voices') {
+    const XI_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    if (!XI_KEY) return jsonResponse({ error: 'tts_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
+    try {
+      const r = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': XI_KEY } });
+      if (!r.ok) return jsonResponse({ error: 'voices_failed', detail: `ElevenLabs ${r.status}` }, 502);
+      const j = await r.json().catch(() => null);
+      const voices = (Array.isArray(j?.voices) ? j.voices : [])
+        .filter((v: any) => v && typeof v.voice_id === 'string' && v.voice_id)
+        .map((v: any) => ({
+          voice_id: String(v.voice_id),
+          name: String(v.name ?? 'Unnamed').slice(0, 60),
+          category: String(v.category ?? '').slice(0, 40),
+          is_signature: String(v.voice_id) === AKEEM_VOICE_ID,
+        }));
+      return jsonResponse({ ok: true, voices }, 200);
+    } catch (e) {
+      return jsonResponse({ error: 'voices_failed', detail: String((e as Error).message).slice(0, 200) }, 502);
+    }
+  }
 
   // ── 🏆 CLIENT SPOTLIGHT AUTO-GEN (text only, no audio/cache) ──
   if (payload?.action === 'spotlight') {
@@ -484,8 +512,14 @@ serve(async (req: Request) => {
     ? `st${Math.round(settings.stability * 100)}-si${Math.round(settings.similarity_boost * 100)}-sy${Math.round(settings.style * 100)}`
     : undefined;
 
+  // ── 🎤 VOICE IDENTITY (optional voice_id from the roster picker) ──
+  // Absent/invalid → Coach Akeem (the CEO-pinned signature clone), which keeps
+  // every historical cache key intact. A custom id forks the slug (buildSlug).
+  const rawVoiceId = String(payload?.voice_id ?? '').trim();
+  const voiceId = /^[A-Za-z0-9]{12,40}$/.test(rawVoiceId) ? rawVoiceId : AKEEM_VOICE_ID;
+
   // ── 1 · CACHE LOOKUP ──
-  const slug = await buildSlug({ vibe, series, topic, duration, lang, tuning });
+  const slug = await buildSlug({ vibe, series, topic, duration, lang, tuning, voiceId });
   if (!force && (await vaultHas(SUPABASE_URL, slug))) {
     const words = await vaultGetWords(SUPABASE_URL, slug);
     console.log(`[${FN}] cache HIT slug=${slug} words=${words ? words.length : 'none'} tuned=${hasCustom}`);
@@ -524,7 +558,7 @@ serve(async (req: Request) => {
   if (script.length > MAX_SCRIPT_CHARS) script = script.slice(0, MAX_SCRIPT_CHARS);
 
   const ssml = buildSsml(script, vibe);
-  const tts = await synthesize(ELEVENLABS_API_KEY, ssml, settings);
+  const tts = await synthesize(ELEVENLABS_API_KEY, ssml, settings, voiceId);
   if (!tts.ok) {
     console.error(`[${FN}] tts failed ${tts.status}: ${tts.detail}`);
     return jsonResponse({ error: 'tts_failed', detail: `ElevenLabs returned ${tts.status}.`, eleven_status: tts.status }, 502);

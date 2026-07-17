@@ -647,13 +647,26 @@
   text-align: center;
   pointer-events: none;
 }
+/* Inline reset chip (Hook Color "↺ default", etc.) — quiet, small, ghost. */
+.mini-btn-v4 {
+  font-family: inherit; font-size: .68rem; letter-spacing: 1px; text-transform: uppercase;
+  color: rgba(249,245,255,.65); background: transparent;
+  border: 1px solid rgba(255,255,255,.25); border-radius: 999px;
+  padding: .15rem .55rem; cursor: pointer;
+}
+.mini-btn-v4:hover { border-color: rgba(245,200,0,.55); color: #f5cf60; }
+
+/* Caption Style Studio: the container sets --cap-* custom properties inline
+   (ReelPreviewEngine); every var falls back to the historical baked-in look so
+   an untouched editor renders exactly as before. The foundry's canvas baker
+   mirrors these same values (_normalizeCaptionStyle) — preview = export. */
 .cap-word-v4 {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--cap-font, 'Barlow Condensed', sans-serif);
   font-weight: 800;
-  font-size: 58px;
+  font-size: var(--cap-size, 58px);
   line-height: 1.05;
   letter-spacing: 0.5px;
-  color: #ffffff;
+  color: var(--cap-color, #ffffff);
   -webkit-text-stroke: 2.5px #000;
   paint-order: stroke fill;
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
@@ -661,8 +674,8 @@
   border-radius: 8px;
 }
 .cap-word-v4.is-active {
-  background: #f5c800;
-  color: #ffffff;
+  background: var(--cap-hl, #f5c800);
+  color: var(--cap-color, #ffffff);
   box-shadow: 0 4px 16px rgba(245, 200, 0, 0.4);
 }
 

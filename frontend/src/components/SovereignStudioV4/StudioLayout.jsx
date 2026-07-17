@@ -520,6 +520,15 @@ export default function StudioLayout({
       captions: reelData.captions,
       captionsEnabled: !!reelData.captionsEnabled,
       captionPos: reelData.captionPos ?? 62,
+      // Caption Style Studio — identical values the preview applied as CSS vars,
+      // so the baked captions match the on-screen ones 1:1.
+      captionStyle: {
+        font: reelData.capFont || 'barlow',
+        sizePx: reelData.capSize ?? 58,
+        chunk: reelData.capChunk ?? 4,
+        color: reelData.capColor || '#ffffff',
+        highlight: reelData.capHighlight || '#f5c800',
+      },
       overlay,
       // Phone backdrop → clip the footage into the same rect the DOM preview used, and
       // have the export draw the matching bezel/notch itself (reelPhoneBackdrop.js —
