@@ -46,15 +46,22 @@ function catalogNames() {
   return [...names];
 }
 
-// ── Normalizer — mirrors exerciseVideos.js normalize() token rules ───────────
+// ── Normalizer — mirrors exerciseVideos.js normalize() token rules, PLUS
+// mapper-only extensions for matching the external ExerciseDB vocabulary
+// (safe: the runtime resolver exact-matches manifest keys, which are verbatim
+// catalog names — normalizer divergence never reaches the athlete-facing path):
+//   • lat → lateral        ("Lat Pulldown" vs ExerciseDB "cable bar lateral pulldown")
+//   • stop heavy/bent/over ("Heavy Leg Press" ≙ leg press; "bent over row" ≙ row —
+//     keeps the honest variant from losing to a wrong movement like UPRIGHT row)
 const EX_ABBR = {
   db: 'dumbbell', dbs: 'dumbbell', bb: 'barbell', kb: 'kettlebell', ohp: 'overhead press',
   rdl: 'romanian deadlift', rdls: 'romanian deadlift', bw: 'bodyweight',
   ext: 'extension', exts: 'extension', alt: 'alternating', sl: 'single leg',
   tri: 'triceps', tricep: 'triceps', bi: 'biceps', bicep: 'biceps', quad: 'quadriceps', mts: 'machine',
+  lat: 'lateral',
 };
 const EX_SYN = { rope: 'cable', single: 'one', singlearm: 'one', onearm: 'one', onearmed: 'one', chinup: 'pullup' };
-const EX_STOP = { the: 1, a: 1, with: 1, and: 1, or: 1, your: 1, to: 1, of: 1, for: 1 };
+const EX_STOP = { the: 1, a: 1, with: 1, and: 1, or: 1, your: 1, to: 1, of: 1, for: 1, heavy: 1, bent: 1, over: 1 };
 function singular(w) {
   if (w === 'press' || w === 'triceps' || w === 'biceps' || w === 'abs') return w;
   if (/(ches|shes|sses|xes)$/.test(w)) return w.replace(/es$/, '');
@@ -107,31 +114,37 @@ function stemToPhrase(stem) {
     .trim();
 }
 
-function bestMatch(phrase, index) {
-  const toks = normalize(phrase);
-  if (!toks.length) return null;
-  const key = toks.join(' ');
-  // exact normalized
-  for (const e of index) if (e.norm === key) return { name: e.name, via: 'exact', score: 1 };
-  // safe token-subset (all phrase tokens present, majority coverage)
-  let best = null, bestScore = 0;
-  for (const e of index) {
-    const inter = toks.filter((t) => e.toks.includes(t)).length;
-    const ratio = inter / Math.min(toks.length, e.toks.length);
-    const cov = inter / Math.max(toks.length, e.toks.length);
-    if (ratio === 1 && cov >= 0.5 && ratio + cov > bestScore) { bestScore = ratio + cov; best = e.name; }
-  }
-  if (best) return { name: best, via: 'token-subset', score: bestScore / 2 };
-  // bounded string distance — accepts only near-identical strings (typos, not guesses)
-  let bd = null, bdDist = Infinity;
-  for (const e of index) {
-    const d = levenshtein(key, e.norm);
-    if (d < bdDist) { bdDist = d; bd = e.name; }
-  }
-  if (bd && bdDist <= Math.max(2, Math.floor(key.length * 0.15))) {
-    return { name: bd, via: `levenshtein:${bdDist}`, score: 1 - bdDist / key.length };
-  }
-  return null;
+// External-vocabulary synonyms (mapper-side ONLY — the runtime resolver keeps
+// the canonical normalizer): ExerciseDB names machine movements "lever …" and
+// "sled …"; our catalog says "Machine". Applied after the shared token rules.
+const SRC_SYN = { lever: 'machine', sled: 'machine' };
+function srcTokens(phrase) {
+  // Keep parenthetical content as TOKENS for source names — in ExerciseDB the
+  // parens carry the variant ("push-up (bosu ball)", "(v-bar)"), and dropping
+  // them would let a variant tie the plain movement on exact score.
+  return normalize(String(phrase).replace(/[()]/g, ' ')).map((t) => SRC_SYN[t] || t);
+}
+
+// Score one candidate source phrase against one catalog entry.
+//   3.0        exact normalized-name equality
+//   1.5 – 2.0  token-subset over UNIQUE tokens (every token of the shorter side
+//              present in the longer, ≥50% coverage; score = 1 + coverage).
+//              Unique-set intersection kills duplicate-token inflation ("sled
+//              calf press on leg press" must NOT satisfy "heavy leg press").
+//   <1.0       bounded Levenshtein (typos only, never a guess)
+//   0          no admissible match
+function scorePair(srcToks, e) {
+  if (!srcToks.length || !e.toks.length) return 0;
+  const srcNorm = srcToks.join(' ');
+  if (srcNorm === e.norm) return 3;
+  const a = [...new Set(srcToks)], b = [...new Set(e.toks)];
+  const inter = a.filter((t) => b.includes(t)).length;
+  const ratio = inter / Math.min(a.length, b.length);
+  const cov = inter / Math.max(a.length, b.length);
+  if (ratio === 1 && cov >= 0.5) return 1 + cov;
+  const d = levenshtein(srcNorm, e.norm);
+  if (d <= Math.max(2, Math.floor(srcNorm.length * 0.15))) return 1 - d / srcNorm.length;
+  return 0;
 }
 
 // ── Run ──────────────────────────────────────────────────────────────────────
@@ -144,26 +157,48 @@ const overrides = existsSync(OVERRIDE_PATH) ? JSON.parse(readFileSync(OVERRIDE_P
 const names = catalogNames();
 const index = names.map((name) => { const toks = normalize(name); return { name, toks, norm: toks.join(' ') }; });
 
-const matched = {};          // "<Exercise Name>" -> "<filename>"
-const matchDetail = [];
+// ── Candidate pool: every file contributes ONE source phrase ─────────────────
+// (override name from videos/manifest.json — e.g. the ExerciseDB index — or a
+// semantic filename parse). Opaque NNNN-hash stems with no override contribute
+// nothing and are counted, never force-matched.
+const sources = []; // { file, phrase, kind, toks }
 let opaque = 0, unparsed = 0;
-
 for (const file of files) {
   const stem = file.replace(/\.gif$/i, '');
   const prefix = (stem.match(/^(\d+)/) || [])[1] || null;
   const override = overrides[file] ?? (prefix != null ? overrides[prefix] : undefined);
   if (override) {
-    const hit = index.find((e) => e.name === override) || null;
-    if (hit && !matched[hit.name]) { matched[hit.name] = file; matchDetail.push({ file, name: hit.name, via: 'override' }); }
-    else if (!hit) console.warn(`! override for ${file} names "${override}" — not in the authorized catalog, skipped`);
+    sources.push({ file, phrase: String(override), kind: 'override', toks: srcTokens(override) });
     continue;
   }
   if (OPAQUE_RE.test(stem)) { opaque++; continue; }
   const phrase = stemToPhrase(stem);
-  const hit = phrase ? bestMatch(phrase, index) : null;
-  if (hit && !matched[hit.name]) { matched[hit.name] = file; matchDetail.push({ file, name: hit.name, via: hit.via }); }
-  else if (!hit) unparsed++;
+  if (!phrase) { unparsed++; continue; }
+  sources.push({ file, phrase, kind: 'filename', toks: srcTokens(phrase) });
 }
+
+// ── Global best-score assignment ─────────────────────────────────────────────
+// For each catalog exercise pick the SINGLE best-scoring source across the
+// whole pool (not first-file-wins): the plain movement beats its "assisted /
+// one-arm / with-twist" variants because exact equality (3.0) and higher
+// coverage outrank them. Two catalog names may share one file (e.g. `Leg
+// Press` and `Heavy Leg Press` → the same sled-press loop) — that is correct.
+const matched = {};          // "<Exercise Name>" -> "<filename>"
+const matchDetail = [];
+const sourceUsed = new Set();
+for (const e of index) {
+  let best = null, bestScore = 0;
+  for (const s of sources) {
+    const sc = scorePair(s.toks, e);
+    if (sc > bestScore) { bestScore = sc; best = s; }
+  }
+  if (best) {
+    matched[e.name] = best.file;
+    sourceUsed.add(best.file);
+    matchDetail.push({ file: best.file, name: e.name, from: best.phrase, score: bestScore.toFixed(2) });
+  }
+}
+const overrideMisses = sources.filter((s) => s.kind === 'override' && !sourceUsed.has(s.file)).length;
 
 const unmatchedExercises = names.filter((n) => !matched[n]).sort();
 const manifest = {
@@ -182,6 +217,7 @@ console.log(`  gif files scanned      : ${files.length}`);
 console.log(`  catalog exercises      : ${names.length}`);
 console.log(`  matched                : ${manifest.matched_count}`);
 console.log(`  opaque filenames       : ${opaque}  (NNNN-hash pattern — need videos/manifest.json overrides)`);
+console.log(`  override misses        : ${overrideMisses}  (named movements outside the authorized catalog)`);
 console.log(`  unparsed / no match    : ${unparsed}`);
 console.log(`  exercises w/o gif      : ${unmatchedExercises.length}  → branded placeholder`);
 for (const d of matchDetail.slice(0, 25)) console.log(`    ✓ ${d.file} → ${d.name} [${d.via}]`);

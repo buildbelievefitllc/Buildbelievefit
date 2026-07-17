@@ -14,16 +14,17 @@
 // never resolve to a loop — the map is the allow-list, not just media.
 //
 // No match → null → the card renders the branded BBF placeholder (never a
-// broken image, never a missing panel). Hosting is env-switchable: set
-// VITE_EXERCISE_GIF_BASE (e.g. a Supabase Storage public bucket URL) to move
-// the loops off-origin without touching a component.
+// broken image, never a missing panel). The default base is the PUBLIC
+// `exercise-gifs` Supabase Storage bucket (1,324 loops, anon-read via CDN —
+// migration 20260717150000_exercise_gifs_public_bucket.sql); the URL is public
+// by design, not a secret. VITE_EXERCISE_GIF_BASE overrides it per environment.
 
 import manifest from '../../data/exerciseGifManifest.json';
 import { normalizeExerciseName } from './exerciseVideos.js';
 
 const GIF_BASE =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_EXERCISE_GIF_BASE) ||
-  '/videos/';
+  'https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/exercise-gifs/';
 
 const MATCHED = (manifest && manifest.matched) || {};
 

@@ -8,3 +8,7 @@ package-lock.json
 
 # Raw HeyGen render drop zone — masters live in Supabase videos/ bucket, never in git
 HEYGENLOAD/
+
+# Exercise quick-view loops — 1,324 GIF masters live in the public exercise-gifs
+# Storage bucket, never in git; only the index map (manifest.json) is tracked.
+videos/*.gif
