@@ -122,6 +122,15 @@
 .im-target { font-family: var(--bd); font-size: .82rem; color: #c9bfe0; text-transform: uppercase; letter-spacing: .5px; }
 .im-scenario { font-family: var(--bd); font-size: .92rem; color: #c9bfe0; margin-top: .4rem; padding: .5rem .7rem; border-left: 2px solid var(--pur); background: rgba(106, 13, 173, .1); border-radius: 6px; }
 .im-scenario-lbl { font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-soft); margin-right: .3rem; }
+.im-partner-tag { color: var(--gold-soft, #f5cf60); }
+
+/* ── the campaign picker — persistent-persona scenes (Fables cast) ───────────── */
+.im-picker { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 .2rem; }
+.im-picker-chip { display: inline-flex; align-items: center; gap: .35rem; font-family: var(--hb); font-size: .74rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(249,245,255,.75); background: rgba(9,9,9,.4); border: 1px solid rgba(106,13,173,.5); border-radius: 999px; padding: .38rem .8rem; cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
+.im-picker-chip:hover { border-color: rgba(245,200,0,.55); }
+.im-picker-chip.is-active { color: #f5cf60; background: linear-gradient(135deg, rgba(106,13,173,.45), rgba(9,9,9,.5)); border-color: #f5c800; }
+.im-picker-chip:disabled { opacity: .55; cursor: default; }
+.im-picker-emoji { font-size: .95rem; }
 
 .im-thread { display: flex; flex-direction: column; gap: .6rem; max-height: 46vh; overflow-y: auto; padding: .3rem; }
 .im-start-hint { font-family: var(--bd); font-size: .95rem; color: #9c92b5; text-align: center; padding: 1.5rem 0; }
@@ -219,6 +228,19 @@
 .tp-verdict.is-correct { color: #4ade80; }
 .tp-verdict.is-wrong { color: #ff5d5d; }
 .tp-done { color: #4ade80; font-size: .95rem; }
+
+/* ── BBF Fables scene panel (the narrative frame above the drill) ────────────── */
+.tp-scene { margin: .2rem 0 1rem; padding: .85rem 1rem; border-radius: 14px; border: 1px solid rgba(245,200,0,.35); background: linear-gradient(168deg, rgba(26,11,46,.6), rgba(9,6,14,.9)); position: relative; overflow: hidden; }
+.tp-scene::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, #6a0dad, #f5c800); }
+.tp-scene-head { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; }
+.tp-scene-kicker { font-family: var(--hb); font-size: .66rem; letter-spacing: 2px; text-transform: uppercase; color: #f5cf60; }
+.tp-scene-pilot { font-family: var(--hb); font-size: .6rem; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(249,245,255,.55); border: 1px solid rgba(255,255,255,.22); border-radius: 999px; padding: .15rem .55rem; }
+.tp-scene-title { font-family: var(--hb); font-size: 1.05rem; color: #fff; margin: .35rem 0 .45rem; }
+.tp-scene-text { color: rgba(244,238,251,.9); font-size: .95rem; line-height: 1.55; margin: 0 0 .6rem; }
+.tp-scene-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.tp-scene-gloss { color: rgba(249,245,255,.55); font-size: .85rem; line-height: 1.5; font-style: italic; margin: .6rem 0 0; border-left: 2px solid rgba(245,200,0,.4); padding-left: .7rem; }
+.tp-scene-vocab { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem; }
+.tp-vocab-chip { font-size: .78rem; color: #f5cf60; background: rgba(106,13,173,.28); border: 1px solid rgba(245,200,0,.3); border-radius: 999px; padding: .2rem .6rem; }
 
 /* ── GUIDED TRACK (Curriculum Engine daily checklist strip) ──────────────────── */
 .gt-shell {

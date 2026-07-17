@@ -25,6 +25,14 @@
 // before the first turn, then the engine's suggested_replies (v3) after every AI
 // turn. Tapping an option sends it; the free-form composer stays available always.
 //
+// THE CAMPAIGN (Fable Fleet Sync · v4): the single hardcoded scenario is now a
+// scenario PICKER over immersionScenarios.js — each scene carries a persistent
+// language-native persona (the BBF Fables cast: Marisol, Doña Rosa, Dona Marta,
+// Seu Chico…) threaded to the engine via the v4 `persona` param, so the same
+// character meets the athlete every session. Switching scenes resets the thread
+// (a new conversation with a different person). Passing a `scenario` prop pins
+// legacy fixed-scenario mode: no picker, no persona.
+//
 // @param {{ uid?:string, scenario?:string, scenarioKey?:string, targetLanguage?:'es'|'pt', phase?:number, scaffold?:boolean }} props
 
 import { useEffect, useRef, useState } from 'react';
@@ -32,13 +40,10 @@ import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from '../../lib/supabaseClient.js';
 import { getCoachAdminToken, hasAdminToken } from '../../lib/adminAuth.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLangUiStr } from './languageStrings.js';
+import { IMMERSION_SCENARIOS, DEFAULT_SCENARIO_KEY, getScenario, personaCard, personaName } from './immersionScenarios.js';
 import './language.css';
 
-const DEFAULT_SCENARIO = 'At the front desk of a gym, asking about membership and class times.';
-
-// Guided-dialogue OPENERS (scaffold mode, before the first turn) — natural
-// in-scenario first lines per target language: A simpler, B slightly more advanced.
-// Target-language data, never localized away (same contract as the roleplay).
+// Fallback openers (legacy fixed-scenario mode, where no library scene is active).
 const STARTER_OPENERS = {
   es: [
     'Hola, buenas. Quiero información sobre la membresía.',
@@ -69,11 +74,17 @@ async function callImmersion(body) {
 }
 
 export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLanguage = 'es', phase = 1, scaffold = false }) {
-  const { ls, clusters, targetName } = useLangUiStr();
+  const { ls, lang, clusters, targetName } = useLangUiStr();
   const { user } = useAuth();
   const effUid = uid || user?.username || user?.id || '';
   const target = targetLanguage === 'pt' ? 'pt' : 'es';
-  const scen = (scenario || DEFAULT_SCENARIO).trim();
+
+  // Legacy fixed mode (scenario prop) vs. the campaign picker (the default).
+  const fixedMode = typeof scenario === 'string' && scenario.trim().length > 0;
+  const [sceneKey, setSceneKey] = useState(DEFAULT_SCENARIO_KEY);
+  const scene = fixedMode ? null : getScenario(sceneKey);
+  const scen = fixedMode ? scenario.trim() : scene.scenario;
+  const partner = fixedMode ? '' : personaName(scene, target);
 
   const [messages, setMessages] = useState([]);      // { role:'user'|'assistant', content }
   const [input, setInput] = useState('');
@@ -83,6 +94,13 @@ export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLan
   const [notice, setNotice] = useState(null);         // transient engine-offline notice
   const [suggested, setSuggested] = useState([]);     // scaffold: engine A/B next-reply options
   const endRef = useRef(null);
+
+  // A scene swap is a NEW conversation with a different person — reset the thread.
+  const pickScene = (key) => {
+    if (key === sceneKey || sending) return;
+    setSceneKey(key);
+    setMessages([]); setSessionId(null); setCorrection(null); setNotice(null); setSuggested([]);
+  };
 
   // Auto-scroll the thread on new turns (DOM side-effect only — no setState).
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [messages, correction]);
@@ -100,7 +118,9 @@ export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLan
     setSuggested([]);
 
     const res = await callImmersion({
-      uid: effUid, scenario: scen, scenario_key: scenarioKey || scen.slice(0, 60),
+      uid: effUid, scenario: scen,
+      scenario_key: fixedMode ? (scenarioKey || scen.slice(0, 60)) : scene.key,
+      persona: fixedMode ? undefined : personaCard(scene, target),
       target_language: target, user_message: text,
       conversation_history: history, session_id: sessionId, phase,
       guided: scaffold === true,
@@ -139,8 +159,37 @@ export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLan
           <h3 className="im-title">{ls.immTitle}</h3>
           <span className="im-target">{ls.targetLabel}: {targetName[target]}</span>
         </div>
-        <div className="im-scenario"><span className="im-scenario-lbl">{ls.scenarioLabel}</span> {scen}</div>
+        {fixedMode ? (
+          <div className="im-scenario"><span className="im-scenario-lbl">{ls.scenarioLabel}</span> {scen}</div>
+        ) : (
+          <div className="im-scenario" data-testid="im-scene-line">
+            <span className="im-scenario-lbl">{ls.scenarioLabel}</span> {scene.emoji} {scene.title[lang] || scene.title.en}
+            {partner ? <span className="im-partner-tag"> · {ls.withPersona(partner)}</span> : null}
+          </div>
+        )}
       </header>
+
+      {/* ── THE CAMPAIGN PICKER — persistent-persona scenes (Fables cast) ── */}
+      {!fixedMode ? (
+        <div className="im-picker" role="radiogroup" aria-label={ls.scenePicker}>
+          {IMMERSION_SCENARIOS.map((s) => (
+            <button
+              key={s.key}
+              type="button"
+              role="radio"
+              aria-checked={sceneKey === s.key}
+              className={`im-picker-chip${sceneKey === s.key ? ' is-active' : ''}`}
+              onClick={() => pickScene(s.key)}
+              disabled={sending}
+              data-testid={`im-scene-${s.key}`}
+              title={personaName(s, target)}
+            >
+              <span className="im-picker-emoji" aria-hidden="true">{s.emoji}</span>
+              {s.title[lang] || s.title.en}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {!authed ? (
         <div className="im-locked" role="note">{ls.locked}</div>
@@ -153,7 +202,7 @@ export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLan
             ) : (
               messages.map((m, i) => (
                 <div key={i} className={`im-bubble is-${m.role}`}>
-                  <span className="im-bubble-who">{m.role === 'user' ? ls.you : ls.partner}</span>
+                  <span className="im-bubble-who">{m.role === 'user' ? ls.you : (partner || ls.partner)}</span>
                   <span className="im-bubble-text">{m.content}</span>
                 </div>
               ))
@@ -204,7 +253,9 @@ export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLan
             <div className="im-scaffold" data-testid="im-scaffold" role="group" aria-label={ls.scaffoldTitle}>
               <span className="im-scaffold-title">{ls.scaffoldTitle}</span>
               <div className="im-scaffold-chips">
-                {(messages.length === 0 ? (STARTER_OPENERS[target] || STARTER_OPENERS.es) : suggested).map((opt, i) => (
+                {(messages.length === 0
+                  ? ((!fixedMode && scene.openers[target]) || STARTER_OPENERS[target] || STARTER_OPENERS.es)
+                  : suggested).map((opt, i) => (
                   <button
                     key={`${i}-${opt.slice(0, 24)}`}
                     type="button"

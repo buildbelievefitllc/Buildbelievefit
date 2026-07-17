@@ -102,6 +102,7 @@ const model = routeAndLog('bbf-comlink', 'kinematic_form_score'); // → Sonnet 
 | HAIKU | `claude-haiku-4-5` | retries, narration, i18n, snapshots, forecasts (low-stakes) |
 | SONNET | `claude-sonnet-4-6` | vision/biomechanics, onboarding dialog, prehab (mid-complexity) |
 | OPUS | `claude-opus-4-8` | PAR-Q+, wellbeing/ED escalation, cardiac intercept (**safety-critical only**) |
+| FABLE | `claude-fable-5` | narrative continuity: Immersion roleplay turns, BBF Fables curriculum bakes (character/register fidelity — not a safety tier) |
 
 Rules:
 - Add new use-cases to the `UseCase` type + `MODEL_MAP` — never inline a model string.

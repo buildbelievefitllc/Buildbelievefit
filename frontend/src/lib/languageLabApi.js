@@ -54,3 +54,12 @@ export function getCurriculumTrack(language) {
 export function logCurriculumProgress({ language, metric, count = 1 }) {
   return rpc('bbf_log_curriculum_progress', { p_language: language, p_metric: metric, p_count: count });
 }
+
+// ── BBF Fables (narrative curriculum) ────────────────────────────────────────
+//   bbf_get_curriculum_episode — the day's serialized scene + its drill
+//   sentences + vocab chips. Null day resolves the caller's active curriculum
+//   day server-side. Same non-throwing contract: no session / no row → The
+//   Path keeps its built-in fallback bank.
+export function getCurriculumEpisode(language, day = null) {
+  return rpc('bbf_get_curriculum_episode', { p_language: language, p_day: day });
+}

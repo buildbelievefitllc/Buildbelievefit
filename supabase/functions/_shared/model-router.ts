@@ -22,6 +22,11 @@ export const MODELS = {
   HAIKU:  'claude-haiku-4-5',
   SONNET: 'claude-sonnet-4-6',
   OPUS:   'claude-opus-4-8',
+  // FABLE · narrative tier — long-horizon character/voice continuity (in-character
+  // roleplay, serialized curriculum fiction). Not a reasoning upgrade over Opus for
+  // safety calls; it is the storytelling specialist. Live traffic on this tier is
+  // CEO-only today (the Language Lab sits behind the /command AdminGuard).
+  FABLE:  'claude-fable-5',
 } as const;
 
 export type Model = typeof MODELS[keyof typeof MODELS];
@@ -40,7 +45,9 @@ export type UseCase =
   | 'studio_voiceover_script' // Sovereign Studio · dynamic VO script for a cached exercise/topic reel (low-stakes narration → margin protection)
   // forecast_1rm — MIGRATED off the LLM to the deterministic engine
   //   (_shared/forecast-engine.mjs · Epley + Brzycki + OLS regression). No LLM route.
-  | 'sport_immersion_seed'    // Immersion · static sport-immersion seed
+  // sport_immersion_seed — RETIRED (Fable Fleet Sync). The tag was named for a
+  //   one-shot scenario seed, but bbf-agentic-immersion is a full multi-turn
+  //   in-character conversation → re-tagged immersion_roleplay_turn (FABLE tier).
   | 'premium_inflection_scripts' // Premium Audio Engine · short pre-baked biometric inflection cue variants (low-stakes narration)
   | 'convai_dynamic_brief'    // Live Mindset Coach · pre-session dynamic-variable packaging (low-stakes)
   // ── SONNET tier · vision + mid-complexity reasoning ───────────────
@@ -59,6 +66,9 @@ export type UseCase =
   | 'premium_session_script'    // Premium Audio Engine — full-session segmented narration plan (per-athlete, mid-complexity → Sonnet)
   | 'eagle_eye_alignment'       // BBF Eagle Eye — secondary-brain cross-check of daily readiness vs weekly-report coaching-cue buckets (per-client reasoned synthesis)
   | 'eagle_eye_intervention'    // BBF Eagle Eye — client-facing empathetic, intrinsic-motivation escalation script when a client stays dark on a re-engagement nudge
+  // ── FABLE tier · narrative continuity · character + register fidelity ──
+  | 'immersion_roleplay_turn'    // Immersion · live in-character roleplay turn (persona + register + closed error taxonomy)
+  | 'narrative_curriculum_bake'  // BBF Fables · offline serialized-episode bake (founder-reviewed before publish; never a live call)
   // ── OPUS tier · peak reasoning · safety-critical only ─────────────
   // parq_assessment — MIGRATED off the LLM to the deterministic SQL engine
   //   (public.bbf_parq_assess · standardized PAR-Q+ 2014). No LLM route; was
@@ -79,7 +89,9 @@ const MODEL_MAP: Record<UseCase, Model> = {
   i18n_translation:      MODELS.HAIKU,
   studio_voiceover_script: MODELS.HAIKU, // batch content-production VO script — low-stakes narration (CLAUDE.md §4 · margin protection)
   // forecast_1rm removed — now deterministic (see _shared/forecast-engine.mjs).
-  sport_immersion_seed:  MODELS.HAIKU,
+  // sport_immersion_seed removed — re-tagged immersion_roleplay_turn (FABLE tier).
+  immersion_roleplay_turn:   MODELS.FABLE, // live roleplay must hold character/register across 12 turns AND sessions — the narrative tier's home turf. Fail-open default + CEO-only route bound the risk.
+  narrative_curriculum_bake: MODELS.FABLE, // serialized curriculum fiction (recurring cast, arc continuity); offline bake, pending_review gate — zero live-latency exposure.
   kinematic_form_score:  MODELS.SONNET,
   novel_form_correction: MODELS.SONNET,
   onboarding_interview:  MODELS.SONNET,

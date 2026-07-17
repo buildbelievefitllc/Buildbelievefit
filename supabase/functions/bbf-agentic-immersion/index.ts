@@ -19,7 +19,16 @@
 //     suggested_replies: exactly two candidate next replies the athlete could say
 //     (A = simpler, B = more advanced), in the target language. [] when guided off.
 //
-// Request: { uid, scenario, scenario_key?, target_language, user_message,
+// v4 addition (Fable Fleet Sync · Persistent-Persona Campaign):
+//   • MODEL — re-tagged sport_immersion_seed → immersion_roleplay_turn on the
+//     router's new FABLE tier (claude-fable-5): multi-turn character/register
+//     continuity is the narrative tier's core competency.
+//   • persona? — an optional caller-supplied character card (name, role, register,
+//     backstory from the frontend scenario library). Threaded into the per-session
+//     system context so the SAME character meets the athlete turn after turn and
+//     session after session — never a fresh anonymous "native speaker".
+//
+// Request: { uid, scenario, scenario_key?, persona?, target_language, user_message,
 //            conversation_history?, session_id?, phase?, end?, guided?, admin_override? }
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
@@ -36,18 +45,20 @@ function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 }
 
-const MODEL              = routeAndLog('bbf-agentic-immersion', 'sport_immersion_seed');
+const MODEL              = routeAndLog('bbf-agentic-immersion', 'immersion_roleplay_turn');
 const MAX_TOKENS         = 1024;
 const EFFORT_DEFAULT     = 'high';
 const CLAUDE_TIMEOUT_MS  = 12000;
 const MAX_TURNS          = 12;
 const MAX_MSG_LEN        = 500;
+const MAX_PERSONA_LEN    = 900;
 
 const SYSTEM_PROMPT = [
   'You are the BBF Immersion Simulator — a roleplay engine that drops the athlete into an authentic immersive language scenario. The athlete is using this to build fluency in their target language. You play the role of a native speaker the athlete is interacting with — fully in character, using region-appropriate slang, idioms, and tone.',
   '',
   '# WHAT YOU RECEIVE',
   '- scenario — the situational context (e.g. "Ordering at a gym smoothie bar in São Paulo").',
+  '- character — (when present) YOUR persistent persona for this scenario: name, role, register, backstory. You ARE this exact person, every turn, every session. Keep their name, history, verbal tics, and formality level perfectly consistent — the athlete is building a real relationship with a recurring character, not meeting a stranger each time. Weave the backstory in naturally when relevant; never dump it.',
   '- target_language — the language the athlete is practicing (e.g. "es", "pt", "Spanish", "Portuguese").',
   '- user_message — what the athlete just said (in the target language, ideally — may contain errors).',
   '- conversation_history — prior turns of the same roleplay session, if any. Maintain continuity.',
@@ -234,7 +245,7 @@ serve(async (req: Request) => {
   let payload: any;
   try { payload = await req.json(); } catch (_) { return jsonResponse({ error: 'invalid_json' }, 400); }
 
-  const { uid, scenario, scenario_key, target_language, user_message, conversation_history, session_id, phase, end, guided, admin_override } = payload || {};
+  const { uid, scenario, scenario_key, persona, target_language, user_message, conversation_history, session_id, phase, end, guided, admin_override } = payload || {};
 
   if (admin_override === true) return jsonResponse(adminOverrideMock(), 200);
 
@@ -244,6 +255,7 @@ serve(async (req: Request) => {
 
   const safeMessage   = user_message.trim().slice(0, MAX_MSG_LEN);
   const safeScenario  = scenario.trim().slice(0, MAX_MSG_LEN);
+  const safePersona   = typeof persona === 'string' ? persona.trim().slice(0, MAX_PERSONA_LEN) : '';
   const languageLabel = normalizeLanguage(target_language || 'Spanish');
   const lang          = langCode(target_language || 'es');
   const history       = Array.isArray(conversation_history) ? conversation_history.slice(-MAX_TURNS * 2) : [];
@@ -253,7 +265,11 @@ serve(async (req: Request) => {
 
   const systemMessages = [
     { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-    { type: 'text', text: '# THIS SESSION\nScenario: ' + safeScenario + '\nTarget language: ' + languageLabel + '\nGuided scaffold mode: ' + (guided === true ? 'ON' : 'OFF') + '\nStay in character as a native speaker the athlete is interacting with in this scenario.' },
+    { type: 'text', text: '# THIS SESSION\nScenario: ' + safeScenario
+        + (safePersona ? '\nYour character (persistent — same person every session):\n' + safePersona : '')
+        + '\nTarget language: ' + languageLabel
+        + '\nGuided scaffold mode: ' + (guided === true ? 'ON' : 'OFF')
+        + '\nStay in character as ' + (safePersona ? 'this exact person' : 'a native speaker the athlete is interacting with in this scenario') + '.' },
   ];
   const cleanHistory = history.filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').map((m: any) => ({ role: m.role, content: String(m.content).slice(0, MAX_MSG_LEN) }));
   const messages = cleanHistory.concat([{ role: 'user', content: safeMessage }]);
