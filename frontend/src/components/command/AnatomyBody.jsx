@@ -1,56 +1,34 @@
 // src/components/command/AnatomyBody.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Coach Lab · Kinesiology Lab — THE ANATOMY ARENA mannequin.
+// Coach Lab · Anatomy Arena — the REGIONAL ZOOM canvas.
 //
-// A stylized front/back human figure on a 220×460 canvas. Each muscle group in
-// `muscles` renders as one or two symmetric ellipses grouped into a tappable
-// <g role="button"> target. The parent Arena drives the game; this component is
-// pure presentation + hit-testing:
-//   • disabled  — freeze taps during the reveal beat.
-//   • reveal    — { pickedId, correctId }: paint the correct region gold-green
-//                 and a wrong pick red so the miss is a teaching moment.
-//   • onPick(id)— fires on click / Enter / Space for the tapped muscle.
+// Renders one training-split lane (push / pull / legs) on its own tuned viewBox
+// so the muscles fill the frame. Every muscle is a <g role="button"> wrapping one
+// or two distinct, non-overlapping vector <path>s — the silhouette behind is
+// pointer-events:none, so a tap registers on EXACTLY the muscle path clicked
+// (no bounding-box bleed between neighbors).
 //
-// The silhouette is intentionally simple geometry (head circle, torso path,
-// capsule limbs) so it reads as a body without shipping a heavy illustration.
+// State (BBF signature palette, driven by CSS):
+//   • idle            — deep gray fill.
+//   • hover / focus   — gold outline hint.
+//   • is-correct      — the player nailed it → snaps to BBF Purple.
+//   • is-reveal       — the answer after a miss/timeout → flashes BBF Gold.
+//   • is-wrong        — the muscle the player tapped by mistake → red.
+// On reveal the correct muscle also gets a crisp Barlow Condensed on-body label.
 
-function Silhouette({ view }) {
-  // Same outline front & back; a faint centerline hints which side you're seeing.
+export default function AnatomyBody({ lane, onPick, disabled, reveal }) {
+  if (!lane) return null;
   return (
-    <g className="kl-anat-body" aria-hidden="true">
-      <circle cx="110" cy="36" r="19" />
-      <rect x="100" y="52" width="20" height="46" rx="8" />
-      {/* torso: shoulders → waist → hips */}
-      <path d="M66,96 L154,96 L148,150 L142,198 L148,240 Q110,256 72,240 L78,198 L72,150 Z" />
-      {/* arms */}
-      <rect x="48" y="104" width="18" height="140" rx="9" transform="rotate(4 57 174)" />
-      <rect x="154" y="104" width="18" height="140" rx="9" transform="rotate(-4 163 174)" />
-      {/* pelvis block bridging torso → legs */}
-      <rect x="72" y="228" width="76" height="38" rx="15" />
-      {/* legs */}
-      <rect x="76" y="240" width="26" height="196" rx="13" transform="rotate(1.5 89 338)" />
-      <rect x="118" y="240" width="26" height="196" rx="13" transform="rotate(-1.5 131 338)" />
-      {/* orientation cue */}
-      {view === 'front'
-        ? <line x1="110" y1="100" x2="110" y2="236" className="kl-anat-mid" />
-        : <line x1="110" y1="98" x2="110" y2="240" className="kl-anat-spine" />}
-    </g>
-  );
-}
+    <svg viewBox={lane.viewBox} className="kl-anat-svg" role="group" aria-label={`${lane.id} muscle map`}>
+      <g className="kl-anat-body" aria-hidden="true">
+        {lane.head ? <circle cx={lane.head.cx} cy={lane.head.cy} r={lane.head.r} /> : null}
+        {lane.silhouette.map((d, i) => <path key={i} d={d} />)}
+      </g>
 
-export default function AnatomyBody({ view, muscles, onPick, disabled, reveal }) {
-  return (
-    <svg
-      viewBox="0 0 220 460"
-      className="kl-anat-svg"
-      role="group"
-      aria-label={view === 'front' ? 'Front of the body' : 'Back of the body'}
-    >
-      <Silhouette view={view} />
-      {muscles.map((m) => {
+      {lane.muscles.map((m) => {
         let state = '';
         if (reveal) {
-          if (m.id === reveal.correctId) state = ' is-correct';
+          if (m.id === reveal.correctId) state = reveal.pickedId === reveal.correctId ? ' is-correct' : ' is-reveal';
           else if (m.id === reveal.pickedId) state = ' is-wrong';
           else state = ' is-dim';
         }
@@ -68,16 +46,10 @@ export default function AnatomyBody({ view, muscles, onPick, disabled, reveal })
               if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(m.id); }
             }}
           >
-            {m.shapes.map((s, i) => (
-              <ellipse
-                key={i}
-                cx={s.cx}
-                cy={s.cy}
-                rx={s.rx}
-                ry={s.ry}
-                transform={s.rot ? `rotate(${s.rot} ${s.cx} ${s.cy})` : undefined}
-              />
-            ))}
+            {m.paths.map((d, i) => <path key={i} className="kl-anat-path" d={d} />)}
+            {reveal && m.id === reveal.correctId ? (
+              <text className="kl-anat-lbl" x={m.l[0]} y={m.l[1]} textAnchor="middle">{m.name.toUpperCase()}</text>
+            ) : null}
           </g>
         );
       })}

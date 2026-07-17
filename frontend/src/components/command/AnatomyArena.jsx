@@ -1,24 +1,26 @@
 // src/components/command/AnatomyArena.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// Coach Lab · Kinesiology Lab — THE ANATOMY ARENA (game #3).
+// Coach Lab · Kinesiology Lab — THE ANATOMY ARENA (Exploded Regional Zoom).
 //
-// "Find the <muscle> on the body." A round of 8 prompts; each names a muscle and
-// the player must locate + TAP it on the front/back mannequin. Knowing which SIDE
-// a muscle lives on is part of the skill, so the front↔back toggle is the player's
-// to work — on reveal we snap to the correct side and light the region so a miss
-// still teaches. Every answer bumps the SAME 1-5 SRS box the text decks use
-// (shared muscle ids), so locating the biceps reinforces "biceps → elbow flexion".
+// TIER 1 — TRAINING SPLIT GATE: the player first picks a lane (PUSH · PULL ·
+//          LEGS). Choosing a lane hides every muscle outside it, clearing the
+//          screen so only the relevant region remains.
+// TIER 2 — REGIONAL ZOOM: the chosen lane loads its own zoomed vector canvas
+//          (AnatomyBody) where every muscle is a distinct, non-overlapping path.
+// TIER 3 — SCORING LOOP: "Locate the <muscle>" ×5 in a row, curriculum-grade
+//          (heads: Rectus Femoris, Sternal Head, Lateral Head of Triceps …).
+//          Each answer bumps the shared 1-5 SRS box; a miss reveals the answer
+//          in BBF Gold with an on-body label so it still teaches.
 //
-// Self-contained: mounts already "playing" (the select card is the start button),
-// runs to a results card, and hands control back via onExit — which lets the Lab
-// re-read the mastery store so the bar reflects freshly banked reps.
+// Self-contained: mounts at the gate, runs a lane, and hands back via onExit —
+// which lets the Lab re-read the mastery store so the bar reflects fresh reps.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ANATOMY_MUSCLES } from './anatomyData.js';
+import { TRAINING_SPLITS, SPLIT_ORDER } from './anatomyData.js';
 import { bumpSrs } from './kinesiologyData.js';
 import AnatomyBody from './AnatomyBody.jsx';
 
-const ROUND = 8;          // prompts per arena run
+const ROUND = 5;          // locate 5 muscles in a row
 const DURATION = 20;      // seconds per prompt (locating takes longer than recall)
 
 function shuffle(arr) {
@@ -30,23 +32,31 @@ function shuffle(arr) {
   return a;
 }
 
-function buildRound() {
-  return shuffle(ANATOMY_MUSCLES).slice(0, Math.min(ROUND, ANATOMY_MUSCLES.length));
+function buildRound(laneId) {
+  const pool = TRAINING_SPLITS[laneId]?.muscles || [];
+  return shuffle(pool).slice(0, Math.min(ROUND, pool.length));
 }
 
 export default function AnatomyArena({ L, onExit }) {
-  const [questions, setQuestions] = useState(() => buildRound());
+  const [phase, setPhase] = useState('gate');    // gate | playing | results
+  const [laneId, setLaneId] = useState(null);
+  const [questions, setQuestions] = useState([]);
   const [idx, setIdx] = useState(0);
-  const [view, setView] = useState('front');
-  const [reveal, setReveal] = useState(null);   // { pickedId, correctId } | null
+  const [reveal, setReveal] = useState(null);    // { pickedId, correctId } | null
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [timeLeft, setTimeLeft] = useState(DURATION);
-  const [phase, setPhase] = useState('playing'); // playing | results
   const timerRef = useRef(null);
 
+  const lane = laneId ? TRAINING_SPLITS[laneId] : null;
   const current = questions[idx] || null;
-  const shown = ANATOMY_MUSCLES.filter((m) => m.view === view);
+
+  const startLane = (id) => {
+    setLaneId(id);
+    setQuestions(buildRound(id));
+    setIdx(0); setReveal(null); setScore(0); setStreak(0); setTimeLeft(DURATION);
+    setPhase('playing');
+  };
 
   const doReveal = useCallback((pickedId) => {
     if (reveal || !current) return;
@@ -55,7 +65,6 @@ export default function AnatomyArena({ L, onExit }) {
     if (correct) { setScore((s) => s + 1); setStreak((s) => s + 1); }
     else { setStreak(0); }
     bumpSrs(current.id, correct);
-    setView(current.view);                       // snap to the correct side to teach
     setReveal({ pickedId, correctId: current.id });
   }, [reveal, current]);
 
@@ -81,12 +90,31 @@ export default function AnatomyArena({ L, onExit }) {
     setIdx((i) => i + 1); setReveal(null); setTimeLeft(DURATION);
   };
 
-  const again = () => {
-    setQuestions(buildRound());
-    setIdx(0); setReveal(null); setView('front');
-    setScore(0); setStreak(0); setTimeLeft(DURATION);
-    setPhase('playing');
-  };
+  const toGate = () => { setPhase('gate'); setLaneId(null); setQuestions([]); };
+
+  // ── Tier 1 · Training-split gate ──
+  if (phase === 'gate') {
+    return (
+      <div className="kl-anat" data-testid="kl-anat-gate">
+        <p className="kl-anat-gate-lead">{L.gateLead}</p>
+        <div className="kl-anat-lanes">
+          {SPLIT_ORDER.map((id) => (
+            <button
+              key={id}
+              type="button"
+              className={`kl-anat-lane kl-anat-lane--${id}`}
+              onClick={() => startLane(id)}
+              data-testid={`kl-lane-${id}`}
+            >
+              <span className="kl-anat-lane-name">{L[`lane_${id}`]}</span>
+              <span className="kl-anat-lane-sub">{L[`lane_${id}_sub`]}</span>
+              <span className="kl-anat-lane-go">{L.start} →</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   // ── Results ──
   if (phase === 'results') {
@@ -101,9 +129,11 @@ export default function AnatomyArena({ L, onExit }) {
           <div className="kl-results-stats">
             <div><span className="kl-rs-num">{score}/{questions.length}</span><span className="kl-rs-lbl">{L.score}</span></div>
             <div><span className="kl-rs-num">{pct}%</span><span className="kl-rs-lbl">{L.accuracy}</span></div>
+            <div><span className="kl-rs-num">{L[`lane_${laneId}`]}</span><span className="kl-rs-lbl">{L.laneLabel}</span></div>
           </div>
           <div className="kl-results-actions">
-            <button type="button" className="kl-btn kl-btn--gold" onClick={again} data-testid="kl-anat-again">{L.playAgain}</button>
+            <button type="button" className="kl-btn kl-btn--gold" onClick={() => startLane(laneId)} data-testid="kl-anat-again">{L.playAgain}</button>
+            <button type="button" className="kl-btn" onClick={toGate} data-testid="kl-anat-changesplit">{L.changeSplit}</button>
             <button type="button" className="kl-btn" onClick={onExit}>{L.switchMode}</button>
           </div>
         </div>
@@ -111,13 +141,13 @@ export default function AnatomyArena({ L, onExit }) {
     );
   }
 
-  // ── Playing ──
+  // ── Tier 2 + 3 · Regional zoom + locate loop ──
   const revealCorrect = reveal && reveal.pickedId === reveal.correctId;
   return (
-    <div className="kl-anat" data-testid="kl-anat-playing" data-target={current.id} data-target-view={current.view}>
+    <div className="kl-anat" data-testid="kl-anat-playing" data-lane={laneId} data-target={current.id}>
       <div className="kl-hud">
         <span className="kl-hud-q">{L.round} {idx + 1} <span className="kl-hud-of">{L.of} {questions.length}</span></span>
-        <span className="kl-hud-cat">{L.modeAnatomy}</span>
+        <span className="kl-hud-cat">{L[`lane_${laneId}`]}</span>
         <span className="kl-hud-score">{L.score} {score} · {L.streak} {streak}🔥</span>
       </div>
       <div className="kl-timer"><span className="kl-timer-fill" style={{ width: `${(timeLeft / DURATION) * 100}%` }} /></div>
@@ -127,31 +157,8 @@ export default function AnatomyArena({ L, onExit }) {
         <span className="kl-anat-target">{current.name}</span>
       </h3>
 
-      <div className="kl-anat-views" role="tablist" aria-label="Body side">
-        {['front', 'back'].map((v) => (
-          <button
-            key={v}
-            type="button"
-            role="tab"
-            aria-selected={view === v}
-            className={`kl-anat-view${view === v ? ' is-active' : ''}`}
-            onClick={() => { if (!reveal) setView(v); }}
-            disabled={!!reveal}
-            data-testid={`kl-anat-view-${v}`}
-          >
-            {v === 'front' ? L.front : L.back}
-          </button>
-        ))}
-      </div>
-
       <div className="kl-anat-stage">
-        <AnatomyBody
-          view={view}
-          muscles={shown}
-          onPick={doReveal}
-          disabled={!!reveal}
-          reveal={reveal}
-        />
+        <AnatomyBody lane={lane} onPick={doReveal} disabled={!!reveal} reveal={reveal} />
         {!reveal ? <p className="kl-anat-hint">{L.tapHint}</p> : null}
       </div>
 

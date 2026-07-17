@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { LangProvider } from '../../src/context/LangContext.jsx';
+import '../../src/components/command/coachLab.css';
 import AuthContext from '../../src/context/AuthContext.jsx';
 import { RosterProvider } from '../../src/components/command/RosterProvider.jsx';
 import ClientHub from '../../src/components/command/ClientHub.jsx';
