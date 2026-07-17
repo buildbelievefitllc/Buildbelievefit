@@ -38,9 +38,9 @@ const SENTENCES = {
 };
 
 const TP_STR = {
-  en: { kicker: 'The Path · Syntax', title: 'Build the sentence', drop: 'Drag the chips here — in order', check: 'Check', next: 'Next sentence', reset: 'Reset', hear: '🔊 Hear it', correct: '✓ Correct — locked in.', wrong: '✗ Not quite — reset and rebuild.', doneTitle: 'Path complete', done: (c, t) => `${c}/${t} sentences correct — logged to your ledger.`, sceneKicker: (d) => `BBF Fables · Day ${d}`, hearScene: '🔊 Hear the scene', showGloss: 'Show English', hideGloss: 'Hide English', vocabLabel: 'Today’s vocabulary', pilotTag: 'Pilot · in review' },
-  es: { kicker: 'La Senda · Sintaxis', title: 'Construye la frase', drop: 'Arrastra las fichas aquí — en orden', check: 'Comprobar', next: 'Siguiente frase', reset: 'Reiniciar', hear: '🔊 Escúchala', correct: '✓ Correcto — asegurado.', wrong: '✗ Casi — reinicia y reconstruye.', doneTitle: 'Senda completa', done: (c, t) => `${c}/${t} frases correctas — registrado en tu historial.`, sceneKicker: (d) => `Fábulas BBF · Día ${d}`, hearScene: '🔊 Escucha la escena', showGloss: 'Mostrar inglés', hideGloss: 'Ocultar inglés', vocabLabel: 'Vocabulario de hoy', pilotTag: 'Piloto · en revisión' },
-  pt: { kicker: 'A Trilha · Sintaxe', title: 'Monte a frase', drop: 'Arraste as fichas aqui — em ordem', check: 'Verificar', next: 'Próxima frase', reset: 'Reiniciar', hear: '🔊 Ouça', correct: '✓ Correto — garantido.', wrong: '✗ Quase — reinicie e remonte.', doneTitle: 'Trilha completa', done: (c, t) => `${c}/${t} frases corretas — registrado no seu histórico.`, sceneKicker: (d) => `Fábulas BBF · Dia ${d}`, hearScene: '🔊 Ouça a cena', showGloss: 'Mostrar inglês', hideGloss: 'Ocultar inglês', vocabLabel: 'Vocabulário de hoje', pilotTag: 'Piloto · em revisão' },
+  en: { kicker: 'The Path · Syntax', title: 'Build the sentence', drop: 'Drag the chips here — in order', check: 'Check', next: 'Next sentence', reset: 'Reset', hear: '🔊 Hear it', correct: '✓ Correct — locked in.', wrong: '✗ Not quite — reset and rebuild.', doneTitle: 'Path complete', done: (c, t) => `${c}/${t} sentences correct — logged to your ledger.`, sceneKicker: (d) => `BBF Fables · Day ${d}`, hearScene: '🔊 Hear the scene', showGloss: 'Show English', hideGloss: 'Hide English', vocabLabel: 'Today’s vocabulary', pilotTag: 'Pilot · in review', liveScene: '💬 Step into this scene' },
+  es: { kicker: 'La Senda · Sintaxis', title: 'Construye la frase', drop: 'Arrastra las fichas aquí — en orden', check: 'Comprobar', next: 'Siguiente frase', reset: 'Reiniciar', hear: '🔊 Escúchala', correct: '✓ Correcto — asegurado.', wrong: '✗ Casi — reinicia y reconstruye.', doneTitle: 'Senda completa', done: (c, t) => `${c}/${t} frases correctas — registrado en tu historial.`, sceneKicker: (d) => `Fábulas BBF · Día ${d}`, hearScene: '🔊 Escucha la escena', showGloss: 'Mostrar inglés', hideGloss: 'Ocultar inglés', vocabLabel: 'Vocabulario de hoy', pilotTag: 'Piloto · en revisión', liveScene: '💬 Vive esta escena' },
+  pt: { kicker: 'A Trilha · Sintaxe', title: 'Monte a frase', drop: 'Arraste as fichas aqui — em ordem', check: 'Verificar', next: 'Próxima frase', reset: 'Reiniciar', hear: '🔊 Ouça', correct: '✓ Correto — garantido.', wrong: '✗ Quase — reinicie e remonte.', doneTitle: 'Trilha completa', done: (c, t) => `${c}/${t} frases corretas — registrado no seu histórico.`, sceneKicker: (d) => `Fábulas BBF · Dia ${d}`, hearScene: '🔊 Ouça a cena', showGloss: 'Mostrar inglês', hideGloss: 'Ocultar inglês', vocabLabel: 'Vocabulário de hoje', pilotTag: 'Piloto · em revisão', liveScene: '💬 Viva esta cena' },
 };
 
 // Validate the RPC's drill payload down to The Path's exact chip contract —
@@ -61,7 +61,7 @@ function scramble(words) {
   return out.map((w, i) => ({ id: `${w}-${i}`, word: w }));
 }
 
-export default function ThePath({ language = 'es' }) {
+export default function ThePath({ language = 'es', onLiveScene = null }) {
   const { lang } = useLang();
   const { logModuleProgress, curriculum } = useLanguageLab(); // Guided Track dose counter (inert off-provider)
   const { narrate } = useNarrator();              // 🔊 routes through the global engine toggle
@@ -158,6 +158,13 @@ export default function ThePath({ language = 'es' }) {
         <button type="button" className="tp-btn tp-btn--ghost" onClick={() => setShowGloss((g) => !g)} data-testid="path-scene-gloss">
           {showGloss ? tr.hideGloss : tr.showGloss}
         </button>
+        {/* THE SHARED-UNIVERSE PAYOFF — read the scene, then go LIVE it: jumps
+            to Immersion with the persona who appears in today's episode. */}
+        {onLiveScene ? (
+          <button type="button" className="tp-btn" onClick={() => onLiveScene(day)} data-testid="path-live-scene">
+            {tr.liveScene}
+          </button>
+        ) : null}
       </div>
       {showGloss ? <p className="tp-scene-gloss">{episode.scene_gloss}</p> : null}
       {Array.isArray(episode.target_vocab) && episode.target_vocab.length ? (

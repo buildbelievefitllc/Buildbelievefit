@@ -51,7 +51,9 @@ export function useNarrator() {
     try { warmUpAudioPlayback(); } catch { /* noop */ }
 
     if (narrationEngine === 'natural') {
-      if (ttsSupported) { speakScript(cue, { onEnd, rate }); return; }
+      // Thread the TARGET language through — the premium voice must speak
+      // es/pt natively, never read Spanish with an English voice.
+      if (ttsSupported) { speakScript(cue, { onEnd, rate, lang }); return; }
       // No Web Speech on this browser → don't leave the button dead; use Akeem.
     }
     playAkeem(cue, lang, clipKey, onEnd, onError);

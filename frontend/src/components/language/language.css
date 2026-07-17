@@ -242,6 +242,45 @@
 .tp-scene-vocab { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem; }
 .tp-vocab-chip { font-size: .78rem; color: #f5cf60; background: rgba(106,13,173,.28); border: 1px solid rgba(245,200,0,.3); border-radius: 999px; padding: .2rem .6rem; }
 
+/* ── THE GRAMMAR CLINIC (weak-cluster targeted micro-drills) ─────────────────── */
+.cl-shell { padding: 1rem 1.1rem; border-radius: 16px; border: 1px solid rgba(106,13,173,.5); background: linear-gradient(135deg, rgba(106,13,173,.22), rgba(9,9,9,.55)); }
+.cl-loading { color: rgba(249,245,255,.55); font-size: .9rem; }
+.cl-rx { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .9rem; padding: .55rem .7rem; border-radius: 10px; border: 1px solid rgba(245,200,0,.3); background: rgba(9,9,9,.35); }
+.cl-rx-label { font-family: var(--hb); font-size: .66rem; letter-spacing: 1.5px; text-transform: uppercase; color: #f5cf60; }
+.cl-rx-chips { display: flex; gap: .35rem; flex-wrap: wrap; }
+.cl-rx-chip { font-size: .74rem; color: #fff; background: rgba(106,13,173,.45); border: 1px solid rgba(245,200,0,.35); border-radius: 999px; padding: .15rem .6rem; }
+.cl-meta { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; margin-bottom: .5rem; }
+.cl-cluster-tag { font-family: var(--hb); font-size: .7rem; letter-spacing: 1.5px; text-transform: uppercase; color: #f5cf60; }
+.cl-progress { font-size: .78rem; color: rgba(249,245,255,.5); }
+.cl-q { color: rgba(244,238,251,.92); font-size: 1.05rem; line-height: 1.5; margin-bottom: .8rem; }
+.cl-options { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.cl-option { font-family: var(--hb); font-size: .95rem; letter-spacing: .5px; color: #fff; background: linear-gradient(135deg, #6a0dad, #4a0979); border: 1px solid rgba(245,200,0,.35); border-radius: 999px; padding: .5rem 1.1rem; cursor: pointer; }
+.cl-option:disabled { cursor: default; }
+.cl-option.is-right { background: rgba(74,222,128,.2); border-color: #4ade80; color: #4ade80; }
+.cl-option.is-wrong { background: rgba(255,93,93,.15); border-color: #ff5d5d; color: #ff5d5d; }
+.cl-option.is-dim { opacity: .45; }
+.cl-verdict { border-radius: 10px; padding: .6rem .8rem; margin-bottom: .8rem; border: 1px solid rgba(255,255,255,.15); background: rgba(9,9,9,.35); font-size: .9rem; }
+.cl-verdict.is-correct strong { color: #4ade80; }
+.cl-verdict.is-wrong strong { color: #ff5d5d; }
+.cl-why { color: rgba(249,245,255,.7); margin: .35rem 0 .5rem; line-height: 1.45; }
+.cl-done { color: #4ade80; font-size: .95rem; margin-bottom: .8rem; }
+
+/* ── THE ECHO CHAMBER (shadowing dojo) ───────────────────────────────────────── */
+.ec-shell { padding: 1rem 1.1rem; border-radius: 16px; border: 1px solid rgba(106,13,173,.5); background: linear-gradient(135deg, rgba(106,13,173,.22), rgba(9,9,9,.55)); }
+.ec-progress { font-size: .78rem; color: rgba(249,245,255,.5); margin-bottom: .6rem; }
+.ec-line { display: flex; flex-wrap: wrap; gap: .35rem .45rem; padding: .8rem .9rem; border-radius: 12px; border: 2px dashed rgba(245,200,0,.45); background: rgba(9,9,9,.35); margin-bottom: .7rem; }
+.ec-word { font-family: var(--hb); font-size: 1.05rem; letter-spacing: .5px; color: rgba(244,238,251,.9); }
+.ec-word.is-hit { color: #4ade80; }
+.ec-word.is-miss { color: #ff5d5d; }
+.ec-score { font-size: .9rem; color: #f5cf60; margin-bottom: .6rem; }
+.ec-score.is-pass { color: #4ade80; }
+.ec-interim { font-size: .85rem; font-style: italic; color: rgba(249,245,255,.55); margin-bottom: .6rem; }
+.ec-notice { font-size: .82rem; color: #ffb547; background: rgba(255,181,71,.08); border: 1px solid rgba(255,181,71,.35); border-radius: 8px; padding: .45rem .7rem; margin-bottom: .6rem; display: block; }
+.ec-notice.is-error { cursor: pointer; text-align: left; width: 100%; }
+.ec-actions { flex-wrap: wrap; }
+.ec-done { color: #4ade80; font-size: .95rem; margin-bottom: .8rem; }
+.ec-done-note { color: rgba(249,245,255,.55); font-size: .82rem; margin: .3rem 0 0; }
+
 /* ── GUIDED TRACK (Curriculum Engine daily checklist strip) ──────────────────── */
 .gt-shell {
   padding: .85rem 1.1rem; border-radius: 16px;

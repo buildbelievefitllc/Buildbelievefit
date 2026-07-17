@@ -33,7 +33,7 @@
 // (a new conversation with a different person). Passing a `scenario` prop pins
 // legacy fixed-scenario mode: no picker, no persona.
 //
-// @param {{ uid?:string, scenario?:string, scenarioKey?:string, targetLanguage?:'es'|'pt', phase?:number, scaffold?:boolean }} props
+// @param {{ uid?:string, scenario?:string, scenarioKey?:string, initialSceneKey?:string, targetLanguage?:'es'|'pt', phase?:number, scaffold?:boolean }} props
 
 import { useEffect, useRef, useState } from 'react';
 import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from '../../lib/supabaseClient.js';
@@ -73,15 +73,16 @@ async function callImmersion(body) {
   }
 }
 
-export default function ImmersionWrapper({ uid, scenario, scenarioKey, targetLanguage = 'es', phase = 1, scaffold = false }) {
+export default function ImmersionWrapper({ uid, scenario, scenarioKey, initialSceneKey, targetLanguage = 'es', phase = 1, scaffold = false }) {
   const { ls, lang, clusters, targetName } = useLangUiStr();
   const { user } = useAuth();
   const effUid = uid || user?.username || user?.id || '';
   const target = targetLanguage === 'pt' ? 'pt' : 'es';
 
   // Legacy fixed mode (scenario prop) vs. the campaign picker (the default).
+  // initialSceneKey deep-links a picker scene (The Path's "step into the scene").
   const fixedMode = typeof scenario === 'string' && scenario.trim().length > 0;
-  const [sceneKey, setSceneKey] = useState(DEFAULT_SCENARIO_KEY);
+  const [sceneKey, setSceneKey] = useState(initialSceneKey || DEFAULT_SCENARIO_KEY);
   const scene = fixedMode ? null : getScenario(sceneKey);
   const scen = fixedMode ? scenario.trim() : scene.scenario;
   const partner = fixedMode ? '' : personaName(scene, target);

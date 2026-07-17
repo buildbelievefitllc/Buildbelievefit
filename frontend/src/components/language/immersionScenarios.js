@@ -146,6 +146,15 @@ export function getScenario(key) {
   return IMMERSION_SCENARIOS.find((s) => s.key === key) || IMMERSION_SCENARIOS[0];
 }
 
+// "STEP INTO THE SCENE" — maps a Fables curriculum day to the Immersion scene
+// whose persona appears in that day's episode (the shared-universe payoff:
+// read the scene in The Path, then live it in roleplay). Days without a
+// dedicated set piece check in with the coach — she runs the floor.
+const DAY_SCENE_MAP = { 1: 'front-desk', 5: 'juice-bar', 9: 'market' };
+export function sceneForDay(day) {
+  return DAY_SCENE_MAP[Number(day)] || 'coach-checkin';
+}
+
 // The compact persona block the engine threads into its per-session system
 // context (bbf-agentic-immersion v4 `persona`). Language-keyed — the ES and PT
 // casts are parallel characters, not translations of each other.

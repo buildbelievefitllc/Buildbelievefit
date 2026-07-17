@@ -35,9 +35,12 @@ import VideoVault from './VideoVault.jsx';
 import ImmersionWrapper from './ImmersionWrapper.jsx';
 import VoiceStudioLab from './VoiceStudioLab.jsx';
 import GuidedTrack from './GuidedTrack.jsx';
+import EchoChamber from './EchoChamber.jsx';
+import GrammarClinic from './GrammarClinic.jsx';
 import PimsleurAudioLab from '../command/PimsleurAudioLab.jsx';
 import { TabVoiceStudio } from '../command/AdminLanguageRoadmap.jsx';
 import { LanguageLabProvider, useLanguageLab } from './LanguageLabContext.jsx';
+import { sceneForDay } from './immersionScenarios.js';
 import { useLangUiStr } from './languageStrings.js';
 import { useState } from 'react';
 import './language.css';
@@ -60,11 +63,13 @@ const SCAFFOLD_THROUGH_DAY = 14;
 const MODES = [
   { id: 'forge', label: '⚒ Vocab Forge' },
   { id: 'path', label: '⛰ The Path' },
+  { id: 'echo', label: '🪞 Echo Chamber' },
   { id: 'dojo', label: '🥋 Audio Dojo' },
   { id: 'pimsleur', label: '🎧 Pimsleur Lab' },
   { id: 'voice', label: '🎙 Voice Studio' },
   { id: 'vault', label: '🎞 Video Vault' },
   { id: 'immersion', label: '💬 Immersion' },
+  { id: 'clinic', label: '🩺 Grammar Clinic' },
   { id: 'studio', label: '🧪 Audio Lab' },
 ];
 
@@ -72,9 +77,17 @@ function LabHub() {
   const { targetName } = useLangUiStr();
   const { target, setTarget, narrationEngine, setNarrationEngine, curriculum } = useLanguageLab();
   const [mode, setMode] = useState('forge');
+  // "Step into the scene" deep-link: The Path hands over the day, we open the
+  // Immersion tab pre-set to that day's persona (shared-universe crossover).
+  const [immersionScene, setImmersionScene] = useState(null);
 
   // Early curriculum days (or no track data yet) → the Immersion module scaffolds.
   const scaffold = !curriculum.ready || curriculum.day <= SCAFFOLD_THROUGH_DAY;
+
+  const liveScene = (day) => {
+    setImmersionScene(sceneForDay(day));
+    setMode('immersion');
+  };
 
   return (
     <div className="lm-panel">
@@ -142,12 +155,14 @@ function LabHub() {
       {/* key={target} → a language swap fully remounts the active view */}
       <div className="lm-stage" key={`${mode}-${target}`}>
         {mode === 'forge' ? <VocabFlashcard language={target} /> : null}
-        {mode === 'path' ? <ThePath language={target} /> : null}
+        {mode === 'path' ? <ThePath language={target} onLiveScene={liveScene} /> : null}
+        {mode === 'echo' ? <EchoChamber language={target} /> : null}
         {mode === 'dojo' ? <AudioDojo language={target} /> : null}
         {mode === 'pimsleur' ? <PimsleurAudioLab /> : null}
         {mode === 'voice' ? <TabVoiceStudio /> : null}
         {mode === 'vault' ? <VideoVault language={target} /> : null}
-        {mode === 'immersion' ? <ImmersionWrapper targetLanguage={target} scaffold={scaffold} /> : null}
+        {mode === 'immersion' ? <ImmersionWrapper targetLanguage={target} scaffold={scaffold} initialSceneKey={immersionScene} /> : null}
+        {mode === 'clinic' ? <GrammarClinic language={target} /> : null}
         {mode === 'studio' ? <VoiceStudioLab /> : null}
       </div>
     </div>

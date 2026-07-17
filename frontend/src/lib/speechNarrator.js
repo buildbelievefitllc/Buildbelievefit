@@ -45,13 +45,18 @@ export function pickPremiumVoice(langPrefix = 'en') {
 // Speak one script. Cancels anything already playing (single-track contract).
 // Returns the utterance (identity token for onEnd guards), or null when TTS is
 // unavailable / the text is empty.
-export function speakScript(text, { onEnd, rate = 1, pitch = 1 } = {}) {
+// `lang` (e.g. 'es' | 'pt') selects a premium voice in THAT language — without
+// it the narrator reads Spanish/Portuguese with an English voice (the Language
+// Lab bug the Fable Fleet Sync fixed). Omitting `lang` keeps the English
+// default for legacy callers (ResearchLibrary).
+export function speakScript(text, { onEnd, rate = 1, pitch = 1, lang } = {}) {
   const script = String(text || '').trim();
   if (!ttsSupported || !script) return null;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(script);
-  const voice = pickPremiumVoice();
+  const voice = pickPremiumVoice(lang || 'en');
   if (voice) { u.voice = voice; u.lang = voice.lang; }
+  else if (lang) { u.lang = lang; } // no local voice in that language — let the engine resolve the tag
   u.rate = rate;
   u.pitch = pitch;
   if (onEnd) { u.onend = onEnd; u.onerror = onEnd; }
