@@ -25,6 +25,7 @@ import {
   GOALS, GENDERS, LEVELS, LOCATIONS, DAY_OPTIONS, PACES, SPLITS, INTENSIFIERS, PRESETS,
 } from './generatorEngine.js';
 import { resolveVideoId } from './exerciseVideos.js';
+import { resolveGifUrl } from './exerciseGifs.js';
 import FormDemoPlayer from './FormDemoPlayer.jsx';
 import { localizeMuscle } from '../../lib/trainingI18n.js';
 import { fetchRoster, assignWorkout, toErrorMessage } from '../../lib/rosterApi.js';
@@ -498,13 +499,14 @@ function GeneratorOutput({ result }) {
             <div className="gen-ex"><div className="gen-exname">{tr.rest}</div></div>
           ) : day.exercises.map((ex, ei) => {
             const vid = resolveVideoId(ex.n, lang);
+            const gif = resolveGifUrl(ex.n);
             const exRx = ex.rx || day.rx;
             return (
               <div className="gen-ex" key={ex.n + ei}>
-                {vid ? (
-                  /* Inline tap-to-play embed — same player skin as the Program
-                     grid; .is-playing spans the roster row (session retention). */
-                  <FormDemoPlayer videoId={vid} title={tr.formDemo(ex.n)} />
+                {vid || gif ? (
+                  /* Dual-Media inline player — same skin as the Program grid;
+                     .is-playing spans the roster row (session retention). */
+                  <FormDemoPlayer videoId={vid} gifUrl={gif} title={tr.formDemo(ex.n)} />
                 ) : null}
                 <div className="gen-exmain">
                   <div className="gen-exname">{ex.n}{ex.fst7 ? <span className="gen-fst7">FST-7</span> : null}</div>

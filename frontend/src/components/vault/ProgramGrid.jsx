@@ -46,6 +46,7 @@ import { useLang } from '../../context/LangContext.jsx';
 import { localizeDay, localizeFocus } from '../../lib/trainingI18n.js';
 import { exKey, useLastWeights, readDayEntries, writeDayEntry, syncSessionToCloud } from './programApi.js';
 import { resolveVideoId } from './exerciseVideos.js';
+import { resolveGifUrl } from './exerciseGifs.js';
 import FormDemoPlayer from './FormDemoPlayer.jsx';
 import CoachAudioButton from './CoachAudioButton.jsx';
 import CoachVoiceNote from './CoachVoiceNote.jsx';
@@ -521,6 +522,9 @@ function ExerciseCard({ uid, dayIdx, index, ex, rpeCap, tr }) {
   // authorized video map), localized to the active language with EN fallback.
   // A substituted movement resolves too — every substitute is a VIDEO_MAP key.
   const videoId = resolveVideoId(ex.name, lang);
+  // Quick-view loop from the ingested ./videos library (manifest-driven; null
+  // until the movement is mapped — the player renders its branded fall-back).
+  const gifUrl = resolveGifUrl(ex.name);
   // Auto-regulation provenance for this slot (set by applyAutoRegulation).
   const auto = ex._autoreg || null;
 
@@ -600,11 +604,12 @@ function ExerciseCard({ uid, dayIdx, index, ex, rpeCap, tr }) {
               })()}
             </div>
 
-            {/* Form-demo video — tap-to-play INLINE embed inside the execution
-                card (session retention: the athlete never leaves the app). Only
-                rendered when the movement resolves to a mapped video. */}
-            {videoId ? (
-              <FormDemoPlayer videoId={videoId} title={tr.watchDemo(ex.name)} label={tr.formDemo} />
+            {/* Dual-Media form demo — 🎬 inline video summary + 🖼️ quick-view
+                loop inside the execution card (session retention: the athlete
+                never leaves the app). Rendered when the movement resolves to
+                EITHER mapped medium. */}
+            {videoId || gifUrl ? (
+              <FormDemoPlayer videoId={videoId} gifUrl={gifUrl} title={tr.watchDemo(ex.name)} label={tr.formDemo} />
             ) : null}
           </div>
 

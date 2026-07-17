@@ -94,6 +94,11 @@ function normalize(name) {
   return out.filter((t, i) => t !== out[i - 1]); // dedupe adjacent
 }
 
+// Shared normalizer — also consumed by exerciseGifs.js so the GIF quick-view
+// resolves plan names through the EXACT same token rules as the video map
+// (one normalizer, two media indexes — no drift between the two resolvers).
+export { normalize as normalizeExerciseName };
+
 // Precomputed token-sets for the map keys (built once).
 const KEY_INDEX = Object.keys(VIDEO_MAP).map((key) => ({ key, toks: normalize(key) }));
 

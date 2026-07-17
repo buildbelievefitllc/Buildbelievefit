@@ -220,6 +220,40 @@
   padding: .2rem .5rem; border-radius: 999px;
 }
 
+/* Dual-Media layout — 🎬 video summary + 🖼️ quick-view GIF on one execution
+   card (FormDemoPlayer). The chip row appears only when BOTH media resolve, so
+   pre-ingestion cards stay pixel-identical to the legacy single-media card. */
+.pg-dualmedia { margin: .9rem 0 .2rem; max-width: 280px; }
+.pg-dualmedia .pg-video { margin: 0 0 .45rem; }
+.pg-media-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+.pg-media-chip {
+  font-family: var(--hb); font-size: .6rem; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--wht); background: rgba(106, 13, 173, .18);
+  border: 1px solid rgba(106, 13, 173, .55); border-radius: 999px;
+  padding: .32rem .65rem; cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.pg-media-chip:hover { border-color: rgba(245, 200, 0, .55); }
+.pg-media-chip:focus-visible { outline: 2px solid var(--purl); outline-offset: 2px; }
+/* quick-view panel: the loop fills the same 16:9 frame the video uses; a
+   missing/broken loop renders the branded placeholder (never a torn image). */
+.pg-gifview { background: #090909; }
+.pg-gif { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pg-gif-placeholder {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem;
+  background: linear-gradient(135deg, rgba(106, 13, 173, .35), #090909 72%);
+}
+.pg-gif-mark { font-family: var(--hb); font-size: 1.45rem; letter-spacing: 4px; color: var(--yel); }
+.pg-gif-copy { font-family: var(--bd); font-size: .72rem; letter-spacing: .5px; color: var(--mut); }
+.pg-gif-close {
+  position: absolute; top: .4rem; right: .4rem;
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--line); background: rgba(9, 9, 9, .72);
+  color: var(--wht); cursor: pointer; font-size: .7rem; line-height: 1;
+}
+.pg-gif-close:hover { border-color: rgba(245, 200, 0, .55); }
+
 /* autoregulation target banner */
 .pg-target {
   font-family: var(--bd);
