@@ -649,6 +649,60 @@ app.get('/health', (req, res) => {
 });
 
 // ───────────────────────────────────────────────────────────────
+// GET /api/tts — FREE natural voice for the Coach Lab study games.
+// ───────────────────────────────────────────────────────────────
+// Server-side proxy to Google Translate's TTS (no API key, no cost, no new
+// dependency — plain global fetch). We proxy here rather than calling from the
+// browser so we can send the User-Agent + client params Google expects and keep
+// the client single-origin. The client (Anatomy Arena) falls back to the
+// on-device Web Speech voice if this ever 502s, so a provider hiccup can never
+// break narration. Visit /api/tts (no ?text) to confirm THIS build is live.
+const TTS_MAX = 800;
+function ttsChunks(text) {
+  // Google TTS caps ~200 chars/request — split on word boundaries, ≤190 each.
+  const words = String(text).trim().split(/\s+/);
+  const out = [];
+  let cur = '';
+  for (const w of words) {
+    if ((`${cur} ${w}`).trim().length > 190) { if (cur) out.push(cur); cur = w; }
+    else { cur = cur ? `${cur} ${w}` : w; }
+  }
+  if (cur) out.push(cur);
+  return out.length ? out : [String(text)];
+}
+async function fetchGoogleTts(chunk, lang, idx, total) {
+  const u = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${encodeURIComponent(lang)}`
+    + `&client=tw-ob&q=${encodeURIComponent(chunk)}&textlen=${chunk.length}&total=${total}&idx=${idx}`;
+  const r = await fetch(u, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', Referer: 'https://translate.google.com/' },
+  });
+  if (!r.ok) throw new Error(`tts upstream ${r.status}`);
+  return Buffer.from(await r.arrayBuffer());
+}
+app.get('/api/tts', async (req, res) => {
+  const text = (req.query.text || '').toString().trim();
+  const lang = ((req.query.lang || 'en').toString().slice(0, 5).replace(/[^a-zA-Z-]/g, '')) || 'en';
+  if (!text) return res.json({ ok: true, route: 'tts', build: 'tts-1' });          // deploy ping
+  if (text.length > TTS_MAX) return res.status(413).json({ ok: false, error: 'text_too_long' });
+  try {
+    const chunks = ttsChunks(text);
+    const bufs = [];
+    for (let i = 0; i < chunks.length; i++) {
+      bufs.push(await fetchGoogleTts(chunks[i], lang, i, chunks.length));   // eslint-disable-line no-await-in-loop
+    }
+    const audio = Buffer.concat(bufs);
+    if (!audio.length) throw new Error('empty audio');
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Content-Length', audio.length);
+    return res.end(audio);
+  } catch (e) {
+    console.warn('[tts] failed:', e && e.message);
+    return res.status(502).json({ ok: false, error: 'tts_unavailable' });
+  }
+});
+
+// ───────────────────────────────────────────────────────────────
 // Sovereign Studio — SERVER-SIDE reel render ("The Foundry")
 // ───────────────────────────────────────────────────────────────
 // The browser cannot reliably produce a clean MP4 (MediaRecorder → fragmented+Opus;

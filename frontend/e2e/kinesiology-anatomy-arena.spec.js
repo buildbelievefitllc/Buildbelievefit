@@ -39,6 +39,12 @@ async function spyOnSpeech(page) {
   });
 }
 
+// Keep every test hermetic: never let the natural-voice <Audio> hit the real
+// Render proxy. Each test opts into a specific /api/tts behaviour on top.
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/tts**', (route) => route.abort());
+});
+
 test('select screen offers three decks and a union mastery denominator (/39)', async ({ page }) => {
   await mount(page);
   await expect(page.getByTestId('kl-mode-match')).toBeVisible();
@@ -106,8 +112,9 @@ test('a wrong tap reveals the answer in gold as a teaching moment', async ({ pag
   await expect(page.getByTestId(`kl-anat-${target}`)).toHaveClass(/is-reveal/);
 });
 
-test('voice narrates the verdict on reveal (Correct + the action)', async ({ page }) => {
-  await spyOnSpeech(page);
+test('the natural voice narrates the verdict via /api/tts (Correct + the muscle)', async ({ page }) => {
+  const ttsReqs = [];
+  page.on('request', (r) => { if (r.url().includes('/api/tts')) ttsReqs.push(decodeURIComponent(r.url())); });
   await mount(page);
   await openLane(page, 'legs');
 
@@ -116,12 +123,25 @@ test('voice narrates the verdict on reveal (Correct + the action)', async ({ pag
   await page.getByTestId(`kl-anat-${target}`).locator('path.kl-anat-path').first().click();
   await expect(page.getByTestId('kl-anat-reveal')).toBeVisible();
 
-  const spoken = await page.evaluate(() => (window.__spoken || []).join(' || '));
-  expect(spoken).toContain('Correct.');
-  expect(spoken).toContain(name);   // the muscle is named aloud
+  // The network natural-voice path fires with the right spoken content.
+  await expect.poll(() => ttsReqs.some((u) => u.includes('Correct.') && u.includes(name))).toBe(true);
 });
 
-test('muting narration silences the verdict', async ({ page }) => {
+test('falls back to the on-device voice when /api/tts is unreachable', async ({ page }) => {
+  await spyOnSpeech(page);              // beforeEach aborts /api/tts → force the fallback
+  await mount(page);
+  await openLane(page, 'legs');
+
+  const target = await page.getByTestId('kl-anat-playing').getAttribute('data-target');
+  await page.getByTestId(`kl-anat-${target}`).locator('path.kl-anat-path').first().click();
+  await expect(page.getByTestId('kl-anat-reveal')).toBeVisible();
+
+  await expect.poll(async () => page.evaluate(() => (window.__spoken || []).join(' || '))).toContain('Correct.');
+});
+
+test('muting narration silences both the network and the fallback voice', async ({ page }) => {
+  const ttsReqs = [];
+  page.on('request', (r) => { if (r.url().includes('/api/tts')) ttsReqs.push(r.url()); });
   await spyOnSpeech(page);
   await page.addInitScript(() => localStorage.setItem('bbf.coachlab.voice', '0'));
   await mount(page);
@@ -131,6 +151,6 @@ test('muting narration silences the verdict', async ({ page }) => {
   await page.getByTestId(`kl-anat-${target}`).locator('path.kl-anat-path').first().click();
   await expect(page.getByTestId('kl-anat-reveal')).toBeVisible();
 
-  const count = await page.evaluate(() => (window.__spoken || []).length);
-  expect(count).toBe(0);   // voice off → no prompt narration, no verdict narration
+  expect(ttsReqs.length).toBe(0);                                       // no network narration
+  expect(await page.evaluate(() => (window.__spoken || []).length)).toBe(0);  // no fallback narration
 });

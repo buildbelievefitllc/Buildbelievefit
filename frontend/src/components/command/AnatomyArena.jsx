@@ -18,7 +18,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TRAINING_SPLITS, SPLIT_ORDER } from './anatomyData.js';
 import { bumpSrs } from './kinesiologyData.js';
-import { speak, stopSpeaking, speechSupported } from '../../lib/speech.js';
+import { narrate, stopSpeaking, narrationSupported } from '../../lib/speech.js';
 import AnatomyBody from './AnatomyBody.jsx';
 
 const ROUND = 5;          // locate 5 muscles in a row
@@ -63,7 +63,7 @@ export default function AnatomyArena({ L, onExit }) {
     try { return localStorage.getItem(VOICE_KEY) !== '0'; } catch { return true; }
   });
   const timerRef = useRef(null);
-  const canVoice = speechSupported();
+  const canVoice = narrationSupported();
 
   const lane = laneId ? TRAINING_SPLITS[laneId] : null;
   const current = questions[idx] || null;
@@ -92,7 +92,7 @@ export default function AnatomyArena({ L, onExit }) {
     else { setStreak(0); }
     bumpSrs(current.id, correct);
     setReveal({ pickedId, correctId: current.id });
-    if (voiceOn) speak(feedbackLine(current, pickedId, correct));   // hear the verdict + why
+    if (voiceOn) narrate(feedbackLine(current, pickedId, correct));   // hear the verdict + why
   }, [reveal, current, voiceOn]);
 
   // Per-prompt countdown — timeout scores as a miss. timeLeft resets on advance,
@@ -118,7 +118,7 @@ export default function AnatomyArena({ L, onExit }) {
   useEffect(() => {
     if (phase !== 'playing' || reveal || !voiceOn) return;
     const q = questions[idx];
-    if (q) speak(`Locate the ${q.name}.`);
+    if (q) narrate(`Locate the ${q.name}.`);
   }, [phase, idx, laneId, voiceOn, questions, reveal]);
 
   // Silence any in-flight narration when the arena unmounts.
@@ -231,7 +231,7 @@ export default function AnatomyArena({ L, onExit }) {
               <button
                 type="button"
                 className="kl-btn kl-anat-replay"
-                onClick={() => speak(feedbackLine(current, reveal.pickedId, revealCorrect))}
+                onClick={() => narrate(feedbackLine(current, reveal.pickedId, revealCorrect))}
                 aria-label={L.replay}
                 title={L.replay}
                 data-testid="kl-anat-replay"
