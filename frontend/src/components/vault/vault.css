@@ -2120,3 +2120,51 @@
 .cc-input:focus { border-color: rgba(245,200,0,.55); }
 .cc-send { flex: none; font-family: var(--hb); font-size: .72rem; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #0e0a16; background: linear-gradient(90deg, var(--yel), #ffd83a); border: none; border-radius: 10px; padding: .6rem 1.1rem; cursor: pointer; }
 .cc-send:disabled { opacity: .55; cursor: default; }
+
+/* ── THE WEIGH-IN · adult bodyweight tracker (bw- namespace) ──────────────────── */
+.bw-card { background: linear-gradient(180deg, rgba(106,13,173,.10), rgba(9,9,9,0)); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.15rem; margin: 0 0 1rem; }
+.bw-card--loading { min-height: 132px; opacity: .5; }
+.bw-card.is-due { border-color: rgba(245,200,0,.55); box-shadow: 0 0 0 1px rgba(245,200,0,.14); }
+.bw-head { display: flex; align-items: center; gap: .6rem; margin-bottom: .8rem; }
+.bw-kicker { font-family: var(--hb); font-size: .72rem; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold-soft); }
+.bw-due-pill { font-family: var(--hb); font-size: .6rem; letter-spacing: 1.4px; text-transform: uppercase; color: #0e0a16; background: linear-gradient(90deg, var(--yel), #ffd83a); border-radius: 999px; padding: .18rem .5rem; }
+.bw-unit { margin-left: auto; display: inline-flex; gap: 2px; padding: 3px; background: rgba(0,0,0,.4); border: 1px solid var(--line); border-radius: 999px; }
+.bw-unit-btn { font-family: var(--hb); font-size: .68rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(249,245,255,.55); background: none; border: none; border-radius: 999px; padding: .25rem .6rem; cursor: pointer; }
+.bw-unit-btn.is-on { color: #0e0a16; background: linear-gradient(135deg, var(--yel), var(--gold-soft)); }
+
+.bw-readout { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .7rem; }
+.bw-current { display: flex; align-items: baseline; gap: .35rem; flex-wrap: wrap; }
+.bw-current-val { font-family: var(--display, var(--hb)); font-size: 2.6rem; line-height: 1; color: var(--wht); font-variant-numeric: tabular-nums; }
+.bw-current-u { font-family: var(--hb); font-size: 1rem; color: var(--gold-soft); }
+.bw-current-lbl { font-family: var(--hb); font-size: .62rem; letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut); margin-left: .4rem; }
+.bw-trend { display: flex; flex-direction: column; align-items: flex-end; gap: .15rem; }
+.bw-spark { display: block; }
+.bw-trend-lbl { font-family: var(--hb); font-size: .56rem; letter-spacing: 1.2px; text-transform: uppercase; color: var(--mut); }
+
+.bw-goal { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.bw-goal-chip { font-family: var(--hb); font-size: .68rem; letter-spacing: 1.4px; text-transform: uppercase; color: var(--gold-soft); background: rgba(106,13,173,.28); border: 1px solid rgba(245,200,0,.3); border-radius: 999px; padding: .3rem .7rem; cursor: pointer; }
+.bw-goal-chip:hover { border-color: rgba(245,200,0,.6); }
+.bw-delta { font-family: var(--bd); font-size: .9rem; font-weight: 600; color: rgba(249,245,255,.8); }
+.bw-delta.is-reached { color: #4ade80; }
+.bw-goal-edit { margin-bottom: .6rem; }
+.bw-goal-lbl { display: block; font-family: var(--hb); font-size: .62rem; letter-spacing: 1.4px; text-transform: uppercase; color: var(--mut); margin-bottom: .35rem; }
+.bw-goal-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+.bw-progress { height: 8px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; margin-bottom: .8rem; }
+.bw-progress-fill { height: 100%; background: linear-gradient(90deg, var(--pur, #6a0dad), var(--yel)); border-radius: 999px; transition: width .3s ease; }
+
+.bw-log { margin-bottom: .7rem; }
+.bw-log-lbl { display: block; font-family: var(--hb); font-size: .62rem; letter-spacing: 1.4px; text-transform: uppercase; color: var(--mut); margin-bottom: .35rem; }
+.bw-log-row { display: flex; gap: .5rem; }
+.bw-input { flex: 1; min-width: 0; font-family: var(--bd); font-size: 1rem; font-weight: 600; color: var(--wht); background: #050505; border: 1px solid var(--line); border-radius: 10px; padding: .6rem .8rem; outline: none; }
+.bw-input:focus { border-color: rgba(245,200,0,.55); }
+.bw-btn { flex: none; font-family: var(--hb); font-size: .72rem; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: var(--wht); background: rgba(106,13,173,.4); border: 1px solid var(--line); border-radius: 10px; padding: .6rem 1rem; cursor: pointer; }
+.bw-btn--gold { color: #0e0a16; background: linear-gradient(90deg, var(--yel), #ffd83a); border: none; }
+.bw-btn--ghost { background: none; color: var(--mut); }
+.bw-btn:disabled { opacity: .55; cursor: default; }
+.bw-err { font-family: var(--bd); font-size: .82rem; color: #ff8f8f; margin: .4rem 0 0; }
+
+.bw-cadence { display: flex; flex-direction: column; gap: .2rem; padding-top: .6rem; border-top: 1px solid var(--line); }
+.bw-cadence-first, .bw-cadence-due { font-family: var(--bd); font-size: .88rem; font-weight: 600; color: var(--gold-soft); }
+.bw-cadence-next { font-family: var(--hb); font-size: .7rem; letter-spacing: 1.4px; text-transform: uppercase; color: var(--wht); }
+.bw-cadence-note { font-family: var(--bd); font-size: .82rem; color: var(--mut); }

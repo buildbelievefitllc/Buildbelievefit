@@ -29,6 +29,7 @@ import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
 import Comlink from '../../src/components/command/Comlink.jsx';
 import BroadcastHub from '../../src/components/command/BroadcastHub.jsx';
+import BodyweightCard from '../../src/components/vault/BodyweightCard.jsx';
 import TDEECalculator from '../../src/components/TDEECalculator.jsx';
 import DailyBurnCalculator from '../../src/pages/DailyBurnCalculator.jsx';
 import PremiumSessionPlayer from '../../src/components/vault/PremiumSessionPlayer.jsx';
@@ -318,6 +319,15 @@ function pick() {
         <MemoryRouter>
           <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' }, session: { vaultToken: 'test-vault-token' } }}>
             <BroadcastHub />
+          </AuthMock>
+        </MemoryRouter>
+      );
+    case 'bodyweight-card':
+      // Sovereign Vault weigh-in tracker — adult self-write via vault-token RPCs.
+      return (
+        <MemoryRouter>
+          <AuthMock value={{ isAdmin: false, user: { username: 'akeem', role: 'client' }, session: { vaultToken: 'test-vault-token' } }}>
+            <BodyweightCard />
           </AuthMock>
         </MemoryRouter>
       );

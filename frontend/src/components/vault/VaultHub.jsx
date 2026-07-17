@@ -28,6 +28,7 @@ import CalibrationProgress from './CalibrationProgress.jsx';
 import LoopBreakerBadge from './LoopBreakerBadge.jsx';
 import EagleEyeNudgeCard from './EagleEyeNudgeCard.jsx';
 import CoachCommsCard from './CoachCommsCard.jsx';
+import BodyweightCard from './BodyweightCard.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import { useProgramDay } from '../../lib/useProgramDay.js';
 import { GuideLauncher } from '../BbfMediaPortal.jsx';
@@ -84,6 +85,12 @@ export default function VaultHub({ profile, isLoading, error, onSequence }) {
       {/* Coach Comms — the live coach↔athlete bridge (Founder Five dossier ↔
           this Vault). Gold unread badge = the coach pushed a directive. */}
       <CoachCommsCard />
+
+      {/* THE WEIGH-IN — the client's own bodyweight tracker toward a goal, on a
+          gentle weekly cadence (never daily). Adult-only by mount (VaultHub is
+          never rendered on the youth Sports Hub). Self-gating: renders nothing
+          without a session/profile. */}
+      <BodyweightCard />
       {/* SOVEREIGN AUDIO relocated to the Check-In tab (SovereignClientHub) — it now
           appears once TODAY'S check-in exists instead of sitting here, always
           playable, ahead of the Sequence CTA below. See that file for the mount. */}
