@@ -67,6 +67,7 @@ export const KINESIO_L10N = {
     lane_pull: 'Pull', lane_pull_sub: 'Back · Rear Delts · Traps',
     lane_legs: 'Legs', lane_legs_sub: 'Quads · Hams · Glutes · Calves',
     changeSplit: 'Change split', laneLabel: 'Split',
+    narration: 'Narration', replay: 'Replay',
   },
   es: {
     intro: 'Entrena la ciencia. Dos mazos gamificados con repetición espaciada — mantén tu anatomía, fisiología y bioenergética afiladas.',
@@ -85,6 +86,7 @@ export const KINESIO_L10N = {
     lane_pull: 'Tirón', lane_pull_sub: 'Espalda · Deltoides post. · Trapecios',
     lane_legs: 'Piernas', lane_legs_sub: 'Cuádriceps · Isquios · Glúteos · Gemelos',
     changeSplit: 'Cambiar rutina', laneLabel: 'Rutina',
+    narration: 'Narración', replay: 'Repetir',
   },
   pt: {
     intro: 'Treine a ciência. Dois decks gamificados com repetição espaçada — mantenha sua anatomia, fisiologia e bioenergética afiadas.',
@@ -103,6 +105,7 @@ export const KINESIO_L10N = {
     lane_pull: 'Puxar', lane_pull_sub: 'Costas · Deltoides post. · Trapézios',
     lane_legs: 'Pernas', lane_legs_sub: 'Quadríceps · Posteriores · Glúteos · Panturrilhas',
     changeSplit: 'Trocar treino', laneLabel: 'Treino',
+    narration: 'Narração', replay: 'Repetir',
   },
 };
 

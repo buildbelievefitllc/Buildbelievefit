@@ -26,6 +26,19 @@ async function openLane(page, lane) {
   await expect(page.getByTestId('kl-anat-playing')).toBeVisible();
 }
 
+// Capture every speechSynthesis.speak() call as text, without producing audio.
+async function spyOnSpeech(page) {
+  await page.addInitScript(() => {
+    window.__spoken = [];
+    const s = window.speechSynthesis;
+    if (s) {
+      s.getVoices = () => [];
+      s.cancel = () => {};
+      s.speak = (u) => { try { window.__spoken.push(String((u && u.text) || '')); } catch { /* ignore */ } };
+    }
+  });
+}
+
 test('select screen offers three decks and a union mastery denominator (/39)', async ({ page }) => {
   await mount(page);
   await expect(page.getByTestId('kl-mode-match')).toBeVisible();
@@ -91,4 +104,33 @@ test('a wrong tap reveals the answer in gold as a teaching moment', async ({ pag
   await expect(reveal).toBeVisible();
   await expect(reveal).toHaveClass(/is-wrong/);
   await expect(page.getByTestId(`kl-anat-${target}`)).toHaveClass(/is-reveal/);
+});
+
+test('voice narrates the verdict on reveal (Correct + the action)', async ({ page }) => {
+  await spyOnSpeech(page);
+  await mount(page);
+  await openLane(page, 'legs');
+
+  const name = (await page.locator('.kl-anat-target').first().innerText()).trim();
+  const target = await page.getByTestId('kl-anat-playing').getAttribute('data-target');
+  await page.getByTestId(`kl-anat-${target}`).locator('path.kl-anat-path').first().click();
+  await expect(page.getByTestId('kl-anat-reveal')).toBeVisible();
+
+  const spoken = await page.evaluate(() => (window.__spoken || []).join(' || '));
+  expect(spoken).toContain('Correct.');
+  expect(spoken).toContain(name);   // the muscle is named aloud
+});
+
+test('muting narration silences the verdict', async ({ page }) => {
+  await spyOnSpeech(page);
+  await page.addInitScript(() => localStorage.setItem('bbf.coachlab.voice', '0'));
+  await mount(page);
+  await openLane(page, 'legs');
+
+  const target = await page.getByTestId('kl-anat-playing').getAttribute('data-target');
+  await page.getByTestId(`kl-anat-${target}`).locator('path.kl-anat-path').first().click();
+  await expect(page.getByTestId('kl-anat-reveal')).toBeVisible();
+
+  const count = await page.evaluate(() => (window.__spoken || []).length);
+  expect(count).toBe(0);   // voice off → no prompt narration, no verdict narration
 });

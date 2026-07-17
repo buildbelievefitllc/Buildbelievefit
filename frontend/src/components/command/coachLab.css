@@ -675,7 +675,19 @@
 .kl-anat-lane-go { font-family: var(--hb); font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); margin-top: 0.6rem; }
 
 /* Tier 2/3 · prompt + zoomed regional canvas */
-.kl-anat-prompt { display: flex; flex-direction: column; gap: 0.15rem; margin: 0 0 0.8rem; }
+.kl-anat-prompt-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.8rem; margin: 0 0 0.8rem; }
+.kl-anat-prompt { display: flex; flex-direction: column; gap: 0.15rem; margin: 0; }
+.kl-anat-voice {
+  flex: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer;
+  font-size: 1.1rem; line-height: 1; display: grid; place-items: center;
+  background: rgba(0, 0, 0, 0.4); border: 1px solid var(--line);
+  transition: border-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+.kl-anat-voice:hover { border-color: rgba(245, 200, 0, 0.5); transform: translateY(-1px); }
+.kl-anat-voice.is-on { border-color: rgba(245, 200, 0, 0.55); box-shadow: 0 0 16px -4px rgba(245, 200, 0, 0.5); }
+.kl-anat-voice:not(.is-on) { opacity: 0.6; }
+.kl-anat-reveal-actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.kl-anat-replay { font-size: 0.72rem; padding: 0.6rem 1rem; }
 .kl-anat-find { font-family: var(--hb); font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft); }
 .kl-anat-target {
   font-family: var(--display); font-size: 1.95rem; letter-spacing: 0.5px; line-height: 1.05;
