@@ -28,6 +28,7 @@ import { lockScoreDigits } from '../../src/lib/scoreLock.js';
 import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
 import Comlink from '../../src/components/command/Comlink.jsx';
+import BroadcastHub from '../../src/components/command/BroadcastHub.jsx';
 import TDEECalculator from '../../src/components/TDEECalculator.jsx';
 import DailyBurnCalculator from '../../src/pages/DailyBurnCalculator.jsx';
 import PremiumSessionPlayer from '../../src/components/vault/PremiumSessionPlayer.jsx';
@@ -309,6 +310,16 @@ function pick() {
         <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>
           <GuideLauncher module={props.module || 'program_execution'} testId="guide" />
         </AuthMock>
+      );
+    case 'broadcast-hub':
+      // Coach Lab Broadcast Hub — newsletter + the new video-reel mode. Admin
+      // session so the studio-voiceover / vault calls fire as they do in prod.
+      return (
+        <MemoryRouter>
+          <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' }, session: { vaultToken: 'test-vault-token' } }}>
+            <BroadcastHub />
+          </AuthMock>
+        </MemoryRouter>
       );
     default:
       return <div data-testid="harness-unknown">unknown component: {which}</div>;

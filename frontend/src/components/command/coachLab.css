@@ -745,6 +745,22 @@
 .bc-output { width: 100%; box-sizing: border-box; font-family: 'Barlow Condensed', monospace; font-size: 0.95rem; line-height: 1.55; color: var(--wht); background: rgba(0, 0, 0, 0.45); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; resize: vertical; }
 .bc-output:focus { outline: none; border-color: rgba(245, 200, 0, 0.5); }
 
+/* ── Broadcast Hub · mode toggle (Newsletter | Video) ───────────────────────── */
+.bc-modebar { display: inline-flex; gap: 2px; padding: 3px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--line); border-radius: 999px; margin-bottom: 1.2rem; }
+.bc-mode { font-family: var(--hb); font-size: 0.74rem; letter-spacing: 1.6px; text-transform: uppercase; color: rgba(249, 245, 255, 0.55); background: none; border: none; border-radius: 999px; padding: 0.4rem 1rem; cursor: pointer; transition: color 0.15s ease, background 0.15s ease; }
+.bc-mode.is-active { color: #0c0a02; background: linear-gradient(135deg, var(--yel), var(--gold-deep)); }
+
+/* ── Broadcast Hub · video reel mode ───────────────────────────────────────── */
+.bc-search { width: 100%; box-sizing: border-box; font-family: var(--bd); font-size: 0.95rem; color: var(--wht); background: rgba(0, 0, 0, 0.4); border: 1px solid var(--line); border-radius: 11px; padding: 0.6rem 0.85rem; margin: 0.4rem 0 0.9rem; }
+.bc-search:focus { outline: none; border-color: rgba(245, 200, 0, 0.5); }
+.bc-list--video { max-height: 340px; overflow-y: auto; grid-template-columns: 1fr; margin-top: 0.5rem; padding-right: 4px; }
+.bc-video-controls { display: flex; align-items: flex-end; gap: 0.9rem; flex-wrap: wrap; margin-top: 0.4rem; }
+.bc-vstyle { display: flex; flex-direction: column; gap: 0.3rem; }
+.bc-vstyle-lbl { font-family: var(--hb); font-size: 0.66rem; letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut); }
+.bc-reel-out { margin-top: 1.4rem; }
+.bc-reel-actions { display: inline-flex; gap: 0.5rem; }
+.bc-reel-video { width: 100%; max-width: 320px; display: block; margin: 0.6rem auto 0; border-radius: 14px; border: 1px solid rgba(245, 200, 0, 0.4); background: #000; aspect-ratio: 9 / 16; }
+
 @media (max-width: 560px) {
   .ar-cols { grid-template-columns: 1fr; }
 }
