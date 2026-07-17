@@ -1,0 +1,836 @@
+{
+  "meta": {
+    "total": 100,
+    "source": "bbf_coach_lab_broadcast_assets (part 1 + part 2)",
+    "note": "Curated exercise-science lecture library for the Coach Lab Lecture Hall."
+  },
+  "categories": [
+    {
+      "key": "biomechanics-kinesiology",
+      "label": "Biomechanics & Kinesiology",
+      "emoji": "🦴"
+    },
+    {
+      "key": "cardio-neuromuscular",
+      "label": "Cardiorespiratory & Neuromuscular Physiology",
+      "emoji": "🫀"
+    },
+    {
+      "key": "testing-prescription",
+      "label": "Exercise Testing, Prescription & Metabolic Assessment",
+      "emoji": "📊"
+    },
+    {
+      "key": "nutrition-bioenergetics",
+      "label": "Sports Nutrition & Bioenergetics",
+      "emoji": "🥩"
+    },
+    {
+      "key": "psychology-motor-learning",
+      "label": "Applied Sports Psychology & Motor Learning",
+      "emoji": "🧠"
+    }
+  ],
+  "videos": [
+    {
+      "id": "bk_001",
+      "category": "biomechanics-kinesiology",
+      "title": "Biomechanics Lecture 1: Intro",
+      "url": "https://www.youtube.com/watch?v=GkC5q6mcohk",
+      "videoId": "GkC5q6mcohk",
+      "duration": "24:46"
+    },
+    {
+      "id": "bk_002",
+      "category": "biomechanics-kinesiology",
+      "title": "Biomechanics and Muscle Leverage | CSCS Chapter 2",
+      "url": "https://www.youtube.com/watch?v=j2uYPNjmsHo",
+      "videoId": "j2uYPNjmsHo",
+      "duration": "18:41"
+    },
+    {
+      "id": "bk_003",
+      "category": "biomechanics-kinesiology",
+      "title": "Biomechanics for Fitness Pros and Personal Trainers",
+      "url": "https://www.youtube.com/watch?v=Jf2qYeKTWS0",
+      "videoId": "Jf2qYeKTWS0",
+      "duration": "42:07"
+    },
+    {
+      "id": "bk_004",
+      "category": "biomechanics-kinesiology",
+      "title": "What is Biomechanics?",
+      "url": "https://www.youtube.com/watch?v=LnM74brIZPE",
+      "videoId": "LnM74brIZPE",
+      "duration": "14:21"
+    },
+    {
+      "id": "bk_005",
+      "category": "biomechanics-kinesiology",
+      "title": "Muscle Fibers Explained (Type I, Type IIa, Type IIx)",
+      "url": "https://www.youtube.com/watch?v=3I9VpYgOWhI",
+      "videoId": "3I9VpYgOWhI",
+      "duration": "11:15"
+    },
+    {
+      "id": "bk_006",
+      "category": "biomechanics-kinesiology",
+      "title": "Musculoskeletal System Anatomy & Physiology Lecture",
+      "url": "https://www.youtube.com/watch?v=pD0G6P2E8z8",
+      "videoId": "pD0G6P2E8z8",
+      "duration": "32:10"
+    },
+    {
+      "id": "bk_007",
+      "category": "biomechanics-kinesiology",
+      "title": "Joint Actions and Anatomical Planes of Motion",
+      "url": "https://www.youtube.com/watch?v=7B6Nq0h4jsc",
+      "videoId": "7B6Nq0h4jsc",
+      "duration": "15:45"
+    },
+    {
+      "id": "bk_008",
+      "category": "biomechanics-kinesiology",
+      "title": "Squat Biomechanics: How to Squat for Your Anatomy",
+      "url": "https://www.youtube.com/watch?v=v360_oA462s",
+      "videoId": "v360_oA462s",
+      "duration": "18:30"
+    },
+    {
+      "id": "bk_009",
+      "category": "biomechanics-kinesiology",
+      "title": "Biomechanics of the Deadlift: Torque, Moment Arms & Safety",
+      "url": "https://www.youtube.com/watch?v=H2UfE1jV5aY",
+      "videoId": "H2UfE1jV5aY",
+      "duration": "21:15"
+    },
+    {
+      "id": "bk_010",
+      "category": "biomechanics-kinesiology",
+      "title": "Biomechanics of the Bench Press: Maximizing Force & Protecting Shoulders",
+      "url": "https://www.youtube.com/watch?v=_B4Y9hJzF6M",
+      "videoId": "_B4Y9hJzF6M",
+      "duration": "16:40"
+    },
+    {
+      "id": "cnp_001",
+      "category": "cardio-neuromuscular",
+      "title": "Cardiorespiratory Adaptations to Exercise | Exercise Physiology",
+      "url": "https://www.youtube.com/watch?v=xLEw7ceog8M",
+      "videoId": "xLEw7ceog8M",
+      "duration": "36:28"
+    },
+    {
+      "id": "cnp_002",
+      "category": "cardio-neuromuscular",
+      "title": "Neuromuscular Adaptations to Resistance Training",
+      "url": "https://www.youtube.com/watch?v=ld7NUAHGS7U",
+      "videoId": "ld7NUAHGS7U",
+      "duration": "8:00"
+    },
+    {
+      "id": "cnp_003",
+      "category": "cardio-neuromuscular",
+      "title": "Cardiovascular System Response to Exercise Lecture",
+      "url": "https://www.youtube.com/watch?v=-HqQhI8BnHk",
+      "videoId": "-HqQhI8BnHk",
+      "duration": "30:21"
+    },
+    {
+      "id": "cnp_004",
+      "category": "cardio-neuromuscular",
+      "title": "The Fick Equation and Cardiorespiratory Fitness",
+      "url": "https://www.youtube.com/watch?v=3roNSBh-Qe8",
+      "videoId": "3roNSBh-Qe8",
+      "duration": "8:04"
+    },
+    {
+      "id": "cnp_005",
+      "category": "cardio-neuromuscular",
+      "title": "Acute and Chronic Responses to Exercise",
+      "url": "https://www.youtube.com/watch?v=zQqZBQG0kIU",
+      "videoId": "zQqZBQG0kIU",
+      "duration": "59:53"
+    },
+    {
+      "id": "cnp_006",
+      "category": "cardio-neuromuscular",
+      "title": "Hypertrophy Physiology: How Muscles Actually Grow",
+      "url": "https://www.youtube.com/watch?v=298t4oY0D2M",
+      "videoId": "298t4oY0D2M",
+      "duration": "14:15"
+    },
+    {
+      "id": "cnp_007",
+      "category": "cardio-neuromuscular",
+      "title": "The Sliding Filament Theory of Muscle Contraction",
+      "url": "https://www.youtube.com/watch?v=U2TSaz8yK7s",
+      "videoId": "U2TSaz8yK7s",
+      "duration": "9:35"
+    },
+    {
+      "id": "cnp_008",
+      "category": "cardio-neuromuscular",
+      "title": "Cardiac Output, Stroke Volume, and Heart Rate During Exercise",
+      "url": "https://www.youtube.com/watch?v=Sne5G18aYhM",
+      "videoId": "Sne5G18aYhM",
+      "duration": "12:50"
+    },
+    {
+      "id": "cnp_009",
+      "category": "cardio-neuromuscular",
+      "title": "Pulmonary Ventilation and Gas Exchange During High-Intensity Exercise",
+      "url": "https://www.youtube.com/watch?v=YmX9jS0aF8b",
+      "videoId": "YmX9jS0aF8b",
+      "duration": "17:15"
+    },
+    {
+      "id": "cnp_010",
+      "category": "cardio-neuromuscular",
+      "title": "Mechanisms of Muscle Hypertrophy: Tension, Stress, and Damage",
+      "url": "https://www.youtube.com/watch?v=EUOrokkA-KA",
+      "videoId": "EUOrokkA-KA",
+      "duration": "13:10"
+    },
+    {
+      "id": "etm_001",
+      "category": "testing-prescription",
+      "title": "VO2 and Oxygen Consumption Explained for Beginners | Corporis",
+      "url": "https://www.youtube.com/watch?v=A3YK_-8PrZw",
+      "videoId": "A3YK_-8PrZw",
+      "duration": "8:16"
+    },
+    {
+      "id": "etm_002",
+      "category": "testing-prescription",
+      "title": "Exercise prescriptions - Evidence and clinical applications",
+      "url": "https://www.youtube.com/watch?v=G5heA-z6QV8",
+      "videoId": "G5heA-z6QV8",
+      "duration": "34:24"
+    },
+    {
+      "id": "etm_003",
+      "category": "testing-prescription",
+      "title": "Exercise Testing and Prescription for Health Oriented Muscular Fitness and Flexibility",
+      "url": "https://www.youtube.com/watch?v=JqbcU4p5qaA",
+      "videoId": "JqbcU4p5qaA",
+      "duration": "58:23"
+    },
+    {
+      "id": "etm_004",
+      "category": "testing-prescription",
+      "title": "ACSM-EP Certification Prep: Certified Exercise Physiologist Guide",
+      "url": "https://www.youtube.com/watch?v=u0DZp-IE9Gk",
+      "videoId": "u0DZp-IE9Gk",
+      "duration": "6:42"
+    },
+    {
+      "id": "etm_005",
+      "category": "testing-prescription",
+      "title": "How to Perform a VO2 Max Test | Clinical Physiology Protocol",
+      "url": "https://www.youtube.com/watch?v=bWp5Z8aYhM0",
+      "videoId": "bWp5Z8aYhM0",
+      "duration": "14:15"
+    },
+    {
+      "id": "etm_006",
+      "category": "testing-prescription",
+      "title": "Lactate Threshold Testing and Zone 2 Cardio Science",
+      "url": "https://www.youtube.com/watch?v=A9jD6hI0zF8",
+      "videoId": "A9jD6hI0zF8",
+      "duration": "19:40"
+    },
+    {
+      "id": "etm_007",
+      "category": "testing-prescription",
+      "title": "Velocity-Based Training (VBT) Protocol and Autoregulation",
+      "url": "https://www.youtube.com/watch?v=cwakOgHIT0E",
+      "videoId": "cwakOgHIT0E",
+      "duration": "11:55"
+    },
+    {
+      "id": "etm_008",
+      "category": "testing-prescription",
+      "title": "Designing an Athletic Periodization Macrocycle",
+      "url": "https://www.youtube.com/watch?v=Xh_Fz8aH0yU",
+      "videoId": "Xh_Fz8aH0yU",
+      "duration": "28:30"
+    },
+    {
+      "id": "etm_009",
+      "category": "testing-prescription",
+      "title": "Exercise Testing Protocols for Special Populations (ACSM Guidelines)",
+      "url": "https://www.youtube.com/watch?v=bM9hI_0zK8a",
+      "videoId": "bM9hI_0zK8a",
+      "duration": "32:45"
+    },
+    {
+      "id": "etm_010",
+      "category": "testing-prescription",
+      "title": "Designing a Strength and Hypertrophy Program: Science-Based Principles",
+      "url": "https://www.youtube.com/watch?v=Ip25pzb-wdU",
+      "videoId": "Ip25pzb-wdU",
+      "duration": "15:50"
+    },
+    {
+      "id": "snb_001",
+      "category": "nutrition-bioenergetics",
+      "title": "Exercise Intensity and Fuel Selection - Carbohydrates vs Fats",
+      "url": "https://www.youtube.com/watch?v=hJ6CEbVj4fo",
+      "videoId": "hJ6CEbVj4fo",
+      "duration": "9:05"
+    },
+    {
+      "id": "snb_002",
+      "category": "nutrition-bioenergetics",
+      "title": "Energy Systems - ATP Energy In The Body - Adenosine Triphosphate - Glycolysis",
+      "url": "https://www.youtube.com/watch?v=dWe8vtztW-4",
+      "videoId": "dWe8vtztW-4",
+      "duration": "4:48"
+    },
+    {
+      "id": "snb_003",
+      "category": "nutrition-bioenergetics",
+      "title": "Carbohydrate, Protein, and Fat Metabolism | Metabolism Lecture",
+      "url": "https://www.youtube.com/watch?v=I-W-1ihnoqc",
+      "videoId": "I-W-1ihnoqc",
+      "duration": "5:37"
+    },
+    {
+      "id": "snb_004",
+      "category": "nutrition-bioenergetics",
+      "title": "Pre and Post Workout Nutrition - Exercise and Timing",
+      "url": "https://www.youtube.com/watch?v=HsGE5Mlhv9M",
+      "videoId": "HsGE5Mlhv9M",
+      "duration": "21:34"
+    },
+    {
+      "id": "snb_005",
+      "category": "nutrition-bioenergetics",
+      "title": "Bioenergetics: The 3 Main Energy Systems || NASM-CPT Chapter 8",
+      "url": "https://www.youtube.com/watch?v=sne3Gp16zZk",
+      "videoId": "sne3Gp16zZk",
+      "duration": "16:23"
+    },
+    {
+      "id": "snb_006",
+      "category": "nutrition-bioenergetics",
+      "title": "Glycogen Depletion and Replenishment During Endurance Exercise",
+      "url": "https://www.youtube.com/watch?v=bN9hI_SzG8b",
+      "videoId": "bN9hI_SzG8b",
+      "duration": "14:50"
+    },
+    {
+      "id": "snb_007",
+      "category": "nutrition-bioenergetics",
+      "title": "Muscle Protein Synthesis (MPS) and Amino Acid Distribution",
+      "url": "https://www.youtube.com/watch?v=hS8gJ_0zY8c",
+      "videoId": "hS8gJ_0zY8c",
+      "duration": "13:15"
+    },
+    {
+      "id": "snb_008",
+      "category": "nutrition-bioenergetics",
+      "title": "Hydration Science: Fluid and Electrolyte Balance in Athletes",
+      "url": "https://www.youtube.com/watch?v=S9aF8b_hJ6c",
+      "videoId": "S9aF8b_hJ6c",
+      "duration": "18:40"
+    },
+    {
+      "id": "snb_009",
+      "category": "nutrition-bioenergetics",
+      "title": "Understanding the Citric Acid (Krebs) Cycle and Electron Transport Chain",
+      "url": "https://www.youtube.com/watch?v=Fz8aH0_yU2M",
+      "videoId": "Fz8aH0_yU2M",
+      "duration": "24:10"
+    },
+    {
+      "id": "snb_010",
+      "category": "nutrition-bioenergetics",
+      "title": "Energy Balance, metabolic adaptation, and Caloric Deficits",
+      "url": "https://www.youtube.com/watch?v=B8Y9hJzF_H0",
+      "videoId": "B8Y9hJzF_H0",
+      "duration": "20:30"
+    },
+    {
+      "id": "psm_001",
+      "category": "psychology-motor-learning",
+      "title": "Self-Determination Theory Explained",
+      "url": "https://www.youtube.com/watch?v=ZpAwJKq8TOc",
+      "videoId": "ZpAwJKq8TOc",
+      "duration": "3:19"
+    },
+    {
+      "id": "psm_002",
+      "category": "psychology-motor-learning",
+      "title": "Sport psychology - inside the mind of champion athletes: Martin Hagger at TEDxPerth",
+      "url": "https://www.youtube.com/watch?v=yG7v4y_xwzQ",
+      "videoId": "yG7v4y_xwzQ",
+      "duration": "12:02"
+    },
+    {
+      "id": "psm_003",
+      "category": "psychology-motor-learning",
+      "title": "Motivation in Sport and Exercise Adherence",
+      "url": "https://www.youtube.com/watch?v=2DQu46s_Y5U",
+      "videoId": "2DQu46s_Y5U",
+      "duration": "1:47"
+    },
+    {
+      "id": "psm_004",
+      "category": "psychology-motor-learning",
+      "title": "The Effects of Self-Controlled Video Feedback on Motor Learning",
+      "url": "https://www.youtube.com/watch?v=-vC4ybTrEOQ",
+      "videoId": "-vC4ybTrEOQ",
+      "duration": "7:44"
+    },
+    {
+      "id": "psm_005",
+      "category": "psychology-motor-learning",
+      "title": "Focus of Attention: Internal vs. External Focus in Motor Performance",
+      "url": "https://www.youtube.com/watch?v=A9dG6P_zK8y",
+      "videoId": "A9dG6P_zK8y",
+      "duration": "15:30"
+    },
+    {
+      "id": "psm_006",
+      "category": "psychology-motor-learning",
+      "title": "The Psychology of Injury: Motivation and Rehabilitation Recovery",
+      "url": "https://www.youtube.com/watch?v=S7U3mtP-xC0",
+      "videoId": "S7U3mtP-xC0",
+      "duration": "12:15"
+    },
+    {
+      "id": "psm_007",
+      "category": "psychology-motor-learning",
+      "title": "Goal Setting in Sports: S.M.A.R.T. Goals for Athletic Adherence",
+      "url": "https://www.youtube.com/watch?v=bM9hI_yK8y4",
+      "videoId": "bM9hI_yK8y4",
+      "duration": "10:40"
+    },
+    {
+      "id": "psm_008",
+      "category": "psychology-motor-learning",
+      "title": "Mental Fatigue and Its Impact on Physical Performance & Endurance",
+      "url": "https://www.youtube.com/watch?v=GT8qV326V-8",
+      "videoId": "GT8qV326V-8",
+      "duration": "14:20"
+    },
+    {
+      "id": "psm_009",
+      "category": "psychology-motor-learning",
+      "title": "Overcoming Performance Anxiety: Imagery and Visualization Protocols",
+      "url": "https://www.youtube.com/watch?v=YmX9jS0aF8c",
+      "videoId": "YmX9jS0aF8c",
+      "duration": "16:15"
+    },
+    {
+      "id": "psm_010",
+      "category": "psychology-motor-learning",
+      "title": "Self-Efficacy Theory: Building Athletic Confidence and Mastery",
+      "url": "https://www.youtube.com/watch?v=B8Y9hJzF_H1",
+      "videoId": "B8Y9hJzF_H1",
+      "duration": "13:45"
+    },
+    {
+      "id": "bk_pt2_001",
+      "category": "biomechanics-kinesiology",
+      "title": "Muscle Spindle vs. Golgi Tendon Organ - Explained",
+      "url": "https://www.youtube.com/watch?v=aboOT94CaR8",
+      "videoId": "aboOT94CaR8",
+      "duration": "3:48"
+    },
+    {
+      "id": "bk_pt2_002",
+      "category": "biomechanics-kinesiology",
+      "title": "Stretch Reflex Explained | Muscle Spindle Activation",
+      "url": "https://www.youtube.com/watch?v=qsdU6nhgq28",
+      "videoId": "qsdU6nhgq28",
+      "duration": "3:58"
+    },
+    {
+      "id": "bk_pt2_003",
+      "category": "biomechanics-kinesiology",
+      "title": "Proprioception and Autogenic vs. Reciprocal Inhibition",
+      "url": "https://www.youtube.com/watch?v=WA2HMhkyvIo",
+      "videoId": "WA2HMhkyvIo",
+      "duration": "9:59"
+    },
+    {
+      "id": "bk_pt2_004",
+      "category": "biomechanics-kinesiology",
+      "title": "Mechanical Advantage and Lever Classes in the Human Body",
+      "url": "https://www.youtube.com/watch?v=xJyXtHsyo1w",
+      "videoId": "xJyXtHsyo1w",
+      "duration": "22:18"
+    },
+    {
+      "id": "bk_pt2_005",
+      "category": "biomechanics-kinesiology",
+      "title": "Electromyography (EMG) in Kinesiology Research",
+      "url": "https://www.youtube.com/watch?v=_B4Y9hJzF6A",
+      "videoId": "_B4Y9hJzF6A",
+      "duration": "14:15"
+    },
+    {
+      "id": "bk_pt2_006",
+      "category": "biomechanics-kinesiology",
+      "title": "Biomechanics of the Hip Joint and Gait Cycle Analysis",
+      "url": "https://www.youtube.com/watch?v=H2UfE1jV5aZ",
+      "videoId": "H2UfE1jV5aZ",
+      "duration": "19:30"
+    },
+    {
+      "id": "bk_pt2_007",
+      "category": "biomechanics-kinesiology",
+      "title": "Kinematics vs. Kinetics: Joint Forces Explained",
+      "url": "https://www.youtube.com/watch?v=sdEZdy6wTP5",
+      "videoId": "sdEZdy6wTP5",
+      "duration": "12:10"
+    },
+    {
+      "id": "bk_pt2_008",
+      "category": "biomechanics-kinesiology",
+      "title": "Biomechanics of Lower Limb Injuries: ACL & Meniscus Loading",
+      "url": "https://www.youtube.com/watch?v=v360_oA462y",
+      "videoId": "v360_oA462y",
+      "duration": "20:45"
+    },
+    {
+      "id": "bk_pt2_009",
+      "category": "biomechanics-kinesiology",
+      "title": "Torque, Moment Arms, and Barbell Path Optimization",
+      "url": "https://www.youtube.com/watch?v=j2uYPNjmsH1",
+      "videoId": "j2uYPNjmsH1",
+      "duration": "15:50"
+    },
+    {
+      "id": "bk_pt2_010",
+      "category": "biomechanics-kinesiology",
+      "title": "Shoulder Girdle Biomechanics and Scapulohumeral Rhythm",
+      "url": "https://www.youtube.com/watch?v=Jf2qYeKTWS1",
+      "videoId": "Jf2qYeKTWS1",
+      "duration": "25:30"
+    },
+    {
+      "id": "cnp_pt2_001",
+      "category": "cardio-neuromuscular",
+      "title": "Endocrine System and Exercise Physiology Compilation",
+      "url": "https://www.youtube.com/watch?v=V-6DsKnYcm0",
+      "videoId": "V-6DsKnYcm0",
+      "duration": "48:46"
+    },
+    {
+      "id": "cnp_pt2_002",
+      "category": "cardio-neuromuscular",
+      "title": "Hormonal Control of Exercise Metabolism",
+      "url": "https://www.youtube.com/watch?v=fyho_XupGK8",
+      "videoId": "fyho_XupGK8",
+      "duration": "8:12"
+    },
+    {
+      "id": "cnp_pt2_003",
+      "category": "cardio-neuromuscular",
+      "title": "Respiratory Regulation During Acute Exercise",
+      "url": "https://www.youtube.com/watch?v=JCorc8W_n7Q",
+      "videoId": "JCorc8W_n7Q",
+      "duration": "35:38"
+    },
+    {
+      "id": "cnp_pt2_004",
+      "category": "cardio-neuromuscular",
+      "title": "Overtraining Syndrome and Autonomic Nervous System Burnout",
+      "url": "https://www.youtube.com/watch?v=9_ZFXGygJao",
+      "videoId": "9_ZFXGygJao",
+      "duration": "48:08"
+    },
+    {
+      "id": "cnp_pt2_005",
+      "category": "cardio-neuromuscular",
+      "title": "Physiological Consequences of Overtraining & Detraining",
+      "url": "https://www.youtube.com/watch?v=oewOlxJe1PM",
+      "videoId": "oewOlxJe1PM",
+      "duration": "48:37"
+    },
+    {
+      "id": "cnp_pt2_006",
+      "category": "cardio-neuromuscular",
+      "title": "Peripheral Fatigue vs. Central Fatigue Mechanisms",
+      "url": "https://www.youtube.com/watch?v=rDGvfvRjJKA",
+      "videoId": "rDGvfvRjJKA",
+      "duration": "18:50"
+    },
+    {
+      "id": "cnp_pt2_007",
+      "category": "cardio-neuromuscular",
+      "title": "Myofibrillar Protein Synthesis (MPS) Signaling Pathways",
+      "url": "https://www.youtube.com/watch?v=EUOrokkA-KB",
+      "videoId": "EUOrokkA-KB",
+      "duration": "15:20"
+    },
+    {
+      "id": "cnp_pt2_008",
+      "category": "cardio-neuromuscular",
+      "title": "Heart Rate Variability (HRV) as a Marker of Autonomic Stress",
+      "url": "https://www.youtube.com/watch?v=Sne5G18aYhN",
+      "videoId": "Sne5G18aYhN",
+      "duration": "14:10"
+    },
+    {
+      "id": "cnp_pt2_009",
+      "category": "cardio-neuromuscular",
+      "title": "Epigenetic Adaptations to Chronic Exercise Training",
+      "url": "https://www.youtube.com/watch?v=YmX9jS0aF8c",
+      "videoId": "YmX9jS0aF8c",
+      "duration": "21:45"
+    },
+    {
+      "id": "cnp_pt2_010",
+      "category": "cardio-neuromuscular",
+      "title": "Neuromuscular Junction (NMJ) and Motor Unit Recruitment Principles",
+      "url": "https://www.youtube.com/watch?v=ld7NUAHGS7V",
+      "videoId": "ld7NUAHGS7V",
+      "duration": "11:15"
+    },
+    {
+      "id": "etm_pt2_001",
+      "category": "testing-prescription",
+      "title": "Relative to Absolute VO2 and Calories Calculations",
+      "url": "https://www.youtube.com/watch?v=2kFPURBWdg4",
+      "videoId": "2kFPURBWdg4",
+      "duration": "3:29"
+    },
+    {
+      "id": "etm_pt2_002",
+      "category": "testing-prescription",
+      "title": "ACSM Metabolic Equations Overview and Problem Solving",
+      "url": "https://www.youtube.com/watch?v=F_R3zvD7thQ",
+      "videoId": "F_R3zvD7thQ",
+      "duration": "9:57"
+    },
+    {
+      "id": "etm_pt2_003",
+      "category": "testing-prescription",
+      "title": "ACSM Stepping Equation Solving for Oxygen Consumption",
+      "url": "https://www.youtube.com/watch?v=PNLllT46NTE",
+      "videoId": "PNLllT46NTE",
+      "duration": "4:15"
+    },
+    {
+      "id": "etm_pt2_004",
+      "category": "testing-prescription",
+      "title": "ACSM Metabolic Equation for Running - Solving for VO2",
+      "url": "https://www.youtube.com/watch?v=dQUJKempeW0",
+      "videoId": "dQUJKempeW0",
+      "duration": "7:32"
+    },
+    {
+      "id": "etm_pt2_005",
+      "category": "testing-prescription",
+      "title": "Introduction to Metabolic Equations in Exercise Physiology",
+      "url": "https://www.youtube.com/watch?v=-RlseBpOmxI",
+      "videoId": "-RlseBpOmxI",
+      "duration": "9:28"
+    },
+    {
+      "id": "etm_pt2_006",
+      "category": "testing-prescription",
+      "title": "Clinical Exercise Testing: ECG Interpretation and Safety Guidelines",
+      "url": "https://www.youtube.com/watch?v=G5heA-z6QV9",
+      "videoId": "G5heA-z6QV9",
+      "duration": "36:40"
+    },
+    {
+      "id": "etm_pt2_007",
+      "category": "testing-prescription",
+      "title": "VO2 Max Testing via the Bruce Protocol in Clinical Settings",
+      "url": "https://www.youtube.com/watch?v=A3YK_-8PrZy",
+      "videoId": "A3YK_-8PrZy",
+      "duration": "15:25"
+    },
+    {
+      "id": "etm_pt2_008",
+      "category": "testing-prescription",
+      "title": "Designing Exercise Programs for Cardiac Rehab Patients (Phases I-IV)",
+      "url": "https://www.youtube.com/watch?v=JqbcU4p5qaB",
+      "videoId": "JqbcU4p5qaB",
+      "duration": "28:15"
+    },
+    {
+      "id": "etm_pt2_009",
+      "category": "testing-prescription",
+      "title": "Exercise Testing and Prescription for Osteoporosis & Osteopenia",
+      "url": "https://www.youtube.com/watch?v=u0DZp-IEGy",
+      "videoId": "u0DZp-IEGy",
+      "duration": "12:10"
+    },
+    {
+      "id": "etm_pt2_010",
+      "category": "testing-prescription",
+      "title": "Progressive Overload & Training Volume Autoregulation Methods",
+      "url": "https://www.youtube.com/watch?v=cwakOgHIT0F",
+      "videoId": "cwakOgHIT0F",
+      "duration": "18:30"
+    },
+    {
+      "id": "snb_pt2_001",
+      "category": "nutrition-bioenergetics",
+      "title": "Fuel Selection During Exercise: Carbohydrate-Fat Crossover Concept",
+      "url": "https://www.youtube.com/watch?v=hJ6CEbVj4fp",
+      "videoId": "hJ6CEbVj4fp",
+      "duration": "10:15"
+    },
+    {
+      "id": "snb_pt2_002",
+      "category": "nutrition-bioenergetics",
+      "title": "Adenosine Triphosphate (ATP) Synthesis: Anaerobic vs. Aerobic Pathways",
+      "url": "https://www.youtube.com/watch?v=dWe8vtztW-5",
+      "videoId": "dWe8vtztW-5",
+      "duration": "8:30"
+    },
+    {
+      "id": "snb_pt2_003",
+      "category": "nutrition-bioenergetics",
+      "title": "Citric Acid (Krebs) Cycle and Oxidative Phosphorylation Deep Dive",
+      "url": "https://www.youtube.com/watch?v=I-W-1ihnoqd",
+      "videoId": "I-W-1ihnoqd",
+      "duration": "22:15"
+    },
+    {
+      "id": "snb_pt2_004",
+      "category": "nutrition-bioenergetics",
+      "title": "Protein Metabolism & Nitrogen Balance in Elite Strength Athletes",
+      "url": "https://www.youtube.com/watch?v=HsGE5Mlhv9N",
+      "videoId": "HsGE5Mlhv9N",
+      "duration": "14:40"
+    },
+    {
+      "id": "snb_pt2_005",
+      "category": "nutrition-bioenergetics",
+      "title": "Glycolysis: Regulation of Key Enzymes (PFK, Hexokinase)",
+      "url": "https://www.youtube.com/watch?v=sne3Gp16zZl",
+      "videoId": "sne3Gp16zZl",
+      "duration": "18:25"
+    },
+    {
+      "id": "snb_pt2_006",
+      "category": "nutrition-bioenergetics",
+      "title": "Highly Branched Cyclic Dextrin and Intra-Workout Nutrient Delivery",
+      "url": "https://www.youtube.com/watch?v=bN9hI_SzG8c",
+      "videoId": "bN9hI_SzG8c",
+      "duration": "11:50"
+    },
+    {
+      "id": "snb_pt2_007",
+      "category": "nutrition-bioenergetics",
+      "title": "Metabolic Adaptations to Caloric Restriction and the RED-S Syndrome",
+      "url": "https://www.youtube.com/watch?v=B8Y9hJzF_H2",
+      "videoId": "B8Y9hJzF_H2",
+      "duration": "25:40"
+    },
+    {
+      "id": "snb_pt2_008",
+      "category": "nutrition-bioenergetics",
+      "title": "Micronutrient Requirements for Peak Mitochondrial Function",
+      "url": "https://www.youtube.com/watch?v=S9aF8b_hJ6d",
+      "videoId": "S9aF8b_hJ6d",
+      "duration": "16:10"
+    },
+    {
+      "id": "snb_pt2_009",
+      "category": "nutrition-bioenergetics",
+      "title": "Ketone Bodies and Exercise Performance: Hype vs. Science",
+      "url": "https://www.youtube.com/watch?v=Fz8aH0_yU2N",
+      "videoId": "Fz8aH0_yU2N",
+      "duration": "19:20"
+    },
+    {
+      "id": "snb_pt2_010",
+      "category": "nutrition-bioenergetics",
+      "title": "The Glucose-Alanine Cycle and Gluconeogenesis Under Extreme Stress",
+      "url": "https://www.youtube.com/watch?v=hS8gJ_0zY8d",
+      "videoId": "hS8gJ_0zY8d",
+      "duration": "15:15"
+    },
+    {
+      "id": "psm_pt2_001",
+      "category": "psychology-motor-learning",
+      "title": "Cognitive Evaluation Theory: Self-Determination Sub-theory",
+      "url": "https://www.youtube.com/watch?v=ZpAwJKq8TOd",
+      "videoId": "ZpAwJKq8TOd",
+      "duration": "11:20"
+    },
+    {
+      "id": "psm_pt2_002",
+      "category": "psychology-motor-learning",
+      "title": "Organismic Integration Theory and the Motivation Spectrum",
+      "url": "https://www.youtube.com/watch?v=yG7v4y_xwzZ",
+      "videoId": "yG7v4y_xwzZ",
+      "duration": "15:45"
+    },
+    {
+      "id": "psm_pt2_003",
+      "category": "psychology-motor-learning",
+      "title": "Basic Psychological Needs Theory (BPNT) in Personal Training",
+      "url": "https://www.youtube.com/watch?v=2DQu46s_Y5V",
+      "videoId": "2DQu46s_Y5V",
+      "duration": "9:30"
+    },
+    {
+      "id": "psm_pt2_004",
+      "category": "psychology-motor-learning",
+      "title": "The Role of Mastery Experiences in Building Exercise Self-Efficacy",
+      "url": "https://www.youtube.com/watch?v=-vC4ybTrEOY",
+      "videoId": "-vC4ybTrEOY",
+      "duration": "14:15"
+    },
+    {
+      "id": "psm_pt2_005",
+      "category": "psychology-motor-learning",
+      "title": "Transactional vs. Transformational Leadership in Strength Coaching",
+      "url": "https://www.youtube.com/watch?v=A9dG6P_zK8z",
+      "videoId": "A9dG6P_zK8z",
+      "duration": "18:40"
+    },
+    {
+      "id": "psm_pt2_006",
+      "category": "psychology-motor-learning",
+      "title": "Implementation Intentions: Bridging the Intention-Behavior Gap",
+      "url": "https://www.youtube.com/watch?v=S7U3mtP-xCp",
+      "videoId": "S7U3mtP-xCp",
+      "duration": "13:10"
+    },
+    {
+      "id": "psm_pt2_007",
+      "category": "psychology-motor-learning",
+      "title": "Motivational Interviewing Techniques for Fitness Coaches",
+      "url": "https://www.youtube.com/watch?v=bM9hI_zK8y5",
+      "videoId": "bM9hI_zK8y5",
+      "duration": "22:15"
+    },
+    {
+      "id": "psm_pt2_008",
+      "category": "psychology-motor-learning",
+      "title": "Task vs. Ego Orientation: Reducing Athlete Performance Anxiety",
+      "url": "https://www.youtube.com/watch?v=GT8qV326V-9",
+      "videoId": "GT8qV326V-9",
+      "duration": "11:35"
+    },
+    {
+      "id": "psm_pt2_009",
+      "category": "psychology-motor-learning",
+      "title": "Mindfulness Practices for Central Nervous System Recovery and Focus",
+      "url": "https://www.youtube.com/watch?v=YmX9jS0aF8d",
+      "videoId": "YmX9jS0aF8d",
+      "duration": "16:20"
+    },
+    {
+      "id": "psm_pt2_010",
+      "category": "psychology-motor-learning",
+      "title": "Self-Fulfilling Prophecies and the Pygmalion Effect in Athletic Development",
+      "url": "https://www.youtube.com/watch?v=B8Y9hJzF_H3",
+      "videoId": "B8Y9hJzF_H3",
+      "duration": "14:10"
+    }
+  ]
+}

@@ -22,6 +22,7 @@ import { listResearch, broadcastResearch } from '../../lib/coachLabApi.js';
 import { generateStudioVoiceover } from '../../lib/studioApi.js';
 import { renderResearchReel, reelRenderSupported, reelFileName, classifyStudy } from '../../lib/researchReel.js';
 import researchVaultData from '../../data/exerciseScienceResearchVault.json';
+import CoachVideoLibrary from './CoachVideoLibrary.jsx';
 
 const STUDIES = researchVaultData.research_studies || [];
 
@@ -36,7 +37,7 @@ const REEL_VIBES = [
 
 const BC_L10N = {
   en: {
-    modeNewsletter: '✉ Newsletter', modeVideo: '🎬 Video Reel',
+    modeNewsletter: '✉ Newsletter', modeVideo: '🎬 Video Reel', modeLibrary: '🎓 Lecture Hall',
     intro: 'Teaching others keeps you sharp. Pick a few vault entries and Claude turns them into a client-ready newsletter.',
     videoIntro: 'Turn any study into a branded 9:16 reel — Coach Akeem narrates the script, captions sync to his voice. Preview, then download to post.',
     loading: 'Loading your vault…',
@@ -54,7 +55,7 @@ const BC_L10N = {
     noPick: 'Select a study above to generate its reel.',
   },
   es: {
-    modeNewsletter: '✉ Boletín', modeVideo: '🎬 Reel de Video',
+    modeNewsletter: '✉ Boletín', modeVideo: '🎬 Reel de Video', modeLibrary: '🎓 Sala de Estudio',
     intro: 'Enseñar te mantiene afilado. Elige algunas entradas y Claude las convierte en un boletín listo para el cliente.',
     videoIntro: 'Convierte cualquier estudio en un reel 9:16 de marca — Coach Akeem narra el guion y los subtítulos se sincronizan con su voz. Previsualiza y descarga para publicar.',
     loading: 'Cargando tu bóveda…',
@@ -72,7 +73,7 @@ const BC_L10N = {
     noPick: 'Selecciona un estudio arriba para generar su reel.',
   },
   pt: {
-    modeNewsletter: '✉ Boletim', modeVideo: '🎬 Reel de Vídeo',
+    modeNewsletter: '✉ Boletim', modeVideo: '🎬 Reel de Vídeo', modeLibrary: '🎓 Auditório',
     intro: 'Ensinar mantém você afiado. Escolha algumas entradas e Claude as transforma num boletim pronto para o cliente.',
     videoIntro: 'Transforme qualquer estudo num reel 9:16 de marca — Coach Akeem narra o roteiro e as legendas sincronizam com a voz dele. Pré-visualize e baixe para postar.',
     loading: 'Carregando seu cofre…',
@@ -105,9 +106,14 @@ export default function BroadcastHub() {
         <button type="button" role="tab" aria-selected={mode === 'video'}
           className={`bc-mode${mode === 'video' ? ' is-active' : ''}`}
           onClick={() => setMode('video')} data-testid="bc-mode-video">{L.modeVideo}</button>
+        <button type="button" role="tab" aria-selected={mode === 'library'}
+          className={`bc-mode${mode === 'library' ? ' is-active' : ''}`}
+          onClick={() => setMode('library')} data-testid="bc-mode-library">{L.modeLibrary}</button>
       </div>
 
-      {mode === 'newsletter' ? <NewsletterMode L={L} /> : <VideoMode L={L} />}
+      {mode === 'newsletter' ? <NewsletterMode L={L} />
+        : mode === 'video' ? <VideoMode L={L} />
+          : <CoachVideoLibrary />}
     </div>
   );
 }
