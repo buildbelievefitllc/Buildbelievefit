@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
 import { KINESIO_DECKS, KINESIO_L10N, bumpSrs, readSrs, TOTAL_CONCEPTS } from './kinesiologyData.js';
+import AnatomyArena from './AnatomyArena.jsx';
 
 const ROUND = 8;          // questions per drill
 const DURATION = 15;      // seconds per question
@@ -28,7 +29,7 @@ export default function KinesiologyLab() {
   const { lang } = useLang();
   const L = KINESIO_L10N[lang] || KINESIO_L10N.en;
 
-  const [phase, setPhase] = useState('select'); // select | playing | results
+  const [phase, setPhase] = useState('select'); // select | playing | results | anatomy
   const [mode, setMode] = useState('match');     // match | truefalse
   const [questions, setQuestions] = useState([]);
   const [idx, setIdx] = useState(0);
@@ -119,7 +120,22 @@ export default function KinesiologyLab() {
             <span className="kl-mode-sub">{L.modeSpeedSub}</span>
             <span className="kl-mode-go">{L.start} →</span>
           </button>
+          <button type="button" className="kl-mode kl-mode--anat" onClick={() => setPhase('anatomy')} data-testid="kl-mode-anatomy">
+            <span className="kl-mode-ic" aria-hidden="true">🫀</span>
+            <span className="kl-mode-name">{L.modeAnatomy}</span>
+            <span className="kl-mode-sub">{L.modeAnatomySub}</span>
+            <span className="kl-mode-go">{L.start} →</span>
+          </button>
         </div>
+      </div>
+    );
+  }
+
+  // ── Anatomy Arena (self-contained; returns via onExit, which refreshes SRS) ──
+  if (phase === 'anatomy') {
+    return (
+      <div className="kl" data-testid="kinesiology-lab">
+        <AnatomyArena L={L} onExit={() => { setSrs(readSrs()); setPhase('select'); }} />
       </div>
     );
   }

@@ -15,6 +15,8 @@
 // DROP-IN: add a record to KINESIO_DECKS.match / .truefalse — the game reads them
 // generically. (ES/PT question localization can drop in later as { en, es, pt }.)
 
+import { ANATOMY_IDS } from './anatomyData.js';
+
 export const KINESIO_DECKS = {
   match: [
     { id: 'm_hamstrings', category: 'Anatomy', q: 'Primary action of the hamstrings at the knee?', answer: 'Knee flexion', options: ['Knee flexion', 'Knee extension', 'Hip flexion', 'Dorsiflexion'], why: 'The hamstrings flex the knee and assist hip extension.' },
@@ -52,34 +54,43 @@ export const KINESIO_L10N = {
     intro: 'Drill the science. Two gamified decks, spaced-repetition scored — keep your anatomy, physiology and bioenergetics razor-sharp.',
     modeMatch: 'Match Madness', modeMatchSub: 'Muscle ↔ action',
     modeSpeed: 'Speed Review', modeSpeedSub: 'Rapid true / false',
+    modeAnatomy: 'Anatomy Arena', modeAnatomySub: 'Find it on the body',
     start: 'Start drill', round: 'Question', of: 'of', score: 'Score', streak: 'Streak',
     correct: 'Correct', incorrect: 'Not quite', answerWas: 'Answer', next: 'Next →',
     truth: 'True', falseh: 'False', timeUp: 'Time!',
     resultsTitle: 'Drill complete', accuracy: 'Accuracy', mastered: 'Concepts mastered',
     playAgain: 'Run it again', switchMode: 'Switch deck',
     masteryLabel: 'Mastery', boxOf: 'box',
+    findThe: 'Find the', tapHint: 'Tap the muscle on the body', front: 'Front', back: 'Back',
+    missedIt: 'Here it is', anatomyAction: 'Action',
   },
   es: {
     intro: 'Entrena la ciencia. Dos mazos gamificados con repetición espaciada — mantén tu anatomía, fisiología y bioenergética afiladas.',
     modeMatch: 'Match Madness', modeMatchSub: 'Músculo ↔ acción',
     modeSpeed: 'Repaso Rápido', modeSpeedSub: 'Verdadero / falso',
+    modeAnatomy: 'Arena Anatómica', modeAnatomySub: 'Encuéntralo en el cuerpo',
     start: 'Comenzar', round: 'Pregunta', of: 'de', score: 'Puntos', streak: 'Racha',
     correct: 'Correcto', incorrect: 'Casi', answerWas: 'Respuesta', next: 'Siguiente →',
     truth: 'Verdadero', falseh: 'Falso', timeUp: '¡Tiempo!',
     resultsTitle: 'Drill completo', accuracy: 'Precisión', mastered: 'Conceptos dominados',
     playAgain: 'Otra vez', switchMode: 'Cambiar mazo',
     masteryLabel: 'Maestría', boxOf: 'caja',
+    findThe: 'Encuentra el', tapHint: 'Toca el músculo en el cuerpo', front: 'Frente', back: 'Espalda',
+    missedIt: 'Aquí está', anatomyAction: 'Acción',
   },
   pt: {
     intro: 'Treine a ciência. Dois decks gamificados com repetição espaçada — mantenha sua anatomia, fisiologia e bioenergética afiadas.',
     modeMatch: 'Match Madness', modeMatchSub: 'Músculo ↔ ação',
     modeSpeed: 'Revisão Rápida', modeSpeedSub: 'Verdadeiro / falso',
+    modeAnatomy: 'Arena Anatômica', modeAnatomySub: 'Ache no corpo',
     start: 'Começar', round: 'Questão', of: 'de', score: 'Pontos', streak: 'Sequência',
     correct: 'Correto', incorrect: 'Quase', answerWas: 'Resposta', next: 'Próxima →',
     truth: 'Verdadeiro', falseh: 'Falso', timeUp: 'Tempo!',
     resultsTitle: 'Drill completo', accuracy: 'Precisão', mastered: 'Conceitos dominados',
     playAgain: 'De novo', switchMode: 'Trocar deck',
     masteryLabel: 'Maestria', boxOf: 'caixa',
+    findThe: 'Ache o', tapHint: 'Toque no músculo no corpo', front: 'Frente', back: 'Costas',
+    missedIt: 'Aqui está', anatomyAction: 'Ação',
   },
 };
 
@@ -96,4 +107,11 @@ export function bumpSrs(conceptId, correct) {
   try { localStorage.setItem(SRS_KEY, JSON.stringify(all)); } catch { /* storage blocked */ }
   return all;
 }
-export const TOTAL_CONCEPTS = KINESIO_DECKS.match.length + KINESIO_DECKS.truefalse.length;
+// Mastery denominator = the UNION of every distinct concept id across all three
+// games. The Anatomy Arena reuses Match-Madness muscle ids (shared SRS box), so a
+// naive sum would double-count them — a Set keeps the total honest.
+export const TOTAL_CONCEPTS = new Set([
+  ...KINESIO_DECKS.match.map((c) => c.id),
+  ...KINESIO_DECKS.truefalse.map((c) => c.id),
+  ...ANATOMY_IDS,
+]).size;

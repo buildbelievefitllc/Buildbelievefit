@@ -29,6 +29,7 @@ import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
 import Comlink from '../../src/components/command/Comlink.jsx';
 import BroadcastHub from '../../src/components/command/BroadcastHub.jsx';
+import KinesiologyLab from '../../src/components/command/KinesiologyLab.jsx';
 import BodyweightCard from '../../src/components/vault/BodyweightCard.jsx';
 import TDEECalculator from '../../src/components/TDEECalculator.jsx';
 import DailyBurnCalculator from '../../src/pages/DailyBurnCalculator.jsx';
@@ -331,6 +332,10 @@ function pick() {
           </AuthMock>
         </MemoryRouter>
       );
+    case 'kinesiology-lab':
+      // Coach Lab · Kinesiology Lab — the three gamified decks (Match Madness,
+      // Speed Review, and the new Anatomy Arena). Pure client-side, no backend.
+      return <KinesiologyLab />;
     default:
       return <div data-testid="harness-unknown">unknown component: {which}</div>;
   }

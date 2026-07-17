@@ -650,11 +650,71 @@
 .kl-rs-lbl { font-family: var(--hb); font-size: 0.6rem; letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut); }
 .kl-results-actions { display: flex; gap: 0.7rem; justify-content: center; flex-wrap: wrap; }
 
+/* ── Kinesiology · Anatomy Arena (game #3) ─────────────────────────────────── */
+.kl-mode--anat .kl-mode-ic { color: #ff8bab; }
+
+.kl-anat-prompt { display: flex; flex-direction: column; gap: 0.15rem; margin: 0 0 1rem; }
+.kl-anat-find {
+  font-family: var(--hb); font-size: 0.72rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold-soft);
+}
+.kl-anat-target {
+  font-family: var(--display); font-size: 1.9rem; letter-spacing: 0.5px;
+  color: var(--wht); line-height: 1.05;
+}
+
+.kl-anat-views {
+  display: inline-flex; gap: 0.35rem; margin-bottom: 0.8rem;
+  background: rgba(0, 0, 0, 0.35); border: 1px solid var(--line);
+  border-radius: 999px; padding: 0.25rem;
+}
+.kl-anat-view {
+  font-family: var(--hb); font-size: 0.7rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--mut);
+  background: transparent; border: none; border-radius: 999px;
+  padding: 0.45rem 1.15rem; cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.kl-anat-view:disabled { cursor: default; }
+.kl-anat-view.is-active { color: #0c0a02; background: linear-gradient(135deg, var(--yel) 0%, var(--gold-deep) 100%); }
+
+.kl-anat-stage { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+.kl-anat-svg { width: 100%; max-width: 250px; height: auto; display: block; touch-action: manipulation; }
+.kl-anat-hint { font-family: var(--bd); font-size: 0.85rem; color: var(--mut); margin: 0; text-align: center; }
+
+/* silhouette */
+.kl-anat-body > circle, .kl-anat-body > rect, .kl-anat-body > path {
+  fill: rgba(148, 120, 190, 0.14);
+  stroke: rgba(160, 130, 200, 0.32);
+  stroke-width: 1.5;
+}
+.kl-anat-mid { stroke: rgba(255, 255, 255, 0.10); stroke-width: 1.5; }
+.kl-anat-spine { stroke: rgba(255, 255, 255, 0.14); stroke-width: 2; stroke-dasharray: 5 6; }
+
+/* tappable muscle regions */
+.kl-anat-region { cursor: pointer; outline: none; }
+.kl-anat-region[tabindex="-1"] { pointer-events: none; }  /* frozen during reveal */
+.kl-anat-region ellipse {
+  fill: rgba(106, 13, 173, 0.32);
+  stroke: rgba(245, 200, 0, 0.30);
+  stroke-width: 1.2;
+  transition: fill 0.15s ease, stroke 0.15s ease;
+}
+.kl-anat-region:hover ellipse, .kl-anat-region:focus-visible ellipse {
+  fill: rgba(245, 200, 0, 0.42); stroke: var(--yel); stroke-width: 2;
+}
+.kl-anat-region.is-dim ellipse { opacity: 0.3; }
+.kl-anat-region.is-correct ellipse { fill: rgba(56, 211, 159, 0.55); stroke: #38d39f; stroke-width: 2.4; opacity: 1; }
+.kl-anat-region.is-wrong ellipse { fill: rgba(239, 68, 68, 0.5); stroke: var(--red); stroke-width: 2.4; opacity: 1; }
+
+.kl-anat-actlbl { font-family: var(--hb); font-size: 0.66rem; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold-soft); }
+
 @media (max-width: 560px) {
   .cl-hero { padding: 1.5rem 1.2rem 1.4rem; }
   .cl-tabbar { grid-template-columns: 1fr; }
   .cl-cardgrid { grid-template-columns: 1fr; }
   .kl-options { grid-template-columns: 1fr; }
+  .kl-anat-target { font-size: 1.6rem; }
 }
 
 /* ── Pillar 3 · Coach's Arena ──────────────────────────────────────────────── */
