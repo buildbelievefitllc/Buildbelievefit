@@ -242,6 +242,21 @@
 .tp-scene-vocab { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem; }
 .tp-vocab-chip { font-size: .78rem; color: #f5cf60; background: rgba(106,13,173,.28); border: 1px solid rgba(245,200,0,.3); border-radius: 999px; padding: .2rem .6rem; }
 
+/* ── THE FORGE card (bake trigger for un-authored Fables days) ───────────────── */
+.tp-bake { margin: .2rem 0 1rem; padding: .85rem 1rem; border-radius: 14px; border: 1px dashed rgba(245,200,0,.45); background: rgba(9,9,9,.35); }
+.tp-bake-text { color: rgba(249,245,255,.65); font-size: .9rem; margin: .4rem 0 .6rem; }
+.tp-bake-err { color: #ff5d5d; font-size: .82rem; margin: .5rem 0 0; }
+.tp-bake-note { color: #4ade80; font-size: .82rem; margin: .5rem 0 0; }
+
+/* ── MISSION CONTROL (the Lab telemetry strip) ───────────────────────────────── */
+.lm-mc { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; padding: .55rem .9rem; border-radius: 12px; border: 1px solid rgba(106,13,173,.4); background: linear-gradient(168deg, rgba(26,11,46,.5), rgba(9,6,14,.85)); }
+.lm-mc-kicker { font-family: var(--hb); font-size: .62rem; letter-spacing: 2px; text-transform: uppercase; color: #f5cf60; }
+.lm-mc-stats { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+.lm-mc-stat { font-size: .84rem; color: rgba(249,245,255,.7); }
+.lm-mc-stat strong { color: #fff; }
+.lm-mc-focus { display: inline-flex; align-items: center; gap: .35rem; font-size: .78rem; color: rgba(249,245,255,.6); }
+.lm-mc-chip { font-size: .74rem; color: #f5cf60; background: rgba(106,13,173,.3); border: 1px solid rgba(245,200,0,.3); border-radius: 999px; padding: .1rem .5rem; }
+
 /* ── THE GRAMMAR CLINIC (weak-cluster targeted micro-drills) ─────────────────── */
 .cl-shell { padding: 1rem 1.1rem; border-radius: 16px; border: 1px solid rgba(106,13,173,.5); background: linear-gradient(135deg, rgba(106,13,173,.22), rgba(9,9,9,.55)); }
 .cl-loading { color: rgba(249,245,255,.55); font-size: .9rem; }

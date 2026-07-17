@@ -7,8 +7,9 @@
 //   bbf_get_language_dashboard   — one-read profile + checkpoint hydration
 // Same non-throwing contract as useVocabGym's shim: no session → resolved no-op.
 
-import { supabase } from './supabaseClient.js';
+import { supabase, FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
+import { getCoachAdminToken } from './adminAuth.js';
 
 async function rpc(fn, args) {
   const token = getStoredVaultToken();
@@ -62,4 +63,26 @@ export function logCurriculumProgress({ language, metric, count = 1 }) {
 //   Path keeps its built-in fallback bank.
 export function getCurriculumEpisode(language, day = null) {
   return rpc('bbf_get_curriculum_episode', { p_language: language, p_day: day });
+}
+
+// bbf-fables-bake — CEO-only episode baker (admin-token gateway, same pattern
+// as the Immersion engine). Generates the day's episode on the FABLE tier and
+// lands it as pending_review; returns the freshly baked episode payload.
+export async function bakeFablesEpisode({ language, day }) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (SUPABASE_ANON_KEY) { headers.apikey = SUPABASE_ANON_KEY; headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`; }
+  const adminToken = getCoachAdminToken();
+  if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
+  try {
+    const res = await fetch(`${FUNCTIONS_BASE}/bbf-fables-bake`, {
+      method: 'POST', headers, body: JSON.stringify({ language, day }),
+    });
+    const raw = await res.text();
+    let data = null;
+    try { data = raw ? JSON.parse(raw) : null; } catch { /* non-JSON body */ }
+    if (!res.ok) return { ok: false, status: res.status, error: (data && data.error) || 'request_failed', detail: data?.detail };
+    return data || { ok: false, error: 'empty' };
+  } catch (e) {
+    return { ok: false, status: 0, error: String((e && e.message) || e) };
+  }
 }

@@ -35,6 +35,7 @@ import VideoVault from './VideoVault.jsx';
 import ImmersionWrapper from './ImmersionWrapper.jsx';
 import VoiceStudioLab from './VoiceStudioLab.jsx';
 import GuidedTrack from './GuidedTrack.jsx';
+import LabMissionControl from './LabMissionControl.jsx';
 import EchoChamber from './EchoChamber.jsx';
 import GrammarClinic from './GrammarClinic.jsx';
 import PimsleurAudioLab from '../command/PimsleurAudioLab.jsx';
@@ -134,6 +135,10 @@ function LabHub() {
              The video item names the day's Sequence-Mapper lesson and routes
              straight into the Vault, where that lesson renders featured. ── */}
       <GuidedTrack onOpenVault={() => setMode('vault')} />
+
+      {/* ── MISSION CONTROL — the telemetry strip (streak · fluency · focus).
+             key={target} → a language swap remounts it fresh. ── */}
+      <LabMissionControl key={`mc-${target}`} />
 
       {/* the four Mastery Views + Immersion — one surface at a time */}
       <div className="lm-mode-tabs" role="tablist" aria-label="mastery modes">

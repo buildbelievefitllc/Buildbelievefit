@@ -17,7 +17,8 @@
 // touches a chip, the bank NEVER changes under them mid-drill.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { getCurriculumEpisode, logLanguageAttempt } from '../../lib/languageLabApi.js';
+import { bakeFablesEpisode, getCurriculumEpisode, logLanguageAttempt } from '../../lib/languageLabApi.js';
+import { hasAdminToken } from '../../lib/adminAuth.js';
 import { useLanguageLab } from './LanguageLabContext.jsx';
 import { useNarrator } from './useNarrator.js';
 import { useLang } from '../../context/LangContext.jsx';
@@ -38,9 +39,9 @@ const SENTENCES = {
 };
 
 const TP_STR = {
-  en: { kicker: 'The Path · Syntax', title: 'Build the sentence', drop: 'Drag the chips here — in order', check: 'Check', next: 'Next sentence', reset: 'Reset', hear: '🔊 Hear it', correct: '✓ Correct — locked in.', wrong: '✗ Not quite — reset and rebuild.', doneTitle: 'Path complete', done: (c, t) => `${c}/${t} sentences correct — logged to your ledger.`, sceneKicker: (d) => `BBF Fables · Day ${d}`, hearScene: '🔊 Hear the scene', showGloss: 'Show English', hideGloss: 'Hide English', vocabLabel: 'Today’s vocabulary', pilotTag: 'Pilot · in review', liveScene: '💬 Step into this scene' },
-  es: { kicker: 'La Senda · Sintaxis', title: 'Construye la frase', drop: 'Arrastra las fichas aquí — en orden', check: 'Comprobar', next: 'Siguiente frase', reset: 'Reiniciar', hear: '🔊 Escúchala', correct: '✓ Correcto — asegurado.', wrong: '✗ Casi — reinicia y reconstruye.', doneTitle: 'Senda completa', done: (c, t) => `${c}/${t} frases correctas — registrado en tu historial.`, sceneKicker: (d) => `Fábulas BBF · Día ${d}`, hearScene: '🔊 Escucha la escena', showGloss: 'Mostrar inglés', hideGloss: 'Ocultar inglés', vocabLabel: 'Vocabulario de hoy', pilotTag: 'Piloto · en revisión', liveScene: '💬 Vive esta escena' },
-  pt: { kicker: 'A Trilha · Sintaxe', title: 'Monte a frase', drop: 'Arraste as fichas aqui — em ordem', check: 'Verificar', next: 'Próxima frase', reset: 'Reiniciar', hear: '🔊 Ouça', correct: '✓ Correto — garantido.', wrong: '✗ Quase — reinicie e remonte.', doneTitle: 'Trilha completa', done: (c, t) => `${c}/${t} frases corretas — registrado no seu histórico.`, sceneKicker: (d) => `Fábulas BBF · Dia ${d}`, hearScene: '🔊 Ouça a cena', showGloss: 'Mostrar inglês', hideGloss: 'Ocultar inglês', vocabLabel: 'Vocabulário de hoje', pilotTag: 'Piloto · em revisão', liveScene: '💬 Viva esta cena' },
+  en: { kicker: 'The Path · Syntax', title: 'Build the sentence', drop: 'Drag the chips here — in order', check: 'Check', next: 'Next sentence', reset: 'Reset', hear: '🔊 Hear it', correct: '✓ Correct — locked in.', wrong: '✗ Not quite — reset and rebuild.', doneTitle: 'Path complete', done: (c, t) => `${c}/${t} sentences correct — logged to your ledger.`, sceneKicker: (d) => `BBF Fables · Day ${d}`, hearScene: '🔊 Hear the scene', showGloss: 'Show English', hideGloss: 'Hide English', vocabLabel: 'Today’s vocabulary', pilotTag: 'Pilot · in review', liveScene: '💬 Step into this scene', bakeNone: 'No episode exists for this day yet.', bake: '⚒ Forge this episode', baking: 'Forging… (~30s)', bakeErr: 'The forge misfired — try again.', bakeStale: 'Forged — reopen this tab to load it.' },
+  es: { kicker: 'La Senda · Sintaxis', title: 'Construye la frase', drop: 'Arrastra las fichas aquí — en orden', check: 'Comprobar', next: 'Siguiente frase', reset: 'Reiniciar', hear: '🔊 Escúchala', correct: '✓ Correcto — asegurado.', wrong: '✗ Casi — reinicia y reconstruye.', doneTitle: 'Senda completa', done: (c, t) => `${c}/${t} frases correctas — registrado en tu historial.`, sceneKicker: (d) => `Fábulas BBF · Día ${d}`, hearScene: '🔊 Escucha la escena', showGloss: 'Mostrar inglés', hideGloss: 'Ocultar inglés', vocabLabel: 'Vocabulario de hoy', pilotTag: 'Piloto · en revisión', liveScene: '💬 Vive esta escena', bakeNone: 'Aún no existe un episodio para este día.', bake: '⚒ Forjar este episodio', baking: 'Forjando… (~30s)', bakeErr: 'La forja falló — inténtalo de nuevo.', bakeStale: 'Forjado — vuelve a abrir esta pestaña para cargarlo.' },
+  pt: { kicker: 'A Trilha · Sintaxe', title: 'Monte a frase', drop: 'Arraste as fichas aqui — em ordem', check: 'Verificar', next: 'Próxima frase', reset: 'Reiniciar', hear: '🔊 Ouça', correct: '✓ Correto — garantido.', wrong: '✗ Quase — reinicie e remonte.', doneTitle: 'Trilha completa', done: (c, t) => `${c}/${t} frases corretas — registrado no seu histórico.`, sceneKicker: (d) => `Fábulas BBF · Dia ${d}`, hearScene: '🔊 Ouça a cena', showGloss: 'Mostrar inglês', hideGloss: 'Ocultar inglês', vocabLabel: 'Vocabulário de hoje', pilotTag: 'Piloto · em revisão', liveScene: '💬 Viva esta cena', bakeNone: 'Ainda não existe um episódio para este dia.', bake: '⚒ Forjar este episódio', baking: 'Forjando… (~30s)', bakeErr: 'A forja falhou — tente de novo.', bakeStale: 'Forjado — reabra esta aba para carregá-lo.' },
 };
 
 // Validate the RPC's drill payload down to The Path's exact chip contract —
@@ -79,6 +80,7 @@ export default function ThePath({ language = 'es', onLiveScene = null }) {
   //    chip. touchedRef guards the drill from ever changing mid-build.
   const [episode, setEpisode] = useState(null);
   const [showGloss, setShowGloss] = useState(false);
+  const [bakeState, setBakeState] = useState('idle'); // idle | baking | stale | error
   const touchedRef = useRef(false);
   const day = curriculum.ready ? curriculum.day : null;
 
@@ -91,6 +93,20 @@ export default function ThePath({ language = 'es', onLiveScene = null }) {
     });
     return () => { alive = false; };
   }, [language, day]);
+
+  // THE FORGE — CEO-only bake trigger for un-authored days (11-90). The new
+  // episode swaps in live unless a drill is already mid-build (touched guard).
+  const doBake = async () => {
+    if (bakeState === 'baking' || !day) return;
+    setBakeState('baking');
+    const res = await bakeFablesEpisode({ language, day });
+    if (res && res.ok && res.episode && toDrillBank(res.episode)) {
+      if (!touchedRef.current) { setEpisode(res.episode); setBakeState('idle'); }
+      else setBakeState('stale');
+    } else {
+      setBakeState('error');
+    }
+  };
 
   const bank = useMemo(() => (episode && toDrillBank(episode)) || fallbackBank, [episode, fallbackBank]);
   const sentence = bank[si];
@@ -136,6 +152,21 @@ export default function ThePath({ language = 'es', onLiveScene = null }) {
     setPlaced([]); setVerdict(null);
   };
   const reset = () => { setPlaced([]); setVerdict(null); };
+
+  // ── THE FORGE card — shown when the active day has no episode yet ──
+  const bakeCard = !episode && day && hasAdminToken() ? (
+    <div className="tp-bake" data-testid="path-bake">
+      <span className="tp-scene-kicker">{tr.sceneKicker(day)}</span>
+      <p className="tp-bake-text">{tr.bakeNone}</p>
+      <div className="tp-scene-actions">
+        <button type="button" className="tp-btn" onClick={doBake} disabled={bakeState === 'baking'} data-testid="path-bake-btn">
+          {bakeState === 'baking' ? tr.baking : tr.bake}
+        </button>
+      </div>
+      {bakeState === 'error' ? <p className="tp-bake-err">{tr.bakeErr}</p> : null}
+      {bakeState === 'stale' ? <p className="tp-bake-note">{tr.bakeStale}</p> : null}
+    </div>
+  ) : null;
 
   // ── the day's Fables scene — the narrative frame above the drill ──
   const scenePanel = episode ? (
@@ -190,7 +221,7 @@ export default function ThePath({ language = 'es', onLiveScene = null }) {
     <section className="tp-shell" data-testid="the-path">
       <span className="lm-kicker">{tr.kicker}</span>
       <h3 className="lm-title">{tr.title}</h3>
-      {scenePanel}
+      {scenePanel || bakeCard}
       <div className="tp-prompt">“{sentence.prompt}”</div>
 
       {/* the answer rail — chips are dragged (or tapped) into here, in order */}
