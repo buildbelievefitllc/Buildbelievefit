@@ -3,11 +3,11 @@
 // THE GUIDED TRACK — the Curriculum Engine's daily dose, rendered as a single
 // horizontal clinical checklist strip at the top of the Language Lab hub.
 //
-// Shows the active day ("DAY 14") + the three dose items (Vocab Cards · Syntax
-// Rule · Video Vault review) with live counters fed by logModuleProgress from
-// the modules themselves — the athlete just USES the tools and the track fills.
-// Completing all three stamps the server unlock flag; the strip flips to the
-// gold "Day N+1 unlocked" state.
+// Shows the active day ("DAY 14") + the five dose items (Vocab Cards · Syntax
+// Rule · Video Vault review · Echo Chamber rep · Grammar Clinic session) with
+// live counters fed by logModuleProgress from the modules themselves — the
+// athlete just USES the tools and the track fills. Completing all five stamps
+// the server unlock flag; the strip flips to the gold "Day N+1 unlocked" state.
 //
 // SEQUENCE MAPPER BINDING: the Video Vault item is not generic — it names the
 // day's ASSIGNED lesson (Day N → chronological index N−1, per language) and
@@ -32,7 +32,7 @@ const GT_STR = {
   en: {
     kicker: 'Guided Track · Curriculum Engine',
     day: (n) => `Day ${n}`,
-    items: { vocab: 'Vocab Cards', syntax: 'Syntax Rule', video: 'Video Vault' },
+    items: { vocab: 'Vocab Cards', syntax: 'Syntax Rule', video: 'Video Vault', shadow: 'Echo Chamber', clinic: 'Grammar Clinic' },
     review: 'Review:',
     complete: (n) => `Day ${n - 1} complete — Day ${n} unlocked.`,
     freeRoam: 'The modular tools below stay open — the track fills as you train.',
@@ -41,7 +41,7 @@ const GT_STR = {
   es: {
     kicker: 'Ruta Guiada · Motor de Currículo',
     day: (n) => `Día ${n}`,
-    items: { vocab: 'Tarjetas de Vocabulario', syntax: 'Regla de Sintaxis', video: 'Bóveda de Video' },
+    items: { vocab: 'Tarjetas de Vocabulario', syntax: 'Regla de Sintaxis', video: 'Bóveda de Video', shadow: 'Cámara de Eco', clinic: 'Clínica Gramatical' },
     review: 'Repaso:',
     complete: (n) => `Día ${n - 1} completo — Día ${n} desbloqueado.`,
     freeRoam: 'Las herramientas modulares siguen abiertas — la ruta se llena mientras entrenas.',
@@ -50,7 +50,7 @@ const GT_STR = {
   pt: {
     kicker: 'Trilha Guiada · Motor de Currículo',
     day: (n) => `Dia ${n}`,
-    items: { vocab: 'Cartões de Vocabulário', syntax: 'Regra de Sintaxe', video: 'Cofre de Vídeo' },
+    items: { vocab: 'Cartões de Vocabulário', syntax: 'Regra de Sintaxe', video: 'Cofre de Vídeo', shadow: 'Câmara de Eco', clinic: 'Clínica de Gramática' },
     review: 'Revisão:',
     complete: (n) => `Dia ${n - 1} completo — Dia ${n} desbloqueado.`,
     freeRoam: 'As ferramentas modulares continuam abertas — a trilha se preenche enquanto você treina.',
@@ -62,7 +62,7 @@ function readCollapsed() {
   try { return localStorage.getItem(COLLAPSE_KEY) === '1'; } catch { return false; }
 }
 
-const ITEM_ORDER = ['vocab', 'syntax', 'video'];
+const ITEM_ORDER = ['vocab', 'syntax', 'video', 'shadow', 'clinic'];
 
 export default function GuidedTrack({ onOpenVault }) {
   const { lang } = useLang();

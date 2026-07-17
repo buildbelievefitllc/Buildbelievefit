@@ -29,7 +29,11 @@ import { getCurriculumTrack, logCurriculumProgress } from '../../lib/languageLab
 
 const TARGET_KEY = 'bbf_lab_target';
 const ENGINE_KEY = 'bbf_lab_narration_engine';
-const FALLBACK_REQ = { vocab: 10, syntax: 1, video: 1 };
+// The 5-item daily dose (Fable Fleet Sync wave 4): 'shadow' is the Echo
+// Chamber's dose metric (matches the module name it writes to the session
+// ledger); 'clinic' is the Grammar Clinic's.
+const FALLBACK_REQ = { vocab: 10, syntax: 1, video: 1, shadow: 1, clinic: 1 };
+const DOSE_METRICS = ['vocab', 'syntax', 'video', 'shadow', 'clinic'];
 
 function readStoredTarget() {
   try {
@@ -49,7 +53,7 @@ const INERT_CURRICULUM = {
   ready: false, loading: false,
   day: 1, daysCompleted: 0,
   requirements: FALLBACK_REQ,
-  progress: { vocab: 0, syntax: 0, video: 0 },
+  progress: { vocab: 0, syntax: 0, video: 0, shadow: 0, clinic: 0 },
   dayComplete: false, justUnlocked: false,
 };
 
@@ -98,11 +102,15 @@ export function LanguageLabProvider({ children }) {
         vocab: Number(res.requirements?.vocab) || FALLBACK_REQ.vocab,
         syntax: Number(res.requirements?.syntax) || FALLBACK_REQ.syntax,
         video: Number(res.requirements?.video) || FALLBACK_REQ.video,
+        shadow: Number(res.requirements?.shadow) || FALLBACK_REQ.shadow,
+        clinic: Number(res.requirements?.clinic) || FALLBACK_REQ.clinic,
       },
       progress: {
         vocab: Number(res.progress?.vocab) || 0,
         syntax: Number(res.progress?.syntax) || 0,
         video: Number(res.progress?.video) || 0,
+        shadow: Number(res.progress?.shadow) || 0,
+        clinic: Number(res.progress?.clinic) || 0,
       },
       dayComplete: res.day_complete === true,
       justUnlocked: res.unlocked_next === true,
@@ -121,7 +129,7 @@ export function LanguageLabProvider({ children }) {
   // The modules' single write path. Optimistic local bump, then reconcile with the
   // server envelope (which owns day completion + the unlock). Fire-and-safe.
   const logModuleProgress = useCallback(async (metric, count = 1) => {
-    if (!['vocab', 'syntax', 'video'].includes(metric)) return { ok: false, error: 'invalid_metric' };
+    if (!DOSE_METRICS.includes(metric)) return { ok: false, error: 'invalid_metric' };
     setCurr((c) => (c.ready
       ? { ...c, progress: { ...c.progress, [metric]: c.progress[metric] + count } }
       : c));

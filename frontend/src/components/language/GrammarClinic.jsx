@@ -18,6 +18,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getLanguageDashboard, logLanguageAttempt } from '../../lib/languageLabApi.js';
 import { orderDrillsForAthlete, CLINIC_CLUSTERS } from './clinicDrills.js';
+import { useLanguageLab } from './LanguageLabContext.jsx';
 import { useNarrator } from './useNarrator.js';
 import { useLangUiStr } from './languageStrings.js';
 import { useLang } from '../../context/LangContext.jsx';
@@ -34,6 +35,7 @@ const CL_STR = {
 export default function GrammarClinic({ language = 'es' }) {
   const { lang } = useLang();
   const { clusters } = useLangUiStr();          // localized cluster labels (closed taxonomy)
+  const { logModuleProgress } = useLanguageLab();
   const { narrate } = useNarrator();
   const tr = CL_STR[lang] || CL_STR.en;
 
@@ -89,6 +91,9 @@ export default function GrammarClinic({ language = 'es' }) {
         itemsTotal: deck.length, itemsCorrect: finalScore,
         items: answers,
       });
+      // Guided Track dose: one completed session (any score) counts — the drill
+      // is the rep, same as a finished Path build or an Echo Chamber run.
+      logModuleProgress('clinic', 1);
       return;
     }
     setIdx((i) => i + 1);

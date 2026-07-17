@@ -50,7 +50,7 @@ function sceneToLines(sceneText) {
 
 export default function EchoChamber({ language = 'es' }) {
   const { lang } = useLang();
-  const { curriculum } = useLanguageLab();
+  const { curriculum, logModuleProgress } = useLanguageLab();
   const { narrate } = useNarrator();
   const tr = EC_STR[lang] || EC_STR.en;
   const target = language === 'pt' ? 'pt' : 'es';
@@ -110,6 +110,10 @@ export default function EchoChamber({ language = 'es' }) {
       const avg = Math.round(scores.reduce((s, n) => s + n, 0) / (scores.length || 1));
       const passed = scores.filter((s) => s >= PASS_SCORE).length;
       setSummary({ avg, passed, total: lines.length, spoke });
+      // Guided Track dose: a FINISHED run (spoken or listen-only) counts — the
+      // daily habit is "did the rep", not "did it perfectly with a mic". Ledger
+      // logging below stays spoke-gated (fluency data quality is a separate bar).
+      logModuleProgress('shadow', 1);
       if (spoke) {
         logLanguageAttempt({
           language, module: 'shadow',
