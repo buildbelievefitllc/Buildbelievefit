@@ -1,0 +1,1686 @@
+{
+  "version": 1,
+  "note": "Champions Mindset video library — 90-video trilingual (en/es/pt) architecture across 3 psychological tracks (Motivation · Flow · Resilience), 30 sessions each. video_ref/poster_ref are architecture slots to be populated with storage paths as clips are produced/ingested.",
+  "locales": [
+    "en",
+    "es",
+    "pt"
+  ],
+  "total_videos": 90,
+  "tracks": [
+    {
+      "id": "motivation",
+      "icon": "🔥",
+      "accent": "#f5c800",
+      "titles": {
+        "en": "Motivation",
+        "es": "Motivación",
+        "pt": "Motivação"
+      },
+      "focus": {
+        "en": "Drive · Discipline · Consistency",
+        "es": "Impulso · Disciplina · Constancia",
+        "pt": "Determinação · Disciplina · Constância"
+      },
+      "session_count": 30,
+      "sessions": [
+        {
+          "id": "mot-01",
+          "track": "motivation",
+          "session": 1,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The First Rep",
+            "es": "La Primera Repetición",
+            "pt": "A Primeira Repetição"
+          },
+          "description": {
+            "en": "Motivation · Session 1: \"The First Rep\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 1: \"La Primera Repetición\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 1: \"A Primeira Repetição\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-02",
+          "track": "motivation",
+          "session": 2,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Why You Started",
+            "es": "Por Qué Empezaste",
+            "pt": "Por Que Você Começou"
+          },
+          "description": {
+            "en": "Motivation · Session 2: \"Why You Started\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 2: \"Por Qué Empezaste\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 2: \"Por Que Você Começou\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-03",
+          "track": "motivation",
+          "session": 3,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Discipline Over Motivation",
+            "es": "Disciplina Sobre Motivación",
+            "pt": "Disciplina Acima da Motivação"
+          },
+          "description": {
+            "en": "Motivation · Session 3: \"Discipline Over Motivation\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 3: \"Disciplina Sobre Motivación\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 3: \"Disciplina Acima da Motivação\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-04",
+          "track": "motivation",
+          "session": 4,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Show Up Daily",
+            "es": "Preséntate Cada Día",
+            "pt": "Apareça Todo Dia"
+          },
+          "description": {
+            "en": "Motivation · Session 4: \"Show Up Daily\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 4: \"Preséntate Cada Día\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 4: \"Apareça Todo Dia\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-05",
+          "track": "motivation",
+          "session": 5,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Small Wins",
+            "es": "Pequeñas Victorias",
+            "pt": "Pequenas Vitórias"
+          },
+          "description": {
+            "en": "Motivation · Session 5: \"Small Wins\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 5: \"Pequeñas Victorias\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 5: \"Pequenas Vitórias\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-06",
+          "track": "motivation",
+          "session": 6,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The 5 AM Standard",
+            "es": "El Estándar de las 5 AM",
+            "pt": "O Padrão das 5h"
+          },
+          "description": {
+            "en": "Motivation · Session 6: \"The 5 AM Standard\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 6: \"El Estándar de las 5 AM\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 6: \"O Padrão das 5h\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-07",
+          "track": "motivation",
+          "session": 7,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Burn the Boats",
+            "es": "Quema los Barcos",
+            "pt": "Queime os Barcos"
+          },
+          "description": {
+            "en": "Motivation · Session 7: \"Burn the Boats\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 7: \"Quema los Barcos\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 7: \"Queime os Barcos\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-08",
+          "track": "motivation",
+          "session": 8,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Earn It",
+            "es": "Gánatelo",
+            "pt": "Conquiste Isso"
+          },
+          "description": {
+            "en": "Motivation · Session 8: \"Earn It\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 8: \"Gánatelo\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 8: \"Conquiste Isso\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-09",
+          "track": "motivation",
+          "session": 9,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "No Zero Days",
+            "es": "Sin Días en Cero",
+            "pt": "Sem Dias Zerados"
+          },
+          "description": {
+            "en": "Motivation · Session 9: \"No Zero Days\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 9: \"Sin Días en Cero\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 9: \"Sem Dias Zerados\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-10",
+          "track": "motivation",
+          "session": 10,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Your Future Self",
+            "es": "Tu Yo Futuro",
+            "pt": "Seu Eu Futuro"
+          },
+          "description": {
+            "en": "Motivation · Session 10: \"Your Future Self\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 10: \"Tu Yo Futuro\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 10: \"Seu Eu Futuro\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-11",
+          "track": "motivation",
+          "session": 11,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Hunger",
+            "es": "Hambre",
+            "pt": "Fome"
+          },
+          "description": {
+            "en": "Motivation · Session 11: \"Hunger\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 11: \"Hambre\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 11: \"Fome\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-12",
+          "track": "motivation",
+          "session": 12,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Standard",
+            "es": "El Estándar",
+            "pt": "O Padrão"
+          },
+          "description": {
+            "en": "Motivation · Session 12: \"The Standard\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 12: \"El Estándar\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 12: \"O Padrão\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-13",
+          "track": "motivation",
+          "session": 13,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Outwork Everyone",
+            "es": "Supera a Todos",
+            "pt": "Trabalhe Mais que Todos"
+          },
+          "description": {
+            "en": "Motivation · Session 13: \"Outwork Everyone\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 13: \"Supera a Todos\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 13: \"Trabalhe Mais que Todos\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-14",
+          "track": "motivation",
+          "session": 14,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Momentum",
+            "es": "Impulso",
+            "pt": "Impulso"
+          },
+          "description": {
+            "en": "Motivation · Session 14: \"Momentum\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 14: \"Impulso\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 14: \"Impulso\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-15",
+          "track": "motivation",
+          "session": 15,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Decide Once",
+            "es": "Decide Una Vez",
+            "pt": "Decida Uma Vez"
+          },
+          "description": {
+            "en": "Motivation · Session 15: \"Decide Once\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 15: \"Decide Una Vez\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 15: \"Decida Uma Vez\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-16",
+          "track": "motivation",
+          "session": 16,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Prove Them Wrong",
+            "es": "Demuéstrales lo Contrario",
+            "pt": "Prove que Erraram"
+          },
+          "description": {
+            "en": "Motivation · Session 16: \"Prove Them Wrong\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 16: \"Demuéstrales lo Contrario\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 16: \"Prove que Erraram\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-17",
+          "track": "motivation",
+          "session": 17,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Grind",
+            "es": "El Esfuerzo",
+            "pt": "A Labuta"
+          },
+          "description": {
+            "en": "Motivation · Session 17: \"The Grind\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 17: \"El Esfuerzo\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 17: \"A Labuta\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-18",
+          "track": "motivation",
+          "session": 18,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Relentless",
+            "es": "Implacable",
+            "pt": "Implacável"
+          },
+          "description": {
+            "en": "Motivation · Session 18: \"Relentless\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 18: \"Implacable\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 18: \"Implacável\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-19",
+          "track": "motivation",
+          "session": 19,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Own the Morning",
+            "es": "Domina la Mañana",
+            "pt": "Domine a Manhã"
+          },
+          "description": {
+            "en": "Motivation · Session 19: \"Own the Morning\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 19: \"Domina la Mañana\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 19: \"Domine a Manhã\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-20",
+          "track": "motivation",
+          "session": 20,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Delayed Gratification",
+            "es": "Gratificación Diferida",
+            "pt": "Gratificação Adiada"
+          },
+          "description": {
+            "en": "Motivation · Session 20: \"Delayed Gratification\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 20: \"Gratificación Diferida\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 20: \"Gratificação Adiada\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-21",
+          "track": "motivation",
+          "session": 21,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Fuel the Fire",
+            "es": "Alimenta el Fuego",
+            "pt": "Alimente o Fogo"
+          },
+          "description": {
+            "en": "Motivation · Session 21: \"Fuel the Fire\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 21: \"Alimenta el Fuego\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 21: \"Alimente o Fogo\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-22",
+          "track": "motivation",
+          "session": 22,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Non-Negotiables",
+            "es": "Innegociables",
+            "pt": "Inegociáveis"
+          },
+          "description": {
+            "en": "Motivation · Session 22: \"Non-Negotiables\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 22: \"Innegociables\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 22: \"Inegociáveis\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-23",
+          "track": "motivation",
+          "session": 23,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Chase Greatness",
+            "es": "Persigue la Grandeza",
+            "pt": "Busque a Grandeza"
+          },
+          "description": {
+            "en": "Motivation · Session 23: \"Chase Greatness\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 23: \"Persigue la Grandeza\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 23: \"Busque a Grandeza\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-24",
+          "track": "motivation",
+          "session": 24,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Long Game",
+            "es": "El Juego Largo",
+            "pt": "O Jogo Longo"
+          },
+          "description": {
+            "en": "Motivation · Session 24: \"The Long Game\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 24: \"El Juego Largo\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 24: \"O Jogo Longo\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-25",
+          "track": "motivation",
+          "session": 25,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Rise Again",
+            "es": "Levántate de Nuevo",
+            "pt": "Levante Novamente"
+          },
+          "description": {
+            "en": "Motivation · Session 25: \"Rise Again\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 25: \"Levántate de Nuevo\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 25: \"Levante Novamente\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-26",
+          "track": "motivation",
+          "session": 26,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Discipline Equals Freedom",
+            "es": "Disciplina Es Libertad",
+            "pt": "Disciplina É Liberdade"
+          },
+          "description": {
+            "en": "Motivation · Session 26: \"Discipline Equals Freedom\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 26: \"Disciplina Es Libertad\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 26: \"Disciplina É Liberdade\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-27",
+          "track": "motivation",
+          "session": 27,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Attack the Day",
+            "es": "Ataca el Día",
+            "pt": "Ataque o Dia"
+          },
+          "description": {
+            "en": "Motivation · Session 27: \"Attack the Day\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 27: \"Ataca el Día\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 27: \"Ataque o Dia\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-28",
+          "track": "motivation",
+          "session": 28,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Stay Hungry",
+            "es": "Mantente Hambriento",
+            "pt": "Continue Faminto"
+          },
+          "description": {
+            "en": "Motivation · Session 28: \"Stay Hungry\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 28: \"Mantente Hambriento\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 28: \"Continue Faminto\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-29",
+          "track": "motivation",
+          "session": 29,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Finish Strong",
+            "es": "Termina Fuerte",
+            "pt": "Termine Forte"
+          },
+          "description": {
+            "en": "Motivation · Session 29: \"Finish Strong\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 29: \"Termina Fuerte\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 29: \"Termine Forte\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        },
+        {
+          "id": "mot-30",
+          "track": "motivation",
+          "session": 30,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Become Unstoppable",
+            "es": "Vuélvete Imparable",
+            "pt": "Torne-se Imparável"
+          },
+          "description": {
+            "en": "Motivation · Session 30: \"Become Unstoppable\" — a champion's-mindset priming clip to fuel drive, discipline, and daily consistency.",
+            "es": "Motivación · Sesión 30: \"Vuélvete Imparable\" — un clip de mentalidad de campeón para encender tu impulso, disciplina y constancia diaria.",
+            "pt": "Motivação · Sessão 30: \"Torne-se Imparável\" — um clipe de mentalidade de campeão para acender determinação, disciplina e constância diária."
+          }
+        }
+      ]
+    },
+    {
+      "id": "flow",
+      "icon": "🌊",
+      "accent": "#1098ad",
+      "titles": {
+        "en": "Flow",
+        "es": "Flujo",
+        "pt": "Fluxo"
+      },
+      "focus": {
+        "en": "Focus · Presence · The Zone",
+        "es": "Enfoque · Presencia · La Zona",
+        "pt": "Foco · Presença · A Zona"
+      },
+      "session_count": 30,
+      "sessions": [
+        {
+          "id": "flo-01",
+          "track": "flow",
+          "session": 1,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Enter the Zone",
+            "es": "Entra en la Zona",
+            "pt": "Entre na Zona"
+          },
+          "description": {
+            "en": "Flow · Session 1: \"Enter the Zone\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 1: \"Entra en la Zona\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 1: \"Entre na Zona\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-02",
+          "track": "flow",
+          "session": 2,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Single Task",
+            "es": "Tarea Única",
+            "pt": "Tarefa Única"
+          },
+          "description": {
+            "en": "Flow · Session 2: \"Single Task\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 2: \"Tarea Única\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 2: \"Tarefa Única\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-03",
+          "track": "flow",
+          "session": 3,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Present Moment",
+            "es": "El Momento Presente",
+            "pt": "O Momento Presente"
+          },
+          "description": {
+            "en": "Flow · Session 3: \"The Present Moment\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 3: \"El Momento Presente\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 3: \"O Momento Presente\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-04",
+          "track": "flow",
+          "session": 4,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Quiet the Mind",
+            "es": "Calma la Mente",
+            "pt": "Acalme a Mente"
+          },
+          "description": {
+            "en": "Flow · Session 4: \"Quiet the Mind\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 4: \"Calma la Mente\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 4: \"Acalme a Mente\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-05",
+          "track": "flow",
+          "session": 5,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Deep Work",
+            "es": "Trabajo Profundo",
+            "pt": "Trabalho Profundo"
+          },
+          "description": {
+            "en": "Flow · Session 5: \"Deep Work\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 5: \"Trabajo Profundo\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 5: \"Trabalho Profundo\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-06",
+          "track": "flow",
+          "session": 6,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Breath and Rhythm",
+            "es": "Respiración y Ritmo",
+            "pt": "Respiração e Ritmo"
+          },
+          "description": {
+            "en": "Flow · Session 6: \"Breath and Rhythm\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 6: \"Respiración y Ritmo\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 6: \"Respiração e Ritmo\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-07",
+          "track": "flow",
+          "session": 7,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Effortless Focus",
+            "es": "Enfoque Sin Esfuerzo",
+            "pt": "Foco Sem Esforço"
+          },
+          "description": {
+            "en": "Flow · Session 7: \"Effortless Focus\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 7: \"Enfoque Sin Esfuerzo\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 7: \"Foco Sem Esforço\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-08",
+          "track": "flow",
+          "session": 8,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Lose the Clock",
+            "es": "Pierde el Reloj",
+            "pt": "Perca o Relógio"
+          },
+          "description": {
+            "en": "Flow · Session 8: \"Lose the Clock\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 8: \"Pierde el Reloj\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 8: \"Perca o Relógio\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-09",
+          "track": "flow",
+          "session": 9,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "One Breath",
+            "es": "Una Respiración",
+            "pt": "Uma Respiração"
+          },
+          "description": {
+            "en": "Flow · Session 9: \"One Breath\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 9: \"Una Respiración\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 9: \"Uma Respiração\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-10",
+          "track": "flow",
+          "session": 10,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Clear the Noise",
+            "es": "Elimina el Ruido",
+            "pt": "Elimine o Ruído"
+          },
+          "description": {
+            "en": "Flow · Session 10: \"Clear the Noise\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 10: \"Elimina el Ruido\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 10: \"Elimine o Ruído\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-11",
+          "track": "flow",
+          "session": 11,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Trust the Rep",
+            "es": "Confía en la Repetición",
+            "pt": "Confie na Repetição"
+          },
+          "description": {
+            "en": "Flow · Session 11: \"Trust the Rep\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 11: \"Confía en la Repetición\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 11: \"Confie na Repetição\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-12",
+          "track": "flow",
+          "session": 12,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Move with Ease",
+            "es": "Muévete con Soltura",
+            "pt": "Mova-se com Leveza"
+          },
+          "description": {
+            "en": "Flow · Session 12: \"Move with Ease\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 12: \"Muévete con Soltura\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 12: \"Mova-se com Leveza\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-13",
+          "track": "flow",
+          "session": 13,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Sweet Spot",
+            "es": "El Punto Justo",
+            "pt": "O Ponto Certo"
+          },
+          "description": {
+            "en": "Flow · Session 13: \"The Sweet Spot\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 13: \"El Punto Justo\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 13: \"O Ponto Certo\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-14",
+          "track": "flow",
+          "session": 14,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Rhythm Over Force",
+            "es": "Ritmo Sobre Fuerza",
+            "pt": "Ritmo Acima da Força"
+          },
+          "description": {
+            "en": "Flow · Session 14: \"Rhythm Over Force\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 14: \"Ritmo Sobre Fuerza\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 14: \"Ritmo Acima da Força\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-15",
+          "track": "flow",
+          "session": 15,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Presence",
+            "es": "Presencia",
+            "pt": "Presença"
+          },
+          "description": {
+            "en": "Flow · Session 15: \"Presence\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 15: \"Presencia\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 15: \"Presença\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-16",
+          "track": "flow",
+          "session": 16,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Let Go",
+            "es": "Suelta",
+            "pt": "Solte"
+          },
+          "description": {
+            "en": "Flow · Session 16: \"Let Go\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 16: \"Suelta\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 16: \"Solte\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-17",
+          "track": "flow",
+          "session": 17,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "In the Body",
+            "es": "En el Cuerpo",
+            "pt": "No Corpo"
+          },
+          "description": {
+            "en": "Flow · Session 17: \"In the Body\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 17: \"En el Cuerpo\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 17: \"No Corpo\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-18",
+          "track": "flow",
+          "session": 18,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Focus Anchor",
+            "es": "Ancla de Enfoque",
+            "pt": "Âncora de Foco"
+          },
+          "description": {
+            "en": "Flow · Session 18: \"Focus Anchor\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 18: \"Ancla de Enfoque\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 18: \"Âncora de Foco\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-19",
+          "track": "flow",
+          "session": 19,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Automatic",
+            "es": "Automático",
+            "pt": "Automático"
+          },
+          "description": {
+            "en": "Flow · Session 19: \"Automatic\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 19: \"Automático\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 19: \"Automático\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-20",
+          "track": "flow",
+          "session": 20,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Groove",
+            "es": "El Ritmo",
+            "pt": "O Embalo"
+          },
+          "description": {
+            "en": "Flow · Session 20: \"The Groove\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 20: \"El Ritmo\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 20: \"O Embalo\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-21",
+          "track": "flow",
+          "session": 21,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Stillness in Motion",
+            "es": "Quietud en Movimiento",
+            "pt": "Quietude em Movimento"
+          },
+          "description": {
+            "en": "Flow · Session 21: \"Stillness in Motion\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 21: \"Quietud en Movimiento\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 21: \"Quietude em Movimento\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-22",
+          "track": "flow",
+          "session": 22,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Tune In",
+            "es": "Sintoniza",
+            "pt": "Sintonize"
+          },
+          "description": {
+            "en": "Flow · Session 22: \"Tune In\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 22: \"Sintoniza\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 22: \"Sintonize\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-23",
+          "track": "flow",
+          "session": 23,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Undivided",
+            "es": "Sin Dividir",
+            "pt": "Indiviso"
+          },
+          "description": {
+            "en": "Flow · Session 23: \"Undivided\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 23: \"Sin Dividir\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 23: \"Indiviso\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-24",
+          "track": "flow",
+          "session": 24,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Wave",
+            "es": "La Ola",
+            "pt": "A Onda"
+          },
+          "description": {
+            "en": "Flow · Session 24: \"The Wave\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 24: \"La Ola\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 24: \"A Onda\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-25",
+          "track": "flow",
+          "session": 25,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Soft Focus",
+            "es": "Enfoque Suave",
+            "pt": "Foco Suave"
+          },
+          "description": {
+            "en": "Flow · Session 25: \"Soft Focus\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 25: \"Enfoque Suave\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 25: \"Foco Suave\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-26",
+          "track": "flow",
+          "session": 26,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Time Disappears",
+            "es": "El Tiempo Desaparece",
+            "pt": "O Tempo Desaparece"
+          },
+          "description": {
+            "en": "Flow · Session 26: \"Time Disappears\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 26: \"El Tiempo Desaparece\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 26: \"O Tempo Desaparece\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-27",
+          "track": "flow",
+          "session": 27,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Effort Without Strain",
+            "es": "Esfuerzo Sin Tensión",
+            "pt": "Esforço Sem Tensão"
+          },
+          "description": {
+            "en": "Flow · Session 27: \"Effort Without Strain\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 27: \"Esfuerzo Sin Tensión\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 27: \"Esforço Sem Tensão\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-28",
+          "track": "flow",
+          "session": 28,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Center",
+            "es": "Centro",
+            "pt": "Centro"
+          },
+          "description": {
+            "en": "Flow · Session 28: \"Center\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 28: \"Centro\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 28: \"Centro\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-29",
+          "track": "flow",
+          "session": 29,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Full Immersion",
+            "es": "Inmersión Total",
+            "pt": "Imersão Total"
+          },
+          "description": {
+            "en": "Flow · Session 29: \"Full Immersion\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 29: \"Inmersión Total\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 29: \"Imersão Total\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        },
+        {
+          "id": "flo-30",
+          "track": "flow",
+          "session": 30,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Become the Motion",
+            "es": "Vuélvete el Movimiento",
+            "pt": "Torne-se o Movimento"
+          },
+          "description": {
+            "en": "Flow · Session 30: \"Become the Motion\" — a focus-training clip to drop into the zone: presence, rhythm, and effortless attention.",
+            "es": "Flujo · Sesión 30: \"Vuélvete el Movimiento\" — un clip de entrenamiento de enfoque para entrar en la zona: presencia, ritmo y atención sin esfuerzo.",
+            "pt": "Fluxo · Sessão 30: \"Torne-se o Movimento\" — um clipe de treino de foco para entrar na zona: presença, ritmo e atenção sem esforço."
+          }
+        }
+      ]
+    },
+    {
+      "id": "resilience",
+      "icon": "🛡️",
+      "accent": "#6a0dad",
+      "titles": {
+        "en": "Resilience",
+        "es": "Resiliencia",
+        "pt": "Resiliência"
+      },
+      "focus": {
+        "en": "Grit · Recovery · Comeback",
+        "es": "Determinación · Recuperación · Regreso",
+        "pt": "Garra · Recuperação · Virada"
+      },
+      "session_count": 30,
+      "sessions": [
+        {
+          "id": "res-01",
+          "track": "resilience",
+          "session": 1,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Bounce Back",
+            "es": "Recupérate",
+            "pt": "Recupere-se"
+          },
+          "description": {
+            "en": "Resilience · Session 1: \"Bounce Back\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 1: \"Recupérate\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 1: \"Recupere-se\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-02",
+          "track": "resilience",
+          "session": 2,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Embrace the Struggle",
+            "es": "Abraza la Lucha",
+            "pt": "Abrace a Luta"
+          },
+          "description": {
+            "en": "Resilience · Session 2: \"Embrace the Struggle\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 2: \"Abraza la Lucha\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 2: \"Abrace a Luta\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-03",
+          "track": "resilience",
+          "session": 3,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Fall Seven, Rise Eight",
+            "es": "Cae Siete, Levántate Ocho",
+            "pt": "Caia Sete, Levante Oito"
+          },
+          "description": {
+            "en": "Resilience · Session 3: \"Fall Seven, Rise Eight\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 3: \"Cae Siete, Levántate Ocho\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 3: \"Caia Sete, Levante Oito\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-04",
+          "track": "resilience",
+          "session": 4,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Pain Is Data",
+            "es": "El Dolor Es Información",
+            "pt": "A Dor É Informação"
+          },
+          "description": {
+            "en": "Resilience · Session 4: \"Pain Is Data\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 4: \"El Dolor Es Información\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 4: \"A Dor É Informação\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-05",
+          "track": "resilience",
+          "session": 5,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Control the Controllables",
+            "es": "Controla lo Controlable",
+            "pt": "Controle o Controlável"
+          },
+          "description": {
+            "en": "Resilience · Session 5: \"Control the Controllables\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 5: \"Controla lo Controlable\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 5: \"Controle o Controlável\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-06",
+          "track": "resilience",
+          "session": 6,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Comeback",
+            "es": "El Regreso",
+            "pt": "A Virada"
+          },
+          "description": {
+            "en": "Resilience · Session 6: \"The Comeback\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 6: \"El Regreso\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 6: \"A Virada\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-07",
+          "track": "resilience",
+          "session": 7,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Sit With Discomfort",
+            "es": "Siéntate con la Incomodidad",
+            "pt": "Sente-se com o Desconforto"
+          },
+          "description": {
+            "en": "Resilience · Session 7: \"Sit With Discomfort\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 7: \"Siéntate con la Incomodidad\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 7: \"Sente-se com o Desconforto\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-08",
+          "track": "resilience",
+          "session": 8,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Reframe",
+            "es": "Reencuadra",
+            "pt": "Ressignifique"
+          },
+          "description": {
+            "en": "Resilience · Session 8: \"Reframe\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 8: \"Reencuadra\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 8: \"Ressignifique\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-09",
+          "track": "resilience",
+          "session": 9,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Steady Under Pressure",
+            "es": "Firme Bajo Presión",
+            "pt": "Firme Sob Pressão"
+          },
+          "description": {
+            "en": "Resilience · Session 9: \"Steady Under Pressure\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 9: \"Firme Bajo Presión\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 9: \"Firme Sob Pressão\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-10",
+          "track": "resilience",
+          "session": 10,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Scar Tissue",
+            "es": "Tejido Cicatricial",
+            "pt": "Tecido Cicatricial"
+          },
+          "description": {
+            "en": "Resilience · Session 10: \"Scar Tissue\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 10: \"Tejido Cicatricial\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 10: \"Tecido Cicatricial\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-11",
+          "track": "resilience",
+          "session": 11,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "One More",
+            "es": "Una Más",
+            "pt": "Mais Uma"
+          },
+          "description": {
+            "en": "Resilience · Session 11: \"One More\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 11: \"Una Más\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 11: \"Mais Uma\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-12",
+          "track": "resilience",
+          "session": 12,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Adapt",
+            "es": "Adáptate",
+            "pt": "Adapte-se"
+          },
+          "description": {
+            "en": "Resilience · Session 12: \"Adapt\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 12: \"Adáptate\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 12: \"Adapte-se\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-13",
+          "track": "resilience",
+          "session": 13,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Long Night",
+            "es": "La Noche Larga",
+            "pt": "A Noite Longa"
+          },
+          "description": {
+            "en": "Resilience · Session 13: \"The Long Night\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 13: \"La Noche Larga\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 13: \"A Noite Longa\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-14",
+          "track": "resilience",
+          "session": 14,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Grit",
+            "es": "Determinación",
+            "pt": "Garra"
+          },
+          "description": {
+            "en": "Resilience · Session 14: \"Grit\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 14: \"Determinación\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 14: \"Garra\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-15",
+          "track": "resilience",
+          "session": 15,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Recover Stronger",
+            "es": "Recupérate Más Fuerte",
+            "pt": "Recupere-se Mais Forte"
+          },
+          "description": {
+            "en": "Resilience · Session 15: \"Recover Stronger\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 15: \"Recupérate Más Fuerte\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 15: \"Recupere-se Mais Forte\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-16",
+          "track": "resilience",
+          "session": 16,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Failure Is Feedback",
+            "es": "El Fracaso Es Retroalimentación",
+            "pt": "O Fracasso É Retorno"
+          },
+          "description": {
+            "en": "Resilience · Session 16: \"Failure Is Feedback\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 16: \"El Fracaso Es Retroalimentación\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 16: \"O Fracasso É Retorno\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-17",
+          "track": "resilience",
+          "session": 17,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Hold the Line",
+            "es": "Mantén la Línea",
+            "pt": "Segure a Linha"
+          },
+          "description": {
+            "en": "Resilience · Session 17: \"Hold the Line\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 17: \"Mantén la Línea\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 17: \"Segure a Linha\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-18",
+          "track": "resilience",
+          "session": 18,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Antifragile",
+            "es": "Antifrágil",
+            "pt": "Antifrágil"
+          },
+          "description": {
+            "en": "Resilience · Session 18: \"Antifragile\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 18: \"Antifrágil\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 18: \"Antifrágil\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-19",
+          "track": "resilience",
+          "session": 19,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Weather the Storm",
+            "es": "Resiste la Tormenta",
+            "pt": "Enfrente a Tempestade"
+          },
+          "description": {
+            "en": "Resilience · Session 19: \"Weather the Storm\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 19: \"Resiste la Tormenta\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 19: \"Enfrente a Tempestade\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-20",
+          "track": "resilience",
+          "session": 20,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Rebuild",
+            "es": "Reconstruye",
+            "pt": "Reconstrua"
+          },
+          "description": {
+            "en": "Resilience · Session 20: \"Rebuild\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 20: \"Reconstruye\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 20: \"Reconstrua\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-21",
+          "track": "resilience",
+          "session": 21,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Calm in Chaos",
+            "es": "Calma en el Caos",
+            "pt": "Calma no Caos"
+          },
+          "description": {
+            "en": "Resilience · Session 21: \"Calm in Chaos\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 21: \"Calma en el Caos\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 21: \"Calma no Caos\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-22",
+          "track": "resilience",
+          "session": 22,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "The Setback",
+            "es": "El Revés",
+            "pt": "O Revés"
+          },
+          "description": {
+            "en": "Resilience · Session 22: \"The Setback\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 22: \"El Revés\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 22: \"O Revés\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-23",
+          "track": "resilience",
+          "session": 23,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Endure",
+            "es": "Resiste",
+            "pt": "Suporte"
+          },
+          "description": {
+            "en": "Resilience · Session 23: \"Endure\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 23: \"Resiste\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 23: \"Suporte\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-24",
+          "track": "resilience",
+          "session": 24,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Rooted",
+            "es": "Enraizado",
+            "pt": "Enraizado"
+          },
+          "description": {
+            "en": "Resilience · Session 24: \"Rooted\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 24: \"Enraizado\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 24: \"Enraizado\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-25",
+          "track": "resilience",
+          "session": 25,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Rise from Ashes",
+            "es": "Renace de las Cenizas",
+            "pt": "Renasça das Cinzas"
+          },
+          "description": {
+            "en": "Resilience · Session 25: \"Rise from Ashes\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 25: \"Renace de las Cenizas\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 25: \"Renasça das Cinzas\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-26",
+          "track": "resilience",
+          "session": 26,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Mental Armor",
+            "es": "Armadura Mental",
+            "pt": "Armadura Mental"
+          },
+          "description": {
+            "en": "Resilience · Session 26: \"Mental Armor\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 26: \"Armadura Mental\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 26: \"Armadura Mental\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-27",
+          "track": "resilience",
+          "session": 27,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Keep Marching",
+            "es": "Sigue Marchando",
+            "pt": "Continue Marchando"
+          },
+          "description": {
+            "en": "Resilience · Session 27: \"Keep Marching\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 27: \"Sigue Marchando\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 27: \"Continue Marchando\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-28",
+          "track": "resilience",
+          "session": 28,
+          "duration_s": 90,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Unbreakable",
+            "es": "Inquebrantable",
+            "pt": "Inquebrável"
+          },
+          "description": {
+            "en": "Resilience · Session 28: \"Unbreakable\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 28: \"Inquebrantable\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 28: \"Inquebrável\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-29",
+          "track": "resilience",
+          "session": 29,
+          "duration_s": 120,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Turn Wounds to Wisdom",
+            "es": "Convierte Heridas en Sabiduría",
+            "pt": "Transforme Feridas em Sabedoria"
+          },
+          "description": {
+            "en": "Resilience · Session 29: \"Turn Wounds to Wisdom\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 29: \"Convierte Heridas en Sabiduría\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 29: \"Transforme Feridas em Sabedoria\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        },
+        {
+          "id": "res-30",
+          "track": "resilience",
+          "session": 30,
+          "duration_s": 150,
+          "video_ref": null,
+          "poster_ref": null,
+          "title": {
+            "en": "Stronger Than Before",
+            "es": "Más Fuerte Que Antes",
+            "pt": "Mais Forte Que Antes"
+          },
+          "description": {
+            "en": "Resilience · Session 30: \"Stronger Than Before\" — a mental-toughness clip to recover, reframe adversity, and come back stronger.",
+            "es": "Resiliencia · Sesión 30: \"Más Fuerte Que Antes\" — un clip de fortaleza mental para recuperarte, reencuadrar la adversidad y volver más fuerte.",
+            "pt": "Resiliência · Sessão 30: \"Mais Forte Que Antes\" — um clipe de força mental para se recuperar, ressignificar a adversidade e voltar mais forte."
+          }
+        }
+      ]
+    }
+  ]
+}
