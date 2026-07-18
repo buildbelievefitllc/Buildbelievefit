@@ -621,11 +621,23 @@ export default function StudioLayout({
         return;
       }
 
-      // POST → the WebCodecs output is a standard MP4 IG/FB/TikTok accept.
+      // POST → re-bake the master server-side into Meta's ideal H.264 profile
+      // (Sovereign Foundry) so IG/FB's transcode has a clean master to work from —
+      // the browser container can be VFR / open-GOP / VP9 on mobile, which Meta
+      // recompresses harshly. A Foundry hiccup falls back to the raw master so a
+      // post is never blocked.
       setPosting(true);
+      setPostNote({ ok: true, text: 'Baking Meta-ideal master (server-side H.264)…' });
+      let master = result.blob;
+      try {
+        const { foundryNormalize } = await import('../../lib/studioApi.js');
+        master = await foundryNormalize(result.blob);
+      } catch (foundryErr) {
+        console.warn('[reel] Foundry normalize unavailable — posting raw master:', foundryErr?.message);
+      }
       setPostNote({ ok: true, text: `Posting reel to ${platformLabel()}…` });
       const { queuePost, pollPostStatus } = await import('../../lib/studioQueueApi.js');
-      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => result.blob, now: true });
+      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: target }, getBlob: async () => master, now: true });
       if (res.status === 'posting') {
         setPostNote({ ok: true, text: 'Posting reel… Meta is transcoding (~60–90s).' });
         const verdict = await pollPostStatus({ kind: 'video', id: res.id });

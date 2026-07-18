@@ -10,6 +10,9 @@ import { FUNCTIONS_BASE, SUPABASE_ANON_KEY } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
 import audioVaultManifest from '../data/audioVaultManifest.json';
 
+// The Render Express proxy (Sovereign Foundry ffmpeg lives here, not on Supabase).
+const RENDER_PROXY = (import.meta.env.VITE_VOICE_PROXY_URL || 'https://buildbelievefit.onrender.com').replace(/\/$/, '');
+
 // Zero-latency cache: { exercise_name → permanent Supabase Storage URL }, seeded
 // offline by scripts/seed-audio-vault.js. An exact topic match short-circuits the
 // Edge Function entirely (no network, $0 spend). Canonical source is the repo-root
@@ -265,6 +268,33 @@ export async function uploadVoiceover(file) {
   if (!putRes.ok) throw new Error(`upload_${putRes.status}`);
 
   return { publicUrl: sj.publicUrl, path: sj.path || null };
+}
+
+// SOVEREIGN FOUNDRY — server-side re-bake of a finished reel master into the
+// Meta-ideal H.264 profile (High / yuv420p / 30fps CFR / closed 2s GOP / 12 Mbps
+// / faststart) before it's posted to IG/FB. The browser's WebCodecs container can
+// be VFR, open-GOP, or a VP9/AV1 fallback on mobile — all of which Meta's
+// transcoder recompresses harshly (soft, blurry dark footage). This one ffmpeg
+// pass hands Meta a clean, standard master to transcode from. Returns the
+// normalized MP4 Blob. Throws on failure so the caller can fall back to the raw
+// master — a Foundry hiccup must never block a post.
+export async function foundryNormalize(blob) {
+  if (!blob || !blob.size) throw new Error('empty_master');
+  const token = getStoredVaultToken();
+  const form = new FormData();
+  form.append('video', blob, 'master.mp4');
+  form.append('deliver', 'bytes');
+  if (token) form.append('vault_token', token);
+
+  const res = await fetch(`${RENDER_PROXY}/api/studio/render-reel`, {
+    method: 'POST',
+    headers: token ? { 'x-bbf-vault-token': token } : {},   // multipart: never set Content-Type
+    body: form,
+  });
+  if (!res.ok) throw new Error(`foundry_${res.status}`);
+  const out = await res.blob();
+  if (!out || !out.size) throw new Error('foundry_empty');
+  return out;
 }
 
 // CAPTION TRANSCRIPTION. Turns the reel's voice track — generated OR uploaded —

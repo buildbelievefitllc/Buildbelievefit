@@ -733,7 +733,7 @@ async function resolveVaultUser(req) {
 // GET ping — visit this URL to confirm THIS build is the one deployed (and that the
 // ffmpeg binary loaded). If you see {ready:true,ffmpeg:true}, the new code is live.
 app.get('/api/studio/render-reel', (req, res) => {
-  res.json({ ok: true, route: 'studio/render-reel', ready: reelReady, ffmpeg: !!ffmpegPath, build: 'foundry-1' });
+  res.json({ ok: true, route: 'studio/render-reel', ready: reelReady, ffmpeg: !!ffmpegPath, build: 'foundry-2-meta-ideal' });
 });
 
 app.post('/api/studio/render-reel',
@@ -753,6 +753,9 @@ app.post('/api/studio/render-reel',
       tmp.push(videoFile.path);
       const overlayFile = req.files && req.files.overlay && req.files.overlay[0];
       if (overlayFile) tmp.push(overlayFile.path);
+      // deliver=bytes → normalize a finished master and stream it straight back
+      // (the caller posts it via the queue). Default: composite + store, return URL.
+      const deliver = (req.body && String(req.body.deliver || '')) === 'bytes';
 
       // Optional voiceover: a URL the server fetches (vault MP3 / signed URL).
       let audioPath = null;
@@ -780,8 +783,21 @@ app.post('/api/studio/render-reel',
         : `[0:v]scale=${REEL_W}:${REEL_H}:force_original_aspect_ratio=increase,crop=${REEL_W}:${REEL_H}[v]`;
       args.push('-filter_complex', filter, '-map', '[v]');
       if (audioPath) { args.push('-map', `${overlayFile ? 2 : 1}:a`, '-c:a', 'aac', '-b:a', '160k', '-shortest'); }
-      else { args.push('-an'); }
-      args.push('-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p', '-r', '30', '-movflags', '+faststart', outPath);
+      else { args.push('-map', '0:a?', '-c:a', 'aac', '-b:a', '160k'); }   // preserve the master's own audio track
+      // META-IDEAL SURVIVAL PROFILE — bake the exact structure Meta's transcoder
+      // handles most gently, so dark/high-motion footage survives IG/FB recompression:
+      //   • H.264 High profile + yuv420p  → no color-space smearing
+      //   • locked 30fps CFR              → Meta never guesses frame timing
+      //   • closed 2s GOP (g=60 @ 30fps, no scene-cut keyframes) → clean chunk cuts
+      //   • 12 Mbps mandate-grade bitrate → a rich master to transcode from
+      //   • +faststart moov               → instant ingest parsing
+      args.push(
+        '-c:v', 'libx264', '-profile:v', 'high', '-preset', 'fast',
+        '-pix_fmt', 'yuv420p', '-r', '30', '-vsync', 'cfr',
+        '-g', '60', '-keyint_min', '60', '-sc_threshold', '0', '-flags', '+cgop',
+        '-b:v', '12M', '-maxrate', '16M', '-bufsize', '24M',
+        '-movflags', '+faststart', outPath,
+      );
 
       await new Promise((resolve, reject) => {
         const ff = spawn(ffmpegPath, args, { stdio: ['ignore', 'ignore', 'pipe'] });
@@ -793,6 +809,17 @@ app.post('/api/studio/render-reel',
 
       const outBuf = await fsp.readFile(outPath);
       if (!outBuf.length) throw new Error('empty_output');
+
+      // deliver=bytes → stream the normalized master straight back to the caller,
+      // skipping the extra Supabase copy (the queue post handles storage).
+      if (deliver) {
+        await cleanup();
+        res.setHeader('Content-Type', 'video/mp4');
+        res.setHeader('Content-Length', outBuf.length);
+        console.log(`[render-reel] normalized user=${userId} bytes=${outBuf.length}`);
+        return res.end(outBuf);
+      }
+
       const objPath = `reels/render-${Date.now()}-${Math.round(Math.random() * 1e6)}.mp4`;
       const { error: upErr } = await supabase.storage.from(REEL_RENDER_BUCKET)
         .upload(objPath, outBuf, { contentType: 'video/mp4', upsert: true, cacheControl: '31536000' });
