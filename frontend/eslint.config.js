@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   // `android/` holds the Capacitor project — `npx cap sync` copies the minified
   // dist bundle into its assets, which is build output, never lintable source.
-  globalIgnores(['dist', 'android']),
+  globalIgnores(['dist', 'android', 'public/draco']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

@@ -18,6 +18,7 @@ import { useLang } from '../../context/LangContext.jsx';
 import { LockIcon } from '../vault/icons.jsx';
 import ResearchVault from './ResearchVault.jsx';
 import KinesiologyLab from './KinesiologyLab.jsx';
+import BiomechanicsViewer from './BiomechanicsViewer.jsx';
 import CoachArena from './CoachArena.jsx';
 import BroadcastHub from './BroadcastHub.jsx';
 import './coachLab.css';
@@ -25,6 +26,7 @@ import './coachLab.css';
 const PILLARS = [
   { key: 'research', status: 'live' },
   { key: 'kinesiology', status: 'live' },
+  { key: 'biomechanics', status: 'live' },
   { key: 'arena', status: 'live' },
   { key: 'broadcast', status: 'live' },
 ];
@@ -36,8 +38,8 @@ const LAB_L10N = {
     title: 'Coach Lab',
     sub: 'Sharpen your iron. A private engine to keep your coaching current as the exercise science evolves — ingest the research, drill the science, pressure-test your protocols.',
     lockChip: 'Gated to Admin',
-    statusLine: '1 of 4 pillars live · 3 coming online',
-    decksKicker: 'The Four Pillars',
+    statusLine: '5 pillars live · continuously sharpened',
+    decksKicker: 'The Five Pillars',
     soonBadge: 'Phase 2',
     soonNote: 'This pillar is on the build path. Here is what it will do:',
     pillars: {
@@ -45,6 +47,8 @@ const LAB_L10N = {
         body: 'Paste a PubMed abstract, lecture slide, or textbook passage. Claude returns a clean, coaching-oriented summary — physiology takeaways, gym application, and the study’s pitfalls — saved as a flip card.' },
       kinesiology: { label: 'Kinesiology Lab', tagline: 'Gamified spaced-repetition drills.',
         body: 'Match-madness muscle↔action drills and rapid bioenergetic true/false, scored into a 1–5 mastery box with spaced repetition — collegiate exercise science, gamified.' },
+      biomechanics: { label: 'Biomechanics Viewer', tagline: 'Interactive 3D joint & prehab map.',
+        body: 'A rotatable 3D biomechanical rig — click any joint (lumbar, shoulder, hip, knee, ankle) to inspect its assessment and OT-informed prehab, with a CNS autoregulator that scales daily training volume to your morning readiness.' },
       arena: { label: 'Coach’s Arena', tagline: 'Client case-study simulator.',
         body: 'Draw a client case from a ten-scenario deck — youth athletes, masters lifters, postpartum returns, desk-bound execs, and more — or generate a fresh one with Claude when you need extra variety. Submit a protocol; it returns a scored critique against NASM / NSCA guidelines.' },
       broadcast: { label: 'Broadcast Hub', tagline: 'Knowledge → client value.',
@@ -76,8 +80,8 @@ const LAB_L10N = {
     title: 'Coach Lab',
     sub: 'Afila tu hierro. Un motor privado para mantener tu coaching al día mientras evoluciona la ciencia del ejercicio — ingiere la investigación, entrena la ciencia, pon a prueba tus protocolos.',
     lockChip: 'Solo Administrador',
-    statusLine: '1 de 4 pilares activos · 3 en camino',
-    decksKicker: 'Los Cuatro Pilares',
+    statusLine: '5 pilares activos · afilados continuamente',
+    decksKicker: 'Los Cinco Pilares',
     soonBadge: 'Fase 2',
     soonNote: 'Este pilar está en la ruta de construcción. Esto es lo que hará:',
     pillars: {
@@ -85,6 +89,8 @@ const LAB_L10N = {
         body: 'Pega un resumen de PubMed, una diapositiva o un pasaje de libro. Claude devuelve un resumen claro y orientado al coaching — claves fisiológicas, aplicación en el gimnasio y las limitaciones del estudio — guardado como tarjeta.' },
       kinesiology: { label: 'Laboratorio de Kinesiología', tagline: 'Repetición espaciada gamificada.',
         body: 'Juegos de emparejar músculo↔acción y verdadero/falso bioenergético rápido, puntuados en una caja de maestría 1–5 con repetición espaciada — ciencia del ejercicio, gamificada.' },
+      biomechanics: { label: 'Visor de Biomecánica', tagline: 'Mapa 3D interactivo de articulaciones y prehab.',
+        body: 'Un modelo biomecánico 3D rotable — toca cualquier articulación (lumbar, hombro, cadera, rodilla, tobillo) para ver su evaluación y prehab informado por TO, con un autorregulador del CNS que ajusta el volumen diario a tu preparación matutina.' },
       arena: { label: 'Arena del Coach', tagline: 'Simulador de casos de clientes.',
         body: 'Saca un caso de un mazo de diez escenarios — atletas juveniles, levantadores máster, regresos posparto, ejecutivos sedentarios y más — o genera uno nuevo con Claude cuando necesites más variedad. Envías tu protocolo; devuelve una crítica puntuada según NASM / NSCA.' },
       broadcast: { label: 'Centro de Difusión', tagline: 'Conocimiento → valor para el cliente.',
@@ -116,8 +122,8 @@ const LAB_L10N = {
     title: 'Coach Lab',
     sub: 'Afie seu ferro. Um motor privado para manter seu coaching atualizado enquanto a ciência do exercício evolui — ingira a pesquisa, treine a ciência, teste seus protocolos.',
     lockChip: 'Apenas Administrador',
-    statusLine: '1 de 4 pilares ativos · 3 chegando',
-    decksKicker: 'Os Quatro Pilares',
+    statusLine: '5 pilares ativos · afiados continuamente',
+    decksKicker: 'Os Cinco Pilares',
     soonBadge: 'Fase 2',
     soonNote: 'Este pilar está no caminho de construção. Eis o que ele fará:',
     pillars: {
@@ -125,6 +131,8 @@ const LAB_L10N = {
         body: 'Cole um resumo do PubMed, um slide de aula ou um trecho de livro. Claude devolve um resumo claro e voltado ao coaching — pontos fisiológicos, aplicação na academia e as limitações do estudo — salvo como cartão.' },
       kinesiology: { label: 'Laboratório de Cinesiologia', tagline: 'Repetição espaçada gamificada.',
         body: 'Jogos de combinar músculo↔ação e verdadeiro/falso bioenergético rápido, pontuados numa caixa de maestria 1–5 com repetição espaçada — ciência do exercício, gamificada.' },
+      biomechanics: { label: 'Visor de Biomecânica', tagline: 'Mapa 3D interativo de articulações e prehab.',
+        body: 'Um modelo biomecânico 3D rotável — toque em qualquer articulação (lombar, ombro, quadril, joelho, tornozelo) para ver sua avaliação e prehab informado por TO, com um autorregulador do CNS que ajusta o volume diário à sua prontidão matinal.' },
       arena: { label: 'Arena do Coach', tagline: 'Simulador de casos de clientes.',
         body: 'Tire um caso de um baralho de dez cenários — atletas jovens, levantadores master, retornos pós-parto, executivos sedentários e mais — ou gere um novo com Claude quando precisar de mais variedade. Você envia seu protocolo; ele devolve uma crítica pontuada segundo NASM / NSCA.' },
       broadcast: { label: 'Central de Transmissão', tagline: 'Conhecimento → valor para o cliente.',
@@ -200,8 +208,9 @@ export default function CoachLab() {
         <div className="cl-panel" role="tabpanel" key={active.key}>
           {active.key === 'research' ? <ResearchVault L={L} />
             : active.key === 'kinesiology' ? <KinesiologyLab />
-              : active.key === 'arena' ? <CoachArena />
-                : <BroadcastHub />}
+              : active.key === 'biomechanics' ? <BiomechanicsViewer />
+                : active.key === 'arena' ? <CoachArena />
+                  : <BroadcastHub />}
         </div>
       </section>
     </div>
