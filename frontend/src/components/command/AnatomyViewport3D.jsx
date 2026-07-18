@@ -9,14 +9,19 @@
 // the node. A Draco-decoded Z-Anatomy GLB drops in via <Suspense> the moment
 // MODEL_URL is set — until then the procedural rig is the fallback.
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Component, Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Bounds, useBounds, OrbitControls, useGLTF } from '@react-three/drei';
 import { ANATOMY_JOINTS } from './anatomyViewerData.js';
 
-// Null until a Z-Anatomy GLB is uploaded to the anatomy-assets bucket. When set,
-// the mesh loads via Suspense/Draco (decoder served locally from /draco/ — no CDN).
-const MODEL_URL = null;
+// The Biomechanics mesh source. Points at the LOCAL web-served file — drop
+// model.glb into frontend/public/anatomy/ (see download_anatomy.py) and it loads
+// via Suspense/Draco (decoder served locally from /draco/ — no CDN). Until the
+// file exists the loader falls back to the procedural rig (see ModelBoundary), so
+// this reference is safe to ship: add the GLB + redeploy and the mesh appears with
+// no code change. A Supabase anatomy-assets bucket URL works here too. Set null to
+// force the procedural rig.
+const MODEL_URL = '/anatomy/model.glb';
 
 // ── Procedural biomechanical rig ─────────────────────────────────────────────
 function Skeletal({ visible }) {
@@ -100,6 +105,27 @@ function ZAnatomyModel({ url }) {
   return <primitive object={scene} />;
 }
 
+// The procedural biomechanical rig — the always-safe fallback.
+function ProceduralRig({ systems }) {
+  return (
+    <>
+      <Skeletal visible={systems.skeletal} />
+      <Muscular visible={systems.muscular} />
+      <Neurological visible={systems.neurological} />
+    </>
+  );
+}
+
+// If the GLB is missing / fails to decode, render the procedural rig instead of
+// tearing down the whole viewport — so MODEL_URL is safe to ship before the file
+// lands (it just shows procedural until the mesh is present).
+class ModelBoundary extends Component {
+  constructor(props) { super(props); this.state = { failed: false }; }
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch() { /* non-fatal — procedural rig backstops */ }
+  render() { return this.state.failed ? this.props.fallback : this.props.children; }
+}
+
 export default function AnatomyViewport3D({ systems, activeSegment, onSelect, resetSignal }) {
   return (
     <Canvas
@@ -119,15 +145,13 @@ export default function AnatomyViewport3D({ systems, activeSegment, onSelect, re
       <Bounds fit clip margin={1.2}>
         <BoundsController resetSignal={resetSignal} />
         {MODEL_URL ? (
-          <Suspense fallback={null}>
-            <ZAnatomyModel url={MODEL_URL} />
-          </Suspense>
+          <ModelBoundary fallback={<ProceduralRig systems={systems} />}>
+            <Suspense fallback={<ProceduralRig systems={systems} />}>
+              <ZAnatomyModel url={MODEL_URL} />
+            </Suspense>
+          </ModelBoundary>
         ) : (
-          <>
-            <Skeletal visible={systems.skeletal} />
-            <Muscular visible={systems.muscular} />
-            <Neurological visible={systems.neurological} />
-          </>
+          <ProceduralRig systems={systems} />
         )}
         {ANATOMY_JOINTS.map((j) => (
           <JointNode key={j.id} id={j.id} position={j.position} active={activeSegment === j.id} onSelect={onSelect} />

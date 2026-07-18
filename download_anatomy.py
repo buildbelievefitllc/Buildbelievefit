@@ -4,7 +4,7 @@ import sys
 
 
 def download_anatomy_asset():
-    target_dir = "assets/anatomy/"
+    target_dir = "frontend/public/anatomy/"   # web-served by Vite → MODEL_URL='/anatomy/model.glb'
     file_name = "model.glb"
     url = "https://github.com/hpfrei/body-anatomy-3d-viewer/raw/main/model.glb"
     save_path = os.path.join(target_dir, file_name)
