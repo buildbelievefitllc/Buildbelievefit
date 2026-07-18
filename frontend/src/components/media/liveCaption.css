@@ -1,0 +1,65 @@
+/* src/components/media/liveCaption.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Live Caption Engine overlay — brand-locked (§2): BBF Gold on matte-black
+   SURFACE, Barlow body. Place LiveCaptionOverlay inside a position:relative
+   video container; the band pins to the lower third, the toggle to the tray. */
+
+/* ── master toggle chip (video control tray) ── */
+.lco-toggle {
+  font-family: var(--hb, 'Bebas Neue', sans-serif);
+  font-size: .82rem; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--gold-soft, #f5cf60);
+  background: rgba(8, 8, 8, .72);
+  border: 1px solid rgba(245, 200, 0, .4);
+  border-radius: 999px; padding: .35rem .9rem; cursor: pointer;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.lco-toggle:hover:not(:disabled) { color: var(--yel, #f5c800); border-color: var(--yel, #f5c800); }
+.lco-toggle.is-on {
+  color: var(--blk, #080808);
+  background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60));
+  border-color: var(--yel, #f5c800);
+}
+.lco-toggle:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── lower-third caption band ── */
+.lco-band {
+  position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%);
+  max-width: min(92%, 720px); width: max-content; min-width: 40%;
+  box-sizing: border-box; padding: .5rem 1rem; z-index: 6;
+  text-align: center; pointer-events: none;
+  background: linear-gradient(180deg, rgba(8, 8, 8, .62), rgba(8, 8, 8, .82));
+  border: 1px solid rgba(245, 200, 0, .28);
+  border-radius: 12px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .5);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: lco-fade-in .25s ease both;
+}
+@keyframes lco-fade-in { from { opacity: 0; transform: translate(-50%, 6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+.lco-line {
+  margin: 0; font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: clamp(1rem, 2.4vw, 1.5rem); line-height: 1.25;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .85);
+}
+/* committed words: full gold. interim (in-progress) words: softer + italic so
+   the live tail reads as "still forming" and settles as it commits. */
+.lco-final { color: var(--yel, #f5c800); font-weight: 600; }
+.lco-interim { color: rgba(245, 207, 96, .72); font-style: italic; }
+
+.lco-idle, .lco-denied {
+  font-family: var(--bd, 'Barlow Condensed', sans-serif);
+  font-size: .95rem; letter-spacing: .4px;
+}
+.lco-idle { color: rgba(245, 207, 96, .6); }
+.lco-denied { color: #ffb4c0; }
+
+@media (max-width: 480px) {
+  .lco-band { bottom: 6%; max-width: 94%; padding: .4rem .7rem; }
+  .lco-line { font-size: 1.05rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lco-band { animation: none; }
+}
