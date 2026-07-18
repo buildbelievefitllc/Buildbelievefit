@@ -16,7 +16,7 @@
 // which lets the Lab re-read the mastery store so the bar reflects fresh reps.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { TRAINING_SPLITS, SPLIT_ORDER } from './anatomyData.js';
+import { TRAINING_SPLITS, SPLIT_ORDER, ANATOMY_IMAGE_URLS } from './anatomyData.js';
 import { bumpSrs } from './kinesiologyData.js';
 import { narrate, stopSpeaking, narrationSupported } from '../../lib/speech.js';
 import AnatomyBody from './AnatomyBody.jsx';
@@ -123,6 +123,18 @@ export default function AnatomyArena({ L, onExit }) {
 
   // Silence any in-flight narration when the arena unmounts.
   useEffect(() => () => stopSpeaking(), []);
+
+  // Warm the browser cache for the realistic lane maps while the player is still
+  // on the gate, so picking a lane shows the high-fidelity image with no stutter.
+  // No-op until assets are dropped into the anatomy-assets bucket (URLs empty).
+  useEffect(() => {
+    if (phase !== 'gate' || !ANATOMY_IMAGE_URLS.length) return;
+    ANATOMY_IMAGE_URLS.forEach((url) => {
+      const img = new Image();
+      img.src = url;
+      if (img.decode) img.decode().catch(() => { /* prefetch only */ });
+    });
+  }, [phase]);
 
   const next = () => {
     if (idx + 1 >= questions.length) { setPhase('results'); return; }

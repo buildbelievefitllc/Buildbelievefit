@@ -24,11 +24,20 @@
 //   { id, name, action, why, l:[labelX,labelY], paths:[dString, …] }   // paths
 //   are one (central) or two (bilateral) non-overlapping polygons.
 
+// Realistic-asset layer (optional). Drop a high-fidelity muscle map (WebP/AVIF)
+// into the public `anatomy-assets` bucket, then set a lane's `imageUrl` to
+// ANATOMY_ASSET_BASE + '<file>' — AnatomyBody paints it as the base layer under
+// the interactive SVG hit-map, cross-fading in over the vector placeholder. Leave
+// `imageUrl` null (the default) and the game renders the pure vector map, exactly
+// as before. Upload objects with cache-control:31536000 for a 1-yr browser cache.
+export const ANATOMY_ASSET_BASE = 'https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/anatomy-assets/';
+
 export const TRAINING_SPLITS = {
   // ── PUSH · anterior upper body (chest · shoulders · triceps) ───────────────
   push: {
     id: 'push',
     viewBox: '0 0 240 272',
+    imageUrl: null,   // e.g. ANATOMY_ASSET_BASE + 'push-anterior.webp'
     head: { cx: 120, cy: 32, r: 19 },
     silhouette: [
       'M108,48 L132,48 L132,68 L108,68 Z',                                  // neck
@@ -67,6 +76,7 @@ export const TRAINING_SPLITS = {
   pull: {
     id: 'pull',
     viewBox: '0 0 240 272',
+    imageUrl: null,   // e.g. ANATOMY_ASSET_BASE + 'pull-posterior.webp'
     head: { cx: 120, cy: 32, r: 19 },
     silhouette: [
       'M108,48 L132,48 L132,68 L108,68 Z',
@@ -107,6 +117,7 @@ export const TRAINING_SPLITS = {
   legs: {
     id: 'legs',
     viewBox: '0 0 260 320',
+    imageUrl: null,   // e.g. ANATOMY_ASSET_BASE + 'legs-dual.webp'
     silhouette: [
       'M44,26 L216,26 L206,72 L54,72 Z',                                    // pelvis
       'M54,68 L108,68 L100,182 L92,306 L66,306 L60,182 Z',                  // L leg (anterior)
@@ -154,3 +165,9 @@ export const SPLIT_ORDER = ['push', 'pull', 'legs'];
 
 // Every distinct muscle id across all lanes — feeds the TOTAL_CONCEPTS union.
 export const ANATOMY_IDS = SPLIT_ORDER.flatMap((k) => TRAINING_SPLITS[k].muscles.map((m) => m.id));
+
+// Realistic base-image URLs across all lanes (empty until assets are dropped in) —
+// used by the gate preloader to warm the browser cache before a lane is chosen.
+export const ANATOMY_IMAGE_URLS = SPLIT_ORDER
+  .map((k) => TRAINING_SPLITS[k].imageUrl)
+  .filter(Boolean);

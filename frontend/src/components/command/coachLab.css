@@ -698,6 +698,16 @@
 .kl-anat-svg { width: 100%; max-width: 300px; height: auto; display: block; touch-action: manipulation; }
 .kl-anat-hint { font-family: var(--bd); font-size: 0.85rem; color: var(--mut); margin: 0; text-align: center; }
 
+/* realistic base image (optional) — decoded off-thread, then cross-faded in over
+   the vector placeholder. Absent imageUrl → this layer never renders. */
+.kl-anat-photo { opacity: 0; transition: opacity 0.45s ease; }
+.kl-anat-svg.is-ready .kl-anat-photo { opacity: 1; }
+/* once the photo is up: hide the vector silhouette and let idle/dimmed muscles go
+   see-through so the realistic anatomy reads — hover strokes and reveal tints
+   still paint on top, keeping the hit-map fully interactive. */
+.kl-anat-svg.has-image.is-ready .kl-anat-body { opacity: 0; }
+.kl-anat-svg.has-image.is-ready .kl-anat-region:not(.is-correct):not(.is-reveal):not(.is-wrong) .kl-anat-path { fill: transparent; }
+
 /* silhouette (context only — never a tap target) */
 .kl-anat-body { pointer-events: none; }
 .kl-anat-body > circle, .kl-anat-body > path {
