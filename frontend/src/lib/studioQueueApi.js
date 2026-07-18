@@ -43,11 +43,13 @@ async function putSignedAssetWithBackoff(uploadUrl, headers, blob) {
   for (let attempt = 0; attempt <= MAX_UPLOAD_RETRIES; attempt += 1) {
     try {
       const ur = await fetch(uploadUrl, { method: 'PUT', headers, body: blob });
-      if (!ur.ok) throw new Error(`upload_${ur.status}`); // explicit server status → fail closed
+      // A 400 here is almost always the asset over the project's Storage upload
+      // limit — tag it with the size so the UI explains it (not a cryptic code).
+      if (!ur.ok) throw new Error(ur.status === 400 ? `too_large_${Math.round(blob.size / 1048576)}` : `upload_${ur.status}`); // explicit server status → fail closed
       return ur;
     } catch (e) {
-      // A carried `upload_<code>` slug is a decisive server status — never retry it.
-      if (typeof e?.message === 'string' && /^upload_\d+$/.test(e.message)) throw e;
+      // A carried decisive server slug (upload_<code> / too_large_<mb>) → never retry.
+      if (typeof e?.message === 'string' && /^(upload_\d+|too_large_\d+)$/.test(e.message)) throw e;
       // Transient network failure (dropped socket / TypeError / abort).
       if (attempt >= MAX_UPLOAD_RETRIES) throw new Error('upload_0', { cause: e }); // retries exhausted
       await sleep(2 ** attempt * 1000); // back off 1s → 2s → 4s, then replay the same blob

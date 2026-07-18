@@ -65,7 +65,18 @@ function phoneLayers({ layout, backgroundImage, backgroundImage2, backgroundImag
 // once at load (the render-purity rule forbids Date.now() inside the component).
 const SESSION_STAMP = Date.now();
 
+// The upload layer tags an oversize-rejected PUT as `too_large_<MB>` (the asset
+// blew past the project's Storage upload limit — a 400 from Supabase). Turn it
+// into a clear, actionable message instead of a raw code.
+function tooLargeMsg(slug) {
+  const m = /^too_large_(\d+)$/.exec(String(slug || ''));
+  if (!m) return null;
+  return `This render is ~${m[1]} MB, over your Supabase Storage upload limit. Raise it in Storage → Settings (Pro allows up to 50 GB), or shorten the clip.`;
+}
+
 function humanizePostErr(slug) {
+  const tooLarge = tooLargeMsg(slug);
+  if (tooLarge) return tooLarge;
   const map = {
     no_admin_session: 'No admin session in this browser — sign in to the Command Center, then retry.',
     not_admin: 'This session is not an authorized admin.',
@@ -76,6 +87,8 @@ function humanizePostErr(slug) {
 }
 
 function humanizeReelErr(slug) {
+  const tooLarge = tooLargeMsg(slug);
+  if (tooLarge) return tooLarge;
   const map = {
     no_webcodecs: 'This browser lacks WebCodecs — use a recent Chrome/Edge.',
     no_footage: 'Upload reel footage first (EXPORT still works for the cover).',
@@ -151,7 +164,7 @@ export default function StudioLayout({
     import('../../lib/studioDraftsApi.js')
       .then(({ saveDraft }) => saveDraft({ kind, blob, meta }))
       .then(() => setVaultNote({ ok: true, text: '✓ Backed up to Vault History — retrievable from any device via the 🗂 HISTORY tab.' }))
-      .catch((e) => setVaultNote({ ok: false, text: `⚠ Vault backup failed (${e?.message || 'error'}) — this file only exists on this device right now.` }));
+      .catch((e) => setVaultNote({ ok: false, text: `⚠ Vault backup failed — ${tooLargeMsg(e?.message) || `(${e?.message || 'error'})`} This file only exists on this device right now.` }));
   };
   const vaultNoteLine = vaultNote ? (
     <div className="hint-v4" data-testid="vault-note" style={{ color: vaultNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>
