@@ -25,6 +25,37 @@ function qHeaders(token) {
   };
 }
 
+// ── Transient-drop hardening for the one-shot signed PUT ─────────────────────
+// Mobile sockets routinely drop mid-upload. A dropped/aborted fetch REJECTS
+// (TypeError / AbortError) with NO HTTP response — cleanly distinguishable from
+// an explicit server status. We retry ONLY those network-level failures, up to
+// 3 times with 1s→2s→4s exponential backoff, then surface `upload_0`.
+//
+// An explicit server status (413/500/401/…) is NEVER retried: it fails closed
+// and bubbles up as `upload_<code>`, so a decisive rejection can't be masked and
+// a genuine 413 (asset too large) surfaces immediately. The PUT targets an
+// idempotent upsert (x-upsert:true), so replaying the SAME blob + headers is
+// safe and cannot double-submit.
+const MAX_UPLOAD_RETRIES = 3;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function putSignedAssetWithBackoff(uploadUrl, headers, blob) {
+  for (let attempt = 0; attempt <= MAX_UPLOAD_RETRIES; attempt += 1) {
+    try {
+      const ur = await fetch(uploadUrl, { method: 'PUT', headers, body: blob });
+      if (!ur.ok) throw new Error(`upload_${ur.status}`); // explicit server status → fail closed
+      return ur;
+    } catch (e) {
+      // A carried `upload_<code>` slug is a decisive server status — never retry it.
+      if (typeof e?.message === 'string' && /^upload_\d+$/.test(e.message)) throw e;
+      // Transient network failure (dropped socket / TypeError / abort).
+      if (attempt >= MAX_UPLOAD_RETRIES) throw new Error('upload_0', { cause: e }); // retries exhausted
+      await sleep(2 ** attempt * 1000); // back off 1s → 2s → 4s, then replay the same blob
+    }
+  }
+  throw new Error('upload_0'); // unreachable — the loop returns or throws
+}
+
 // kind: 'image' | 'video'; fields: { headline, body, eye_label, cta, caption,
 // color_palette, platform_target }; getBlob: async () => Blob; now: publish-now.
 // Returns { status: 'queued' | 'posting' | 'posted', id, async? }. Throws a
@@ -42,18 +73,20 @@ export async function queuePost({ kind, fields = {}, getBlob, now = false }) {
   const sj = await sr.json().catch(() => null);
   if (!sr.ok || !sj || !sj.ok || !sj.uploadUrl) throw new Error((sj && sj.error) || `sign_${sr.status}`);
 
-  // 2) upload the baked asset to the one-shot signed URL
-  const ur = await fetch(sj.uploadUrl, {
-    method: 'PUT',
-    headers: {
+  // 2) upload the baked asset to the one-shot signed URL — retried with
+  //    exponential backoff against transient mobile socket drops. Explicit
+  //    server statuses (413/…) still fail closed; the idempotent upsert makes
+  //    a replayed PUT safe (no double-submit).
+  await putSignedAssetWithBackoff(
+    sj.uploadUrl,
+    {
       'Content-Type': sj.contentType || blob.type || 'application/octet-stream',
       'x-upsert': 'true',
       apikey: SUPABASE_ANON_KEY,
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
     },
-    body: blob,
-  });
-  if (!ur.ok) throw new Error(`upload_${ur.status}`);
+    blob,
+  );
 
   // 3) confirm (+now) — server verifies, writes the row, optionally distributes
   const cr = await fetch(QUEUE_FN, {
