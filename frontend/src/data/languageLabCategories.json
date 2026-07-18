@@ -1,0 +1,300 @@
+{
+  "version": 1,
+  "note": "Trilingual level-gated curriculum manifest for the Curriculum Atlas → 5-Phase Skill Funnel. Each item carries en/es/pt + a language-neutral glyph. The learner's TARGET term is item[target]; the prompt gloss is the UI-locale value (falling back to en when the UI locale equals the target). Seed banks — 6 items/category — deepen freely without touching the schema.",
+  "levels": [
+    {
+      "id": "L1",
+      "titles": { "en": "Foundations", "es": "Fundamentos", "pt": "Fundações" },
+      "categories": [
+        {
+          "id": "alfabeto", "icon": "🔤", "accent": "#6a0dad",
+          "titles": { "en": "Alphabet", "es": "Alfabeto", "pt": "Alfabeto" },
+          "items": [
+            { "en": "A", "es": "a", "pt": "á", "glyph": "A" },
+            { "en": "B", "es": "be", "pt": "bê", "glyph": "B" },
+            { "en": "C", "es": "ce", "pt": "cê", "glyph": "C" },
+            { "en": "D", "es": "de", "pt": "dê", "glyph": "D" },
+            { "en": "E", "es": "e", "pt": "é", "glyph": "E" },
+            { "en": "F", "es": "efe", "pt": "éfe", "glyph": "F" }
+          ]
+        },
+        {
+          "id": "numeros", "icon": "🔢", "accent": "#f5c800",
+          "titles": { "en": "Numbers", "es": "Números", "pt": "Números" },
+          "items": [
+            { "en": "one", "es": "uno", "pt": "um", "glyph": "1️⃣" },
+            { "en": "two", "es": "dos", "pt": "dois", "glyph": "2️⃣" },
+            { "en": "three", "es": "tres", "pt": "três", "glyph": "3️⃣" },
+            { "en": "four", "es": "cuatro", "pt": "quatro", "glyph": "4️⃣" },
+            { "en": "five", "es": "cinco", "pt": "cinco", "glyph": "5️⃣" },
+            { "en": "six", "es": "seis", "pt": "seis", "glyph": "6️⃣" }
+          ]
+        },
+        {
+          "id": "cores", "icon": "🎨", "accent": "#17a398",
+          "titles": { "en": "Colors", "es": "Colores", "pt": "Cores" },
+          "items": [
+            { "en": "red", "es": "rojo", "pt": "vermelho", "glyph": "🔴" },
+            { "en": "blue", "es": "azul", "pt": "azul", "glyph": "🔵" },
+            { "en": "green", "es": "verde", "pt": "verde", "glyph": "🟢" },
+            { "en": "yellow", "es": "amarillo", "pt": "amarelo", "glyph": "🟡" },
+            { "en": "black", "es": "negro", "pt": "preto", "glyph": "⚫" },
+            { "en": "white", "es": "blanco", "pt": "branco", "glyph": "⚪" }
+          ]
+        },
+        {
+          "id": "alimentos", "icon": "🍞", "accent": "#ef6f6c",
+          "titles": { "en": "Foods", "es": "Alimentos", "pt": "Alimentos" },
+          "items": [
+            { "en": "bread", "es": "pan", "pt": "pão", "glyph": "🍞" },
+            { "en": "rice", "es": "arroz", "pt": "arroz", "glyph": "🍚" },
+            { "en": "egg", "es": "huevo", "pt": "ovo", "glyph": "🥚" },
+            { "en": "cheese", "es": "queso", "pt": "queijo", "glyph": "🧀" },
+            { "en": "meat", "es": "carne", "pt": "carne", "glyph": "🥩" },
+            { "en": "fish", "es": "pescado", "pt": "peixe", "glyph": "🐟" }
+          ]
+        },
+        {
+          "id": "vegetais-frutas", "icon": "🍎", "accent": "#5c6ac4",
+          "titles": { "en": "Vegetables & Fruits", "es": "Vegetales y Frutas", "pt": "Vegetais e Frutas" },
+          "items": [
+            { "en": "apple", "es": "manzana", "pt": "maçã", "glyph": "🍎" },
+            { "en": "banana", "es": "plátano", "pt": "banana", "glyph": "🍌" },
+            { "en": "carrot", "es": "zanahoria", "pt": "cenoura", "glyph": "🥕" },
+            { "en": "tomato", "es": "tomate", "pt": "tomate", "glyph": "🍅" },
+            { "en": "orange", "es": "naranja", "pt": "laranja", "glyph": "🍊" },
+            { "en": "potato", "es": "papa", "pt": "batata", "glyph": "🥔" }
+          ]
+        },
+        {
+          "id": "bebidas-doces", "icon": "🥤", "accent": "#d6336c",
+          "titles": { "en": "Drinks & Sweets", "es": "Bebidas y Dulces", "pt": "Bebidas e Doces" },
+          "items": [
+            { "en": "water", "es": "agua", "pt": "água", "glyph": "💧" },
+            { "en": "milk", "es": "leche", "pt": "leite", "glyph": "🥛" },
+            { "en": "coffee", "es": "café", "pt": "café", "glyph": "☕" },
+            { "en": "juice", "es": "jugo", "pt": "suco", "glyph": "🧃" },
+            { "en": "chocolate", "es": "chocolate", "pt": "chocolate", "glyph": "🍫" },
+            { "en": "cake", "es": "pastel", "pt": "bolo", "glyph": "🍰" }
+          ]
+        },
+        {
+          "id": "transporte", "icon": "🚗", "accent": "#2f9e44",
+          "titles": { "en": "Transport", "es": "Transporte", "pt": "Transporte" },
+          "items": [
+            { "en": "car", "es": "coche", "pt": "carro", "glyph": "🚗" },
+            { "en": "bus", "es": "autobús", "pt": "ônibus", "glyph": "🚌" },
+            { "en": "train", "es": "tren", "pt": "trem", "glyph": "🚆" },
+            { "en": "plane", "es": "avión", "pt": "avião", "glyph": "✈️" },
+            { "en": "bike", "es": "bicicleta", "pt": "bicicleta", "glyph": "🚲" },
+            { "en": "boat", "es": "barco", "pt": "barco", "glyph": "⛵" }
+          ]
+        },
+        {
+          "id": "verbos", "icon": "⚡", "accent": "#f08c00",
+          "titles": { "en": "Verbs", "es": "Verbos", "pt": "Verbos" },
+          "items": [
+            { "en": "to eat", "es": "comer", "pt": "comer", "glyph": "🍽️" },
+            { "en": "to drink", "es": "beber", "pt": "beber", "glyph": "🥤" },
+            { "en": "to run", "es": "correr", "pt": "correr", "glyph": "🏃" },
+            { "en": "to sleep", "es": "dormir", "pt": "dormir", "glyph": "😴" },
+            { "en": "to speak", "es": "hablar", "pt": "falar", "glyph": "💬" },
+            { "en": "to go", "es": "ir", "pt": "ir", "glyph": "🚶" }
+          ]
+        },
+        {
+          "id": "corpo", "icon": "🖐️", "accent": "#1098ad",
+          "titles": { "en": "Body", "es": "Cuerpo", "pt": "Corpo" },
+          "items": [
+            { "en": "eye", "es": "ojo", "pt": "olho", "glyph": "👁️" },
+            { "en": "hand", "es": "mano", "pt": "mão", "glyph": "✋" },
+            { "en": "foot", "es": "pie", "pt": "pé", "glyph": "🦶" },
+            { "en": "mouth", "es": "boca", "pt": "boca", "glyph": "👄" },
+            { "en": "nose", "es": "nariz", "pt": "nariz", "glyph": "👃" },
+            { "en": "ear", "es": "oreja", "pt": "orelha", "glyph": "👂" },
+            { "en": "muscle", "es": "músculo", "pt": "músculo", "glyph": "💪" },
+            { "en": "biceps", "es": "bíceps", "pt": "bíceps", "glyph": "🦾" },
+            { "en": "chest", "es": "pecho", "pt": "peito", "glyph": "🫁" },
+            { "en": "back", "es": "espalda", "pt": "costas", "glyph": "🔙" },
+            { "en": "knee", "es": "rodilla", "pt": "joelho", "glyph": "🦵" },
+            { "en": "shoulder", "es": "hombro", "pt": "ombro", "glyph": "🫱" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L2",
+      "titles": { "en": "Situational", "es": "Situacional", "pt": "Situacional" },
+      "categories": [
+        {
+          "id": "animais", "icon": "🐶", "accent": "#9c36b5",
+          "titles": { "en": "Animals", "es": "Animales", "pt": "Animais" },
+          "items": [
+            { "en": "dog", "es": "perro", "pt": "cachorro", "glyph": "🐶" },
+            { "en": "cat", "es": "gato", "pt": "gato", "glyph": "🐱" },
+            { "en": "horse", "es": "caballo", "pt": "cavalo", "glyph": "🐴" },
+            { "en": "cow", "es": "vaca", "pt": "vaca", "glyph": "🐮" },
+            { "en": "bird", "es": "pájaro", "pt": "pássaro", "glyph": "🐦" },
+            { "en": "fish", "es": "pez", "pt": "peixe", "glyph": "🐟" }
+          ]
+        },
+        {
+          "id": "insetos", "icon": "🐝", "accent": "#f5c800",
+          "titles": { "en": "Insects", "es": "Insectos", "pt": "Insetos" },
+          "items": [
+            { "en": "ant", "es": "hormiga", "pt": "formiga", "glyph": "🐜" },
+            { "en": "bee", "es": "abeja", "pt": "abelha", "glyph": "🐝" },
+            { "en": "butterfly", "es": "mariposa", "pt": "borboleta", "glyph": "🦋" },
+            { "en": "spider", "es": "araña", "pt": "aranha", "glyph": "🕷️" },
+            { "en": "fly", "es": "mosca", "pt": "mosca", "glyph": "🪰" },
+            { "en": "mosquito", "es": "mosquito", "pt": "mosquito", "glyph": "🦟" }
+          ]
+        },
+        {
+          "id": "dias-semana", "icon": "📅", "accent": "#5c6ac4",
+          "titles": { "en": "Days of the Week", "es": "Días de la Semana", "pt": "Dias da Semana" },
+          "items": [
+            { "en": "Monday", "es": "lunes", "pt": "segunda-feira", "glyph": "📅" },
+            { "en": "Tuesday", "es": "martes", "pt": "terça-feira", "glyph": "📆" },
+            { "en": "Wednesday", "es": "miércoles", "pt": "quarta-feira", "glyph": "🗓️" },
+            { "en": "Thursday", "es": "jueves", "pt": "quinta-feira", "glyph": "📅" },
+            { "en": "Friday", "es": "viernes", "pt": "sexta-feira", "glyph": "📆" },
+            { "en": "Saturday", "es": "sábado", "pt": "sábado", "glyph": "🗓️" }
+          ]
+        },
+        {
+          "id": "meses-estacoes", "icon": "🍂", "accent": "#e8590c",
+          "titles": { "en": "Months & Seasons", "es": "Meses y Estaciones", "pt": "Meses e Estações" },
+          "items": [
+            { "en": "January", "es": "enero", "pt": "janeiro", "glyph": "🗓️" },
+            { "en": "spring", "es": "primavera", "pt": "primavera", "glyph": "🌸" },
+            { "en": "summer", "es": "verano", "pt": "verão", "glyph": "☀️" },
+            { "en": "autumn", "es": "otoño", "pt": "outono", "glyph": "🍂" },
+            { "en": "winter", "es": "invierno", "pt": "inverno", "glyph": "❄️" },
+            { "en": "December", "es": "diciembre", "pt": "dezembro", "glyph": "📆" }
+          ]
+        },
+        {
+          "id": "roupas", "icon": "👕", "accent": "#d6336c",
+          "titles": { "en": "Clothes", "es": "Ropa", "pt": "Roupas" },
+          "items": [
+            { "en": "shirt", "es": "camisa", "pt": "camisa", "glyph": "👕" },
+            { "en": "pants", "es": "pantalón", "pt": "calça", "glyph": "👖" },
+            { "en": "shoes", "es": "zapatos", "pt": "sapatos", "glyph": "👟" },
+            { "en": "hat", "es": "sombrero", "pt": "chapéu", "glyph": "🧢" },
+            { "en": "dress", "es": "vestido", "pt": "vestido", "glyph": "👗" },
+            { "en": "jacket", "es": "chaqueta", "pt": "jaqueta", "glyph": "🧥" }
+          ]
+        },
+        {
+          "id": "escola-musica", "icon": "📖", "accent": "#2f9e44",
+          "titles": { "en": "School & Music", "es": "Escuela y Música", "pt": "Escola e Música" },
+          "items": [
+            { "en": "book", "es": "libro", "pt": "livro", "glyph": "📖" },
+            { "en": "pen", "es": "bolígrafo", "pt": "caneta", "glyph": "🖊️" },
+            { "en": "teacher", "es": "profesor", "pt": "professor", "glyph": "🧑‍🏫" },
+            { "en": "guitar", "es": "guitarra", "pt": "violão", "glyph": "🎸" },
+            { "en": "piano", "es": "piano", "pt": "piano", "glyph": "🎹" },
+            { "en": "song", "es": "canción", "pt": "música", "glyph": "🎵" }
+          ]
+        },
+        {
+          "id": "clima-cidade", "icon": "🌦️", "accent": "#1098ad",
+          "titles": { "en": "Weather & City", "es": "Clima y Ciudad", "pt": "Clima e Cidade" },
+          "items": [
+            { "en": "sun", "es": "sol", "pt": "sol", "glyph": "☀️" },
+            { "en": "rain", "es": "lluvia", "pt": "chuva", "glyph": "🌧️" },
+            { "en": "snow", "es": "nieve", "pt": "neve", "glyph": "❄️" },
+            { "en": "city", "es": "ciudad", "pt": "cidade", "glyph": "🏙️" },
+            { "en": "street", "es": "calle", "pt": "rua", "glyph": "🛣️" },
+            { "en": "house", "es": "casa", "pt": "casa", "glyph": "🏠" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L3",
+      "titles": { "en": "Fluency", "es": "Fluidez", "pt": "Fluência" },
+      "categories": [
+        {
+          "id": "sala-quarto", "icon": "🛋️", "accent": "#6a0dad",
+          "titles": { "en": "Living Room & Bedroom", "es": "Sala y Habitación", "pt": "Sala de Estar e Quarto" },
+          "items": [
+            { "en": "sofa", "es": "sofá", "pt": "sofá", "glyph": "🛋️" },
+            { "en": "bed", "es": "cama", "pt": "cama", "glyph": "🛏️" },
+            { "en": "chair", "es": "silla", "pt": "cadeira", "glyph": "🪑" },
+            { "en": "lamp", "es": "lámpara", "pt": "lâmpada", "glyph": "💡" },
+            { "en": "window", "es": "ventana", "pt": "janela", "glyph": "🪟" },
+            { "en": "door", "es": "puerta", "pt": "porta", "glyph": "🚪" }
+          ]
+        },
+        {
+          "id": "cozinha-banheiro", "icon": "🍴", "accent": "#f5c800",
+          "titles": { "en": "Kitchen & Bathroom", "es": "Cocina y Baño", "pt": "Cozinha e Banheiro" },
+          "items": [
+            { "en": "plate", "es": "plato", "pt": "prato", "glyph": "🍽️" },
+            { "en": "fork", "es": "tenedor", "pt": "garfo", "glyph": "🍴" },
+            { "en": "spoon", "es": "cuchara", "pt": "colher", "glyph": "🥄" },
+            { "en": "knife", "es": "cuchillo", "pt": "faca", "glyph": "🔪" },
+            { "en": "soap", "es": "jabón", "pt": "sabão", "glyph": "🧼" },
+            { "en": "shower", "es": "ducha", "pt": "chuveiro", "glyph": "🚿" }
+          ]
+        },
+        {
+          "id": "ferias", "icon": "🏖️", "accent": "#17a398",
+          "titles": { "en": "Vacation", "es": "Vacaciones", "pt": "Férias" },
+          "items": [
+            { "en": "beach", "es": "playa", "pt": "praia", "glyph": "🏖️" },
+            { "en": "sea", "es": "mar", "pt": "mar", "glyph": "🌊" },
+            { "en": "suitcase", "es": "maleta", "pt": "mala", "glyph": "🧳" },
+            { "en": "passport", "es": "pasaporte", "pt": "passaporte", "glyph": "🛂" },
+            { "en": "hotel", "es": "hotel", "pt": "hotel", "glyph": "🏨" },
+            { "en": "map", "es": "mapa", "pt": "mapa", "glyph": "🗺️" }
+          ]
+        },
+        {
+          "id": "esportes", "icon": "⚽", "accent": "#ef6f6c",
+          "titles": { "en": "Sports", "es": "Deportes", "pt": "Esportes" },
+          "items": [
+            { "en": "soccer", "es": "fútbol", "pt": "futebol", "glyph": "⚽" },
+            { "en": "basketball", "es": "baloncesto", "pt": "basquete", "glyph": "🏀" },
+            { "en": "tennis", "es": "tenis", "pt": "tênis", "glyph": "🎾" },
+            { "en": "swimming", "es": "natación", "pt": "natação", "glyph": "🏊" },
+            { "en": "volleyball", "es": "voleibol", "pt": "vôlei", "glyph": "🏐" },
+            { "en": "boxing", "es": "boxeo", "pt": "boxe", "glyph": "🥊" },
+            { "en": "squat", "es": "sentadilla", "pt": "agachamento", "glyph": "🏋️" },
+            { "en": "deadlift", "es": "peso muerto", "pt": "levantamento terra", "glyph": "🏋️‍♂️" },
+            { "en": "dumbbell", "es": "mancuerna", "pt": "haltere", "glyph": "🏋️‍♀️" },
+            { "en": "strength", "es": "fuerza", "pt": "força", "glyph": "💪" },
+            { "en": "cardio", "es": "cardio", "pt": "cardio", "glyph": "🫀" },
+            { "en": "stretch", "es": "estiramiento", "pt": "alongamento", "glyph": "🤸" }
+          ]
+        },
+        {
+          "id": "aparelhos-espaco", "icon": "📱", "accent": "#5c6ac4",
+          "titles": { "en": "Appliances & Space", "es": "Aparatos y Espacio", "pt": "Aparelhos e Espaço" },
+          "items": [
+            { "en": "phone", "es": "teléfono", "pt": "telefone", "glyph": "📱" },
+            { "en": "television", "es": "televisión", "pt": "televisão", "glyph": "📺" },
+            { "en": "computer", "es": "computadora", "pt": "computador", "glyph": "💻" },
+            { "en": "star", "es": "estrella", "pt": "estrela", "glyph": "⭐" },
+            { "en": "moon", "es": "luna", "pt": "lua", "glyph": "🌙" },
+            { "en": "rocket", "es": "cohete", "pt": "foguete", "glyph": "🚀" }
+          ]
+        },
+        {
+          "id": "natal-halloween", "icon": "🎄", "accent": "#d6336c",
+          "titles": { "en": "Christmas & Halloween", "es": "Navidad y Halloween", "pt": "Natal e Dia das Bruxas" },
+          "items": [
+            { "en": "Christmas tree", "es": "árbol de navidad", "pt": "árvore de natal", "glyph": "🎄" },
+            { "en": "gift", "es": "regalo", "pt": "presente", "glyph": "🎁" },
+            { "en": "ghost", "es": "fantasma", "pt": "fantasma", "glyph": "👻" },
+            { "en": "pumpkin", "es": "calabaza", "pt": "abóbora", "glyph": "🎃" },
+            { "en": "candy", "es": "dulce", "pt": "doce", "glyph": "🍬" },
+            { "en": "bell", "es": "campana", "pt": "sino", "glyph": "🔔" }
+          ]
+        }
+      ]
+    }
+  ]
+}

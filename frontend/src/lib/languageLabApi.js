@@ -65,17 +65,16 @@ export function getCurriculumEpisode(language, day = null) {
   return rpc('bbf_get_curriculum_episode', { p_language: language, p_day: day });
 }
 
-// bbf-fables-bake — CEO-only episode baker (admin-token gateway, same pattern
-// as the Immersion engine). Generates the day's episode on the FABLE tier and
-// lands it as pending_review; returns the freshly baked episode payload.
-export async function bakeFablesEpisode({ language, day }) {
+// Shared admin-token-gated POST to a Language Lab edge function (the Immersion
+// engine gateway pattern): anon bearer + X-BBF-Admin-Token, non-throwing.
+async function adminFn(name, body) {
   const headers = { 'Content-Type': 'application/json' };
   if (SUPABASE_ANON_KEY) { headers.apikey = SUPABASE_ANON_KEY; headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`; }
   const adminToken = getCoachAdminToken();
   if (adminToken) headers['X-BBF-Admin-Token'] = adminToken;
   try {
-    const res = await fetch(`${FUNCTIONS_BASE}/bbf-fables-bake`, {
-      method: 'POST', headers, body: JSON.stringify({ language, day }),
+    const res = await fetch(`${FUNCTIONS_BASE}/${name}`, {
+      method: 'POST', headers, body: JSON.stringify(body),
     });
     const raw = await res.text();
     let data = null;
@@ -85,4 +84,20 @@ export async function bakeFablesEpisode({ language, day }) {
   } catch (e) {
     return { ok: false, status: 0, error: String((e && e.message) || e) };
   }
+}
+
+// bbf-fables-bake — CEO-only episode baker (admin-token gateway, same pattern
+// as the Immersion engine). Generates the day's episode on the FABLE tier and
+// lands it as pending_review; returns the freshly baked episode payload.
+export function bakeFablesEpisode({ language, day }) {
+  return adminFn('bbf-fables-bake', { language, day });
+}
+
+// Daily drills — Gemini 2.5 Flash translation targets (The Path's dynamic
+// bank for days with no Fables episode). Served by bbf-fables-bake's
+// `daily_drills` mode (the project is at its edge-function cap, so the drills
+// rung lives inside the Path's content baker). Fail-closed server-side; the
+// caller keeps its built-in fallback bank on any non-ok result.
+export function generatePathDrills({ language, day, count = 5 }) {
+  return adminFn('bbf-fables-bake', { mode: 'daily_drills', language, day, count });
 }

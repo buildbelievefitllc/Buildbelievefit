@@ -38,7 +38,11 @@ const FORGE_STR = {
 };
 
 // Fragment key for a term's pre-baked pronunciation clip (VOC-<slug>).
-function termClipKey(term) {
+// Exported: The Path's vocab chips + the Skill Funnel drills narrate through the
+// SAME VOC clip keys, so a term baked for the Vocab Gym plays its exact native
+// clip everywhere.
+// eslint-disable-next-line react-refresh/only-export-components
+export function termClipKey(term) {
   const slug = String(term || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim().replace(/\s+/g, '-');
   return `VOC-${slug}`;
 }

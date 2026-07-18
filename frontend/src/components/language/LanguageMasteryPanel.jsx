@@ -28,6 +28,7 @@
 // (bbf_language_session_history), so the nightly Polyglot Sentinel trends one
 // unified history. Mounted under the /command AdminGuard (CEO-only).
 
+import CategoryGateway from './CategoryGateway.jsx';
 import VocabFlashcard from './VocabFlashcard.jsx';
 import ThePath from './ThePath.jsx';
 import AudioDojo from './AudioDojo.jsx';
@@ -62,6 +63,7 @@ const SCAFFOLD_THROUGH_DAY = 14;
 // panels in order; the Pimsleur Lab + Voice Studio are dedicated peers (not
 // buried), and the complete legacy Audio Lab hub closes the deck.
 const MODES = [
+  { id: 'atlas', label: '🗺 Curriculum Atlas' },
   { id: 'forge', label: '⚒ Vocab Forge' },
   { id: 'path', label: '⛰ The Path' },
   { id: 'echo', label: '🪞 Echo Chamber' },
@@ -77,7 +79,7 @@ const MODES = [
 function LabHub() {
   const { targetName } = useLangUiStr();
   const { target, setTarget, narrationEngine, setNarrationEngine, curriculum } = useLanguageLab();
-  const [mode, setMode] = useState('forge');
+  const [mode, setMode] = useState('atlas');
   // "Step into the scene" deep-link: The Path hands over the day, we open the
   // Immersion tab pre-set to that day's persona (shared-universe crossover).
   const [immersionScene, setImmersionScene] = useState(null);
@@ -159,6 +161,7 @@ function LabHub() {
 
       {/* key={target} → a language swap fully remounts the active view */}
       <div className="lm-stage" key={`${mode}-${target}`}>
+        {mode === 'atlas' ? <CategoryGateway language={target} /> : null}
         {mode === 'forge' ? <VocabFlashcard language={target} /> : null}
         {mode === 'path' ? <ThePath language={target} onLiveScene={liveScene} /> : null}
         {mode === 'echo' ? <EchoChamber language={target} /> : null}

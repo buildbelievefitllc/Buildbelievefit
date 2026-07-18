@@ -241,6 +241,12 @@
 .tp-scene-gloss { color: rgba(249,245,255,.55); font-size: .85rem; line-height: 1.5; font-style: italic; margin: .6rem 0 0; border-left: 2px solid rgba(245,200,0,.4); padding-left: .7rem; }
 .tp-scene-vocab { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem; }
 .tp-vocab-chip { font-size: .78rem; color: #f5cf60; background: rgba(106,13,173,.28); border: 1px solid rgba(245,200,0,.3); border-radius: 999px; padding: .2rem .6rem; }
+/* audio vocab card — same chip skin, but a live 🔊 button (Coach Akeem clip) */
+.tp-vocab-chip--audio { cursor: pointer; font-family: inherit; transition: border-color .15s ease, background .15s ease; }
+.tp-vocab-chip--audio:hover { border-color: rgba(245,200,0,.65); background: rgba(106,13,173,.42); }
+.tp-vocab-chip--audio:focus-visible { outline: 2px solid #6a0dad; outline-offset: 2px; }
+/* provenance tag — today's bank came from the daily-target generator */
+.tp-dyn-tag { display: inline-block; margin: 0 0 .55rem; font-size: .68rem; letter-spacing: 1.4px; text-transform: uppercase; color: #f5cf60; border: 1px solid rgba(245,200,0,.4); border-radius: 999px; padding: .18rem .6rem; background: rgba(9,9,9,.4); }
 
 /* ── THE FORGE card (bake trigger for un-authored Fables days) ───────────────── */
 .tp-bake { margin: .2rem 0 1rem; padding: .85rem 1rem; border-radius: 14px; border: 1px dashed rgba(245,200,0,.45); background: rgba(9,9,9,.35); }
@@ -436,3 +442,193 @@
 .dojo-pip { width: 26px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.15); }
 .dojo-pip.is-done { background: #f5c800; }
 .dojo-pip.is-active { background: #6a0dad; box-shadow: 0 0 8px rgba(106,13,173,.9); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CURRICULUM ATLAS → 5-PHASE SKILL FUNNEL  (CategoryGateway · SkillFunnel ·
+   phaseDrills). Brand-locked (§2): Purple→Gold, Bebas headers, Barlow body,
+   matte black as SURFACE only. Category/phase accents are decorative tile
+   identity; the sole brand CTA is the GOLD ⭐️ START CATEGORY TEST button.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── the Atlas grid (level-gated category decks) ── */
+.gw-shell { display: flex; flex-direction: column; gap: 1.1rem; }
+.gw-level { display: flex; flex-direction: column; gap: .7rem; }
+.gw-level.is-locked { opacity: .55; }
+.gw-level-head { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.gw-level-tag {
+  font-family: var(--display, var(--hb)); font-size: 1rem; line-height: 1; color: var(--blk, #090909);
+  background: linear-gradient(135deg, var(--pur, #6a0dad), var(--yel, #f5c800));
+  border-radius: 8px; padding: .25rem .5rem;
+}
+.gw-level-title { font-family: var(--hb); font-size: 1.05rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+.gw-level-lock { font-family: var(--bd); font-size: .74rem; color: #9c92b5; margin-left: auto; }
+.gw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .7rem; }
+.gw-tile {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: .35rem;
+  padding: .9rem .8rem; border-radius: 14px; cursor: pointer; text-align: left; overflow: hidden;
+  background: linear-gradient(158deg, color-mix(in srgb, var(--gw-accent, #6a0dad) 26%, transparent), rgba(9, 6, 14, .95));
+  border: 1px solid color-mix(in srgb, var(--gw-accent, #6a0dad) 45%, transparent);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.gw-tile::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--gw-accent, #6a0dad); }
+.gw-tile:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(9, 6, 14, .5); }
+.gw-tile:disabled { cursor: not-allowed; }
+.gw-tile-icon { font-size: 1.7rem; line-height: 1; }
+.gw-tile-name { font-family: var(--hb); font-size: 1rem; letter-spacing: .8px; text-transform: uppercase; color: #fff; }
+.gw-tile-meta { font-family: var(--bd); font-size: .72rem; letter-spacing: .5px; color: #c9bfe0; }
+.gw-tile.is-cleared .gw-tile-meta { color: var(--yel, #f5c800); font-weight: 700; }
+
+/* ── the Skill Funnel menu (5 phase gates + gold START) ── */
+.fn-shell { display: flex; flex-direction: column; gap: 1rem; }
+.fn-head, .fx-head { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+.fn-back, .fx-back, .fx-exit {
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-soft, #f5cf60);
+  background: transparent; border: 1px solid var(--panel-edge, rgba(106, 13, 173, .35)); border-radius: 999px; padding: .3rem .9rem; cursor: pointer;
+}
+.fn-back:hover, .fx-back:hover { color: var(--yel); border-color: var(--yel); }
+.fn-head-cat, .fx-head-cat { font-family: var(--hb); font-size: 1.15rem; letter-spacing: 1.5px; text-transform: uppercase; }
+.fx-head-phase { margin-left: auto; font-family: var(--bd); font-size: .8rem; letter-spacing: 1.5px; text-transform: uppercase; color: #c9bfe0; }
+.fn-phases { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .6rem; }
+.fn-phase {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: 1rem .6rem; border-radius: 14px; cursor: pointer;
+  background: linear-gradient(158deg, color-mix(in srgb, var(--fn-accent, #6a0dad) 24%, transparent), rgba(9, 6, 14, .95));
+  border: 1px solid color-mix(in srgb, var(--fn-accent, #6a0dad) 45%, transparent); transition: transform .12s ease;
+}
+.fn-phase:hover { transform: translateY(-2px); }
+.fn-phase-idx { font-family: var(--display, var(--hb)); font-size: .9rem; color: var(--fn-accent, #6a0dad); }
+.fn-phase-emoji { font-size: 1.6rem; line-height: 1; }
+.fn-phase-label { font-family: var(--hb); font-size: .92rem; letter-spacing: 1px; text-transform: uppercase; color: #fff; text-align: center; }
+.fn-start {
+  font-family: var(--display, var(--hb)); font-size: 1.25rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blk, #090909);
+  background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60)); border: none; border-radius: 14px;
+  padding: .85rem 1rem; cursor: pointer; box-shadow: 0 6px 20px rgba(245, 200, 0, .25);
+}
+.fn-start:hover { filter: brightness(1.05); }
+.fn-test { display: flex; flex-direction: column; gap: .8rem; }
+.fn-test-rail { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.fn-test-pip { font-size: 1.1rem; opacity: .4; filter: grayscale(1); }
+.fn-test-pip.is-active { opacity: 1; filter: none; transform: scale(1.15); }
+.fn-test-pip.is-done { opacity: .85; filter: none; }
+.fn-test-count { margin-left: auto; font-family: var(--bd); font-size: .78rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+
+/* ── shared drill chrome (phaseDrills) ── */
+.fx-shell { display: flex; flex-direction: column; align-items: center; gap: .9rem; }
+.fx-shell > .fx-head { width: 100%; }
+.fx-btn {
+  font-family: var(--hb); font-size: .95rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blk, #090909);
+  background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60)); border: none; border-radius: 999px; padding: .5rem 1.4rem; cursor: pointer;
+}
+.fx-btn:disabled { opacity: .45; cursor: not-allowed; }
+.fx-btn--ghost { color: var(--gold-soft, #f5cf60); background: transparent; border: 1px solid var(--panel-edge, rgba(106, 13, 173, .35)); }
+.fx-btn--ghost:hover { color: var(--yel); border-color: var(--yel); }
+.fx-actions { display: flex; gap: .6rem; justify-content: center; }
+.fx-progress { font-family: var(--bd); font-size: .8rem; letter-spacing: 1px; color: #9c92b5; }
+.fx-quiz-q { font-family: var(--hb); font-size: 1rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); }
+
+/* the two narration buttons (🔊 Listen · 🐌 Slow-mo) — reused everywhere */
+.fx-listen { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+.fx-listen-btn {
+  font-family: var(--hb); font-size: .85rem; letter-spacing: 1px; text-transform: uppercase; color: #fff;
+  background: rgba(106, 13, 173, .3); border: 1px solid var(--panel-edge, rgba(106, 13, 173, .45)); border-radius: 999px; padding: .4rem 1rem; cursor: pointer;
+}
+.fx-listen-btn:hover { border-color: var(--yel); }
+.fx-listen-btn--slow { background: rgba(9, 6, 14, .5); color: var(--gold-soft, #f5cf60); }
+
+/* Vocabulary flashcard */
+.fx-card {
+  width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: .8rem;
+  padding: 1.6rem 1.2rem; border-radius: 18px; position: relative; overflow: hidden;
+  background: linear-gradient(168deg, color-mix(in srgb, var(--fx-accent, #6a0dad) 20%, transparent), rgba(9, 6, 14, .95));
+  border: 1px solid color-mix(in srgb, var(--fx-accent, #6a0dad) 45%, transparent);
+}
+.fx-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--fx-accent, #6a0dad), var(--yel, #f5c800)); }
+.fx-card-glyph { font-size: 3.4rem; line-height: 1; }
+.fx-card-term { font-family: var(--display, var(--hb)); font-size: 2.2rem; line-height: 1.05; color: #fff; text-align: center; word-break: break-word; }
+.fx-card-gloss { font-family: var(--bd); font-size: 1.1rem; color: var(--yel, #f5c800); }
+
+/* MCQ options (Listening glyph tiles + Reading text tiles) */
+.fx-audio-prompt { display: flex; flex-direction: column; align-items: center; gap: .6rem; }
+.fx-audio-icon { font-size: 2.4rem; }
+.fx-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; width: 100%; max-width: 460px; }
+.fx-opt {
+  display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .9rem .6rem; border-radius: 12px; cursor: pointer;
+  background: rgba(9, 6, 14, .55); border: 1px solid var(--panel-edge, rgba(106, 13, 173, .35)); transition: transform .1s ease;
+}
+.fx-opt:not(:disabled):hover { transform: translateY(-2px); border-color: var(--yel); }
+.fx-opt-glyph { font-size: 1.8rem; line-height: 1; }
+.fx-opt-term { font-family: var(--hb); font-size: 1rem; letter-spacing: .8px; text-transform: uppercase; color: #fff; text-align: center; }
+.fx-opt--text .fx-opt-glyph { font-size: 1.3rem; }
+.fx-opt.is-right { border-color: #4ade80; background: rgba(74, 222, 128, .16); }
+.fx-opt.is-wrong { border-color: var(--red, #ff5470); background: rgba(255, 84, 112, .16); }
+.fx-opt.is-dim { opacity: .45; }
+
+/* Reading word */
+.fx-read-word {
+  font-family: var(--display, var(--hb)); font-size: 2.6rem; line-height: 1.05; color: #fff; text-align: center; word-break: break-word;
+  border-bottom: 3px solid var(--fx-accent, #6a0dad); padding-bottom: .3rem;
+}
+
+/* feedback banner */
+.fx-feedback { display: flex; align-items: center; justify-content: space-between; gap: .8rem; width: 100%; max-width: 460px; flex-wrap: wrap;
+  font-family: var(--bd); font-size: .95rem; padding: .5rem .8rem; border-radius: 12px; }
+.fx-feedback.is-right { color: #4ade80; background: rgba(74, 222, 128, .12); }
+.fx-feedback.is-wrong { color: #ffb4c0; background: rgba(255, 84, 112, .12); }
+
+/* Memory grid */
+.fx-memory-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .55rem; width: 100%; max-width: 460px; }
+@media (max-width: 480px) { .fx-memory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fx-options { max-width: 100%; } }
+.fx-mem-card {
+  aspect-ratio: 3 / 4; display: flex; align-items: center; justify-content: center; padding: .3rem; border-radius: 12px; cursor: pointer;
+  background: linear-gradient(158deg, color-mix(in srgb, var(--fx-accent, #6a0dad) 30%, transparent), rgba(9, 6, 14, .95));
+  border: 1px solid color-mix(in srgb, var(--fx-accent, #6a0dad) 45%, transparent); transition: transform .12s ease;
+}
+.fx-mem-card.is-up { background: rgba(9, 6, 14, .85); border-color: var(--yel, #f5c800); }
+.fx-mem-card.is-matched { border-color: #4ade80; opacity: .7; }
+.fx-mem-glyph { font-size: 1.8rem; }
+.fx-mem-term { font-family: var(--hb); font-size: .82rem; letter-spacing: .5px; text-transform: uppercase; color: #fff; text-align: center; word-break: break-word; }
+.fx-memory-grid.is-locked { cursor: pointer; }
+
+/* Writing */
+.fx-write-prompt { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+.fx-write-glyph { font-size: 3rem; line-height: 1; }
+.fx-write-gloss { font-family: var(--display, var(--hb)); font-size: 1.6rem; color: var(--yel, #f5c800); text-align: center; }
+.fx-input {
+  width: 100%; max-width: 420px; font-family: var(--bd); font-size: 1.1rem; color: #fff; text-align: center;
+  background: rgba(9, 6, 14, .6); border: 1px solid var(--panel-edge, rgba(106, 13, 173, .4)); border-radius: 12px; padding: .7rem 1rem;
+}
+.fx-input:focus { outline: none; border-color: var(--yel, #f5c800); }
+.fx-input.is-right { border-color: #4ade80; }
+.fx-input.is-wrong { border-color: var(--red, #ff5470); }
+
+/* phase-complete card */
+.fx-done { display: flex; flex-direction: column; align-items: center; gap: .6rem; padding: 1.5rem 0; }
+.fx-done-mark {
+  display: inline-flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; border-radius: 50%;
+  font-size: 1.5rem; color: var(--blk, #090909); background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60));
+}
+.fx-done-title { font-family: var(--hb); font-size: 1.3rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold-soft, #f5cf60); margin: 0; }
+.fx-done-score { font-family: var(--bd); font-size: 1rem; color: #c9bfe0; margin: 0; }
+.fx-done-actions { display: flex; gap: .6rem; margin-top: .4rem; }
+
+/* ── Blind Mode (🙈 audio-first) + speech-capture foundation ── */
+.fx-blind-chip {
+  font-family: var(--hb); font-size: .78rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold-soft, #f5cf60);
+  background: rgba(9, 6, 14, .5); border: 1px solid var(--panel-edge, rgba(106, 13, 173, .4)); border-radius: 999px; padding: .3rem .8rem; cursor: pointer;
+}
+.fx-blind-chip.is-on { color: var(--blk, #090909); background: linear-gradient(135deg, var(--yel, #f5c800), var(--gold-soft, #f5cf60)); border-color: var(--yel, #f5c800); }
+.fn-head .fx-blind-chip { margin-left: auto; }
+
+.fx-card.is-concealed { cursor: pointer; align-items: center; justify-content: center; min-height: 200px; }
+.fx-card.is-concealed:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
+.fx-card-glyph--blind { opacity: .8; }
+.fx-card-blindhint { font-family: var(--bd); font-size: .95rem; letter-spacing: .5px; color: #c9bfe0; text-align: center; }
+
+.fx-speech { display: flex; flex-direction: column; align-items: center; gap: .35rem; }
+.fx-speech-btn {
+  font-family: var(--hb); font-size: .82rem; letter-spacing: 1px; text-transform: uppercase; color: #fff;
+  background: rgba(106, 13, 173, .28); border: 1px solid var(--panel-edge, rgba(106, 13, 173, .45)); border-radius: 999px; padding: .38rem 1rem; cursor: pointer;
+}
+.fx-speech-btn:hover { border-color: var(--yel, #f5c800); }
+.fx-speech-btn:disabled { opacity: .6; cursor: default; }
+.fx-speech-readout { font-family: var(--bd); font-size: .84rem; letter-spacing: .3px; color: var(--gold-soft, #f5cf60); text-align: center; }
+.fx-speech-note { font-family: var(--bd); font-size: .78rem; color: #9c92b5; text-align: center; }
