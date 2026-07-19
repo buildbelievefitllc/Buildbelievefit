@@ -1,5 +1,32 @@
 # Vapi Voice Integration (Big Jim Directive #4)
 
+> **⚠️ PARTIALLY SUPERSEDED (2026-07-19) — read before touching this number.**
+> The Twilio number this doc describes, (623) 304-5221, was cut over to
+> ElevenLabs' native Twilio integration (CEO order — "keep Vapi out of the
+> loop"). Confirmed on both sides: Twilio's `voice_url` / `sms_url` /
+> `status_callback` for this number now point at `api.elevenlabs.io`, not
+> `api.vapi.ai`. **Inbound calls and inbound SMS to this number no longer
+> reach Vapi at all** — they're answered by the new ElevenLabs agent
+> `agent_7001kxxy495resgrmd0td3x6gfxv` ("BBF Sovereign Accountability &
+> Pathfinder (Phone)"), a clone of the in-app "BBF Sovereign Accountability
+> Coach" persona (`agent_9401kxp807j4fdertbe2gp82h6xp`, unchanged) with an
+> added sales-closing lane, per CLAUDE.md §1 dynamic-variable contract
+> (`client_name` / `readiness_score` / `check_in_streak` / `last_commitments`).
+>
+> **What's UNVERIFIED, not confirmed-broken:** the scheduled OUTBOUND jobs
+> below (`vapi-outbound-trigger`, both the accountability and sales-recovery
+> pg_cron paths) call Vapi's own API (`api.vapi.ai/call/phone`), which
+> typically originates the Twilio call with its own TwiML target specified
+> per-call — independent of this number's static inbound `voice_url`. That
+> mechanism MAY still work unaffected by this cutover. Nobody has confirmed
+> either way yet. **Before relying on this doc's outbound flow again, verify
+> with a live test call or check Vapi's dashboard for call failures** — don't
+> assume it's fine, and don't assume it's dead.
+>
+> No ElevenLabs-side replacement for the pg_cron-triggered outbound calling
+> has been built. If that automation turns out to be broken, accountability
+> and sales-recovery calls are simply not happening until it's rebuilt.
+
 ## Overview
 This design document outlines the architecture and implementation phases for integrating Vapi to perform outbound accountability voice calls to BBF Sovereign clients. The goal is to act as an automated "Big Jim" accountability coach, detecting when a client misses their logged activity streak and triggering an AI voice call to get them back on track.
 
