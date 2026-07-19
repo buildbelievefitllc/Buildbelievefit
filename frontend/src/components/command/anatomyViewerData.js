@@ -24,7 +24,7 @@ export const SEGMENT_IDS = ['lumbar', 'shoulder', 'hip', 'knee', 'ankle'];
 //   • lumbar   → midline, just above the sacrum (L-spine block)
 // Heights read true bottom-to-top: ankle 0.07 < knee 0.44 < hip 0.89 <
 // lumbar 1.04 < shoulder 1.41. If the mesh is re-exported at a different scale,
-// re-run scratchpad/extract_joints.mjs to regenerate these.
+// re-run `node scripts/extract-anatomy-joints.mjs` to regenerate these.
 export const ANATOMY_JOINTS = [
   { id: 'lumbar', position: [0, 1.043, -0.069], system: 'skeletal' },
   { id: 'shoulder', position: [0.197, 1.405, -0.028], system: 'skeletal' },
