@@ -133,6 +133,10 @@ function normalizePost(p) {
     voiceover_script: p.reel_kit?.voiceover_script || p.voiceover_script || '',
     cut_sheet: p.reel_kit?.cut_sheet || '',
     has_vo: !!(p.reel_kit && p.reel_kit.voiceover_script),
+    // Optional pre-baked static asset. When a post EXPLICITLY declares one, the
+    // approve flow short-circuits ElevenLabs (see approveAndSynthesize). Absent =
+    // normal live synth. Explicit-only by design: a static file never mis-binds.
+    static_audio_url: p.static_audio_url || p.reel_kit?.static_audio_url || '',
   };
 }
 const DRAFTS = RAW_POSTS.map(normalizePost);
@@ -232,7 +236,7 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
     cut_sheet: draft.cut_sheet || '',
   });
   const [slot, setSlot] = useState(() => toLocalInput(defaultSlot()));
-  const [state, setState] = useState({ phase: already ? 'done' : 'idle', error: null, audioUrl: null });
+  const [state, setState] = useState({ phase: already ? 'done' : 'idle', error: null, audioUrl: null, bypassed: false });
 
   // ── APPROVAL GATEWAY (Green Light workflow) ──────────────────────────────
   // draft → algorithmic_review → approved. Staging compiles the Platform
@@ -253,7 +257,7 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
   const setField = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const approve = async () => {
-    setState({ phase: 'working', error: null, audioUrl: null });
+    setState({ phase: 'working', error: null, audioUrl: null, bypassed: false });
     try {
       const merged = {
         id: draft.id,
@@ -268,6 +272,12 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
         hashtags: draft.hashtags,
         recommended_post_time: draft.recommended_post_time,
         studio_recipe: { mode: draft.mode, background: draft.background },
+        // Asset-protection short-circuit inputs: the explicit pre-baked path (if any)
+        // and whether the operator edited the script. An edit forces a fresh synth so
+        // the audio always matches the shipped copy; an unedited script with a static
+        // asset skips ElevenLabs entirely.
+        static_audio_url: draft.static_audio_url || '',
+        script_dirty: form.voiceover_script.trim() !== String(draft.voiceover_script || '').trim(),
         // Algorithmic Distribution Engine metadata — rides the approve payload
         // so the queue row carries the green-lit strategy (additive; the
         // backend ignores fields it doesn't persist).
@@ -278,10 +288,10 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
       };
       const scheduledIso = new Date(slot).toISOString();
       const { audio } = await approveAndSynthesize(merged, { scheduled_at: scheduledIso });
-      setState({ phase: 'done', error: null, audioUrl: audio?.url || null });
+      setState({ phase: 'done', error: null, audioUrl: audio?.url || null, bypassed: !!audio?.static });
       onApproved?.();
     } catch (e) {
-      setState({ phase: 'error', error: humanizeError(e?.message), audioUrl: null });
+      setState({ phase: 'error', error: humanizeError(e?.message), audioUrl: null, bypassed: false });
     }
   };
 
@@ -359,6 +369,21 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
           the execution rules stay in view at deployment. */}
       {(inReview || strategyApproved) ? <PlatformMatrix brief={brief} draftId={draft.id} /> : null}
 
+      {state.bypassed ? (
+        <p
+          className="dcm-bypass"
+          data-testid={`draft-bypass-${draft.id}`}
+          style={{
+            margin: '.45rem 0 0',
+            fontFamily: "var(--bd, 'Barlow Condensed'), sans-serif",
+            fontSize: '.78rem',
+            letterSpacing: '.5px',
+            color: 'var(--gold-soft, #f5cf60)',
+          }}
+        >
+          ⚡ READY · pre-baked asset served · 0 ElevenLabs credits spent
+        </p>
+      ) : null}
       {state.audioUrl ? (
         <audio className="dcm-audio" src={state.audioUrl} controls data-testid={`draft-audio-${draft.id}`} />
       ) : null}

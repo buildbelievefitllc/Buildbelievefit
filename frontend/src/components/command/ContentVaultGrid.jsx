@@ -107,6 +107,20 @@ function VaultCard({ row, onPurged }) {
   const [active, setActive] = useState(false);
   const activate = useCallback(() => setActive(true), []);
 
+  // Sound gate — the clip autoplays MUTED (browser autoplay policy blocks sound
+  // without a user gesture). This one-tap affordance unmutes cleanly on the tap,
+  // then the overlay retires. Kept separate from the native controls so a stray
+  // scrub never toggles sound.
+  const videoRef = useRef(null);
+  const [soundOn, setSoundOn] = useState(false);
+  const enableSound = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    setSoundOn(true);
+    v.play?.().catch(() => { /* gesture already satisfied; ignore replay reject */ });
+  }, []);
+
   const onBridge = useCallback(() => {
     setBridge('run');
     // Call synchronously from the click so the popup + clipboard stay gesture-bound.
@@ -131,15 +145,30 @@ function VaultCard({ row, onPurged }) {
         onFocus={activate}
       >
         {active ? (
-          <video
-            className="cv-video"
-            src={`${row.video_url}#t=0.1`}
-            preload="none"
-            muted
-            playsInline
-            controls
-            autoPlay
-          />
+          <>
+            <video
+              ref={videoRef}
+              className="cv-video"
+              src={`${row.video_url}#t=0.1`}
+              preload="none"
+              muted
+              loop
+              playsInline
+              controls
+              autoPlay
+            />
+            {!soundOn ? (
+              <button
+                type="button"
+                className="cv-unmute"
+                onClick={enableSound}
+                data-testid={`vault-unmute-${row.id}`}
+                aria-label={`Unmute ${row.title}`}
+              >
+                🔇 Tap for sound
+              </button>
+            ) : null}
+          </>
         ) : (
           <button
             type="button"

@@ -117,12 +117,24 @@ export async function approveAndSynthesize(draft, { scheduled_at } = {}) {
   const script = String(draft.voiceover_script || '').trim();
   let audio = null;
   if (script) {
-    audio = await synthesizeVoiceover({
-      script,
-      series: draft.series,
-      topic: draft.hook || draft.target_angle || draft.series,
-      lang: draft.language,
-    });
+    // ── INTELLIGENT ASSET PROTECTION · short-circuit ─────────────────────────
+    // If the draft EXPLICITLY declares a pre-baked static asset AND the operator
+    // hasn't touched the script, we already own this clip — bypass ElevenLabs
+    // entirely (0 credits, no round-trip) and flag it READY. We match on an
+    // explicit field ONLY (never a filename guess), so a static file can never
+    // mis-bind to the wrong post. Any script edit (`script_dirty`) forces a fresh
+    // synth so the spoken audio always matches the copy that shipped.
+    const staticUrl = String(draft.static_audio_url || '').trim();
+    if (staticUrl && !draft.script_dirty) {
+      audio = { url: staticUrl, slug: draft.static_audio_slug || null, cached: true, static: true };
+    } else {
+      audio = await synthesizeVoiceover({
+        script,
+        series: draft.series,
+        topic: draft.hook || draft.target_angle || draft.series,
+        lang: draft.language,
+      });
+    }
   }
   const item = await approveContentItem({
     series: draft.series,

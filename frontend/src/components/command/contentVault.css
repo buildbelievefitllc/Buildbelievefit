@@ -42,6 +42,22 @@
 .cv-media { position: relative; width: 100%; aspect-ratio: 9 / 16; background: #000; max-height: 360px; }
 .cv-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
 
+/* Tap-to-unmute overlay — the clip autoplays muted (autoplay policy), loops
+   seamlessly, and this one-tap gesture brings sound in, then retires. Sits
+   top-right, clear of the native controls at the bottom. Brand-purple #6a0dad. */
+.cv-unmute {
+  position: absolute; top: .5rem; right: .5rem; z-index: 2;
+  display: inline-flex; align-items: center; gap: .3rem; cursor: pointer;
+  font-family: var(--hb, 'Bebas Neue'), sans-serif; font-size: .72rem;
+  letter-spacing: 1px; text-transform: uppercase; color: #f9f5ff;
+  padding: .3rem .6rem; border-radius: 999px; border: 1px solid #8a1fd0;
+  background: rgba(106, 13, 173, .82);
+  box-shadow: 0 0 12px rgba(106, 13, 173, .5);
+  transition: filter .18s ease;
+}
+.cv-unmute:hover { filter: brightness(1.12); }
+.cv-unmute:focus-visible { outline: 2px solid #f5c800; outline-offset: 2px; }
+
 /* Lazy-media poster — shown until the card is activated (tap/hover/focus); the
    <video> only mounts then, so the grid never seats 36 live media nodes at once. */
 .cv-poster {
