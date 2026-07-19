@@ -50,6 +50,10 @@ const PRICE_INFO: Record<string, { tier: string; mode: 'subscription' | 'payment
   'price_1TdtVHQ4j3uHTi7PhOfSjE61': { tier: 'transformation_8wk_4x', mode: 'payment' },
   'price_1TdtVIQ4j3uHTi7POHmPRFGn': { tier: 'sovereign_12wk_3x', mode: 'payment' },
   'price_1TdtVIQ4j3uHTi7PYVF5s0dq': { tier: 'sovereign_12wk_4x', mode: 'payment' },
+  // Vanguard Blueprint Override · recurring monthly (verified livemode:true,
+  // active:true, type:recurring, interval:month before wiring — 2026-07-19).
+  'price_1Tv2eWQ4j3uHTi7PZ1XeaN0Q': { tier: 'blueprint_basic', mode: 'subscription' },
+  'price_1Tv2flQ4j3uHTi7PtOF9vEnL': { tier: 'blueprint_pro', mode: 'subscription' },
 };
 
 const RATE_WINDOW_MS = 60 * 1000;

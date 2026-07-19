@@ -177,13 +177,13 @@ export const PRICING = {
   // panel (PricingMatrix's `vanguard` branch), not the flat brutalist card style
   // the other four categories use — deliberately different psychological register.
   //
-  // ⚠ NOT YET LIVE (2026-07-19) — UI/i18n-only pass. Both tiers carry priceId: null
-  // on purpose: no Stripe product/price exists for these yet, and PathfinderForm.jsx
-  // treats a falsy checkout.priceId as the FREE-signup path (f-success-title/body),
-  // not a paid-checkout path — so a null priceId here must NEVER reach onSelectTier.
-  // The PricingMatrix vanguard-card CTA is gated on this field and renders a
-  // disabled "Launching Soon" state until a real price_... id lands here in the
-  // follow-up billing pass. Do not wire this to checkout with a placeholder ID.
+  // LIVE (2026-07-19) — real Stripe subscription prices, acct_1TLzQCQ4j3uHTi7P
+  // (same account as every other tier in this file), verified livemode:true,
+  // type:recurring, interval:month, active:true before wiring. The
+  // PricingMatrix vanguard-card CTA activates automatically whenever priceId
+  // is truthy — no other code change needed. Keep in lockstep with
+  // supabase/functions/bbf-create-checkout (PRICE_INFO) and
+  // supabase/functions/stripe-webhook (PRICE_TO_TIER + ALLOWED_TIERS).
   blueprint: {
     vanguard: true,
     introKey: 'vgd-intro',
@@ -191,13 +191,13 @@ export const PRICING = {
     tiers: [
       {
         nameKey: 'vgd-basic-name', price: '$2.99', per: '/mo',
-        priceId: null, // ⚠ pending real Stripe price — see category comment above
+        priceId: 'price_1Tv2eWQ4j3uHTi7PZ1XeaN0Q',
         featKeys: ['vgd-basic-f1', 'vgd-basic-f2'],
       },
       {
         nameKey: 'vgd-pro-name', price: '$4.99', per: '/mo',
         featured: true, badgeKey: 'vgd-pro-badge',
-        priceId: null, // ⚠ pending real Stripe price — see category comment above
+        priceId: 'price_1Tv2flQ4j3uHTi7PtOF9vEnL',
         featKeys: ['vgd-pro-f1', 'vgd-pro-f2'],
       },
     ],

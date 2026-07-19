@@ -38,6 +38,8 @@ const ALLOWED_TIERS = [
   'sovereign_12wk_3x','sovereign_12wk_4x',
   // 7 legacy (monolith storefront — keep until retired)
   'lite','gateway','architect','sovereign','youth_athlete','nutrition_essentials','nutrition_platinum',
+  // Vanguard Blueprint Override micro-sub tiers (2026-07-19)
+  'blueprint_basic','blueprint_pro',
 ];
 
 // Live Stripe Payment Link price IDs → canonical tier slugs. The 4-tab Revenue
@@ -63,6 +65,9 @@ const PRICE_TO_TIER = {
   'price_1TdtVHQ4j3uHTi7PhOfSjE61': 'transformation_8wk_4x', // Transformation 8wk · 4× · $649
   'price_1TdtVIQ4j3uHTi7POHmPRFGn': 'sovereign_12wk_3x',     // Sovereign 12wk · 3× · $699
   'price_1TdtVIQ4j3uHTi7PYVF5s0dq': 'sovereign_12wk_4x',     // Sovereign 12wk · 4× · $899
+  // Vanguard Blueprint Override · recurring monthly (2026-07-19)
+  'price_1Tv2eWQ4j3uHTi7PZ1XeaN0Q': 'blueprint_basic',       // Basic Blueprint · $2.99
+  'price_1Tv2flQ4j3uHTi7PtOF9vEnL': 'blueprint_pro',         // Pro Blueprint · $4.99
 };
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
