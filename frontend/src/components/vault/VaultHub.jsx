@@ -54,7 +54,7 @@ const MC_COPY = {
   pt: { kicker: 'Premium', title: 'Masterclass do Sistema', sub: 'O tour completo do produto — cada tela, um único passo a passo.' },
 };
 
-export default function VaultHub({ profile, isLoading, error, onSequence }) {
+export default function VaultHub({ profile, isLoading, error, onSequence, calibrationExempt = false }) {
   const { t, lang } = useLang();
   // Biokinetic Forecast — collapsible drawer on the LANDING Client Hub (the tab the
   // athlete sees on login). Default COLLAPSED so the Hub stays clean until opened.
@@ -75,8 +75,9 @@ export default function VaultHub({ profile, isLoading, error, onSequence }) {
       <LoopBreakerBadge active={program.isLoopBreaker} daysOnProgram={program.daysOnProgram} lang={lang} />
       {/* 30-Day Biometric Calibration HUD — the Day-X/30 progress rail (or the
           permanent Sovereign Athlete badge at graduation). Renders nothing for an
-          undatable / no-anchor session. Top of fold on the landing Hub. */}
-      <CalibrationProgress />
+          undatable / no-anchor session. Top of fold on the landing Hub. Suppressed
+          entirely for calibration-exempt tiers (Blueprint — no ramp to display). */}
+      {!calibrationExempt && <CalibrationProgress />}
       {/* BBF EAGLE EYE — the coach's re-engagement nudge / empathetic escalation,
           surfaced first when the secondary brain has flagged this client as drifting
           from the process. Renders nothing when there's no active nudge. */}

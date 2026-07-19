@@ -48,6 +48,20 @@ export const CALIBRATION_GATE = {
   generator: SOVEREIGN_DAY,  // The Library (on-demand AI workout builder) — Phase 3 (Day 30)
 };
 
+// ── TIER-LEVEL CALIBRATION EXEMPTION (CEO order — Vanguard Blueprint) ──
+// The Blueprint micro-subs are the "seasoned vet, immediate Vault deployment" track:
+// they clear the 30-day ramp on purchase and get direct generator access. The PAR-Q
+// MEDICAL screening at checkout is UNAFFECTED (that liability clearance is enforced
+// separately, at Pathfinder, and is NOT bypassed) — this waives only the biometric-
+// mapping RAMP, not the safety clearance. Keyed by tier SLUG (not access group), so a
+// $9.99 Catalyst/Momentum athlete in the same BASELINE band still calibrates normally.
+export const CALIBRATION_EXEMPT_TIERS = new Set(['blueprint_basic', 'blueprint_pro', 'blueprint']);
+
+// Is this athlete's tier exempt from the calibration ramp entirely? (pure — no React)
+export function isTierCalibrationExempt(tier) {
+  return CALIBRATION_EXEMPT_TIERS.has(String(tier || '').trim().toLowerCase());
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 // The graduated sentinel — what every fail-open / no-anchor path returns. Frozen so

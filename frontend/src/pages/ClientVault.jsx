@@ -29,6 +29,7 @@ import { useVaultProfile, selectPlans, parseWorkoutPlan, prescribedTopSetLoad } 
 import { useVaultSessionGuard } from '../lib/sessionGuard.js';
 import { useEntitlement } from '../lib/useEntitlement.js';
 import { useCalibration } from '../lib/useCalibration.js';
+import { isTierCalibrationExempt } from '../lib/calibration.js';
 import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
 import { useAutoVitalsSync } from '../lib/vitalsPipeline.js';
 import VaultHeader from '../components/vault/VaultHeader.jsx';
@@ -256,7 +257,7 @@ export default function ClientVault() {
             {/* 30-Day Calibration TIME gate — nested INSIDE TierGate so a tier paywall
                 always wins; a tier-owned-but-still-calibrating surface (Smart Cardio →
                 Day 15, the Library/Generator → Day 30) shows the CalibrationLock pane. */}
-            <CalibrationGate tabId={activeTab} featureLabelKey={activeMeta?.labelKey}>
+            <CalibrationGate tabId={activeTab} featureLabelKey={activeMeta?.labelKey} exempt={isTierCalibrationExempt(ent.tier)}>
               {activeTab === 'hub' && (
                 <>
                   {/* Phase 3.1 — the Day-1 Hub "Today's Protocol" cards. Mounts with
@@ -269,6 +270,7 @@ export default function ClientVault() {
                     isLoading={profileLoading}
                     error={profileError}
                     onSequence={onNavigate}
+                    calibrationExempt={isTierCalibrationExempt(ent.tier)}
                   />
                 </>
               )}
@@ -302,8 +304,9 @@ export default function ClientVault() {
           unlocked tools (server-enforced, no mirages). Self-gates + fires once. */}
       <Concierge />
       {/* 30-Day Calibration — one-time Day-15 toast + Day-30 graduation overlay.
-          Shell-level so it overlays any tab; self-gates + fires once per athlete. */}
-      <CalibrationMilestones />
+          Shell-level so it overlays any tab; self-gates + fires once per athlete.
+          Suppressed for calibration-exempt tiers (Blueprint) — no ramp, no milestones. */}
+      {!isTierCalibrationExempt(ent.tier) && <CalibrationMilestones />}
       {/* Post-Workout Check-In — shell-level so it overlays any tab the instant a
           session completes; feeds the Dynamic Prescription engine. */}
       <PostWorkoutCheckInModal

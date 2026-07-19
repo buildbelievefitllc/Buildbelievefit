@@ -8,14 +8,19 @@
 //
 // FAIL-OPEN: graduated athletes and undatable/no-anchor sessions pass straight
 // through (useCalibration → isTabCalibrationLocked returns false).
+//
+// `exempt` — a tier-level bypass (Vanguard Blueprint "immediate Vault deployment"):
+// when the athlete's tier is calibration-exempt (isTierCalibrationExempt, resolved by
+// the parent from the live tier slug), the 30-day ramp is waived entirely and every
+// tab renders unlocked. The tier paywall (TierGate) still resolves FIRST, above this.
 
 import { useCalibration } from '../../lib/useCalibration.js';
 import CalibrationLock from './CalibrationLock.jsx';
 
-export default function CalibrationGate({ tabId, featureLabelKey, children }) {
+export default function CalibrationGate({ tabId, featureLabelKey, exempt = false, children }) {
   const cal = useCalibration();
 
-  if (!cal.isTabCalibrationLocked(tabId)) return <>{children}</>;
+  if (exempt || !cal.isTabCalibrationLocked(tabId)) return <>{children}</>;
 
   return (
     <CalibrationLock
