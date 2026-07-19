@@ -68,6 +68,11 @@ const SCRIPTS: Record<string, Record<string, string>> = {
     es: "No puedes compensar con entrenamiento un protocolo de comida roto. Tu Gasto Energético Diario Total marca tu techo; tus macros marcan tu composición corporal. La proteína que comes es el bloque de construcción literal del tejido que acabas de romper en el piso. Ya sea que estés en ayuno o comiendo a toda hora, si fallas estos números, el trabajo físico no significa nada. Respeta los datos. Cumple tus macros, mantente dentro de los límites, y dale a tu cuerpo el material exacto que necesita para romper el ciclo.",
     pt: "Você não consegue compensar no treino uma alimentação quebrada. Seu Gasto Energético Diário Total define o seu teto; seus macros definem a sua composição corporal. A proteína que você come é o bloco de construção literal do tecido que você acabou de romper no treino. Seja em jejum ou comendo o dia inteiro, se você erra esses números, o trabalho físico não significa nada. Respeita os dados. Bate seus macros, fica dentro dos limites, e dá pro seu corpo o material exato que ele precisa pra quebrar o ciclo.",
   },
+  // Landing-page education clip — GLP-1 / peptide weight-loss + lean-mass defense.
+  // EN only for now (the ES/PT renditions are CEO-authored, added when approved).
+  'glp1-overview': {
+    en: "Look, let's talk straight about what's actually happening when you utilize a GLP-1 protocol or modern peptides for weight loss. The scale drops, and it drops fast. But if you aren't engaging in heavy, structured resistance training and tracking precision macro metrics, a massive chunk of that weight loss isn't coming from fat—it's coming directly from your skeletal muscle tissue. When you lose muscle, you systematically down-regulate your metabolism. You aren't just shrinking fat cells; you're burning up the engine that keeps your body lean, strong, and athletic over the long haul. Build Believe Fit isn't just an app—it's an engineering system built to protect your lean mass while your body shifts. The medication clears the runway, but training builds the structure. Let's build it right.",
+  },
 };
 
 function pgHeaders(key: string): HeadersInit {

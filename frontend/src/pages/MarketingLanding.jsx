@@ -21,6 +21,7 @@ import TDEECalculator from '../components/TDEECalculator.jsx';
 import BBFChatbox from '../components/BBFChatbox.jsx';
 import PositionalBlueprints from '../components/PositionalBlueprints.jsx';
 import ScienceHub from '../components/ScienceHub.jsx';
+import ModernMetrics from '../components/ModernMetrics.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import LangToggle from '../components/LangToggle.jsx';
 // Live Stripe pricing (the Revenue Matrix) — single source of truth shared with
@@ -440,6 +441,7 @@ export default function MarketingLanding() {
           {[
             { key: 'science', idx: '01', label: 'Science Hub' },
             { key: 'interrogator', idx: '02', label: 'Routine Interrogator' },
+            { key: 'metrics', idx: '03', label: 'Modern Metrics' },
           ].map((d) => {
             const on = knowledgeTab === d.key;
             return (
@@ -468,7 +470,9 @@ export default function MarketingLanding() {
         >
           {knowledgeTab === 'science'
             ? <ScienceHub />
-            : <Interrogator onChooseTier={goToPathfinder} />}
+            : knowledgeTab === 'interrogator'
+              ? <Interrogator onChooseTier={goToPathfinder} />
+              : <ModernMetrics />}
         </div>
       </section>
 
