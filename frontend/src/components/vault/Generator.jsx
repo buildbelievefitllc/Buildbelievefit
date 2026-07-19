@@ -17,8 +17,9 @@
 // squat, abdominal crunches) can never appear — enforced in the engine.
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { getBlueprintTokens, consumeBlueprintToken } from '../../lib/blueprintTokensApi.js';
 import { useLang } from '../../context/LangContext.jsx';
 import {
   generateProgram, toAssignedPlan,
@@ -53,6 +54,8 @@ const STR = {
     reshuffle: '↻ Reshuffle',
     revert: 'Out of tokens? Revert to your Saved Program Library →',
     guard: '🔒 Contraindicated movements (barbell back squat · abdominal crunches) are auto-excluded.',
+    bpAvail: (r, a) => `${r} / ${a} ${a === 1 ? 'Token' : 'Tokens'} Available`,
+    bpUpgrade: 'Out of Master Program Tokens this cycle. Upgrade for more →',
     placeholder: 'Activate a signature chamber split or set your 8 parameters, then generate a fresh, video-backed program.',
     noMatch: 'No exercises matched those parameters — try a different equipment profile or architecture.',
     day: 'Day',
@@ -83,6 +86,8 @@ const STR = {
     reshuffle: '↻ Rebarajar',
     revert: '¿Sin tokens? Vuelve a tu Biblioteca de Programas Guardados →',
     guard: '🔒 Los movimientos contraindicados (sentadilla con barra trasera · abdominales crunch) se excluyen automáticamente.',
+    bpAvail: (r, a) => `${r} / ${a} ${a === 1 ? 'Token Disponible' : 'Tokens Disponibles'}`,
+    bpUpgrade: 'Sin Tokens de Programa Maestro este ciclo. Mejora tu plan para obtener más →',
     placeholder: 'Activa un split de cámara insignia o ajusta tus 8 parámetros, luego genera un programa nuevo respaldado por video.',
     noMatch: 'Ningún ejercicio coincidió con esos parámetros — prueba un perfil de equipo o arquitectura diferente.',
     day: 'Día',
@@ -113,6 +118,8 @@ const STR = {
     reshuffle: '↻ Reembaralhar',
     revert: 'Sem tokens? Volte à sua Biblioteca de Programas Salvos →',
     guard: '🔒 Movimentos contraindicados (agachamento com barra nas costas · abdominais crunch) são excluídos automaticamente.',
+    bpAvail: (r, a) => `${r} / ${a} ${a === 1 ? 'Token Disponível' : 'Tokens Disponíveis'}`,
+    bpUpgrade: 'Sem Tokens de Programa Mestre neste ciclo. Faça upgrade para obter mais →',
     placeholder: 'Ative um split de câmara assinatura ou ajuste seus 8 parâmetros, depois gere um programa novo com suporte de vídeo.',
     noMatch: 'Nenhum exercício correspondeu a esses parâmetros — tente um perfil de equipamento ou arquitetura diferente.',
     day: 'Dia',
@@ -198,8 +205,9 @@ const DEFAULTS = {
 const clientId = (c) => c?.id ?? c?.uid ?? c?.email ?? '';
 const division = (c) => c?.metabolic_tier || c?.subscription_tier || c?.role || 'Sovereign Client';
 
-export default function Generator({ onRevertToLibrary }) {
+export default function Generator({ onRevertToLibrary, blueprintTier = false }) {
   const { lang } = useLang();
+  const navigate = useNavigate();
   const tr = STR[lang] || STR.en;
   const at = ASSIGN_STR[lang] || ASSIGN_STR.en;
   const [params, setParams] = useState(DEFAULTS);
@@ -220,10 +228,36 @@ export default function Generator({ onRevertToLibrary }) {
   const uid = user?.username || user?.id || '';
   const isUnlimited = isAdmin || onCommandSurface;
 
-  // Client token meter — seed from persisted spend so a reload can't reset it. Unlimited
-  // users (admins) never read or write the meter, so it stays irrelevant for them.
+  // ── NON-BLUEPRINT client meter (localStorage stopgap — UNCHANGED) ──
+  // Seeded from persisted spend so a reload can't reset it. Unlimited users (admins)
+  // never read or write it. Blueprint tiers bypass it entirely (see below).
   const [tokenSpent, setTokenSpent] = useState(() => !isUnlimited && tokenSpentThisPeriod(uid));
-  const canGenerate = isUnlimited || !tokenSpent;
+
+  // ── BLUEPRINT client meter — the LIVE server ledger (bbf_blueprint_tokens) ──
+  // Active ONLY for Blueprint tiers on the athlete (non-admin) surface. The server
+  // function is the authoritative decrement (allotment: blueprint_pro → 3, basic → 1,
+  // resets monthly); this state just mirrors it for the UI. remaining === null means
+  // "unknown" (not yet loaded, or a transport blip) → fail-OPEN, never padlock a payer.
+  const bpEnabled = blueprintTier && !isUnlimited;
+  const [bp, setBp] = useState({ remaining: null, allotment: null });
+  const [bpBusy, setBpBusy] = useState(false);
+
+  useEffect(() => {
+    if (!bpEnabled) return undefined;
+    let cancelled = false;
+    getBlueprintTokens().then((res) => {
+      if (cancelled) return;
+      if (res?.ok) setBp({ remaining: Number(res.remaining), allotment: Number(res.allotment) });
+      // a non-ok (transport / no_session) leaves remaining=null → fail-open
+    });
+    return () => { cancelled = true; };
+  }, [bpEnabled]);
+
+  const canGenerate = isUnlimited
+    ? true
+    : bpEnabled
+      ? (bp.remaining == null || bp.remaining > 0) // unknown/blip → allow; known → gate on balance
+      : !tokenSpent;
 
   // ── Command Center targeting (admin authoring surface only) ──────────────────
   // On /command the Generator is an authoring console: pick a live athlete and push
@@ -274,12 +308,38 @@ export default function Generator({ onRevertToLibrary }) {
   // matches a signature split verbatim).
   const set = (key, value) => { setParams((p) => ({ ...p, [key]: value })); setActivePreset(null); };
 
-  // Single choke point for every generation path — enforces the client token gate
-  // once, centrally, and burns the monthly token on the first successful run.
-  const emit = (envelope) => {
-    if (!canGenerate) return false;
+  // Single choke point for every generation path — enforces the token gate once,
+  // centrally, and burns the monthly token on a successful run.
+  const emit = async (envelope) => {
+    if (isUnlimited) { setResult(generateProgram(envelope)); return true; }
+
+    // BLUEPRINT — spend on the LIVE server ledger BEFORE compiling the split. The RPC
+    // is the authoritative decrement + exhaustion check. Fail-CLOSED on a genuine
+    // 'exhausted'; fail-OPEN on a transport blip (never padlock a paying athlete).
+    if (bpEnabled) {
+      if (bpBusy) return false;                                    // single-flight: no double-spend on rapid taps
+      if (bp.remaining != null && bp.remaining <= 0) return false; // already known exhausted
+      setBpBusy(true);
+      const res = await consumeBlueprintToken();
+      setBpBusy(false);
+      if (res?.ok) {
+        setBp((s) => ({ remaining: Number(res.remaining), allotment: Number(res.allotment ?? s.allotment) }));
+        setResult(generateProgram(envelope));
+        return true;
+      }
+      if (res?.error === 'exhausted') {
+        setBp((s) => ({ remaining: 0, allotment: Number(res.allotment ?? s.allotment) }));
+        return false;
+      }
+      // transport / no_session / empty → fail-OPEN (compile; the ledger stays server-authoritative)
+      setResult(generateProgram(envelope));
+      return true;
+    }
+
+    // NON-BLUEPRINT — the existing localStorage monthly meter (behavior UNCHANGED).
+    if (tokenSpent) return false;
     setResult(generateProgram(envelope));
-    if (!isUnlimited) { spendToken(uid); setTokenSpent(true); }
+    spendToken(uid); setTokenSpent(true);
     return true;
   };
 
@@ -382,6 +442,14 @@ export default function Generator({ onRevertToLibrary }) {
           <span className="gen-toggle-lbl">{tr.attach}</span>
         </button>
 
+        {/* Blueprint live-balance chrome — minimal, high-status (gold Bebas). Shown
+            only for a Blueprint athlete once the real server balance has loaded. */}
+        {bpEnabled && bp.remaining != null ? (
+          <div style={{ fontFamily: "'Bebas Neue',sans-serif", letterSpacing: '1px', fontSize: '.98rem', color: '#F5C800', textAlign: 'center', margin: '0 0 8px' }}>
+            {tr.bpAvail(bp.remaining, bp.allotment)}
+          </div>
+        ) : null}
+
         <div className="gen-actions">
           {/* Primary generate button. ADMIN (command surface): unlimited authoring.
               CLIENT: the monthly token state drives both the label and the lock. */}
@@ -390,8 +458,8 @@ export default function Generator({ onRevertToLibrary }) {
               <span aria-hidden="true">🏋 </span>{tr.genUnlimited}
             </button>
           ) : canGenerate ? (
-            <button type="button" className="gen-run" onClick={() => run(0)}>
-              <span aria-hidden="true">🏋 </span>{tr.genToken}
+            <button type="button" className="gen-run" onClick={() => run(0)} disabled={bpBusy} aria-busy={bpBusy}>
+              <span aria-hidden="true">🏋 </span>{bpEnabled ? tr.genUnlimited : tr.genToken}
             </button>
           ) : (
             <button type="button" className="gen-run is-exhausted" disabled aria-disabled="true">
@@ -414,6 +482,18 @@ export default function Generator({ onRevertToLibrary }) {
             onClick={() => onRevertToLibrary?.()}
           >
             {tr.revert}
+          </button>
+        ) : null}
+
+        {/* Blueprint exhausted (0 tokens this cycle) → contextual upgrade CTA into the
+            tier matrix (/select-tier). The generate button above is already locked. */}
+        {bpEnabled && bp.remaining === 0 ? (
+          <button
+            type="button"
+            className="gen-revert"
+            onClick={() => navigate('/select-tier')}
+          >
+            {tr.bpUpgrade}
           </button>
         ) : null}
 

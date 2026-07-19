@@ -30,6 +30,7 @@ import { useVaultSessionGuard } from '../lib/sessionGuard.js';
 import { useEntitlement } from '../lib/useEntitlement.js';
 import { useCalibration } from '../lib/useCalibration.js';
 import { isTierCalibrationExempt } from '../lib/calibration.js';
+import { isBlueprintTier } from '../lib/blueprintTokensApi.js';
 import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
 import { useAutoVitalsSync } from '../lib/vitalsPipeline.js';
 import VaultHeader from '../components/vault/VaultHeader.jsx';
@@ -287,7 +288,7 @@ export default function ClientVault() {
                 </>
               )}
               {activeTab === 'program' && <Program plans={plans} profile={profile} onSequence={onNavigate} />}
-              {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} />}
+              {activeTab === 'generator' && <Generator onRevertToLibrary={() => setActiveTab('program')} blueprintTier={isBlueprintTier(ent.tier)} />}
               {activeTab === 'cardio' && <SmartCardio />}
               {activeTab === 'prehab' && <Prehab onSequence={onNavigate} />}
               {activeTab === 'recovery' && <Recovery plans={plans} onSequence={onNavigate} />}
