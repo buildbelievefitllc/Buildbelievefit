@@ -573,6 +573,19 @@ export default function MarketingLanding() {
   );
 }
 
+// Vanguard Blueprint micro-subs surfaced via the "Skip Calibration" breakout. They are
+// RECURRING subscriptions (like the Online Fitness tracks), so their Get Started CTA
+// routes through the SAME Pathfinder-gated onSelectTier → bbf-create-checkout flow —
+// NOT beginTokenRefillPurchase (that is the in-vault, one-time token top-up for EXISTING
+// subscribers, which requires a vault token + already-blueprint tier). Subscription
+// price IDs come from Vite env, created with the Stripe products next; until then the
+// card still routes to Pathfinder and final checkout activates when the IDs (+ the
+// bbf-create-checkout / stripe-webhook price allowlists) land.
+const BLUEPRINT_TIERS = [
+  { key: 'basic', nameKey: 'bp-basic-name', featKey: 'bp-basic-feat', price: '$2.99', per: '/mo', priceId: import.meta.env.VITE_STRIPE_PRICE_BLUEPRINT_BASIC || '' },
+  { key: 'pro',   nameKey: 'bp-pro-name',   featKey: 'bp-pro-feat',   price: '$4.99', per: '/mo', featured: true, priceId: import.meta.env.VITE_STRIPE_PRICE_BLUEPRINT_PRO || '' },
+];
+
 // ── PRICING MATRIX — four category tabs → Pathfinder-gated checkout ──────────────
 // A purchase button no longer links straight to Stripe. It calls onSelectTier with
 // the chosen plan + its live buy.stripe.com link; the parent records it and routes
@@ -580,7 +593,9 @@ export default function MarketingLanding() {
 // handoff on the success card. Recurring tiers carry one button; the one-time Hybrid
 // protocols carry two (3×/4× per week), each its own price/link.
 function PricingMatrix({ onSelectTier }) {
+  const { t } = useLang();
   const [tab, setTab] = useState('fitness');
+  const [vetOpen, setVetOpen] = useState(false);
   const active = PRICING[tab];
   return (
     <div style={s.matrix}>
@@ -599,6 +614,53 @@ function PricingMatrix({ onSelectTier }) {
         ))}
       </div>
       <div style={s.matrixNote}>{active.note}</div>
+
+      {/* VANGUARD BLUEPRINT OVERRIDE — "Skip Calibration" breakout beside the Online
+          Fitness tracks. Toggle reveals the two micro-sub cards. RECURRING subs, so the
+          CTA uses the SAME Pathfinder-gated onSelectTier flow as every other tier. */}
+      {tab === 'fitness' ? (
+        <div style={s.bpBreak}>
+          <button
+            type="button"
+            style={{ ...s.bpToggle, cursor: 'pointer' }}
+            aria-expanded={vetOpen}
+            onClick={() => setVetOpen((v) => !v)}
+            data-testid="bp-skip-calibration"
+          >
+            <span style={s.bpToggleLbl}>{t('bp-toggle')}</span>
+            <span aria-hidden="true">{vetOpen ? '▴' : '▾'}</span>
+          </button>
+          {vetOpen ? (
+            <div style={s.bpPanel} data-testid="bp-override-panel">
+              <h3 style={s.bpHead}>{t('bp-head')}</h3>
+              <p style={s.bpMsg}>{t('bp-msg')}</p>
+              <div style={s.matrixGrid}>
+                {BLUEPRINT_TIERS.map((bp) => (
+                  <article
+                    key={bp.key}
+                    style={{ ...s.matrixCard, ...(bp.featured ? s.matrixCardFeatured : null) }}
+                    data-testid={`bp-card-${bp.key}`}
+                  >
+                    <div style={s.matrixCardName}>{t(bp.nameKey)}</div>
+                    <div style={s.matrixPrice}>{bp.price}<span style={s.matrixPer}>{bp.per}</span></div>
+                    <div style={s.bpBilling}>{t('bp-billing')}</div>
+                    <ul style={s.matrixFeats}><li style={s.matrixFeat}>✓ {t(bp.featKey)}</li></ul>
+                    <button
+                      type="button"
+                      onClick={() => onSelectTier({ tierName: t(bp.nameKey), price: `${bp.price}${bp.per}`, priceId: bp.priceId })}
+                      style={{ ...s.matrixBuy, cursor: 'pointer', width: '100%' }}
+                      data-testid={`bp-buy-${bp.key}`}
+                    >
+                      {t('bp-cta')}
+                    </button>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div style={s.matrixGrid}>
         {active.tiers.map((tier) => (
           <article key={tier.name} style={{ ...s.matrixCard, ...(tier.featured ? s.matrixCardFeatured : null) }}>
@@ -828,6 +890,15 @@ const s = {
   matrixFeats: { listStyle: 'none', margin: '14px 0 22px', padding: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 9 },
   matrixFeat: { fontFamily: BODY, fontSize: '.92rem', fontWeight: 600, color: 'rgba(255,255,255,.74)', lineHeight: 1.35, borderBottom: '1px solid rgba(255,255,255,.06)', paddingBottom: 8 },
   matrixBuy: { display: 'block', textAlign: 'center', fontFamily: HEAD, fontSize: '1rem', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 900, color: '#090909', background: GOLD, border: 'none', padding: '14px', textDecoration: 'none' },
+
+  // ── Vanguard Blueprint Override — "Skip Calibration" breakout (glassmorphic) ──
+  bpBreak: { maxWidth: 920, margin: '0 auto 26px' },
+  bpToggle: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', fontFamily: HEAD, fontSize: '1.05rem', letterSpacing: '2px', textTransform: 'uppercase', color: GOLD_SOFT, background: 'linear-gradient(160deg, rgba(30,3,64,.6), rgba(9,9,9,.75))', border: `1px solid rgba(245,200,0,.3)`, borderRadius: 12, padding: '14px 18px' },
+  bpToggleLbl: { fontFamily: HEAD, letterSpacing: '2px' },
+  bpPanel: { marginTop: 14, padding: 'clamp(18px,3vw,26px)', borderRadius: 16, border: `1px solid rgba(245,200,0,.28)`, background: 'linear-gradient(160deg, rgba(30,3,64,.72), rgba(9,9,9,.82))', backdropFilter: 'blur(18px) saturate(150%)', WebkitBackdropFilter: 'blur(18px) saturate(150%)', boxShadow: `0 0 44px rgba(106,13,173,.28)` },
+  bpHead: { fontFamily: HEAD, fontSize: 'clamp(1.6rem,4vw,2.2rem)', letterSpacing: '1px', textTransform: 'uppercase', color: '#fff', textAlign: 'center', margin: '0 0 10px' },
+  bpMsg: { fontFamily: BODY, fontSize: '1rem', lineHeight: 1.55, color: 'rgba(255,255,255,.72)', textAlign: 'center', maxWidth: '62ch', margin: '0 auto 22px' },
+  bpBilling: { fontFamily: BODY, fontSize: '.76rem', letterSpacing: '1px', textTransform: 'uppercase', color: 'rgba(255,255,255,.45)', margin: '0 0 10px' },
   matrixOpts: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
   matrixOptBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, color: '#090909', background: GOLD, padding: '10px 8px', textDecoration: 'none' },
   matrixOptLbl: { fontFamily: HEAD, fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 700 },
