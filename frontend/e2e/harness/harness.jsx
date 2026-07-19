@@ -12,6 +12,7 @@ import { LangProvider } from '../../src/context/LangContext.jsx';
 import '../../src/components/command/coachLab.css';
 import AuthContext from '../../src/context/AuthContext.jsx';
 import { RosterProvider } from '../../src/components/command/RosterProvider.jsx';
+import FormDemoPlayer from '../../src/components/vault/FormDemoPlayer.jsx';
 import ClientHub from '../../src/components/command/ClientHub.jsx';
 import NutritionLocker from '../../src/components/command/NutritionLocker.jsx';
 import NutritionCard from '../../src/components/hub/NutritionCard.jsx';
@@ -165,6 +166,16 @@ function pick() {
     }
     case 'vocab-gym':
       return <VocabFlashcard language={props.language || 'es'} />;
+    case 'form-demo':
+      // The Dual-Media exercise player. Gif-only → tapping the cover opens the
+      // pop-up modal directly. A brand-neutral local asset stands in for the
+      // ingested form loop (deterministic, no network); the layout spec only needs
+      // a real <img> inside the modal to assert the card stays within the viewport.
+      return (
+        <div style={{ padding: 20 }}>
+          <FormDemoPlayer gifUrl={props.gifUrl || '/media/bbf-icon-512.png'} title="Barbell Back Squat — Form Demo" label="Form demo" />
+        </div>
+      );
     case 'prehab':
       return (
         <AuthMock value={{ isAdmin: false, user: props.user ?? { username: 'akeem' } }}>
