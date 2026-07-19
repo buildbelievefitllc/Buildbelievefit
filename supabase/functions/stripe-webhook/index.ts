@@ -213,6 +213,35 @@ serve(async (req) => {
   }
 
   const session = event.data.object;
+
+  // ── BLUEPRINT TOKEN REFILL (micro-transaction) ──────────────────────────────
+  // Refill Checkout Sessions (minted by bbf-refill-checkout) carry
+  // bbf_purchase_type='blueprint_refill' + user_id + tokens in metadata. They are
+  // NOT subscription fulfillments: credit the tokens idempotently (per Stripe event
+  // id — a retry never double-credits) and ACK, returning BEFORE the tier-
+  // provisioning path below, which stays byte-identical for every non-refill session.
+  if ((session.metadata?.bbf_purchase_type || '').trim() === 'blueprint_refill') {
+    if (session.payment_status && session.payment_status !== 'paid') {
+      return jsonResponse({ ok: true, ignored: 'refill_unpaid' }, 200);
+    }
+    const refillUserId = String(session.metadata?.user_id || '').trim();
+    const refillTokens = Math.max(1, Math.min(50, parseInt(String(session.metadata?.tokens || '1'), 10) || 1));
+    if (!refillUserId) return jsonResponse({ ok: false, error: 'refill_missing_user' }, 400);
+    const supabaseR = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: credit, error: creditErr } = await supabaseR.rpc('bbf_credit_blueprint_tokens_for_event', {
+      p_event_id: event.id, p_user_id: refillUserId, p_count: refillTokens,
+    });
+    if (creditErr) {
+      // 5xx so Stripe retries — the idempotency ledger makes the retry safe.
+      console.error(`[stripe-webhook] refill credit failed (event=${event.id}):`, creditErr.message);
+      return jsonResponse({ ok: false, error: 'refill_credit_failed', detail: creditErr.message }, 500);
+    }
+    console.log(`[stripe-webhook] blueprint refill credited · user=${refillUserId} tokens=${refillTokens} replay=${credit?.replay === true} remaining=${credit?.remaining ?? 'n/a'}`);
+    return jsonResponse({ ok: true, refill: true, event_id: event.id, replay: credit?.replay === true, remaining: credit?.remaining ?? null }, 200);
+  }
+
   const email = session.customer_details?.email?.toLowerCase().trim() || '';
   const fullName = session.customer_details?.name?.trim() || 'BBF Client';
   const metaTier = (session.metadata?.tier || '').trim();
