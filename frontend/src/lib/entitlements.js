@@ -51,6 +51,15 @@ export const TIER_TO_GROUP = {
   sovereign_12wk_4x:     GROUP.APEX,
   // ── Youth band — Baseline + sports_hub · roster ──
   rising_athlete:   GROUP.YOUTH,
+  // ── Vanguard Blueprint Override micro-subs — Baseline band (grid, form_videos,
+  //    base_nutrition, readiness, mindset). Both tiers share the SAME feature band;
+  //    they differ ONLY by monthly generation-token allotment (blueprint_basic → 1,
+  //    blueprint_pro → 3), metered server-side by bbf_blueprint_tokens /
+  //    _bbf_blueprint_allotment (NOT by feature access). grid = BASELINE, so the
+  //    program + AI generator tabs (TAB_FEATURE) are tier-unlocked here. ──
+  blueprint_basic:  GROUP.BASELINE,
+  blueprint_pro:    GROUP.BASELINE,
+  blueprint:        GROUP.BASELINE,   // legacy standalone slug (matches _bbf_blueprint_allotment)
   // ── Legacy storefront slugs → closest modern band (don't lock out legacy payers) ──
   lite:                 GROUP.BASELINE,   // entry fitness (≈ Catalyst/Momentum)
   gateway:              GROUP.AUTONOMOUS, // online-fitness gateway → Autonomous-level

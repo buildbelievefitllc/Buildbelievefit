@@ -58,6 +58,14 @@ export const TIER_TO_GROUP: Record<string, Group> = {
   sovereign_12wk_4x:     GROUP.APEX,
   // ── Youth band — Baseline + sports_hub · roster ──
   rising_athlete:   GROUP.YOUTH,
+  // ── Vanguard Blueprint Override micro-subs — Baseline band. Both tiers share the
+  //    SAME feature band; they differ ONLY by monthly generation-token allotment
+  //    (blueprint_basic → 1, blueprint_pro → 3), metered server-side by
+  //    bbf_blueprint_tokens / _bbf_blueprint_allotment — NOT by feature access.
+  //    Keep in lockstep with frontend/src/lib/entitlements.js. ──
+  blueprint_basic:  GROUP.BASELINE,
+  blueprint_pro:    GROUP.BASELINE,
+  blueprint:        GROUP.BASELINE,   // legacy standalone slug (matches _bbf_blueprint_allotment)
   // ── Legacy storefront slugs → closest modern band (grandfathered) ──
   lite:                 GROUP.BASELINE,
   gateway:              GROUP.AUTONOMOUS,
