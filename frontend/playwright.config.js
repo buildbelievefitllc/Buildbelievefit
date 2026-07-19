@@ -17,7 +17,9 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     // Bucket/clip playback in specs must not be gated on a synthetic user gesture.
-    launchOptions: { args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'] },
+    // --enable-unsafe-swiftshader: recent Chromium gates software WebGL behind this
+    // flag, so the 3D Anatomy viewport paints a real <canvas> on GPU-less CI too.
+    launchOptions: { args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio', '--enable-unsafe-swiftshader'] },
   },
   // Pin the pre-installed Chromium in this environment (the bundled build id differs
   // from what @playwright/test 1.61 would auto-download; downloads are disabled here).
@@ -27,7 +29,7 @@ export default defineConfig({
       ...devices['Desktop Chrome'],
       launchOptions: {
         executablePath: process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
-        args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'],
+        args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio', '--enable-unsafe-swiftshader'],
       },
     },
   }],
