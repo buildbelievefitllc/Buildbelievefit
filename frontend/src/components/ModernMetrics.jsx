@@ -1,13 +1,19 @@
 // src/components/ModernMetrics.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 // Landing · Knowledge deck tab "03 · Modern Metrics" — GLP-1 / peptide weight-loss
-// education. A Coach Akeem audio briefing (a PRE-BAKED static asset — zero runtime
-// API) flanked by a scannable 3-card grid on preserving lean mass through the shift.
+// education. A Coach Akeem audio briefing (PRE-BAKED clips — zero runtime API)
+// flanked by a scannable 3-card grid on preserving lean mass through the shift.
+//
+// TRILINGUAL (§1): copy resolves through useLang()/t(); the audio briefing is Coach
+// Akeem's cloned voice baked per locale (bbf-bake-coach-edu). EN ships repo-static;
+// ES/PT are served from the public `coach-audio` Supabase Storage bucket (baked +
+// published server-side because the CI sandbox can't pull the bytes into the repo).
+// Both are static, cache-immutable MP3s — no per-request synthesis cost either way.
 //
 // Brand-locked glassmorphism (§2): BBF Purple / Gold edges over dark translucent
-// panels. Self-contained styles; slots into the Knowledge deck panel like the
-// Science Hub / Routine Interrogator siblings. Responsive by construction
-// (auto-fit grid + clamp scaling), so it holds on desktop and mobile alike.
+// panels. Responsive by construction (auto-fit grid + clamp scaling).
+
+import { useLang } from '../context/LangContext.jsx';
 
 const GOLD = '#F5C800';
 const PUR = '#6A0DAD';
@@ -15,35 +21,41 @@ const PURL = '#9D27C9';
 const HEAD = "'Bebas Neue',sans-serif";
 const BODY = "'Barlow Condensed',sans-serif";
 
-// The pre-baked Coach Akeem voiceover (public/audio/glp1-coaching-overview.mp3).
-const AUDIO_SRC = '/audio/glp1-coaching-overview.mp3';
+// Coach Akeem voiceover, per locale. EN = repo-static; ES/PT = public storage bucket.
+const STORAGE_BASE = 'https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/coach-audio/glp1';
+const AUDIO_SRC = {
+  en: '/audio/glp1-coaching-overview.mp3',
+  es: `${STORAGE_BASE}/glp1-coaching-overview.es.mp3`,
+  pt: `${STORAGE_BASE}/glp1-coaching-overview.pt.mp3`,
+};
 
 const CARDS = [
-  { idx: '01', title: 'Metabolic Defense', body: 'Forcing muscle preservation via heavy load progressions rather than lean mass wasting.' },
-  { idx: '02', title: 'Macro Accounting', body: 'Clear protein targets mapped to your training volume to fuel cellular repair.' },
-  { idx: '03', title: 'Closed-Loop Telemetry', body: 'Tracking strength trends over 30, 60, and 90 days to prove your body composition is optimizing.' },
+  { idx: '01', titleKey: 'mm-c1-title', bodyKey: 'mm-c1-body' },
+  { idx: '02', titleKey: 'mm-c2-title', bodyKey: 'mm-c2-body' },
+  { idx: '03', titleKey: 'mm-c3-title', bodyKey: 'mm-c3-body' },
 ];
 
 export default function ModernMetrics() {
+  const { t, lang } = useLang();
+  const audioSrc = AUDIO_SRC[lang] || AUDIO_SRC.en;
+
   return (
     <div style={s.wrap} data-testid="modern-metrics">
-      <div style={s.kicker}>Modern Metrics</div>
-      <h2 style={s.h}>Optimization Beyond the Scale</h2>
-      <p style={s.sub}>
-        The scale drops fast on a GLP-1 or peptide protocol — but a huge share of that loss can be muscle,
-        not fat. Coach Akeem breaks down how to defend your lean mass, then the system that proves it.
-      </p>
+      <div style={s.kicker}>{t('mm-kicker')}</div>
+      <h2 style={s.h}>{t('mm-h')}</h2>
+      <p style={s.sub}>{t('mm-sub')}</p>
 
-      {/* Coach Akeem audio briefing — static asset, no dynamic fetching. */}
+      {/* Coach Akeem audio briefing — static asset, no dynamic fetching. keyed on
+          lang so switching locale remounts the element with the new source. */}
       <div style={s.audioCard}>
         <div style={s.audioHead}>
           <span style={s.audioMark} aria-hidden="true">▶</span>
           <div>
-            <div style={s.audioKicker}>Coach Akeem · Audio Briefing</div>
-            <div style={s.audioTitle}>GLP-1 &amp; Peptides — Protect Your Lean Mass</div>
+            <div style={s.audioKicker}>{t('mm-audio-kicker')}</div>
+            <div style={s.audioTitle}>{t('mm-audio-title')}</div>
           </div>
         </div>
-        <audio style={s.audio} controls preload="none" src={AUDIO_SRC} data-testid="glp1-audio">
+        <audio key={lang} style={s.audio} controls preload="none" src={audioSrc} data-testid="glp1-audio">
           Your browser does not support the audio element.
         </audio>
       </div>
@@ -53,8 +65,8 @@ export default function ModernMetrics() {
         {CARDS.map((c) => (
           <div key={c.idx} style={s.card}>
             <span style={s.cardIdx}>{c.idx}</span>
-            <h3 style={s.cardTitle}>{c.title}</h3>
-            <p style={s.cardBody}>{c.body}</p>
+            <h3 style={s.cardTitle}>{t(c.titleKey)}</h3>
+            <p style={s.cardBody}>{t(c.bodyKey)}</p>
           </div>
         ))}
       </div>

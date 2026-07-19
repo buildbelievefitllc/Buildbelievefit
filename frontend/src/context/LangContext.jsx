@@ -723,6 +723,19 @@ const DICT = {
   'pf-height-in': { en: 'in', es: 'pulg', pt: 'pol' },
   // Phase C — physician-clearance notice (adult Pathfinder · matches Youth standard).
   'pf-clearance-flag': { en: "Based on your health answers, a physician's clearance is required before we generate your training program. Your coach will review your intake and follow up before any training begins.", es: 'Según tus respuestas de salud, se requiere autorización médica antes de generar tu programa de entrenamiento. Tu entrenador revisará tu registro y dará seguimiento antes de comenzar cualquier entrenamiento.', pt: 'Com base nas suas respostas de saúde, é necessária liberação médica antes de gerarmos seu programa de treino. Seu treinador revisará seu cadastro e entrará em contato antes de iniciar qualquer treino.' },
+  // Knowledge deck · tab 03 "Modern Metrics" — GLP-1 / peptide lean-mass education
+  // (ModernMetrics.jsx). Audio briefing is Coach Akeem's cloned voice, per locale.
+  'mm-kicker': { en: 'Modern Metrics', es: 'Métricas Modernas', pt: 'Métricas Modernas' },
+  'mm-h': { en: 'Optimization Beyond the Scale', es: 'Optimización Más Allá de la Báscula', pt: 'Otimização Além da Balança' },
+  'mm-sub': { en: 'The scale drops fast on a GLP-1 or peptide protocol — but a huge share of that loss can be muscle, not fat. Coach Akeem breaks down how to defend your lean mass, then the system that proves it.', es: 'La báscula baja rápido con un protocolo GLP-1 o de péptidos — pero una gran parte de esa pérdida puede ser músculo, no grasa. El Coach Akeem explica cómo defender tu masa muscular, y luego el sistema que lo demuestra.', pt: 'A balança desce rápido num protocolo GLP-1 ou de peptídeos — mas uma grande parte dessa perda pode ser músculo, não gordura. O Coach Akeem explica como defender a sua massa magra, e depois o sistema que comprova isso.' },
+  'mm-audio-kicker': { en: 'Coach Akeem · Audio Briefing', es: 'Coach Akeem · Sesión de Audio', pt: 'Coach Akeem · Sessão de Áudio' },
+  'mm-audio-title': { en: 'GLP-1 & Peptides — Protect Your Lean Mass', es: 'GLP-1 y Péptidos — Protege tu Masa Muscular', pt: 'GLP-1 e Peptídeos — Proteja sua Massa Magra' },
+  'mm-c1-title': { en: 'Metabolic Defense', es: 'Defensa Metabólica', pt: 'Defesa Metabólica' },
+  'mm-c1-body': { en: 'Forcing muscle preservation via heavy load progressions rather than lean mass wasting.', es: 'Forzamos la preservación muscular con progresiones de carga pesada en lugar de perder masa magra.', pt: 'Forçamos a preservação muscular com progressões de carga pesada em vez de perder massa magra.' },
+  'mm-c2-title': { en: 'Macro Accounting', es: 'Control de Macros', pt: 'Controle de Macros' },
+  'mm-c2-body': { en: 'Clear protein targets mapped to your training volume to fuel cellular repair.', es: 'Objetivos claros de proteína alineados con tu volumen de entrenamiento para impulsar la reparación celular.', pt: 'Metas claras de proteína alinhadas ao seu volume de treino para impulsionar o reparo celular.' },
+  'mm-c3-title': { en: 'Closed-Loop Telemetry', es: 'Telemetría de Circuito Cerrado', pt: 'Telemetria de Circuito Fechado' },
+  'mm-c3-body': { en: 'Tracking strength trends over 30, 60, and 90 days to prove your body composition is optimizing.', es: 'Seguimos tus tendencias de fuerza a 30, 60 y 90 días para comprobar que tu composición corporal está optimizándose.', pt: 'Acompanhamos suas tendências de força em 30, 60 e 90 dias para comprovar que sua composição corporal está otimizando.' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });

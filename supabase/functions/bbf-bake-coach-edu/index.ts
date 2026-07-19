@@ -32,6 +32,12 @@ const AKEEM_VOICE_ID = 'ZbKDEqxkr8Ub4psNm5XD';
 const BBF_VOICE_SETTINGS = { stability: 0.35, similarity_boost: 0.85, style: 0.15, use_speaker_boost: true };
 const VOICE_MODEL = 'eleven_multilingual_v2';
 
+// Optional server-side publish target. When a bake is invoked with { upload:true },
+// the synthesized MP3 is pushed into this PUBLIC storage bucket (bytes never leave
+// Supabase) and the caller gets a stable public URL back — used for the trilingual
+// landing clips whose bytes can't be pulled into an egress-restricted CI sandbox.
+const AUDIO_BUCKET = 'coach-audio';
+
 // ── The 9 CEO-approved scripts. EN verbatim; ES/PT = native, colloquial essence ──
 // Generator orientation clips (3 states × 3 locales = 9 clips):
 //   gen-available — client, token unused: full orientation + limit + reason
@@ -69,9 +75,13 @@ const SCRIPTS: Record<string, Record<string, string>> = {
     pt: "Você não consegue compensar no treino uma alimentação quebrada. Seu Gasto Energético Diário Total define o seu teto; seus macros definem a sua composição corporal. A proteína que você come é o bloco de construção literal do tecido que você acabou de romper no treino. Seja em jejum ou comendo o dia inteiro, se você erra esses números, o trabalho físico não significa nada. Respeita os dados. Bate seus macros, fica dentro dos limites, e dá pro seu corpo o material exato que ele precisa pra quebrar o ciclo.",
   },
   // Landing-page education clip — GLP-1 / peptide weight-loss + lean-mass defense.
-  // EN only for now (the ES/PT renditions are CEO-authored, added when approved).
+  // Trilingual (CEO-approved 2026-07-19). ES/PT are NATIVE, colloquial renditions
+  // in Coach Akeem's register — not literal translations — so eleven_multilingual_v2
+  // keeps the authentic pocket.
   'glp1-overview': {
     en: "Look, let's talk straight about what's actually happening when you utilize a GLP-1 protocol or modern peptides for weight loss. The scale drops, and it drops fast. But if you aren't engaging in heavy, structured resistance training and tracking precision macro metrics, a massive chunk of that weight loss isn't coming from fat—it's coming directly from your skeletal muscle tissue. When you lose muscle, you systematically down-regulate your metabolism. You aren't just shrinking fat cells; you're burning up the engine that keeps your body lean, strong, and athletic over the long haul. Build Believe Fit isn't just an app—it's an engineering system built to protect your lean mass while your body shifts. The medication clears the runway, but training builds the structure. Let's build it right.",
+    es: "Mira, hablemos claro sobre lo que de verdad pasa cuando usas un protocolo GLP-1 o péptidos modernos para bajar de peso. La báscula baja, y baja rápido. Pero si no estás haciendo entrenamiento de fuerza pesado y estructurado, y midiendo tus macros con precisión, una gran parte de ese peso que pierdes no viene de la grasa—viene directo de tu tejido muscular. Cuando pierdes músculo, vas apagando tu metabolismo poco a poco. No estás solo encogiendo células de grasa; estás quemando el motor que mantiene tu cuerpo definido, fuerte y atlético a largo plazo. Build Believe Fit no es solo una app—es un sistema de ingeniería creado para proteger tu masa muscular mientras tu cuerpo cambia. El medicamento despeja la pista, pero el entrenamiento construye la estructura. Vamos a construirlo bien.",
+    pt: "Olha, vamos falar reto sobre o que realmente acontece quando você usa um protocolo GLP-1 ou peptídeos modernos pra emagrecer. A balança desce, e desce rápido. Mas se você não está fazendo treino de força pesado e estruturado, e acompanhando seus macros com precisão, uma parte enorme desse peso que você perde não vem da gordura—vem direto do seu tecido muscular. Quando você perde músculo, você vai desligando o seu metabolismo aos poucos. Você não está só encolhendo células de gordura; você está queimando o motor que mantém o seu corpo definido, forte e atlético no longo prazo. Build Believe Fit não é só um app—é um sistema de engenharia feito pra proteger a sua massa magra enquanto o seu corpo muda. O remédio abre a pista, mas o treino constrói a estrutura. Bora construir do jeito certo.",
   },
 };
 
@@ -90,6 +100,28 @@ function bytesToB64(bytes: Uint8Array): string {
   const CHUNK = 0x8000; let bin = '';
   for (let i = 0; i < bytes.length; i += CHUNK) bin += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)) as any);
   return btoa(bin);
+}
+
+// Ensure the public audio bucket exists, then upsert the MP3. Returns the public URL.
+// All server-side (service key) — no client ever writes here.
+async function publishToStorage(url: string, key: string, path: string, bytes: Uint8Array): Promise<string> {
+  // Idempotent bucket create (409/400 "already exists" is fine).
+  await fetch(`${url}/storage/v1/bucket`, {
+    method: 'POST',
+    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: AUDIO_BUCKET, name: AUDIO_BUCKET, public: true }),
+  }).catch(() => {});
+  // Upsert the object.
+  const put = await fetch(`${url}/storage/v1/object/${AUDIO_BUCKET}/${path}`, {
+    method: 'POST',
+    headers: {
+      apikey: key, Authorization: `Bearer ${key}`,
+      'Content-Type': 'audio/mpeg', 'x-upsert': 'true', 'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+    body: bytes,
+  });
+  if (!put.ok) throw new Error(`storage_put_${put.status}:${(await put.text().catch(() => '')).slice(0, 120)}`);
+  return `${url}/storage/v1/object/public/${AUDIO_BUCKET}/${path}`;
 }
 
 serve(async (req: Request) => {
@@ -134,6 +166,16 @@ serve(async (req: Request) => {
       return jsonResponse({ error: 'tts_failed', status: res.status, detail }, 502);
     }
     const buf = new Uint8Array(await res.arrayBuffer());
+
+    // Optional server-side publish (bytes never leave Supabase). When set, the caller
+    // gets a public_url instead of carrying ~1MB of base64 back over the wire.
+    if (payload?.upload) {
+      const path = String(payload?.storage_path || `${module}/${module}.${locale}.mp3`);
+      const public_url = await publishToStorage(SUPABASE_URL, SERVICE_KEY, path, buf);
+      console.log(`[bbf-bake-coach-edu] baked+published module=${module} locale=${locale} bytes=${buf.length} url=${public_url}`);
+      return jsonResponse({ ok: true, module, locale, output_format: outputFormat, bytes: buf.length, public_url });
+    }
+
     const audio_b64 = bytesToB64(buf);
     console.log(`[bbf-bake-coach-edu] baked module=${module} locale=${locale} fmt=${outputFormat} bytes=${buf.length}`);
     return jsonResponse({ ok: true, module, locale, output_format: outputFormat, bytes: buf.length, audio_b64 });
