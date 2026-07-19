@@ -30,6 +30,7 @@ import FormDemoPlayer from './FormDemoPlayer.jsx';
 import { localizeMuscle } from '../../lib/trainingI18n.js';
 import { fetchRoster, assignWorkout, toErrorMessage } from '../../lib/rosterApi.js';
 import GeneratorVoiceBox from './GeneratorVoiceBox.jsx';
+import { fetchBlueprintTokens, consumeBlueprintToken } from '../../lib/blueprintTokensApi.js';
 import './vault.css';
 
 // Trilingual UI chrome for the Vault Roster Engine. The signature-split preset
@@ -145,31 +146,12 @@ const ASSIGN_STR = {
 // generateProgram (manual generate, signature preset, reshuffle, warm-up re-toggle)
 // spends that single token, after which the whole engine locks until the next month.
 //
-// The spend is persisted per-uid + period so a page reload can't mint a fresh token —
-// this is the frontend mock of the meter; the authoritative ledger lands server-side
-// when the Token Economy ships. Private-mode / quota failures degrade to in-state only.
-const TOKEN_KEY = 'bbf_gen_token_v1';
-
-// Calendar-month stamp (YYYY-M) — the unit the monthly token resets on.
-function currentPeriod() {
-  const d = new Date();
-  return `${d.getFullYear()}-${d.getMonth()}`;
-}
-
-function tokenSpentThisPeriod(uid) {
-  try {
-    const all = JSON.parse(localStorage.getItem(TOKEN_KEY) || '{}');
-    return all?.[uid] === currentPeriod();
-  } catch { return false; }
-}
-
-function spendToken(uid) {
-  try {
-    const all = JSON.parse(localStorage.getItem(TOKEN_KEY) || '{}');
-    all[uid] = currentPeriod();
-    localStorage.setItem(TOKEN_KEY, JSON.stringify(all));
-  } catch { /* private-mode / quota — the in-component state still locks the button */ }
-}
+// TOKEN ECONOMY (shipped): the monthly program-generation token is now SERVER-
+// authoritative — bbf_blueprint_tokens, read/decremented via the SECURITY DEFINER
+// RPCs in blueprintTokensApi.js (identity resolved from the vault session token, so a
+// balance can't be forged or reset by clearing localStorage). Only a fresh MASTER
+// generation (primary button or a signature preset) spends a token; reshuffle and
+// warm-up re-toggle customize the ALREADY-generated block for free.
 
 // The 8 signature parameter selectors (exact Vault Roster Engine blueprint, in order).
 const FIELDS = [
@@ -216,14 +198,29 @@ export default function Generator({ onRevertToLibrary }) {
   // stays unlimited too (it's AdminGuard-gated, so this is belt-and-suspenders).
   // Standard, non-admin clients remain strictly clamped to 1 token / month.
   const onCommandSurface = useLocation().pathname.startsWith('/command');
-  const { user, isAdmin } = useAuth();
-  const uid = user?.username || user?.id || '';
+  const { isAdmin } = useAuth();
   const isUnlimited = isAdmin || onCommandSurface;
 
-  // Client token meter — seed from persisted spend so a reload can't reset it. Unlimited
-  // users (admins) never read or write the meter, so it stays irrelevant for them.
-  const [tokenSpent, setTokenSpent] = useState(() => !isUnlimited && tokenSpentThisPeriod(uid));
-  const canGenerate = isUnlimited || !tokenSpent;
+  // SERVER-authoritative token meter. `tokens` = remaining count for the month (null =
+  // not yet loaded). Unlimited users (admins + /command authoring) never touch it. `busy`
+  // guards the async consume so a double-click can't fire two generations on one token.
+  const [tokens, setTokens] = useState(null);
+  const [busy, setBusy] = useState(false);
+  // Fail-OPEN while unknown (entitlement doctrine): the atomic consume RPC is the real
+  // gate, so an in-flight balance never false-locks the button.
+  const canGenerate = isUnlimited || (!busy && (tokens === null || tokens > 0));
+  const tokenSpent = !isUnlimited && tokens !== null && tokens <= 0;
+
+  // One-shot balance read on land (standard clients only; admins skip the round-trip).
+  useEffect(() => {
+    if (isUnlimited) return undefined;
+    let cancelled = false;
+    (async () => {
+      const res = await fetchBlueprintTokens();
+      if (!cancelled && res.ok) setTokens(res.remaining);
+    })();
+    return () => { cancelled = true; };
+  }, [isUnlimited]);
 
   // ── Command Center targeting (admin authoring surface only) ──────────────────
   // On /command the Generator is an authoring console: pick a live athlete and push
@@ -276,17 +273,41 @@ export default function Generator({ onRevertToLibrary }) {
 
   // Single choke point for every generation path — enforces the client token gate
   // once, centrally, and burns the monthly token on the first successful run.
-  const emit = (envelope) => {
-    if (!canGenerate) return false;
+  // MASTER generation — the ONE path that spends a token. Admins/authoring generate
+  // freely; standard clients ATOMICALLY consume a server token first and only generate
+  // if the decrement succeeded (the RPC — not this UI state — is the real gate).
+  const emitMaster = async (envelope) => {
+    if (isUnlimited) { setRegen(envelope.regen || 0); setResult(generateProgram(envelope)); return true; }
+    if (busy || (tokens !== null && tokens <= 0)) return false;
+    setBusy(true);
+    const res = await consumeBlueprintToken();
+    setBusy(false);
+    if (!res.ok) {
+      if (res.error === 'exhausted') { setTokens(0); return false; } // definitive → lock
+      // Transient error (network / rpc / session) → FAIL-OPEN per the entitlement
+      // doctrine: never false-lock a paying client on a blip. The program is built
+      // client-side from the local library (no server compute is burned), so generate.
+      setRegen(envelope.regen || 0);
+      setResult(generateProgram(envelope));
+      return true;
+    }
+    setTokens(res.remaining);
+    setRegen(envelope.regen || 0);
     setResult(generateProgram(envelope));
-    if (!isUnlimited) { spendToken(uid); setTokenSpent(true); }
     return true;
   };
 
-  const run = (nextRegen = 0) => {
-    if (!canGenerate) return;
-    setRegen(nextRegen);
-    emit({ ...params, warmups, regen: nextRegen });
+  // Primary generate — a fresh master program (spends a token for standard clients).
+  const run = () => { if (canGenerate) emitMaster({ ...params, warmups, regen: 0 }); };
+
+  // RESHUFFLE — free customization of the CURRENT block (re-roll with a new seed). Never
+  // spends a token; available to every user once a program exists, so a client keeps
+  // customizing the block their token already bought.
+  const reshuffle = () => {
+    if (!result) return;
+    const next = regen + 1;
+    setRegen(next);
+    setResult(generateProgram({ ...params, warmups, regen: next }));
   };
 
   // A signature preset overwrites the whole envelope (params + warm-up flag) and
@@ -297,17 +318,16 @@ export default function Generator({ onRevertToLibrary }) {
     setParams(preset.params);
     setWarmups(preset.warmups);
     setActivePreset(preset.id);
-    setRegen(0);
-    emit({ ...preset.params, warmups: preset.warmups, regen: 0 });
+    // A signature preset is a fresh MASTER generation — token-gated like the primary run.
+    emitMaster({ ...preset.params, warmups: preset.warmups, regen: 0 });
   };
 
   const toggleWarmups = () => {
     const next = !warmups;
     setWarmups(next);
     setActivePreset(null);
-    // Re-toggling warm-ups re-runs the engine; honor the same token gate so it can't
-    // be used to keep regenerating after the monthly token is exhausted.
-    if (result && canGenerate) emit({ ...params, warmups: next, regen });
+    // Re-toggling warm-ups customizes the CURRENT block — free (no token), like reshuffle.
+    if (result) setResult(generateProgram({ ...params, warmups: next, regen }));
   };
 
   return (
@@ -376,7 +396,7 @@ export default function Generator({ onRevertToLibrary }) {
           aria-checked={warmups}
           className={`gen-toggle${warmups ? ' is-on' : ''}`}
           onClick={toggleWarmups}
-          disabled={!canGenerate}
+          disabled={busy}
         >
           <span className={`gen-switch${warmups ? ' is-on' : ''}`}><span className="gen-switch-thumb" /></span>
           <span className="gen-toggle-lbl">{tr.attach}</span>
@@ -386,11 +406,11 @@ export default function Generator({ onRevertToLibrary }) {
           {/* Primary generate button. ADMIN (command surface): unlimited authoring.
               CLIENT: the monthly token state drives both the label and the lock. */}
           {isUnlimited ? (
-            <button type="button" className="gen-run" onClick={() => run(0)}>
+            <button type="button" className="gen-run" onClick={run}>
               <span aria-hidden="true">🏋 </span>{tr.genUnlimited}
             </button>
           ) : canGenerate ? (
-            <button type="button" className="gen-run" onClick={() => run(0)}>
+            <button type="button" className="gen-run" onClick={run} disabled={busy} aria-busy={busy}>
               <span aria-hidden="true">🏋 </span>{tr.genToken}
             </button>
           ) : (
@@ -398,10 +418,10 @@ export default function Generator({ onRevertToLibrary }) {
               <span aria-hidden="true">🔒 </span>{tr.genExhausted}
             </button>
           )}
-          {/* Reshuffle is another full generation — admin-only, so it can never be
-              used to bypass the client's one-token-per-month hard limit. */}
-          {result && isUnlimited ? (
-            <button type="button" className="gen-regen" onClick={() => run(regen + 1)}>{tr.reshuffle}</button>
+          {/* Reshuffle re-rolls the CURRENT block for FREE (no token) — available to every
+              user once a program exists, so a client keeps customizing what they bought. */}
+          {result ? (
+            <button type="button" className="gen-regen" onClick={reshuffle}>{tr.reshuffle}</button>
           ) : null}
         </div>
 

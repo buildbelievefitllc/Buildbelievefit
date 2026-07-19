@@ -29,6 +29,7 @@ export const GROUP = {
   AUTONOMOUS: 'autonomous',  // Autonomous band — autonomous, fuel_performance (+ voice/cardio/prehab)
   APEX:       'apex',        // Apex band — fuel_sovereign + 6 Hybrid protocols (+ comlink/orchestration/meal-scanner)
   YOUTH:      'youth',       // Youth Athlete → Sports Hub + roster
+  BLUEPRINT:  'blueprint',   // Blueprint — STANDALONE lean tracker (grid + generator + form_videos + readiness); EXCLUDES premium coaching. Mirror of entitlements.js.
   ALL:        'allaccess',   // God Mode ONLY — admins / coach / akeem / active trial (no tier maps here)
   NONE:       'none',        // no active subscription — everything sellable locked
 } as const;
@@ -58,6 +59,8 @@ export const TIER_TO_GROUP: Record<string, Group> = {
   sovereign_12wk_4x:     GROUP.APEX,
   // ── Youth band — Baseline + sports_hub · roster ──
   rising_athlete:   GROUP.YOUTH,
+  // ── Blueprint band — standalone lean tracker (program + generator + form videos + readiness) ──
+  blueprint:        GROUP.BLUEPRINT,
   // ── Legacy storefront slugs → closest modern band (grandfathered) ──
   lite:                 GROUP.BASELINE,
   gateway:              GROUP.AUTONOMOUS,
@@ -75,12 +78,16 @@ const BASE_BAND:  Group[] = [GROUP.BASELINE, GROUP.AUTONOMOUS, GROUP.APEX, GROUP
 const AUTO_BAND:  Group[] = [GROUP.AUTONOMOUS, GROUP.APEX, GROUP.ALL]; // Autonomous + Apex + God
 const APEX_BAND:  Group[] = [GROUP.APEX, GROUP.ALL];                   // Apex + God
 const YOUTH_BAND: Group[] = [GROUP.YOUTH, GROUP.ALL];                  // Youth + God
+// Blueprint keeps ONLY the lean-tracker features — added to grid/form_videos/readiness
+// individually, NOT to BASE_BAND, so it never inherits base_nutrition / mindset.
+const BASE_OR_BP: Group[] = [...BASE_BAND, GROUP.BLUEPRINT];
 export const FEATURE_ACCESS: Record<string, Group[]> = {
-  // Baseline — every paying path (Autonomous/Apex/Youth inherit it).
-  grid:               BASE_BAND,
-  form_videos:        BASE_BAND,
+  // Baseline — every paying path (Autonomous/Apex/Youth inherit it). grid/form_videos/
+  // readiness ALSO unlock for Blueprint; base_nutrition + mindset do NOT.
+  grid:               BASE_OR_BP,
+  form_videos:        BASE_OR_BP,
   base_nutrition:     BASE_BAND,
-  readiness:          BASE_BAND,
+  readiness:          BASE_OR_BP,
   mindset:            BASE_BAND,
   // Autonomous band and up (NOT Baseline, NOT Youth).
   voice_coach:        AUTO_BAND,

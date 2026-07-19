@@ -25,6 +25,7 @@ export const GROUP = {
   AUTONOMOUS: 'autonomous',  // Autonomous band — autonomous, fuel_performance (+ voice/cardio/prehab)
   APEX:       'apex',        // Apex band — fuel_sovereign + 6 Hybrid protocols (+ comlink/orchestration/meal-scanner)
   YOUTH:      'youth',       // Youth Athlete — Baseline + Sports Hub/roster
+  BLUEPRINT:  'blueprint',   // Blueprint — STANDALONE lean tracker: program grid + generator + form videos + weight log/history + readiness. NOT a rung on the ladder — it deliberately EXCLUDES premium coaching (nutrition/cardio/prehab/coach-comms).
   ALL:        'allaccess',   // God Mode — admins + active trial (+ soft fail-open); no tier maps here
   NONE:       'none',        // no active subscription — everything sellable padlocked
 };
@@ -51,6 +52,8 @@ export const TIER_TO_GROUP = {
   sovereign_12wk_4x:     GROUP.APEX,
   // ── Youth band — Baseline + sports_hub · roster ──
   rising_athlete:   GROUP.YOUTH,
+  // ── Blueprint band — standalone lean tracker (program + generator + form videos + weight log/history + readiness) ──
+  blueprint:        GROUP.BLUEPRINT,
   // ── Legacy storefront slugs → closest modern band (don't lock out legacy payers) ──
   lite:                 GROUP.BASELINE,   // entry fitness (≈ Catalyst/Momentum)
   gateway:              GROUP.AUTONOMOUS, // online-fitness gateway → Autonomous-level
@@ -69,13 +72,18 @@ const BASE_BAND  = [GROUP.BASELINE, GROUP.AUTONOMOUS, GROUP.APEX, GROUP.YOUTH, G
 const AUTO_BAND  = [GROUP.AUTONOMOUS, GROUP.APEX, GROUP.ALL]; // Autonomous + Apex + God
 const APEX_BAND  = [GROUP.APEX, GROUP.ALL];                   // Apex + God
 const YOUTH_BAND = [GROUP.YOUTH, GROUP.ALL];                  // Youth + God
+// Blueprint keeps ONLY the lean-tracker features (program grid, generator, form
+// videos, readiness). It is added to those three feature lists individually — NOT
+// to BASE_BAND — so it never inherits base_nutrition / mindset (deliberately hidden).
+const BASE_OR_BP = [...BASE_BAND, GROUP.BLUEPRINT];
 export const FEATURE_ACCESS = {
-  // Baseline — every paying path (Autonomous/Apex/Youth inherit it).
-  grid:               BASE_BAND,
-  form_videos:        BASE_BAND,
+  // Baseline — every paying path (Autonomous/Apex/Youth inherit it). grid/form_videos/
+  // readiness ALSO unlock for Blueprint (its whole surface); base_nutrition + mindset do NOT.
+  grid:               BASE_OR_BP,
+  form_videos:        BASE_OR_BP,
   base_nutrition:     BASE_BAND,
-  readiness:          BASE_BAND,
-  mindset:            BASE_BAND, // Champion Mindset rides the Baseline bundle
+  readiness:          BASE_OR_BP,
+  mindset:            BASE_BAND, // Champion Mindset rides the Baseline bundle (NOT Blueprint)
   // Autonomous band and up (NOT Baseline, NOT Youth).
   voice_coach:        AUTO_BAND,
   smart_cardio:       AUTO_BAND,

@@ -29,10 +29,23 @@ import LoopBreakerBadge from './LoopBreakerBadge.jsx';
 import EagleEyeNudgeCard from './EagleEyeNudgeCard.jsx';
 import CoachCommsCard from './CoachCommsCard.jsx';
 import BodyweightCard from './BodyweightCard.jsx';
+import UpgradeOverlay from './UpgradeOverlay.jsx';
 import { useWeeklyBrief } from '../../lib/weeklyBriefApi.js';
 import { useProgramDay } from '../../lib/useProgramDay.js';
+import { useEntitlement } from '../../lib/useEntitlement.js';
+import { GROUP } from '../../lib/entitlements.js';
 import { GuideLauncher } from '../BbfMediaPortal.jsx';
 import './vault.css';
+
+// Blueprint tier — the premium-coaching upsell shown in place of Coach Comms. The
+// hidden premium TABS (Fuel Targets / Cardio / Prehab) drop out at the shell via
+// canAccessTab; this banner covers the in-hub coach bridge and steers to the tier
+// that unlocks the full coaching suite.
+const BP_UPGRADE_LABEL = {
+  en: 'Premium Coaching — Fuel Targets, Cardio Rx, Prehab & Coach Comms',
+  es: 'Coaching Premium — Nutrición, Cardio, Prehab y Comunicación',
+  pt: 'Coaching Premium — Nutrição, Cardio, Prehab e Comunicação',
+};
 
 // Intel-rail indices (labels + units resolve through the dictionary in render).
 const RAIL = [
@@ -56,6 +69,12 @@ const MC_COPY = {
 
 export default function VaultHub({ profile, isLoading, error, onSequence }) {
   const { t, lang } = useLang();
+  // Blueprint tier gate — a standalone lean tracker that hides premium coaching.
+  // `group === BLUEPRINT` replaces the in-hub Coach Comms bridge with an upgrade
+  // banner. Every other tier (and God Mode / soft fail-open) renders Coach Comms
+  // exactly as before, so this is zero-blast-radius for existing subscribers.
+  const { group, upgradeTargetForFeature } = useEntitlement();
+  const isBlueprint = group === GROUP.BLUEPRINT;
   // Biokinetic Forecast — collapsible drawer on the LANDING Client Hub (the tab the
   // athlete sees on login). Default COLLAPSED so the Hub stays clean until opened.
   const [fcOpen, setFcOpen] = useState(false);
@@ -82,9 +101,19 @@ export default function VaultHub({ profile, isLoading, error, onSequence }) {
           from the process. Renders nothing when there's no active nudge. */}
       <EagleEyeNudgeCard />
 
-      {/* Coach Comms — the live coach↔athlete bridge (Founder Five dossier ↔
-          this Vault). Gold unread badge = the coach pushed a directive. */}
-      <CoachCommsCard />
+      {/* Coach Comms — the live coach↔athlete bridge (Founder Five dossier ↔ this
+          Vault). HIDDEN for the standalone Blueprint tier (no premium coaching);
+          replaced by a clean upgrade banner steering to the premium coaching tier.
+          All other tiers render the bridge unchanged. */}
+      {isBlueprint ? (
+        <UpgradeOverlay
+          featureLabel={BP_UPGRADE_LABEL[lang] || BP_UPGRADE_LABEL.en}
+          target={upgradeTargetForFeature('smart_cardio')}
+          testId="blueprint-upgrade-banner"
+        />
+      ) : (
+        <CoachCommsCard />
+      )}
 
       {/* THE WEIGH-IN — the client's own bodyweight tracker toward a goal, on a
           gentle weekly cadence (never daily). Adult-only by mount (VaultHub is
