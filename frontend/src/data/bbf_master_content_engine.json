@@ -562,6 +562,66 @@
         "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
       },
       "reel_kit": null
+    },
+    {
+      "id": "post_en_glp1_01",
+      "language": "EN",
+      "format": "Spotlight",
+      "series": "Fuel Files",
+      "target_angle": "Modern Metrics · Protect Lean Mass",
+      "hook": "GLP-1 Without the Muscle Loss.",
+      "caption": "The scale is falling. But is it fat — or is it YOU? On a GLP-1, weight leaves fast, and unless you defend it, lean muscle leaves with it. At BBF Lab we force muscle preservation with heavy-load progressions, map protein targets to your training volume, and track strength trends across 30, 60, and 90 days to PROVE your body composition is optimizing — not just shrinking. The medication is a tool. Your muscle is the mission. Your schedule is the context. Your potential is the focus.",
+      "hashtags": "#GLP1 #Semaglutide #LeanMass #Peptides #BodyRecomposition #BuckeyeAZ #BBFLab #ModernMetrics",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Spotlight",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "static_audio_url": "/audio/glp1-coaching-overview.mp3",
+      "reel_kit": {
+        "voiceover_script": "The scale is dropping... but the scale never tells you what you are losing... On a GLP-1, weight leaves fast... and unless you defend it, lean muscle leaves with it... We do not let that happen... Heavy load... tracked protein... strength trends over ninety days... The medication is a tool... your muscle is the mission... Protect the engine... not just the number...",
+        "cut_sheet": "Open on a scale readout ticking down, hard-cut to a clean heavy trap-bar pull under purple rim light. Overlay a rising strength-trend line (30 / 60 / 90) in BBF gold. Close on the BBF Lab ring locking to 'optimizing'."
+      }
+    },
+    {
+      "id": "post_es_glp1_01",
+      "language": "ES",
+      "format": "Spotlight",
+      "series": "Fuel Files",
+      "target_angle": "Métricas Modernas · Protege tu Masa Muscular",
+      "hook": "GLP-1 Sin Perder Músculo.",
+      "caption": "La báscula baja. Pero, ¿es grasa... o eres tú? Con un GLP-1, el peso se va rápido, y si no lo defiendes, la masa muscular se va con él. En BBF Lab forzamos la preservación muscular con progresiones de carga pesada, alineamos tus objetivos de proteína con tu volumen de entrenamiento y seguimos tus tendencias de fuerza a 30, 60 y 90 días para comprobar que tu composición corporal se está optimizando, no solo encogiendo. El medicamento es una herramienta. Tu músculo es la misión. Tu agenda es el contexto. Tu potencial es el enfoque.",
+      "hashtags": "#GLP1 #Semaglutida #MasaMuscular #Peptidos #Recomposicion #BuckeyeAZ #BBFLab #MetricasModernas",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Spotlight",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "static_audio_url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/coach-audio/glp1/glp1-coaching-overview.es.mp3",
+      "reel_kit": {
+        "voiceover_script": "La báscula baja... pero la báscula nunca te dice qué estás perdiendo... Con un GLP-1, el peso se va rápido... y si no lo defiendes, el músculo se va con él... No lo permitimos... Carga pesada... proteína controlada... tendencias de fuerza a noventa días... El medicamento es una herramienta... tu músculo es la misión... Protege el motor... no solo el número...",
+        "cut_sheet": "Abre con la lectura de una báscula bajando, corte seco a un peso muerto pesado con barra hexagonal bajo luz púrpura. Superpón una línea de tendencia de fuerza (30 / 60 / 90) en dorado BBF. Cierra con el anillo de BBF Lab fijándose en 'optimizando'."
+      }
+    },
+    {
+      "id": "post_pt_glp1_01",
+      "language": "PT",
+      "format": "Spotlight",
+      "series": "Fuel Files",
+      "target_angle": "Métricas Modernas · Proteja sua Massa Magra",
+      "hook": "GLP-1 Sem Perder Músculo.",
+      "caption": "A balança está caindo. Mas é gordura... ou é você? Com um GLP-1, o peso vai embora rápido, e se você não o defender, a massa magra vai junto. Na BBF Lab forçamos a preservação muscular com progressões de carga pesada, alinhamos suas metas de proteína ao seu volume de treino e acompanhamos suas tendências de força em 30, 60 e 90 dias para comprovar que sua composição corporal está otimizando, não apenas encolhendo. O medicamento é uma ferramenta. Seu músculo é a missão. A sua agenda é o contexto. O seu potencial é o foco.",
+      "hashtags": "#GLP1 #Semaglutida #MassaMagra #Peptideos #Recomposicao #BuckeyeAZ #BBFLab #MetricasModernas",
+      "recommended_post_time": "Mid-Day Calibration",
+      "studio_recipe": {
+        "mode": "Spotlight",
+        "background": "Dark Charcoal with #6a0dad Purple Glow and #f5c800 Gold Accent"
+      },
+      "static_audio_url": "https://ihclbceghxpuawymlvgi.supabase.co/storage/v1/object/public/coach-audio/glp1/glp1-coaching-overview.pt.mp3",
+      "reel_kit": {
+        "voiceover_script": "A balança está caindo... mas a balança nunca diz o que você está perdendo... Com um GLP-1, o peso vai embora rápido... e se você não defender, o músculo vai junto... Nós não deixamos isso acontecer... Carga pesada... proteína controlada... tendências de força em noventa dias... O medicamento é uma ferramenta... seu músculo é a missão... Proteja o motor... não apenas o número...",
+        "cut_sheet": "Abre com a leitura de uma balança caindo, corte seco para um levantamento terra pesado com barra hexagonal sob luz roxa. Sobreponha uma linha de tendência de força (30 / 60 / 90) em dourado BBF. Fecha com o anel da BBF Lab travando em 'otimizando'."
+      }
     }
   ]
 }
