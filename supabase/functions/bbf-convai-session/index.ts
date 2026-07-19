@@ -27,7 +27,7 @@ import { localeCode } from '../_shared/locale.ts';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-vault-token, x-client-info',
+  'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-bbf-vault-token, x-bbf-admin-token, x-client-info',
 };
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
@@ -157,6 +157,51 @@ serve(async (req: Request) => {
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
   if (!SUPABASE_URL || !SERVICE_KEY) return jsonResponse({ error: 'config_missing' }, 503);
+
+  // ── ADMIN DIAGNOSTIC · { action: 'agent_audit' } ─────────────────────────────
+  // Read-only ConvAI ↔ Akeem-clone sync probe: reports whether the live agent
+  // (bbf_app_config.convai_agent_id) speaks with Coach Akeem's clone voice
+  // (the soundboard/bake standard ZbKDEqxkr8Ub4psNm5XD). Never mutates the
+  // agent, never returns secrets, never touches the paid mint path below.
+  // X-BBF-Admin-Token gated (Command Center posture, fail-closed).
+  if (payload?.action === 'agent_audit') {
+    const AKEEM_CLONE_VOICE_ID = 'ZbKDEqxkr8Ub4psNm5XD';
+    const expectedAdmin = Deno.env.get('BBF_COACH_AGENT_TOKEN') ?? '';
+    const sentAdmin = req.headers.get('x-bbf-admin-token') ?? '';
+    if (!expectedAdmin || sentAdmin !== expectedAdmin) return jsonResponse({ error: 'unauthorized' }, 401);
+    if (!ELEVENLABS_API_KEY) return jsonResponse({ error: 'agent_unconfigured', detail: 'ELEVENLABS_API_KEY is not set.' }, 503);
+    const auditAgentId = await readConfig(SUPABASE_URL, SERVICE_KEY, 'convai_agent_id');
+    if (!auditAgentId) return jsonResponse({ error: 'agent_unconfigured', detail: 'convai_agent_id is not set in bbf_app_config.' }, 503);
+    try {
+      const r = await fetch(
+        `https://api.elevenlabs.io/v1/convai/agents/${encodeURIComponent(auditAgentId)}`,
+        { headers: { 'xi-api-key': ELEVENLABS_API_KEY } },
+      );
+      const text = await r.text();
+      if (!r.ok) return jsonResponse({ error: 'agent_read_failed', detail: `elevenlabs ${r.status}` }, 502);
+      const agent = JSON.parse(text);
+      // Defensive plucks + a full-document sweep for every voice_id, so a
+      // nested per-language override can never hide from the audit.
+      const cc = agent?.conversation_config ?? {};
+      const voiceIds = [...new Set([...text.matchAll(/"voice_id"\s*:\s*"([^"]+)"/g)].map((m) => m[1] as string))];
+      const primaryVoice = String(cc?.tts?.voice_id ?? '');
+      const locked = (primaryVoice === AKEEM_CLONE_VOICE_ID) ||
+        (voiceIds.length > 0 && voiceIds.every((v) => v === AKEEM_CLONE_VOICE_ID));
+      console.log(`[${FN}] agent_audit agent=${auditAgentId} voices=${voiceIds.join(',')} locked=${locked}`);
+      return jsonResponse({
+        ok: true,
+        agent_id: auditAgentId,
+        agent_name: String(agent?.name ?? ''),
+        language: String(cc?.agent?.language ?? ''),
+        tts_model: String(cc?.tts?.model_id ?? ''),
+        voice_ids: voiceIds,
+        akeem_clone_voice_id: AKEEM_CLONE_VOICE_ID,
+        akeem_clone_locked: locked,
+      });
+    } catch (e) {
+      return jsonResponse({ error: 'agent_read_failed', detail: String((e as Error)?.message ?? e).slice(0, 160) }, 502);
+    }
+  }
 
   // 1 · THE FAIL-CLOSED APEX GATE — an unauthenticated/underspending client
   // never reaches a paid token mint.

@@ -22,6 +22,19 @@
 //
 // Request:  { language: 'es'|'pt', day: 11-90 }  ·  X-BBF-Admin-Token gated.
 // Response: { ok: true, language, day, episode } | non-2xx { error, detail? }
+//
+// ── SECOND MODE · { mode: 'daily_drills' } ────────────────────────────
+// The lightweight rung UNDER a full episode bake: 5 context-rich daily
+// translation targets for The Path on Gemini 2.5 Flash (the cheap non-Claude
+// lane — bbf-agent-brain's zero-dependency fetch pattern; the model router
+// governs Claude models only, so no router tag). Same admin gate, same gram
+// standard, same chip contract, one corrective retry then a clean non-2xx
+// (the client keeps its built-in fallback bank — the drill never breaks).
+// Lives HERE rather than as its own function: the project is at its edge-
+// function plan cap, and this is the same domain (The Path's content baker).
+//
+// Request:  { mode: 'daily_drills', language: 'es'|'pt', day: 1-90, count?: 1-8 }
+// Response: { ok: true, language, day, source, sentences: [{id, prompt, words}] }
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
@@ -167,6 +180,109 @@ async function callClaude(systemText: string, messages: any[], apiKey: string) {
   } finally { clearTimeout(timeout); }
 }
 
+// ═══ DAILY DRILLS MODE (Gemini 2.5 Flash) ═══════════════════════════════════
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
+const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
+
+const DRILLS_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    sentences: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          prompt: { type: 'STRING', description: 'The English meaning of the sentence' },
+          words: { type: 'ARRAY', items: { type: 'STRING' }, description: 'The target-language sentence as 2-8 lowercase chip words' },
+        },
+        required: ['prompt', 'words'],
+      },
+    },
+  },
+  required: ['sentences'],
+};
+
+function drillsPrompt(language: 'es' | 'pt', day: number, count: number, correction = ''): string {
+  const target = language === 'pt' ? 'Brazilian Portuguese' : 'Latin American Spanish';
+  // Same shared universe as the Fables arc — the drills stay in-world.
+  const world = language === 'pt'
+    ? 'A Forja, a small strength gym in São Paulo (coach Dona Marta, athlete Rafa, juice counter of Seu Chico)'
+    : 'La Forja, a small strength gym in Mexico City (coach Marisol, athlete Teo, smoothie stand of Doña Rosa)';
+  const level = day <= 15 ? 'absolute beginner: present tense, 3-5 word sentences, core gym commands and courtesy phrases'
+    : day <= 40 ? 'advancing beginner: 4-6 word sentences, simple past/future, food, prices, directions, training talk'
+    : day <= 65 ? 'intermediate: 5-7 word sentences, object pronouns, subjunctive triggers kept simple, recovery and nutrition talk'
+    : 'upper-intermediate: 6-8 word sentences, natural register, conditionals, coaching cues and small talk';
+  return [
+    `Generate ${count} ${target} translation drill sentences for day ${day} of a 90-day curriculum.`,
+    `WORLD: ${world} — sentences live on the gym floor, the juice counter, the market, the street. Vary the setting across the batch.`,
+    `LEVEL: ${level}.`,
+    'RULES:',
+    '- Each item: prompt = the English meaning; words = the target-language sentence split into 2-8 chip words.',
+    '- Chip words are lowercase, no punctuation attached, numerals as bare integers.',
+    '- THE GRAM STANDARD: mass appears ONLY as an integer number of grams with the bare symbol g (e.g. 90000 g). NEVER the words kilo, kg, kilos, libra, pound, quilo, gramos, gramas.',
+    '- Natural, spoken register. No two sentences share the same main verb.',
+    correction,
+  ].filter(Boolean).join('\n');
+}
+
+async function callGemini(prompt: string): Promise<any> {
+  if (!GEMINI_API_KEY) throw new Error('gemini_key_missing');
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: DRILLS_SCHEMA,
+          temperature: 0.8,
+          maxOutputTokens: 2048,
+        },
+      }),
+    },
+  );
+  const text = await res.text();
+  if (!res.ok) throw new Error(`gemini_${res.status}:${text.slice(0, 200)}`);
+  const data = JSON.parse(text);
+  const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!raw) throw new Error(`gemini_empty:${JSON.stringify(data?.promptFeedback ?? {}).slice(0, 160)}`);
+  return JSON.parse(raw);
+}
+
+// Normalize + validate one model sentence down to The Path's chip contract.
+function toChipSentence(s: any, i: number): { id: string; prompt: string; words: string[] } | null {
+  const prompt = String(s?.prompt ?? '').trim();
+  const rawWords = Array.isArray(s?.words) ? s.words : [];
+  const words = rawWords
+    .map((w: unknown) => String(w ?? '').toLowerCase().replace(/[¿?¡!.,;:"“”«»()]/g, '').trim())
+    .filter(Boolean);
+  if (!prompt || prompt.length > 140 || words.length < 2 || words.length > 8) return null;
+  if (hasBannedLexeme(`${prompt} ${words.join(' ')}`)) return null;
+  return { id: `dyn-${i}`, prompt, words };
+}
+
+async function handleDailyDrills(lang: 'es' | 'pt', day: number, count: number): Promise<Response> {
+  let lastErr = 'unknown';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const correction = attempt === 0 ? '' :
+        `PREVIOUS ATTEMPT FAILED VALIDATION (${lastErr}). Regenerate — obey every rule exactly, especially the gram standard and the 2-8 lowercase chip words.`;
+      const out = await callGemini(drillsPrompt(lang, day, count, correction));
+      const rows = Array.isArray(out?.sentences) ? out.sentences.map(toChipSentence) : [];
+      const sentences = rows.filter(Boolean) as Array<{ id: string; prompt: string; words: string[] }>;
+      if (sentences.length < count) { lastErr = `only ${sentences.length}/${count} valid`; continue; }
+      console.log(`[bbf-fables-bake] daily_drills ok (${GEMINI_MODEL}, ${lang}, day ${day}, ${count} targets, attempt ${attempt + 1})`);
+      return jsonResponse({ ok: true, language: lang, day, source: GEMINI_MODEL, sentences: sentences.slice(0, count) });
+    } catch (e) {
+      lastErr = String((e as Error)?.message ?? e).slice(0, 200);
+    }
+  }
+  console.error(`[bbf-fables-bake] daily_drills failed:`, lastErr);
+  return jsonResponse({ error: 'generation_failed', detail: lastErr }, 502);
+}
+
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST')    return jsonResponse({ error: 'method_not_allowed' }, 405);
@@ -181,6 +297,13 @@ serve(async (req: Request) => {
   const lang: 'es' | 'pt' = payload?.language === 'pt' ? 'pt' : 'es';
   const day = Number(payload?.day);
   if (!Number.isInteger(day) || day < 1 || day > 90) return jsonResponse({ error: 'invalid_day' }, 400);
+
+  // Daily-drills mode — returns before any episode/DB work; the bake path
+  // below is byte-for-byte the behavior it always had.
+  if (payload?.mode === 'daily_drills') {
+    const count = Math.min(8, Math.max(1, Number(payload?.count) || 5));
+    return await handleDailyDrills(lang, day, count);
+  }
 
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   const url = Deno.env.get('SUPABASE_URL'), key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
