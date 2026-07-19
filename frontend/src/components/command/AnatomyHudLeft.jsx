@@ -10,7 +10,7 @@ const SYSTEMS = [
   { key: 'neurological', label: 'CNS Readiness Uplink', dot: '#f5c800' },
 ];
 
-export default function AnatomyHudLeft({ open = true, systems, onToggle, cns, onInjectPrehab }) {
+export default function AnatomyHudLeft({ open = true, systems, onToggle, cns, onInjectPrehab, regions = [], activeRegion = '', onSelectRegion }) {
   return (
     <div className={`av-left${open ? '' : ' is-collapsed'}`} aria-hidden={!open}>
       {/* SYSTEM OVERLAYS */}
@@ -31,6 +31,25 @@ export default function AnatomyHudLeft({ open = true, systems, onToggle, cns, on
             </button>
           ))}
         </div>
+
+        {/* SYSTEM DIRECTORY — jump the camera to a physiological region */}
+        {regions.length ? (
+          <div className="av-jump">
+            <label className="av-field-lbl" htmlFor="av-jump-region">↴ Jump to Region</label>
+            <select
+              id="av-jump-region"
+              className="av-jump-select"
+              value={activeRegion}
+              onChange={(e) => onSelectRegion?.(e.target.value)}
+              data-testid="av-jump-region"
+            >
+              <option value="">Select a region…</option>
+              {regions.map((r) => (
+                <option key={r.id} value={r.id}>{r.label}</option>
+              ))}
+            </select>
+          </div>
+        ) : null}
       </section>
 
       {/* CNS AUTOREGULATOR */}

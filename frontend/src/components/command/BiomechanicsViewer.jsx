@@ -10,7 +10,7 @@
 
 import { Component, Suspense, lazy, useMemo, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
-import { localizedSegment } from './anatomyViewerData.js';
+import { localizedSegment, ANATOMY_REGIONS, regionById } from './anatomyViewerData.js';
 import { useCnsAutoregulator } from './useCnsAutoregulator.js';
 import AnatomyHudLeft from './AnatomyHudLeft.jsx';
 import AnatomyHudRight from './AnatomyHudRight.jsx';
@@ -36,14 +36,24 @@ export default function BiomechanicsViewer() {
   const [resetSignal, setResetSignal] = useState(0);
   const [leftOpen, setLeftOpen] = useState(true);   // collapse the System Overlays rail
   const [rightOpen, setRightOpen] = useState(true);  // collapse the detail rail
+  const [region, setRegion] = useState('');          // "Jump to Region" directory selection
+  const [focusNonce, setFocusNonce] = useState(0);   // bumps to re-trigger a region camera focus
   const cns = useCnsAutoregulator(lang, 8);
 
   const segment = useMemo(() => (activeSegment ? localizedSegment(lang, activeSegment) : null), [lang, activeSegment]);
+  const regionRec = useMemo(() => regionById(region), [region]);
 
   const toggleSystem = (key) => setSystems((s) => ({ ...s, [key]: !s[key] }));
-  const resetCamera = () => { setActiveSegment(null); setResetSignal((n) => n + 1); };
+  const resetCamera = () => { setActiveSegment(null); setRegion(''); setResetSignal((n) => n + 1); };
   const injectReadinessPrehab = () => {
     setActiveSegment(cns.score >= 8 ? 'hip' : cns.score >= 5 ? 'shoulder' : 'lumbar');
+  };
+  // Jump to a physiological region: focus the camera on its slab (imperative Bounds
+  // fit) and light up its primary joint node + detail card. Empty → clears focus.
+  const selectRegion = (id) => {
+    const rec = regionById(id);
+    setRegion(rec ? id : '');
+    if (rec) { setActiveSegment(rec.primary); setFocusNonce((n) => n + 1); }
   };
 
   const statusText = segment ? `Focused Complex: ${segment.title}` : 'Sovereign WebGL Active (Procedural Joints Ready)';
@@ -53,7 +63,15 @@ export default function BiomechanicsViewer() {
       <div className="av-stage">
         <CanvasBoundary fallback={<div className="av-canvas-fallback" data-testid="av-canvas-fallback">3D viewport unavailable in this environment — HUD active.</div>}>
           <Suspense fallback={<div className="av-canvas-fallback">Booting Sovereign WebGL…</div>}>
-            <AnatomyViewport3D systems={systems} activeSegment={activeSegment} onSelect={setActiveSegment} resetSignal={resetSignal} />
+            <AnatomyViewport3D
+              systems={systems}
+              activeSegment={activeSegment}
+              onSelect={setActiveSegment}
+              resetSignal={resetSignal}
+              regionFocus={regionRec?.focus || null}
+              focusNonce={focusNonce}
+              regionJoints={regionRec?.joints || []}
+            />
           </Suspense>
         </CanvasBoundary>
       </div>
@@ -103,7 +121,16 @@ export default function BiomechanicsViewer() {
         {rightOpen ? '›' : '‹'}
       </button>
 
-      <AnatomyHudLeft open={leftOpen} systems={systems} onToggle={toggleSystem} cns={cns} onInjectPrehab={injectReadinessPrehab} />
+      <AnatomyHudLeft
+        open={leftOpen}
+        systems={systems}
+        onToggle={toggleSystem}
+        cns={cns}
+        onInjectPrehab={injectReadinessPrehab}
+        regions={ANATOMY_REGIONS}
+        activeRegion={region}
+        onSelectRegion={selectRegion}
+      />
       <AnatomyHudRight open={rightOpen} segment={segment} />
 
       <footer className="av-footer">

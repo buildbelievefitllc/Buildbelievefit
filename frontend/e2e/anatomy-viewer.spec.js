@@ -147,3 +147,25 @@ test('selecting a joint mounts the edge-docked detail card, clear of viewport ce
   expect(rail.x).toBeGreaterThan(centreX);                         // starts right of centre
   expect(root.x + root.width - (rail.x + rail.width)).toBeLessThan(40); // hugs the right edge
 });
+
+test('the "Jump to Region" directory focuses each region\'s primary joint', async ({ page }) => {
+  await mountViewer(page);
+  const jump = page.getByTestId('av-jump-region');
+  await expect(jump).toBeVisible();
+
+  // Each region activates its primary joint → the detail card shows that joint's
+  // data. Deterministic (no WebGL raycast) — the camera focus is imperative Bounds
+  // and asserted separately by the no-throw drag/canvas specs.
+  await jump.selectOption('pelvic');
+  await expect(page.getByTestId('av-detail-title')).toContainText('Hip');
+
+  await jump.selectOption('lower');
+  await expect(page.getByTestId('av-detail-title')).toContainText('Knee');
+
+  await jump.selectOption('axial');
+  await expect(page.getByTestId('av-detail-title')).toContainText('Lumbar');
+
+  // Clearing the selection returns the directory to its neutral prompt.
+  await jump.selectOption('');
+  await expect(jump).toHaveValue('');
+});

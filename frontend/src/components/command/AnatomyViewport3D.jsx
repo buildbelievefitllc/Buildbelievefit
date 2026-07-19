@@ -70,17 +70,20 @@ function Neurological({ visible }) {
 // A subtle raycast anchor sized to the REAL mesh scale (meters): a ~2.6 cm bead,
 // small enough to sit on a knee/hip without swallowing the joint. It grows and
 // brightens on hover/active so it stays discoverable without being loud.
+//   active       → the focused/detail joint (strongest).
+//   regionActive → a member of the region jumped to from the directory (mid).
 const NODE_RADIUS = 0.026;
-function JointNode({ id, position, active, onSelect }) {
+function JointNode({ id, position, active, regionActive, onSelect }) {
   const ref = useRef();
   const [hovered, setHovered] = useState(false);
   const bounds = useBounds();
-  const emissive = active ? '#ffeb3b' : hovered ? '#ff00ff' : '#4a0080';
+  const emissive = active ? '#ffeb3b' : hovered ? '#ff00ff' : regionActive ? '#f5c800' : '#4a0080';
+  const scale = active ? 1.5 : hovered ? 1.25 : regionActive ? 1.3 : 1;
   return (
     <mesh
       ref={ref}
       position={position}
-      scale={active ? 1.5 : hovered ? 1.25 : 1}
+      scale={scale}
       onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
       onPointerOut={() => { setHovered(false); document.body.style.cursor = 'default'; }}
       onClick={(e) => { e.stopPropagation(); onSelect(id); if (ref.current) bounds.refresh(ref.current).fit(); }}
@@ -91,7 +94,7 @@ function JointNode({ id, position, active, onSelect }) {
         roughness={0.2}
         metalness={0.85}
         emissive={emissive}
-        emissiveIntensity={active ? 0.85 : hovered ? 0.55 : 0.18}
+        emissiveIntensity={active ? 0.85 : hovered ? 0.55 : regionActive ? 0.5 : 0.18}
       />
     </mesh>
   );
@@ -101,6 +104,26 @@ function JointNode({ id, position, active, onSelect }) {
 function BoundsController({ resetSignal }) {
   const bounds = useBounds();
   useEffect(() => { bounds.refresh().clip().fit(); }, [resetSignal, bounds]);
+  return null;
+}
+
+// System-directory camera focus. When `focusNonce` bumps (a "Jump to Region"
+// pick), smoothly frame that region's world-space box via the same imperative
+// drei <Bounds> API the joint clicks use — so no React re-layout, no remount.
+// Keyed on the nonce alone so re-selecting the same region re-focuses.
+function RegionFocus({ focus, focusNonce }) {
+  const bounds = useBounds();
+  useEffect(() => {
+    if (!focus || focusNonce === 0) return;
+    const [cx, cy, cz] = focus.center;
+    const [hx, hy, hz] = focus.half;
+    const box = new THREE.Box3(
+      new THREE.Vector3(cx - hx, cy - hy, cz - hz),
+      new THREE.Vector3(cx + hx, cy + hy, cz + hz),
+    );
+    bounds.refresh(box).fit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusNonce]);
   return null;
 }
 
@@ -131,7 +154,7 @@ class ModelBoundary extends Component {
   render() { return this.state.failed ? this.props.fallback : this.props.children; }
 }
 
-export default function AnatomyViewport3D({ systems, activeSegment, onSelect, resetSignal }) {
+export default function AnatomyViewport3D({ systems, activeSegment, onSelect, resetSignal, regionFocus, focusNonce = 0, regionJoints = [] }) {
   return (
     <Canvas
       className="av-canvas"
@@ -150,6 +173,7 @@ export default function AnatomyViewport3D({ systems, activeSegment, onSelect, re
 
       <Bounds fit clip margin={1.2}>
         <BoundsController resetSignal={resetSignal} />
+        <RegionFocus focus={regionFocus} focusNonce={focusNonce} />
         {MODEL_URL ? (
           <ModelBoundary fallback={<ProceduralRig systems={systems} />}>
             <Suspense fallback={<ProceduralRig systems={systems} />}>
@@ -160,7 +184,14 @@ export default function AnatomyViewport3D({ systems, activeSegment, onSelect, re
           <ProceduralRig systems={systems} />
         )}
         {ANATOMY_JOINTS.map((j) => (
-          <JointNode key={j.id} id={j.id} position={j.position} active={activeSegment === j.id} onSelect={onSelect} />
+          <JointNode
+            key={j.id}
+            id={j.id}
+            position={j.position}
+            active={activeSegment === j.id}
+            regionActive={regionJoints.includes(j.id)}
+            onSelect={onSelect}
+          />
         ))}
       </Bounds>
 

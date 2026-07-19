@@ -33,6 +33,25 @@ export const ANATOMY_JOINTS = [
   { id: 'ankle', position: [-0.075, 0.067, -0.037], system: 'skeletal' },
 ];
 
+// ── System Directory · "Jump to Region" navigation targets ───────────────────
+// Each region maps to (a) the joint node(s) it activates and its primary focus
+// joint, and (b) a world-space camera focus box (center ± half-extents, meters)
+// the viewport frames via drei <Bounds>. The focus boxes are derived from the
+// real mesh extents (bbox 0.67 W × 1.70 H × 0.27 D, centred [0, 0.86, 0]) and the
+// joint anchor heights, so a region "pans to" the right slab of the figure:
+//   axial ≈ pelvis→skull · shoulder ≈ girdle+arms · pelvic ≈ hips · lower ≈ knees+ankles.
+export const ANATOMY_REGIONS = [
+  { id: 'axial',    label: 'Axial Skeleton — Skull · Spine · Ribcage', joints: ['lumbar'],          primary: 'lumbar',   focus: { center: [0, 1.28, 0], half: [0.30, 0.48, 0.22] } },
+  { id: 'shoulder', label: 'Shoulder Girdle / Upper Body',             joints: ['shoulder'],        primary: 'shoulder', focus: { center: [0, 1.44, 0], half: [0.42, 0.26, 0.22] } },
+  { id: 'pelvic',   label: 'Pelvic Girdle / Hip Complex',              joints: ['hip'],             primary: 'hip',      focus: { center: [0, 0.90, 0], half: [0.32, 0.22, 0.22] } },
+  { id: 'lower',    label: 'Lower Body — Knee & Ankle Complexes',      joints: ['knee', 'ankle'],   primary: 'knee',     focus: { center: [-0.08, 0.27, 0], half: [0.22, 0.30, 0.16] } },
+];
+
+// Region record by id (null if unknown) — the viewer's single lookup point.
+export function regionById(id) {
+  return ANATOMY_REGIONS.find((r) => r.id === id) || null;
+}
+
 export const ANATOMY_VIEWER_L10N = {
   en: {
     cnsState: {
