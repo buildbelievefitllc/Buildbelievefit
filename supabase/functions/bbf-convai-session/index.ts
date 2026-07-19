@@ -72,6 +72,7 @@ async function buildDynamicVariables(url: string, key: string, userId: string, u
     client_name: uid ?? 'athlete', // overwritten below with bbf_users.name when present
     readiness_score: '',
     check_in_streak: '',
+    streak_days: '', // LEGACY ALIAS — the live agent prompt template still binds {{streak_days}}; keep both in lockstep until the agent prompt is migrated to {{check_in_streak}}.
     last_commitments: '[]',
   };
   try {
@@ -112,6 +113,7 @@ async function buildDynamicVariables(url: string, key: string, userId: string, u
       else break;
     }
     vars.check_in_streak = streak;
+    vars.streak_days = streak; // keep the legacy placeholder filled too
   } catch { /* streak is best-effort context */ }
   try {
     // THE ACCOUNTABILITY LOOP — surface the last completed session's commitments.
