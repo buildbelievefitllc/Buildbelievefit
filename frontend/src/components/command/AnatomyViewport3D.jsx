@@ -10,6 +10,7 @@
 // MODEL_URL is set — until then the procedural rig is the fallback.
 
 import { Component, Suspense, useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { Bounds, useBounds, OrbitControls, useGLTF } from '@react-three/drei';
 import { ANATOMY_JOINTS } from './anatomyViewerData.js';
@@ -66,6 +67,10 @@ function Neurological({ visible }) {
 }
 
 // ── Interactive joint node ───────────────────────────────────────────────────
+// A subtle raycast anchor sized to the REAL mesh scale (meters): a ~2.6 cm bead,
+// small enough to sit on a knee/hip without swallowing the joint. It grows and
+// brightens on hover/active so it stays discoverable without being loud.
+const NODE_RADIUS = 0.026;
 function JointNode({ id, position, active, onSelect }) {
   const ref = useRef();
   const [hovered, setHovered] = useState(false);
@@ -75,18 +80,18 @@ function JointNode({ id, position, active, onSelect }) {
     <mesh
       ref={ref}
       position={position}
-      scale={active ? 1.4 : 1}
+      scale={active ? 1.5 : hovered ? 1.25 : 1}
       onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
       onPointerOut={() => { setHovered(false); document.body.style.cursor = 'default'; }}
       onClick={(e) => { e.stopPropagation(); onSelect(id); if (ref.current) bounds.refresh(ref.current).fit(); }}
     >
-      <sphereGeometry args={[0.22, 24, 24]} />
+      <sphereGeometry args={[NODE_RADIUS, 20, 20]} />
       <meshStandardMaterial
         color={active ? '#ffeb3b' : '#f5c800'}
-        roughness={0.15}
-        metalness={0.9}
+        roughness={0.2}
+        metalness={0.85}
         emissive={emissive}
-        emissiveIntensity={active ? 0.9 : hovered ? 0.8 : 0.2}
+        emissiveIntensity={active ? 0.85 : hovered ? 0.55 : 0.18}
       />
     </mesh>
   );
@@ -140,7 +145,8 @@ export default function AnatomyViewport3D({ systems, activeSegment, onSelect, re
       <ambientLight color="#221144" intensity={1.2} />
       <directionalLight color="#f5c800" intensity={1.5} position={[5, 10, 5]} />
       <directionalLight color="#6a0dad" intensity={2.0} position={[-5, 2, -5]} />
-      <gridHelper args={[30, 30, '#6a0dad', '#160026']} position={[0, -2, 0]} />
+      {/* Ground plane at the mesh's foot level (y≈0), sized to the ~1.7 m figure. */}
+      <gridHelper args={[4, 16, '#6a0dad', '#160026']} position={[0, 0, 0]} />
 
       <Bounds fit clip margin={1.2}>
         <BoundsController resetSignal={resetSignal} />
@@ -161,11 +167,25 @@ export default function AnatomyViewport3D({ systems, activeSegment, onSelect, re
       <OrbitControls
         makeDefault
         enableDamping
-        dampingFactor={0.05}
-        minDistance={3}
-        maxDistance={20}
+        dampingFactor={0.08}
+        // Trackpad-first interaction: one-finger drag / left-drag orbits with
+        // smooth damping; two-finger trackpad scroll dollies to the cursor; pan
+        // is always available (two-finger touch, or right-drag / shift-drag).
+        enablePan
+        enableZoom
+        enableRotate
+        screenSpacePanning
+        zoomToCursor
+        rotateSpeed={0.65}
+        panSpeed={0.8}
+        zoomSpeed={0.9}
+        // Scaled for the ~1.7 m mesh (meters): close inspection down to 0.4 m.
+        minDistance={0.4}
+        maxDistance={8}
         maxPolarAngle={Math.PI / 1.8}
-        target={[0, 1, 0]}
+        target={[0, 0.9, 0]}
+        mouseButtons={{ LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN }}
+        touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
         autoRotate={!activeSegment}
         autoRotateSpeed={0.5}
       />

@@ -4,9 +4,9 @@
 // assessment + OT-informed prehab protocols) and the LOCKED scope disclaimer.
 // `segment` is the localized record (or null → the empty invitation state).
 
-export default function AnatomyHudRight({ segment }) {
+export default function AnatomyHudRight({ open = true, segment }) {
   return (
-    <div className="av-right">
+    <div className={`av-right${open ? '' : ' is-collapsed'}`} aria-hidden={!open}>
       <div className="av-panel av-detail">
         {!segment ? (
           <div className="av-detail-empty" data-testid="av-detail-empty">

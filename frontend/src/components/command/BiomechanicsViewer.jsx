@@ -34,6 +34,8 @@ export default function BiomechanicsViewer() {
   const [activeSegment, setActiveSegment] = useState(null);
   const [systems, setSystems] = useState({ skeletal: true, muscular: true, neurological: true });
   const [resetSignal, setResetSignal] = useState(0);
+  const [leftOpen, setLeftOpen] = useState(true);   // collapse the System Overlays rail
+  const [rightOpen, setRightOpen] = useState(true);  // collapse the detail rail
   const cns = useCnsAutoregulator(lang, 8);
 
   const segment = useMemo(() => (activeSegment ? localizedSegment(lang, activeSegment) : null), [lang, activeSegment]);
@@ -78,8 +80,31 @@ export default function BiomechanicsViewer() {
         </div>
       </header>
 
-      <AnatomyHudLeft systems={systems} onToggle={toggleSystem} cns={cns} onInjectPrehab={injectReadinessPrehab} />
-      <AnatomyHudRight segment={segment} />
+      {/* Rail collapse tabs — always on-screen so a hidden rail can be reopened.
+          Collapsing both maximizes focus on the 3D figurine. */}
+      <button
+        type="button"
+        className={`av-rail-tab av-rail-tab--left${leftOpen ? ' is-open' : ''}`}
+        aria-expanded={leftOpen}
+        aria-label={leftOpen ? 'Hide system panels' : 'Show system panels'}
+        onClick={() => setLeftOpen((o) => !o)}
+        data-testid="av-rail-toggle-left"
+      >
+        {leftOpen ? '‹' : '›'}
+      </button>
+      <button
+        type="button"
+        className={`av-rail-tab av-rail-tab--right${rightOpen ? ' is-open' : ''}`}
+        aria-expanded={rightOpen}
+        aria-label={rightOpen ? 'Hide detail panel' : 'Show detail panel'}
+        onClick={() => setRightOpen((o) => !o)}
+        data-testid="av-rail-toggle-right"
+      >
+        {rightOpen ? '›' : '‹'}
+      </button>
+
+      <AnatomyHudLeft open={leftOpen} systems={systems} onToggle={toggleSystem} cns={cns} onInjectPrehab={injectReadinessPrehab} />
+      <AnatomyHudRight open={rightOpen} segment={segment} />
 
       <footer className="av-footer">
         <div className="av-console">

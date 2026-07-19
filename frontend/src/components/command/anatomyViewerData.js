@@ -13,16 +13,24 @@
 
 export const SEGMENT_IDS = ['lumbar', 'shoulder', 'hip', 'knee', 'ankle'];
 
-// Interactive joint pivots — id, world position on the procedural rig, and the
-// system layer each sits within. When a real Z-Anatomy GLB lands, these positions
-// become invisible raycast proxies registered onto the mesh (or remapped to named
-// sub-objects), so the IDs keep working unchanged.
+// Interactive joint pivots — id, world position, and the system layer each sits
+// within. These coordinates are anchored to the REAL Z-Anatomy mesh (meters,
+// Y-up, ~1.70 m standing figure), derived from the GLB's own vertex bounding
+// boxes rather than eyeballed onto the old procedural rig:
+//   • knee     → centroid of Patella
+//   • ankle    → centroid of Talus (talocrural mortise)
+//   • hip      → top of Femur (femoral head, in the acetabulum)
+//   • shoulder → top of Humerus (humeral head, at the glenohumeral joint)
+//   • lumbar   → midline, just above the sacrum (L-spine block)
+// Heights read true bottom-to-top: ankle 0.07 < knee 0.44 < hip 0.89 <
+// lumbar 1.04 < shoulder 1.41. If the mesh is re-exported at a different scale,
+// re-run scratchpad/extract_joints.mjs to regenerate these.
 export const ANATOMY_JOINTS = [
-  { id: 'lumbar', position: [0, 0.6, 0], system: 'skeletal' },
-  { id: 'shoulder', position: [1.3, 2.8, 0], system: 'skeletal' },
-  { id: 'hip', position: [-0.6, -0.5, 0.1], system: 'skeletal' },
-  { id: 'knee', position: [-0.6, -2.7, 0.1], system: 'skeletal' },
-  { id: 'ankle', position: [-0.6, -4.9, 0.1], system: 'skeletal' },
+  { id: 'lumbar', position: [0, 1.043, -0.069], system: 'skeletal' },
+  { id: 'shoulder', position: [0.197, 1.405, -0.028], system: 'skeletal' },
+  { id: 'hip', position: [-0.091, 0.885, -0.02], system: 'skeletal' },
+  { id: 'knee', position: [-0.084, 0.443, 0.007], system: 'skeletal' },
+  { id: 'ankle', position: [-0.075, 0.067, -0.037], system: 'skeletal' },
 ];
 
 export const ANATOMY_VIEWER_L10N = {

@@ -10,9 +10,9 @@ const SYSTEMS = [
   { key: 'neurological', label: 'CNS Readiness Uplink', dot: '#f5c800' },
 ];
 
-export default function AnatomyHudLeft({ systems, onToggle, cns, onInjectPrehab }) {
+export default function AnatomyHudLeft({ open = true, systems, onToggle, cns, onInjectPrehab }) {
   return (
-    <div className="av-left">
+    <div className={`av-left${open ? '' : ' is-collapsed'}`} aria-hidden={!open}>
       {/* SYSTEM OVERLAYS */}
       <section className="av-panel">
         <h3 className="av-panel-h">▚ System Overlays</h3>
