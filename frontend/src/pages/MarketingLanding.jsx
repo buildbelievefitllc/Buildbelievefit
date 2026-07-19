@@ -580,6 +580,7 @@ export default function MarketingLanding() {
 // handoff on the success card. Recurring tiers carry one button; the one-time Hybrid
 // protocols carry two (3×/4× per week), each its own price/link.
 function PricingMatrix({ onSelectTier }) {
+  const { t } = useLang();
   const [tab, setTab] = useState('fitness');
   const active = PRICING[tab];
   return (
@@ -594,48 +595,95 @@ function PricingMatrix({ onSelectTier }) {
             onClick={() => setTab(mt.key)}
             style={{ ...s.matrixTab, ...(tab === mt.key ? s.matrixTabActive : null) }}
           >
-            {mt.label}
+            {mt.labelKey ? t(mt.labelKey) : mt.label}
           </button>
         ))}
       </div>
-      <div style={s.matrixNote}>{active.note}</div>
-      <div style={s.matrixGrid}>
-        {active.tiers.map((tier) => (
-          <article key={tier.name} style={{ ...s.matrixCard, ...(tier.featured ? s.matrixCardFeatured : null) }}>
-            {tier.badge ? <div style={s.matrixBadge}>{tier.badge}</div> : null}
-            <div style={s.matrixCardName}>{tier.name}</div>
-            {tier.span ? <div style={s.matrixCardSpan}>{tier.span}</div> : null}
-            {tier.price ? (
-              <div style={s.matrixPrice}>{tier.price}<span style={s.matrixPer}>{tier.per}</span></div>
-            ) : null}
-            <ul style={s.matrixFeats}>
-              {tier.feats.map((f) => <li key={f} style={s.matrixFeat}>✓ {f}</li>)}
-            </ul>
-            {tier.options ? (
-              <div style={s.matrixOpts}>
-                {tier.options.map((o) => (
+      {active.vanguard ? (
+        <VanguardPanel category={active} onSelectTier={onSelectTier} />
+      ) : (
+        <>
+          <div style={s.matrixNote}>{active.note}</div>
+          <div style={s.matrixGrid}>
+            {active.tiers.map((tier) => (
+              <article key={tier.name} style={{ ...s.matrixCard, ...(tier.featured ? s.matrixCardFeatured : null) }}>
+                {tier.badge ? <div style={s.matrixBadge}>{tier.badge}</div> : null}
+                <div style={s.matrixCardName}>{tier.name}</div>
+                {tier.span ? <div style={s.matrixCardSpan}>{tier.span}</div> : null}
+                {tier.price ? (
+                  <div style={s.matrixPrice}>{tier.price}<span style={s.matrixPer}>{tier.per}</span></div>
+                ) : null}
+                <ul style={s.matrixFeats}>
+                  {tier.feats.map((f) => <li key={f} style={s.matrixFeat}>✓ {f}</li>)}
+                </ul>
+                {tier.options ? (
+                  <div style={s.matrixOpts}>
+                    {tier.options.map((o) => (
+                      <button
+                        key={o.label}
+                        type="button"
+                        onClick={() => onSelectTier({ tierName: `${tier.name} · ${o.label}`, price: o.price, priceId: o.priceId })}
+                        style={{ ...s.matrixOptBtn, cursor: 'pointer', border: 'none', width: '100%' }}
+                      >
+                        <span style={s.matrixOptLbl}>{o.label}</span>
+                        <span style={s.matrixOptPrice}>{o.price}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
                   <button
-                    key={o.label}
                     type="button"
-                    onClick={() => onSelectTier({ tierName: `${tier.name} · ${o.label}`, price: o.price, priceId: o.priceId })}
-                    style={{ ...s.matrixOptBtn, cursor: 'pointer', border: 'none', width: '100%' }}
+                    onClick={() => onSelectTier({ tierName: tier.name, price: `${tier.price}${tier.per || ''}`, priceId: tier.priceId })}
+                    style={{ ...s.matrixBuy, cursor: 'pointer', width: '100%' }}
                   >
-                    <span style={s.matrixOptLbl}>{o.label}</span>
-                    <span style={s.matrixOptPrice}>{o.price}</span>
+                    Get Started →
                   </button>
-                ))}
-              </div>
-            ) : (
+                )}
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── VANGUARD BLUEPRINT OVERRIDE — a deliberately distinct glassmorphic panel ──
+// (purple/gold backdrop-blur, matching ModernMetrics.jsx's glass formula) rather
+// than the flat brutalist matrixCard style the other four categories use — the
+// "seasoned vet, skip the calibration queue" positioning reads as a different
+// register on purpose. The CTA is disabled/"Launching Soon" until a real
+// Stripe priceId lands on the tier (see pricingMatrix.js category comment) —
+// a null priceId must never reach onSelectTier (PathfinderForm treats a falsy
+// checkout.priceId as the FREE-signup path, not a paid one).
+function VanguardPanel({ category, onSelectTier }) {
+  const { t } = useLang();
+  return (
+    <div style={s.vgdWrap}>
+      <p style={s.vgdIntro}>{t(category.introKey)}</p>
+      <div style={s.vgdNote}>{t(category.noteKey)}</div>
+      <div style={s.vgdGrid}>
+        {category.tiers.map((tier) => {
+          const live = Boolean(tier.priceId);
+          return (
+            <article key={tier.nameKey} style={{ ...s.vgdCard, ...(tier.featured ? s.vgdCardFeatured : null) }}>
+              {tier.badgeKey ? <div style={s.vgdBadge}>{t(tier.badgeKey)}</div> : null}
+              <div style={s.vgdCardName}>{t(tier.nameKey)}</div>
+              <div style={s.vgdPrice}>{tier.price}<span style={s.vgdPer}>{tier.per}</span></div>
+              <ul style={s.vgdFeats}>
+                {tier.featKeys.map((fk) => <li key={fk} style={s.vgdFeat}>✓ {t(fk)}</li>)}
+              </ul>
               <button
                 type="button"
-                onClick={() => onSelectTier({ tierName: tier.name, price: `${tier.price}${tier.per || ''}`, priceId: tier.priceId })}
-                style={{ ...s.matrixBuy, cursor: 'pointer', width: '100%' }}
+                disabled={!live}
+                onClick={live ? () => onSelectTier({ tierName: t(tier.nameKey), price: `${tier.price}${tier.per || ''}`, priceId: tier.priceId }) : undefined}
+                style={{ ...s.vgdBuy, ...(live ? { cursor: 'pointer' } : s.vgdBuyDisabled) }}
               >
-                Get Started →
+                {live ? t('vgd-cta') : t('vgd-cta-pending')}
               </button>
-            )}
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
     </div>
   );
@@ -832,6 +880,30 @@ const s = {
   matrixOptBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, color: '#090909', background: GOLD, padding: '10px 8px', textDecoration: 'none' },
   matrixOptLbl: { fontFamily: HEAD, fontSize: '.72rem', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 700 },
   matrixOptPrice: { fontFamily: DISPLAY, fontSize: '1.25rem', letterSpacing: '.5px' },
+
+  // ── VANGUARD BLUEPRINT OVERRIDE — glassmorphic, deliberately distinct from the
+  // flat brutalist matrixCard style above (same glass formula as ModernMetrics.jsx:
+  // dark translucent + blur, purple glow, gold edge). ──
+  vgdWrap: { maxWidth: 1000, margin: '0 auto' },
+  vgdIntro: { fontFamily: BODY, fontSize: 'clamp(.95rem,1.6vw,1.08rem)', lineHeight: 1.6, color: 'rgba(255,255,255,.78)', textAlign: 'center', maxWidth: '68ch', margin: '4px auto 22px' },
+  vgdNote: { textAlign: 'center', fontFamily: BODY, fontSize: '.78rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(255,255,255,.45)', margin: '0 0 26px' },
+  vgdGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 360px))', gap: 18, justifyContent: 'center' },
+  vgdCard: {
+    position: 'relative', display: 'flex', flexDirection: 'column', padding: '28px 24px',
+    borderRadius: 16, border: `1px solid rgba(157,39,201,.35)`,
+    background: 'linear-gradient(160deg, rgba(30,3,64,.72), rgba(9,9,9,.82))',
+    backdropFilter: 'blur(18px) saturate(150%)', WebkitBackdropFilter: 'blur(18px) saturate(150%)',
+    boxShadow: `0 0 44px rgba(106,13,173,.28)`,
+  },
+  vgdCardFeatured: { borderColor: 'rgba(245,200,0,.5)', boxShadow: `0 0 0 1px rgba(245,200,0,.28), 0 0 48px rgba(245,200,0,.14)` },
+  vgdBadge: { position: 'absolute', top: -1, right: -1, background: GOLD, color: '#090909', fontFamily: HEAD, fontSize: '.66rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 12px', borderRadius: '0 16px 0 8px' },
+  vgdCardName: { fontFamily: DISPLAY, fontSize: '1.6rem', letterSpacing: '1px', textTransform: 'uppercase', color: '#fff', lineHeight: 1.1 },
+  vgdPrice: { fontFamily: DISPLAY, fontSize: '2.6rem', color: GOLD, margin: '12px 0 4px', lineHeight: 1 },
+  vgdPer: { fontFamily: BODY, fontSize: '.9rem', fontWeight: 600, letterSpacing: '1px', color: 'rgba(255,255,255,.5)' },
+  vgdFeats: { listStyle: 'none', margin: '14px 0 22px', padding: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 9 },
+  vgdFeat: { fontFamily: BODY, fontSize: '.92rem', fontWeight: 600, color: 'rgba(255,255,255,.74)', lineHeight: 1.35, borderBottom: '1px solid rgba(255,255,255,.08)', paddingBottom: 8 },
+  vgdBuy: { display: 'block', textAlign: 'center', fontFamily: HEAD, fontSize: '1rem', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 900, color: '#090909', background: GOLD, border: 'none', borderRadius: 8, padding: '14px', width: '100%' },
+  vgdBuyDisabled: { cursor: 'not-allowed', background: 'rgba(245,200,0,.28)', color: 'rgba(9,9,9,.6)' },
 
   // ── Local weekly ongoing training — custom-quote call-out (mailto) ──
   localCallout: { maxWidth: 760, margin: '44px auto 0', textAlign: 'center', background: `linear-gradient(135deg, rgba(106,13,173,.2), rgba(9,9,9,.55))`, border: `1px solid rgba(157,39,201,.4)`, borderLeft: `4px solid ${GOLD}`, padding: '28px 24px' },

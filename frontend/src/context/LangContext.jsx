@@ -736,6 +736,26 @@ const DICT = {
   'mm-c2-body': { en: 'Clear protein targets mapped to your training volume to fuel cellular repair.', es: 'Objetivos claros de proteína alineados con tu volumen de entrenamiento para impulsar la reparación celular.', pt: 'Metas claras de proteína alinhadas ao seu volume de treino para impulsionar o reparo celular.' },
   'mm-c3-title': { en: 'Closed-Loop Telemetry', es: 'Telemetría de Circuito Cerrado', pt: 'Telemetria de Circuito Fechado' },
   'mm-c3-body': { en: 'Tracking strength trends over 30, 60, and 90 days to prove your body composition is optimizing.', es: 'Seguimos tus tendencias de fuerza a 30, 60 y 90 días para comprobar que tu composición corporal está optimizándose.', pt: 'Acompanhamos suas tendências de força em 30, 60 e 90 dias para comprovar que sua composição corporal está otimizando.' },
+  // Vanguard Blueprint Override — Pricing Matrix tab 5 (MarketingLanding.jsx
+  // PricingMatrix → VanguardPanel). "Vanguard Blueprint" / "Basic Blueprint" /
+  // "Pro Blueprint" are SKU proper nouns and stay identical across locales,
+  // matching the existing convention (BBF Catalyst, Fuel Sovereign, etc.).
+  'vgd-tab-label': { en: 'Vanguard Blueprint', es: 'Vanguard Blueprint', pt: 'Vanguard Blueprint' },
+  'vgd-intro': {
+    en: "Most fitness apps dump 500 exercises on day one. At BBF Lab, we don't guess, we engineer. Entry normally requires a mandatory 30-day biometric calibration to map joint friction. However, if you are a seasoned vet who requires flawless manual execution without ongoing coaching layers, you are cleared for immediate Vault deployment.",
+    es: 'La mayoría de las apps de fitness te tiran 500 ejercicios el primer día. En BBF Lab no adivinamos, diseñamos con ingeniería. El ingreso normalmente exige una calibración biométrica obligatoria de 30 días para mapear la fricción de tus articulaciones. Sin embargo, si eres un veterano que domina la ejecución manual sin necesitar capas de coaching constante, quedas autorizado para el despliegue inmediato al Cofre.',
+    pt: 'A maioria dos apps de fitness despeja 500 exercícios no primeiro dia. No BBF Lab, a gente não adivinha, a gente engenharia. A entrada normalmente exige uma calibração biométrica obrigatória de 30 dias pra mapear o atrito das suas articulações. Mas se você é um veterano que já domina a execução manual sem precisar de camadas contínuas de coaching, você está liberado pro deployment imediato no Cofre.',
+  },
+  'vgd-note': { en: 'Recurring · billed monthly · cancel anytime', es: 'Recurrente · facturación mensual · cancela cuando quieras', pt: 'Recorrente · cobrança mensal · cancele quando quiser' },
+  'vgd-basic-name': { en: 'Basic Blueprint', es: 'Basic Blueprint', pt: 'Basic Blueprint' },
+  'vgd-pro-name': { en: 'Pro Blueprint', es: 'Pro Blueprint', pt: 'Pro Blueprint' },
+  'vgd-pro-badge': { en: 'Best Value', es: 'Mejor Valor', pt: 'Melhor Valor' },
+  'vgd-basic-f1': { en: '1 Master Program Generation Token / billing period', es: '1 Token de Generación de Programa Maestro / período de facturación', pt: '1 Token de Geração de Programa Mestre / período de cobrança' },
+  'vgd-basic-f2': { en: 'Full manual execution — no ongoing coaching layer', es: 'Ejecución manual completa — sin capa de coaching continuo', pt: 'Execução manual completa — sem camada de coaching contínuo' },
+  'vgd-pro-f1': { en: '3 Master Program Generation Tokens / billing period', es: '3 Tokens de Generación de Programa Maestro / período de facturación', pt: '3 Tokens de Geração de Programa Mestre / período de cobrança' },
+  'vgd-pro-f2': { en: 'Refresh your blueprint up to 3× before your next cycle', es: 'Renueva tu blueprint hasta 3 veces antes de tu próximo ciclo', pt: 'Renove seu blueprint até 3 vezes antes do seu próximo ciclo' },
+  'vgd-cta': { en: 'Get Started →', es: 'Comenzar →', pt: 'Começar →' },
+  'vgd-cta-pending': { en: 'Launching Soon', es: 'Próximamente', pt: 'Em Breve' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });

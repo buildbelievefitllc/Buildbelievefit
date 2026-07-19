@@ -19,6 +19,9 @@ export const MATRIX_TABS = [
   { key: 'nutrition', label: 'Online Nutrition' },
   { key: 'youth', label: 'Youth Athlete' },
   { key: 'hybrid', label: 'Hybrid Protocols' },
+  // Vanguard Blueprint Override — trilingual copy (labelKey resolves via t()); the
+  // other four tabs stay English-only/unchanged (pre-existing convention).
+  { key: 'blueprint', labelKey: 'vgd-tab-label', label: 'Vanguard Blueprint' },
 ];
 
 export const PRICING = {
@@ -164,6 +167,38 @@ export const PRICING = {
           { label: '3× / week', price: '$699', priceId: 'price_1TdtVIQ4j3uHTi7POHmPRFGn', link: 'https://buy.stripe.com/3cI6oJ8YTeIbcjEgrvaZi0v' },
           { label: '4× / week', price: '$899', priceId: 'price_1TdtVIQ4j3uHTi7PYVF5s0dq', link: 'https://buy.stripe.com/4gMeVffnh7fJ83o0sxaZi0w' },
         ],
+      },
+    ],
+  },
+  // ── CATEGORY 5 — Vanguard Blueprint Override · micro-sub, recurring monthly ──
+  // The "seasoned vet" fast-track: bypasses the mandatory 30-Day Biometric
+  // Calibration narrative for buyers who only want raw Master Program Generation
+  // Tokens with zero ongoing coaching layer. Rendered as a distinct glassmorphic
+  // panel (PricingMatrix's `vanguard` branch), not the flat brutalist card style
+  // the other four categories use — deliberately different psychological register.
+  //
+  // ⚠ NOT YET LIVE (2026-07-19) — UI/i18n-only pass. Both tiers carry priceId: null
+  // on purpose: no Stripe product/price exists for these yet, and PathfinderForm.jsx
+  // treats a falsy checkout.priceId as the FREE-signup path (f-success-title/body),
+  // not a paid-checkout path — so a null priceId here must NEVER reach onSelectTier.
+  // The PricingMatrix vanguard-card CTA is gated on this field and renders a
+  // disabled "Launching Soon" state until a real price_... id lands here in the
+  // follow-up billing pass. Do not wire this to checkout with a placeholder ID.
+  blueprint: {
+    vanguard: true,
+    introKey: 'vgd-intro',
+    noteKey: 'vgd-note',
+    tiers: [
+      {
+        nameKey: 'vgd-basic-name', price: '$2.99', per: '/mo',
+        priceId: null, // ⚠ pending real Stripe price — see category comment above
+        featKeys: ['vgd-basic-f1', 'vgd-basic-f2'],
+      },
+      {
+        nameKey: 'vgd-pro-name', price: '$4.99', per: '/mo',
+        featured: true, badgeKey: 'vgd-pro-badge',
+        priceId: null, // ⚠ pending real Stripe price — see category comment above
+        featKeys: ['vgd-pro-f1', 'vgd-pro-f2'],
       },
     ],
   },
