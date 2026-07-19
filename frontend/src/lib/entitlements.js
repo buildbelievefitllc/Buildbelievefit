@@ -52,8 +52,10 @@ export const TIER_TO_GROUP = {
   sovereign_12wk_4x:     GROUP.APEX,
   // ── Youth band — Baseline + sports_hub · roster ──
   rising_athlete:   GROUP.YOUTH,
-  // ── Blueprint band — standalone lean tracker (program + generator + form videos + weight log/history + readiness) ──
-  blueprint:        GROUP.BLUEPRINT,
+  // ── Blueprint band — standalone lean tracker. Micro-sub SKUs (basic/pro) + legacy slug; all one access profile, differing only in monthly token allotment (server-side). ──
+  blueprint:        GROUP.BLUEPRINT,  // legacy standalone slug
+  blueprint_basic:  GROUP.BLUEPRINT,  // $2.99 — 1 generation token / month
+  blueprint_pro:    GROUP.BLUEPRINT,  // $4.99 — 3 generation tokens / month
   // ── Legacy storefront slugs → closest modern band (don't lock out legacy payers) ──
   lite:                 GROUP.BASELINE,   // entry fitness (≈ Catalyst/Momentum)
   gateway:              GROUP.AUTONOMOUS, // online-fitness gateway → Autonomous-level

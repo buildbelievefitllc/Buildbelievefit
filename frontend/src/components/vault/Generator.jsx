@@ -49,7 +49,9 @@ const STR = {
     daysPerWeek: (v) => `${v} Days / Week`,
     attach: 'Attach Warm-Ups & Cool-Downs',
     genUnlimited: 'Generate Designed Program Blueprint',
-    genToken: 'Generate Blueprint (1 Token Available)',
+    genToken: (n) => typeof n === 'number'
+      ? `Generate Blueprint (${n} Token${n === 1 ? '' : 's'} Available)`
+      : 'Generate Blueprint',
     genExhausted: 'Token Exhausted (Unlocks in 30 Days)',
     reshuffle: '↻ Reshuffle',
     revert: 'Out of tokens? Revert to your Saved Program Library →',
@@ -79,7 +81,9 @@ const STR = {
     daysPerWeek: (v) => `${v} Días / Semana`,
     attach: 'Adjuntar Calentamientos y Enfriamientos',
     genUnlimited: 'Generar Plan de Programa Diseñado',
-    genToken: 'Generar Plan (1 Token Disponible)',
+    genToken: (n) => typeof n === 'number'
+      ? `Generar Plan (${n} Token${n === 1 ? '' : 's'} Disponible${n === 1 ? '' : 's'})`
+      : 'Generar Plan',
     genExhausted: 'Token Agotado (Se Desbloquea en 30 Días)',
     reshuffle: '↻ Rebarajar',
     revert: '¿Sin tokens? Vuelve a tu Biblioteca de Programas Guardados →',
@@ -109,7 +113,9 @@ const STR = {
     daysPerWeek: (v) => `${v} Dias / Semana`,
     attach: 'Anexar Aquecimentos e Desaquecimentos',
     genUnlimited: 'Gerar Plano de Programa Projetado',
-    genToken: 'Gerar Plano (1 Token Disponível)',
+    genToken: (n) => typeof n === 'number'
+      ? `Gerar Plano (${n} Token${n === 1 ? '' : 's'} Disponíve${n === 1 ? 'l' : 'is'})`
+      : 'Gerar Plano',
     genExhausted: 'Token Esgotado (Desbloqueia em 30 Dias)',
     reshuffle: '↻ Reembaralhar',
     revert: 'Sem tokens? Volte à sua Biblioteca de Programas Salvos →',
@@ -411,7 +417,7 @@ export default function Generator({ onRevertToLibrary }) {
             </button>
           ) : canGenerate ? (
             <button type="button" className="gen-run" onClick={run} disabled={busy} aria-busy={busy}>
-              <span aria-hidden="true">🏋 </span>{tr.genToken}
+              <span aria-hidden="true">🏋 </span>{tr.genToken(tokens)}
             </button>
           ) : (
             <button type="button" className="gen-run is-exhausted" disabled aria-disabled="true">
