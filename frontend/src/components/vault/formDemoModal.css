@@ -1,0 +1,65 @@
+/* src/components/vault/formDemoModal.css
+   ─────────────────────────────────────────────────────────────────────────────
+   Centered pop-up exercise demo (video summary OR quick-view GIF). Mirrors the
+   Recovery PrescriptionMoveModal chrome — dimmed + blurred backdrop, gold-edged
+   dossier card, ✕ / backdrop / Esc close (§2 LOCKED brand). Portaled to <body>,
+   so it overlays the app without touching the Program card's DOM (the active set
+   trackers below never re-layout). */
+
+.fdm-backdrop {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center; padding: 1.1rem;
+  background: rgba(5, 4, 8, .78); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  animation: fdm-fade .15s ease;
+}
+@keyframes fdm-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.fdm {
+  display: flex; flex-direction: column; width: 100%;
+  max-width: min(780px, 94vw); max-height: 94vh;
+  border-radius: 16px; padding: .85rem .9rem 1rem;
+  background: linear-gradient(168deg, rgba(26, 11, 46, .96) 0%, rgba(9, 6, 14, .98) 60%, rgba(5, 5, 5, .99) 100%);
+  border: 1px solid rgba(245, 200, 0, .28);
+  box-shadow: 0 30px 80px -30px rgba(106, 13, 173, .9);
+  animation: fdm-rise .18s ease;
+}
+.fdm--video { max-width: min(880px, 94vw); }
+@keyframes fdm-rise { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.fdm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem; margin-bottom: .7rem; }
+.fdm-title { font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: 1.2rem; letter-spacing: 1px; line-height: 1.05; color: var(--wht, #f9f5ff); }
+
+/* Crisp, highly visible close — top-right, brand-lit on hover. */
+.fdm-x {
+  flex: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  font-size: 1rem; line-height: 1; color: var(--wht, #f9f5ff); background: rgba(255, 255, 255, .08);
+  border: 1px solid var(--line, #1e1e1e); transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.fdm-x:hover { background: rgba(239, 68, 68, .2); border-color: rgba(239, 68, 68, .55); transform: scale(1.06); }
+.fdm-x:focus-visible { outline: 2px solid var(--yel, #f5c800); outline-offset: 2px; }
+
+/* Media wrapper — video is a fixed 16:9; the GIF fits fully within the viewport,
+   contained + centered, so high-fidelity loops never clip on desktop OR mobile. */
+.fdm-media { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #08060a; border: 1px solid var(--line, #1e1e1e); }
+.fdm--video .fdm-media { aspect-ratio: 16 / 9; }
+.fdm-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.fdm--gif .fdm-media { display: flex; align-items: center; justify-content: center; max-height: 80vh; }
+.fdm-gif { display: block; max-width: 100%; max-height: 80vh; width: auto; height: auto; object-fit: contain; }
+
+/* Branded fall-back — a missing/broken loop is a clean BBF panel, never a torn image. */
+.fdm-placeholder {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4rem;
+  width: 100%; min-height: 240px; text-align: center; padding: 1.4rem;
+  background: repeating-linear-gradient(45deg, #0d0b12, #0d0b12 16px, #100d18 16px, #100d18 32px);
+}
+.fdm-mark { font-family: var(--hb, 'Bebas Neue', sans-serif); font-size: 2rem; letter-spacing: 3px; color: var(--yel, #f5c800); opacity: .85; }
+.fdm-copy { font-family: var(--bd, 'Barlow Condensed', sans-serif); font-size: .85rem; font-weight: 600; color: var(--mut, #888); }
+
+@media (max-width: 560px) {
+  .fdm, .fdm--video { max-width: 96vw; padding: .7rem .75rem .85rem; }
+  .fdm--gif .fdm-media { max-height: 70vh; }
+  .fdm-gif { max-height: 70vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fdm-backdrop, .fdm { animation: none; }
+}
