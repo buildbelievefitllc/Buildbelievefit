@@ -24,7 +24,7 @@ export default defineConfig([
   // ship in the production bundle; allow Node globals and the harness's inline
   // component definitions (Fast-Refresh isolation is irrelevant to a one-shot mount).
   {
-    files: ['playwright.config.js', 'e2e/**/*.{js,jsx}'],
+    files: ['playwright.config.js', 'vite.config.js', 'e2e/**/*.{js,jsx}'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
     },

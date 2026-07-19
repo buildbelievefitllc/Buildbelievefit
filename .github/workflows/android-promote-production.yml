@@ -1,0 +1,92 @@
+name: Promote Vetted Build → Production
+
+# Option 3 — manual, human-gated Internal → Production promotion.
+#
+# `android-deploy.yml` keeps auto-shipping every push-to-main straight to the
+# Play INTERNAL track. This workflow is the SAFE promotion valve: it never builds
+# or re-signs anything — it re-uploads the EXACT signed .aab that was vetted on
+# Internal (same bytes, same versionCode) up to the PRODUCTION track. That way
+# what ships to Production is bit-identical to what was tested, and promotion is
+# only ever a deliberate, manual click — never automatic.
+#
+# HOW TO PROMOTE:
+#   1. In the Actions tab, open the "Sovereign Android Cloud Build & Deploy" run
+#      whose Internal build you verified on a device. Copy its run ID (the number
+#      in the URL: /actions/runs/<RUN_ID>).
+#   2. Run this workflow (Actions → "Promote Vetted Build → Production" → Run
+#      workflow), paste that run ID, pick a rollout status, and go.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Run ID of the vetted 'Sovereign Android Cloud Build & Deploy' run (from the /actions/runs/<ID> URL)."
+        required: true
+        type: string
+      release_status:
+        description: "Production rollout status"
+        required: true
+        default: completed
+        type: choice
+        options:
+          - completed     # live to 100% immediately
+          - draft         # staged in Play Console, released by hand
+          - inProgress    # staged rollout (set % in Play Console)
+          - halted
+
+# Never run two promotions at once, and never cancel one mid-flight.
+concurrency:
+  group: android-promote-production
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Hard-fail early (not a silent skip) if Play isn't wired up — a promotion
+      # the operator asked for must never quietly no-op.
+      - name: Guard — Play credentials present
+        env:
+          SA_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$SA_JSON" ]; then
+            echo "::error title=Play credentials missing::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not set — cannot promote to Production. Configure it first (one-time setup is documented in android-deploy.yml)."
+            exit 1
+          fi
+
+      # Pull the signed bundle FROM the vetted Internal run — no rebuild, so the
+      # Production release is byte-identical to what was tested.
+      - name: Download vetted signed AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: build-believe-fit-aab
+          path: promote-aab
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Locate AAB
+        run: |
+          AAB=$(find promote-aab -name '*.aab' | head -1)
+          if [ -z "$AAB" ]; then
+            echo "::error title=No bundle found::Run ${{ inputs.source_run_id }} has no build-believe-fit-aab artifact. Use a completed 'Sovereign Android Cloud Build & Deploy' run ID."
+            exit 1
+          fi
+          echo "PROMOTE_AAB=$AAB" >> "$GITHUB_ENV"
+          echo "Promoting bundle: $AAB"
+
+      - name: Upload to Google Play Production Track
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: fitness.buildbelievefit.twa
+          releaseFiles: ${{ env.PROMOTE_AAB }}
+          track: production
+          status: ${{ inputs.release_status }}
+
+      - name: Promotion Summary
+        run: |
+          echo "### ✅ Promoted to Production" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Source Internal run: \`${{ inputs.source_run_id }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Bundle: \`${PROMOTE_AAB}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Rollout status: \`${{ inputs.release_status }}\`" >> "$GITHUB_STEP_SUMMARY"

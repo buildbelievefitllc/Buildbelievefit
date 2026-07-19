@@ -21,6 +21,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
 import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
+import { APP_VERSION } from '../../version.js';
 import './vault.css';
 
 const LANG_LABELS = { en: 'English', es: 'Español', pt: 'Português' };
@@ -191,6 +192,22 @@ export default function Settings() {
       <div className="pg-card">
         <div className="pg-set-title">{t('set-session')}</div>
         <button type="button" className="pg-set-signout" onClick={signOut}>{t('shell-signout')}</button>
+      </div>
+
+      {/* Build version stamp — the exact CI build this device is running (matches
+          the Android versionName). Diagnostic-only, deliberately understated. */}
+      <div
+        data-testid="app-version-stamp"
+        style={{
+          textAlign: 'center',
+          opacity: 0.5,
+          fontSize: '0.72rem',
+          letterSpacing: '0.06em',
+          fontFamily: '"Barlow Condensed", sans-serif',
+          paddingTop: 6,
+        }}
+      >
+        v{APP_VERSION}
       </div>
     </div>
   );

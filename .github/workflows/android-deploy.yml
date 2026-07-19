@@ -44,7 +44,20 @@ jobs:
         cache: npm
         cache-dependency-path: frontend/package-lock.json
 
+    # Compute the release version BEFORE the web build so Vite can bake it into
+    # the bundle (define __APP_VERSION__ ← BBF_VERSION_NAME, see vite.config.js) —
+    # the in-app version stamp then matches the Android versionName gradle stamps
+    # onto the same bundle below. Written to $GITHUB_ENV → visible to all later steps.
+    - name: Compute Release Version
+      run: |
+        VERSION_CODE=$(( BBF_VERSION_OFFSET + GITHUB_RUN_NUMBER ))
+        echo "BBF_VERSION_CODE=${VERSION_CODE}" >> "$GITHUB_ENV"
+        echo "BBF_VERSION_NAME=1.0.${VERSION_CODE}" >> "$GITHUB_ENV"
+        echo "Release version: 1.0.${VERSION_CODE} (code ${VERSION_CODE})"
+
     - name: Install Web Dependencies & Build Assets
+      env:
+        BBF_VERSION_NAME: ${{ env.BBF_VERSION_NAME }}
       run: |
         cd frontend
         npm ci
@@ -63,13 +76,6 @@ jobs:
       run: |
         cd frontend
         npx cap sync android
-
-    - name: Compute Release Version
-      run: |
-        VERSION_CODE=$(( BBF_VERSION_OFFSET + GITHUB_RUN_NUMBER ))
-        echo "BBF_VERSION_CODE=${VERSION_CODE}" >> "$GITHUB_ENV"
-        echo "BBF_VERSION_NAME=1.0.${VERSION_CODE}" >> "$GITHUB_ENV"
-        echo "Release version: 1.0.${VERSION_CODE} (code ${VERSION_CODE})"
 
     - name: Build Release App Bundle
       env:
