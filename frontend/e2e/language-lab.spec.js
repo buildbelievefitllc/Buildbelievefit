@@ -39,6 +39,9 @@ async function mountLab(page) {
 test('the Lab mounts and the Portuguese starter deck fetches into the Forge', async ({ page }) => {
   await mountLab(page);
   await page.getByRole('radio', { name: /portugu/i }).click();
+  // The Lab now lands on the Curriculum Atlas; the Vocab Forge (flashcard) is a
+  // dedicated mode tab, so open it explicitly (mirrors the Path/Dojo specs below).
+  await page.getByTestId('lm-mode-forge').click();
   await expect(page.getByTestId('vocab-flashcard')).toBeVisible();
   await expect(page.locator('.lg-term')).toHaveText('agachamento'); // deck term 1 renders
 });

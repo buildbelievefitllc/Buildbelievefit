@@ -34,7 +34,9 @@ test('warns before export when the browser has NO H.264 encoder (VP9 fallback)',
   await expect(warn).toContainText('Hardware H.264 not detected');
   await expect(warn).toContainText('lower quality on social platforms');
   // Non-blocking: the export button is still enabled (degraded export > hard crash).
-  await expect(page.getByRole('button', { name: /EXPORT/i })).toBeEnabled();
+  // Target the TikTok export by test-id — the reel now has two EXPORT buttons
+  // (TikTok + Instagram/Facebook), so a /EXPORT/i role selector is ambiguous.
+  await expect(page.getByTestId('tiktok-bridge-btn')).toBeEnabled();
 });
 
 test('stays silent when H.264 IS available (max-quality path)', async ({ page }) => {
