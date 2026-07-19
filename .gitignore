@@ -12,3 +12,8 @@ HEYGENLOAD/
 # Exercise quick-view loops — 1,324 GIF masters live in the public exercise-gifs
 # Storage bucket, never in git; only the index map (manifest.json) is tracked.
 videos/*.gif
+
+# 4K module master videos + rigged .glb — media masters live in the Supabase
+# videos/ bucket (see convention above), never in git. Only URLs are referenced.
+bbf_module_*_4k/
+Public/Y Bot.glb
