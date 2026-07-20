@@ -309,3 +309,34 @@ button,
   .bbf-sidebar-foot { border-top: 0; padding-top: 0; margin-top: 0; margin-left: auto; }
   .bbf-viewport { padding: 1.1rem; padding-bottom: calc(1.1rem + var(--safe-bottom)); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHARED "TAP ME" PULSE UTILITY — a soft sonar ring that invites action on a
+   primary CTA. Reserved for PRIMARY actions only, one at a time, so it stays
+   meaningful. Add `bbf-pulse` (BBF Purple ring) or `bbf-pulse bbf-pulse--gold`
+   (BBF Gold ring, for gold CTAs). The ring is an ::after overlay, so it never
+   disturbs the host's own box-shadow. Fully off under prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.bbf-pulse { position: relative; }
+.bbf-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: bbf-pulse-ring 2.6s ease-out infinite;
+}
+@keyframes bbf-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(139, 26, 191, .5); }
+  70%  { box-shadow: 0 0 0 13px rgba(139, 26, 191, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(139, 26, 191, 0); }
+}
+.bbf-pulse--gold::after { animation-name: bbf-pulse-ring-gold; }
+@keyframes bbf-pulse-ring-gold {
+  0%   { box-shadow: 0 0 0 0 rgba(245, 200, 0, .5); }
+  70%  { box-shadow: 0 0 0 13px rgba(245, 200, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 200, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bbf-pulse::after { animation: none; }
+}

@@ -192,6 +192,15 @@ function PrepCard({ item, phaseId, lang, t }) {
 export default function SovereignPrepPanels({ data }) {
   const { t, lang } = useLang();
   const [active, setActive] = useState('dynamic');
+  // Sequential guide: track which phases the athlete has opened (Phase 01 is open
+  // on mount) and pulse ONLY the next un-opened phase — one ring at a time walks
+  // them 01 → 02 → 03, then goes quiet. No overload, no all-three-flashing.
+  const [visited, setVisited] = useState(() => new Set(['dynamic']));
+  const pulseId = (PREP_PHASES.find((p) => !visited.has(p.id)) || {}).id || null;
+  const openPhase = (id) => {
+    setActive(id);
+    setVisited((s) => { if (s.has(id)) return s; const n = new Set(s); n.add(id); return n; });
+  };
 
   const activePhase = PREP_PHASES.find((p) => p.id === active) || PREP_PHASES[0];
   // Defensive UI cap — the edge already enforces the clinical limits; this guarantees
@@ -210,8 +219,8 @@ export default function SovereignPrepPanels({ data }) {
               type="button"
               role="tab"
               aria-selected={on}
-              className={`sp-tab${on ? ' is-active' : ''}`}
-              onClick={() => setActive(p.id)}
+              className={`sp-tab${on ? ' is-active' : ''}${(!on && p.id === pulseId) ? ' bbf-pulse bbf-pulse--gold' : ''}`}
+              onClick={() => openPhase(p.id)}
               data-testid={`sp-tab-${p.id}`}
             >
               <span className="sp-tab-idx">{p.idx}</span>

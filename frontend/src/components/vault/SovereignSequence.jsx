@@ -14,6 +14,7 @@
 // re-triggering a synth.
 
 import { useLang } from '../../context/LangContext.jsx';
+import { useReadiness } from '../../context/ReadinessContext.jsx';
 import CoachAudioButton from './CoachAudioButton.jsx';
 import { fetchCachedSectionCoachAudio } from '../../lib/forecastApi.js';
 import './sovereignSequence.css';
@@ -38,9 +39,11 @@ const STEP_KEYS = [
 ];
 
 // Reusable large step CTA (Phases 1–4) — the locked gold transport with an arrow.
-export function SequenceCTA({ label, onClick, testid, variant = 'primary' }) {
+// `pulse` adds the shared gold "tap me" ring — used to invite the next action.
+export function SequenceCTA({ label, onClick, testid, variant = 'primary', pulse = false }) {
+  const cls = `svs-cta${variant === 'secondary' ? ' svs-cta--secondary' : ''}${pulse ? ' bbf-pulse bbf-pulse--gold' : ''}`;
   return (
-    <button type="button" className={`svs-cta${variant === 'secondary' ? ' svs-cta--secondary' : ''}`} onClick={onClick} data-testid={testid}>
+    <button type="button" className={cls} onClick={onClick} data-testid={testid}>
       <span className="svs-cta-label">{label}</span>
     </button>
   );
@@ -59,6 +62,9 @@ export function SequenceNext({ label, onClick, testid }) {
 // Phase 1 — the Hub anchor: anthem audio + clinical text shield + Step 1 CTA.
 export function SovereignSequenceAnchor({ onStep }) {
   const { t, lang } = useLang();
+  // Pulse the Step-1 CTA only until today's check-in is logged — once the athlete
+  // has checked in, the invite goes quiet (no nagging a completed action).
+  const { hasCheckedIn } = useReadiness();
   // ONE voice, three languages: speak the chosen locale's anthem so the audio
   // matches the on-screen language. cueRef stays constant — the server cache key
   // already folds in the locale, so EN/ES/PT each cache under their own entry.
@@ -89,7 +95,7 @@ export function SovereignSequenceAnchor({ onStep }) {
         </ol>
       </div>
 
-      <SequenceCTA label={t('svs-cta-1')} onClick={() => onStep('checkin')} testid="sovereign-step-1" />
+      <SequenceCTA label={t('svs-cta-1')} onClick={() => onStep('checkin')} testid="sovereign-step-1" pulse={!hasCheckedIn} />
     </section>
   );
 }

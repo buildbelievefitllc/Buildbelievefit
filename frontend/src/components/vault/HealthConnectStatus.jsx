@@ -54,6 +54,11 @@ export default function HealthConnectStatus() {
     return () => { cancelled = true; };
   }, []);
 
+  // Android-only diagnostic: with no native bridge (web / PWA) there is nothing to
+  // report, so the panel hides entirely instead of parking a permanent "off" chip
+  // under the hub. Visibility now tracks whether the bridge can even be active.
+  if (bridge.reason === 'no_bridge') return null;
+
   const connected = bridge.connected;
   const lastSync = handshake ? fmtTime(handshake.at) : null;
 
@@ -68,7 +73,9 @@ export default function HealthConnectStatus() {
 
   return (
     <details className="sch-hc" data-testid="sch-hc-status">
-      <summary className="sch-hc-summary">
+      {/* Bridge present but not connected → pulse the header to nudge a reconnect;
+          once connected the ring goes quiet (steady green dot signals healthy). */}
+      <summary className={`sch-hc-summary${!connected ? ' bbf-pulse bbf-pulse--gold' : ''}`}>
         <span className={`sch-hc-dot${connected ? ' is-on' : ''}`} aria-hidden="true" />
         <span className="sch-hc-title">{t('sch-hc-title')}</span>
         <span className={`sch-hc-state${connected ? ' is-on' : ''}`} data-testid="sch-hc-state">
@@ -77,10 +84,6 @@ export default function HealthConnectStatus() {
       </summary>
 
       <div className="sch-hc-body">
-        {!connected && bridge.reason === 'no_bridge' ? (
-          <p className="sch-hc-hint">{t('sch-hc-bridge-off')}</p>
-        ) : null}
-
         <div className="sch-hc-row">
           <span className="sch-hc-k">{t('sch-hc-lastsync')}</span>
           <span className="sch-hc-v" data-testid="sch-hc-lastsync">{lastSync || t('sch-hc-never')}</span>
