@@ -40,6 +40,7 @@ const MarketingLanding = lazy(() => import('./pages/MarketingLanding.jsx'));
 // (/pathfinder). Both public, both their own chunk so they don't drag in the Vault.
 const DailyBurnCalculator = lazy(() => import('./pages/DailyBurnCalculator.jsx'));
 const TierSelectionPitch = lazy(() => import('./pages/TierSelectionPitch.jsx'));
+const OnboardingAssessment = lazy(() => import('./pages/OnboardingAssessment.jsx'));
 const ExplorerVault = lazy(() => import('./pages/ExplorerVault.jsx'));
 const PathfinderPage = lazy(() => import('./pages/PathfinderPage.jsx'));
 const ProtocolInitialization = lazy(() => import('./pages/ProtocolInitialization.jsx'));
@@ -173,6 +174,10 @@ export default function App() {
       {/* Upsell bridge — three Online Fitness tiers in the LOCKED tab-deck; a
           Select Plan choice forwards the chosen priceId + biometrics on. */}
       <Route path="/select-tier" element={<TierSelectionPitch />} />
+      {/* The Sovereign Intake — premium multi-step assessment (top-of-funnel). Its
+          "Get My Fitness Plan" CTA bridges into Supabase OAuth and shunts the
+          post-auth redirect straight to the /select-tier subscription gate. */}
+      <Route path="/assessment" element={<OnboardingAssessment />} />
 
       {/* EXPLORER MODE — the read-only guest sandbox (conversion funnel). Public
           route; the page itself bounces to /burn when no guest envelope exists. */}
