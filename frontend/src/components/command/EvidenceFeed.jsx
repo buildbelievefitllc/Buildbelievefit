@@ -23,7 +23,13 @@ import feedData from '../../data/newsletterResearchVault.json';
 
 const PAGE = 9; // briefs revealed per "load more" step
 
-const SUBJECTS = ['Biomechanics', 'Bioenergetics', 'Nutrition', 'Pediatric Athletics'];
+const SUBJECTS = ['Biomechanics', 'Bioenergetics', 'Nutrition', 'Pediatric Athletics', 'Sports Psychology & Neuromuscular Control'];
+
+// Short display labels — the full subject string is the data key + filter value,
+// but the chip/tab shows the compact form so the long 5th subject doesn't blow
+// out the filter bar.
+const SUBJECT_LABELS = { 'Sports Psychology & Neuromuscular Control': 'Sports Psychology' };
+const subjectLabel = (s) => SUBJECT_LABELS[s] || s;
 
 // Static payload — imported once, never mutated, so it lives at module scope
 // (a stable reference the memo hooks below can depend on without re-computing).
@@ -146,7 +152,7 @@ export default function EvidenceFeed() {
             onClick={() => pickSubject(s)}
             data-testid={`nf-filter-${s}`}
           >
-            {s} <span className="nf-filter-ct">{counts[s]}</span>
+            {subjectLabel(s)} <span className="nf-filter-ct">{counts[s]}</span>
           </button>
         ))}
       </div>
@@ -162,7 +168,7 @@ export default function EvidenceFeed() {
             return (
               <article key={s.id} className={`rl-card nf-card${isPlaying ? ' is-playing' : ''}`} data-testid={`nf-card-${s.id}`}>
                 <div className="rl-card-top">
-                  <span className="nf-subject">{s.subject}</span>
+                  <span className="nf-subject">{subjectLabel(s.subject)}</span>
                   <span className={`nf-badge nf-badge--${conf}`} title={tr.conf[conf]}>{tr.conf[conf]}</span>
                 </div>
                 <h4 className="rl-card-title">{s.title}</h4>
