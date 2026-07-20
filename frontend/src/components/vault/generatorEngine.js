@@ -134,6 +134,53 @@ export function isBlacklisted(name) {
   return BLACKLIST.some((b) => n.indexOf(b) !== -1);
 }
 
+// ── Injury-aware safety caps (intake-driven · additive · fully gated) ─────────
+// Each flagged joint contraindicates SPECIFIC catalog lifts by name (never a whole
+// muscle group, so a training day can't be emptied) and contributes a targeted
+// prehab cue. With NO injuries every helper below is a no-op and generateProgram
+// returns exactly what it did before — zero behavior change for existing callers.
+const INJURY_RULES = {
+  knee:        ['leg extension', 'sissy squat', 'jump squat', 'box jump', 'deficit'],
+  shoulder:    ['overhead press', 'military', 'behind the neck', 'upright row', 'arnold press', 'snatch'],
+  lower_back:  ['deadlift', 'good morning', 'bent-over', 'bent over', 'barbell row', 'pendlay', 'back extension'],
+  hip:         ['deficit', 'sumo deadlift', 'deep squat'],
+  ankle:       ['standing calf', 'box jump', 'jump', 'bound', 'pogo', 'sprint'],
+  wrist_elbow: ['skullcrusher', 'skull crusher', 'preacher', 'reverse curl', 'wrist'],
+  neck:        ['upright row', 'shrug', 'behind the neck'],
+};
+const INJURY_PREHAB = {
+  knee: 'Banded terminal knee extensions ×15 — track the kneecap',
+  shoulder: 'Band external rotations ×15/side — rotator-cuff activation',
+  lower_back: 'Bird-dog ×8/side — brace + anti-rotation',
+  hip: '90/90 hip switches ×8/side — capsule prep',
+  ankle: 'Ankle dorsiflexion rocks ×10/side',
+  wrist_elbow: 'Wrist flexor & extensor stretch ×20s each',
+  neck: 'Chin tucks ×10 — deep neck-flexor activation',
+};
+
+// Normalize the injury list to known, actionable joints (drops 'none'/unknowns).
+export function cleanInjuries(injuries) {
+  return Array.isArray(injuries) ? injuries.filter((i) => i && i !== 'none' && INJURY_RULES[i]) : [];
+}
+
+// keep-predicate (true = safe to program), or null when nothing is excluded — the
+// caller skips filtering entirely on null.
+function injuryPredicate(injuries) {
+  const bad = [];
+  for (const inj of injuries) for (const nm of (INJURY_RULES[inj] || [])) bad.push(nm);
+  if (!bad.length) return null;
+  return (ex) => {
+    const n = String(ex.n || '').toLowerCase();
+    return !bad.some((b) => n.indexOf(b) !== -1);
+  };
+}
+
+function injuryPrehab(injuries) {
+  const out = [];
+  for (const inj of injuries) { const cue = INJURY_PREHAB[inj]; if (cue && out.indexOf(cue) === -1) out.push(cue); }
+  return out;
+}
+
 // The 8 SIGNATURE SELECTORS of the Vault Roster Engine (label/value pairs). Option
 // sets are 1:1 with the definitive UI blueprint; values map onto the locked engine.
 
@@ -328,7 +375,11 @@ export function generateProgram(params = {}) {
   const gender = params.gender || 'unisex';
   const intensifier = params.intensifier || 'straight';
   const withWarmups = !!params.warmups;
-  const perDay = countFor(params.dur);
+  // Intake-driven injury caps (no-ops when the list is empty).
+  const injuries = cleanInjuries(params.injuries);
+  const injKeep = injuryPredicate(injuries);
+  // Volume safety cap: shed one lift/day when training around an injury (bounded ≥3).
+  const perDay = Math.max(3, countFor(params.dur) - (injuries.length ? 1 : 0));
   const rx = prescribe(goal, level);
   // B3 — Beginner intensifier gate: a Level-1 lifter is NEVER auto-assigned a technique
   // overlay (negatives / drop-sets / myo-reps / supersets / FST-7), regardless of the
@@ -337,7 +388,8 @@ export function generateProgram(params = {}) {
   const effIntensifier = level === 1 ? 'none' : intensifier;
   const tech = INTENSIFIER_META[effIntensifier] || INTENSIFIER_META.none;
   if (tech.label) { rx.technique = tech.label; rx.techniqueCue = tech.cue; }
-  const pool = eligible(locEq, level);
+  let pool = eligible(locEq, level);
+  if (injKeep) pool = pool.filter(injKeep);        // drop injury-contraindicated lifts
   const split = buildSplit(arch, days);
   const genderPriority = GENDER_PRIORITY[gender] || [];
   const seed = (params.regen || 0) * 7919 + days * 131 + level * 17
@@ -395,11 +447,15 @@ export function generateProgram(params = {}) {
       }
     }
     const day = { label, exercises: safe, rx };
-    if (withWarmups) { day.warmup = buildWarmup(groups); day.cooldown = buildCooldown(groups); }
+    if (withWarmups) {
+      const pre = injuryPrehab(injuries);          // targeted prehab leads the warm-up
+      day.warmup = pre.length ? pre.concat(buildWarmup(groups)) : buildWarmup(groups);
+      day.cooldown = buildCooldown(groups);
+    }
     program.push(day);
   }
 
-  return { days, goal, gender, arch, intensifier: effIntensifier, level, warmups: withWarmups, program };
+  return { days, goal, gender, arch, intensifier: effIntensifier, level, warmups: withWarmups, program, accommodatedInjuries: injuries };
 }
 
 // ─── Push bridge: generated program → assignable workout_plan ─────────────────

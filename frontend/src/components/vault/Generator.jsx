@@ -31,6 +31,7 @@ import { localizeMuscle } from '../../lib/trainingI18n.js';
 import { fetchRoster, assignWorkout, toErrorMessage } from '../../lib/rosterApi.js';
 import GeneratorVoiceBox from './GeneratorVoiceBox.jsx';
 import { fetchBlueprintTokens, consumeBlueprintToken } from '../../lib/blueprintTokensApi.js';
+import { fetchIntakeContext } from '../../lib/intakeContext.js';
 import './vault.css';
 
 // Trilingual UI chrome for the Vault Roster Engine. The signature-split preset
@@ -179,6 +180,7 @@ const EXTRA_OPTION_LABELS = { fst7: 'FST-7 Fascia Finisher' };
 const DEFAULTS = {
   goal: 'hypertrophy', gender: 'any', level: '2', loc: 'any-home',
   days: '3', dur: '60', arch: 'full', intensifier: 'none',
+  injuries: [], // intake-driven safety caps; empty = engine behaves as before
 };
 
 // Roster-row identity + division label for the targeting dropdown (mirrors the
@@ -206,6 +208,25 @@ export default function Generator({ onRevertToLibrary }) {
   const onCommandSurface = useLocation().pathname.startsWith('/command');
   const { isAdmin } = useAuth();
   const isUnlimited = isAdmin || onCommandSurface;
+
+  // Intake-driven calibration: on the client self-serve surface, seed the split
+  // from the athlete's OWN normalized intake (goal, weekly days, injuries). Admins
+  // on /command author FOR others, so their intake is never seeded here. Graceful —
+  // no intake row (or not signed in) leaves the defaults untouched.
+  useEffect(() => {
+    if (onCommandSurface) return undefined;
+    let alive = true;
+    fetchIntakeContext().then((ctx) => {
+      if (!alive || !ctx) return;
+      setParams((p) => ({
+        ...p,
+        goal: ctx.goal || p.goal,
+        days: ctx.days || p.days,
+        injuries: Array.isArray(ctx.injuries) ? ctx.injuries : [],
+      }));
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [onCommandSurface]);
 
   // SERVER-authoritative token meter. `tokens` = remaining count for the month (null =
   // not yet loaded). Unlimited users (admins + /command authoring) never touch it. `busy`
@@ -321,11 +342,14 @@ export default function Generator({ onRevertToLibrary }) {
   // a metered generation: a client preset tap spends the monthly token like any run.
   const applyPreset = (preset) => {
     if (!canGenerate) return;
-    setParams(preset.params);
+    // Carry the athlete's injury caps across a signature preset — safety persists
+    // even when they swap in a curated split.
+    const withInj = { ...preset.params, injuries: params.injuries || [] };
+    setParams(withInj);
     setWarmups(preset.warmups);
     setActivePreset(preset.id);
     // A signature preset is a fresh MASTER generation — token-gated like the primary run.
-    emitMaster({ ...preset.params, warmups: preset.warmups, regen: 0 });
+    emitMaster({ ...withInj, warmups: preset.warmups, regen: 0 });
   };
 
   const toggleWarmups = () => {
