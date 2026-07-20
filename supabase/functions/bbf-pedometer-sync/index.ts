@@ -21,15 +21,16 @@
 //                               empty (a bare cron ping is valid).
 // Response: { ok:true, service, received, action, source, processed, at } | non-2xx { error }
 //
-// SCAFFOLD BOUNDARY (honest): this receiver validates + acknowledges the handshake.
-// The actual step-aggregation write is a SECURITY DEFINER RPC (e.g.
-// bbf_aggregate_pedometer_daily) that must be authored via `apply_migration`
-// (DATABASE_SAFETY.md — `db push` is forbidden) and wired in below where the TODO
-// marks it. Until then `processed` is 0 and the handshake is a no-op ack, which is
-// exactly what the scheduler's soft-skip path expects.
+// AGGREGATION: on POST this invokes the SECURITY DEFINER RPC
+// public.bbf_aggregate_pedometer_daily(p_source) via the service-role client,
+// which sweeps trailing 30-day step data from bbf_daily_biometrics into the
+// per-athlete rollup ledger bbf_pedometer_daily and returns the row count.
+// (Migration: 20260720000000_bbf_pedometer_daily_aggregate.sql, applied via
+// apply_migration per DATABASE_SAFETY.md — `db push` is forbidden.)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -95,14 +96,25 @@ serve(async (req: Request) => {
 
   console.log(`[bbf-pedometer-sync] handshake · action=${action} · source=${source}`);
 
-  // ── Step aggregation ──
-  // TODO(apply_migration): invoke the SECURITY DEFINER RPC that rolls up the
-  // trailing pedometer readings into the daily summary, e.g.:
-  //   const supa = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
-  //   const { data, error } = await supa.rpc('bbf_aggregate_pedometer_daily', { p_source: source });
-  // Until that RPC exists this stays a validated no-op ack (processed: 0), so the
-  // scheduler gets a clean 200 instead of a daily failure.
-  const processed = 0;
+  // ── Service-role client (RLS-bypass; the RPC is granted to service_role only).
+  // SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are auto-injected by the edge runtime.
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    return jsonResponse({ error: 'config_unavailable', detail: 'Server identity store is unreachable.' }, 503);
+  }
+  const supa = createClient(SUPABASE_URL, SERVICE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  // ── Step aggregation — sweep trailing pedometer data into the rollup ledger.
+  const { data, error } = await supa.rpc('bbf_aggregate_pedometer_daily', { p_source: source });
+  if (error) {
+    console.error(`[bbf-pedometer-sync] aggregate failed: ${error.message}`);
+    return jsonResponse({ error: 'aggregate_failed', detail: error.message }, 502);
+  }
+  const processed = typeof data === 'number' ? data : Number(data ?? 0);
+  console.log(`[bbf-pedometer-sync] rolled up ${processed} athlete(s)`);
 
   return jsonResponse({
     ok: true,
@@ -111,7 +123,6 @@ serve(async (req: Request) => {
     action,
     source,
     processed,
-    note: 'Handshake accepted. Aggregation RPC not yet wired (scaffold receiver).',
     at: startedAt,
   });
 });
