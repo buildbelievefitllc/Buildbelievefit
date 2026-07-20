@@ -804,6 +804,12 @@ const DICT = {
   // Tier selection — intake-driven recommendation highlight.
   'tier-recommended': { en: 'Recommended for your goals', es: 'Recomendado para tus objetivos', pt: 'Recomendado para os seus objetivos' },
   'tier-for-you': { en: 'For you', es: 'Para ti', pt: 'Para você' },
+  // {tier} is token-replaced in the component (t() has no interpolation).
+  'tier-suggest-banner': {
+    en: 'Based on your assessment, we suggest the {tier} tier to support your target goals and joint safety.',
+    es: 'Según tu evaluación, te sugerimos el nivel {tier} para apoyar tus objetivos y la seguridad de tus articulaciones.',
+    pt: 'Com base na sua avaliação, sugerimos o nível {tier} para apoiar seus objetivos e a segurança das suas articulações.',
+  },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });

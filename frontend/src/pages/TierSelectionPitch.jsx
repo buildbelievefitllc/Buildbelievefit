@@ -172,6 +172,17 @@ export default function TierSelectionPitch() {
           </p>
         </div>
 
+        {/* Personalization banner — intake-driven suggestion (renders only when
+            the staged assessment yields a recommended tier). */}
+        {recommended ? (
+          <div className="bbf-pulse bbf-pulse--gold" style={st.recBanner} data-testid="tier-suggest-banner">
+            <span style={st.recBannerIcon} aria-hidden="true">★</span>
+            <span style={st.recBannerText}>
+              {t('tier-suggest-banner').replace('{tier}', recommended.name.replace(/^BBF /, ''))}
+            </span>
+          </div>
+        ) : null}
+
         {/* ── LOCKED tab-deck: numbered rail + single active panel ── */}
         <div style={st.deckFrame}>
           <div style={st.deckInner}>
@@ -295,6 +306,9 @@ const st = {
   vanguardBadge: { position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: `linear-gradient(180deg, ${GOLD} 0%, ${GOLD_LAB} 100%)`, color: '#1B1106', fontFamily: HEAD, fontSize: '.72rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 16px', borderRadius: 99, whiteSpace: 'nowrap', boxShadow: `0 6px 18px rgba(245,200,0,.4)` },
   recBadge: { display: 'inline-block', fontFamily: BODY, fontSize: '.72rem', fontWeight: 700, letterSpacing: '1.4px', textTransform: 'uppercase', color: '#1B1106', background: `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_SOFT} 100%)`, borderRadius: 999, padding: '.28rem .85rem', marginBottom: 10, boxShadow: `0 6px 16px rgba(245,200,0,.3)` },
   recTag: { fontFamily: BODY, fontSize: '.56rem', fontWeight: 700, letterSpacing: '1.4px', textTransform: 'uppercase', color: GOLD, marginTop: 3 },
+  recBanner: { display: 'flex', alignItems: 'center', gap: 10, maxWidth: 560, margin: '0 auto 18px', padding: '.7rem 1rem', borderRadius: 12, background: 'rgba(245,200,0,.07)', border: `1px solid rgba(245,200,0,.35)`, textAlign: 'left' },
+  recBannerIcon: { color: GOLD, fontSize: '1rem', lineHeight: 1, flexShrink: 0 },
+  recBannerText: { fontFamily: BODY, fontSize: '.9rem', fontWeight: 600, color: 'rgba(255,255,255,.82)', lineHeight: 1.4 },
   cardName: { fontFamily: HEAD, fontSize: 'clamp(1.6rem,5vw,2.2rem)', letterSpacing: '1px', color: '#fff', marginTop: 6 },
   priceRow: { display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4, margin: '.3rem 0 1.1rem' },
   price: { fontFamily: DISPLAY, fontSize: 'clamp(2.4rem,9vw,3.4rem)', color: GOLD_SOFT, lineHeight: 1 },
