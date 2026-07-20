@@ -25,9 +25,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # versionCode = OFFSET + run number. OFFSET clears the highest manually
-  # uploaded code (9). Run numbers only ever increase, so codes stay monotonic.
-  BBF_VERSION_OFFSET: "9"
+  # versionCode = OFFSET + run number. OFFSET clears the highest code already
+  # consumed in the Play Console (424, from run 415 under the previous offset
+  # of 9). Run numbers only ever increase, so codes stay monotonic.
+  BBF_VERSION_OFFSET: "450"
 
 jobs:
   build-and-deploy:
