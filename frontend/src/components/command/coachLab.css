@@ -985,3 +985,60 @@
   .rl-status { margin-top: 0; align-self: flex-start; }
   .rl-grid { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EVIDENCE FEED (EvidenceFeed.jsx) — verified PubMed briefs, subject-filtered,
+   DOI-cited, natural-voice narration. Extends the rl- card system.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.nf { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.6rem; }
+.nf-head { display: flex; flex-direction: column; gap: 0.1rem; }
+
+/* Subject filter bar */
+.nf-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.nf-filter {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: var(--hb); font-size: 0.72rem; letter-spacing: 0.6px;
+  color: #c9bfe0; background: rgba(20, 16, 28, 0.6);
+  border: 1px solid var(--cl-line); border-radius: 999px;
+  padding: 0.4rem 0.8rem; cursor: pointer; transition: all 0.16s ease;
+}
+.nf-filter:hover { border-color: rgba(245, 200, 0, 0.4); color: var(--wht); transform: translateY(-1px); }
+.nf-filter-ct { font-size: 0.66rem; color: #8d80a8; }
+.nf-filter.is-active {
+  color: #0e0a16; border-color: var(--yel);
+  background: linear-gradient(92deg, var(--cl-purple) 0%, var(--yel) 135%);
+}
+.nf-filter.is-active .nf-filter-ct { color: rgba(14, 10, 22, 0.7); }
+
+/* Card top: subject chip + confidence badge */
+.nf-card { position: relative; }
+.nf-subject {
+  font-family: var(--hb); font-size: 0.6rem; letter-spacing: 1.6px; text-transform: uppercase;
+  color: var(--gold-soft); border: 1px solid rgba(245, 200, 0, 0.28);
+  border-radius: 6px; padding: 0.16rem 0.44rem;
+}
+.nf-badge {
+  font-family: var(--hb); font-size: 0.56rem; letter-spacing: 1.2px; text-transform: uppercase;
+  border-radius: 6px; padding: 0.16rem 0.44rem; border: 1px solid transparent;
+}
+.nf-badge--strong { color: #0e0a16; background: var(--yel); }
+.nf-badge--partial { color: var(--gold-soft); border-color: rgba(245, 200, 0, 0.4); background: rgba(245, 200, 0, 0.08); }
+.nf-badge--none { color: #ff9a9a; border-color: rgba(255, 120, 120, 0.4); background: rgba(255, 90, 90, 0.08); }
+
+.nf-headline {
+  font-family: var(--bd); font-weight: 600; font-size: 0.9rem; line-height: 1.28;
+  color: var(--gold-soft); margin: 0;
+}
+
+/* Footer: citation link + play button */
+.nf-foot {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07); padding-top: 0.55rem; margin-top: 0.1rem;
+}
+.nf-cite { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; text-decoration: none; }
+.nf-cite-lbl { font-family: var(--hb); font-size: 0.56rem; letter-spacing: 1.6px; text-transform: uppercase; color: #8d80a8; }
+.nf-cite-body { font-family: var(--bd); font-size: 0.74rem; line-height: 1.25; color: #b9aed2; }
+a.nf-cite:hover .nf-cite-body { color: var(--yel); }
+.nf-cite--none { font-family: var(--bd); font-size: 0.74rem; color: #ff9a9a; }
+.nf-play { flex-shrink: 0; margin: 0; }
+.nf-playing { position: absolute; top: 0.7rem; right: 0.8rem; }

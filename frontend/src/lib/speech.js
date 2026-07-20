@@ -51,8 +51,8 @@ if (synthSupported()) {
   } catch { /* older engines resolve at speak time */ }
 }
 
-function speakLocal(text, { rate = 0.98, pitch = 1 } = {}) {
-  if (!synthSupported() || !text) return;
+function speakLocal(text, { rate = 0.98, pitch = 1, onEnd } = {}) {
+  if (!synthSupported() || !text) { if (typeof onEnd === 'function') onEnd(); return; }
   const synth = window.speechSynthesis;
   try { synth.cancel(); } catch { /* ignore */ }
   const u = new window.SpeechSynthesisUtterance(String(text));
@@ -60,7 +60,8 @@ function speakLocal(text, { rate = 0.98, pitch = 1 } = {}) {
   if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = 'en-US'; }
   u.rate = rate;
   u.pitch = pitch;
-  try { synth.speak(u); } catch { /* ignore */ }
+  if (typeof onEnd === 'function') { u.onend = onEnd; u.onerror = onEnd; }
+  try { synth.speak(u); } catch { if (typeof onEnd === 'function') onEnd(); }
 }
 
 // ── Tier 1 · natural network voice (with auto-fallback to Tier 2) ─────────────
@@ -78,23 +79,33 @@ export function narrationSupported() {
 
 // Speak `text`, interrupting anything mid-utterance. Tries the natural network
 // voice first; on any load/playback failure (before audio starts) it seamlessly
-// falls back to the on-device voice.
-export function narrate(text, { lang = 'en' } = {}) {
+// falls back to the on-device voice. `onEnd` fires once when narration finishes
+// naturally on whichever tier actually played (not when interrupted by a new
+// narrate()/stopSpeaking() call — callers guard their own UI on interruption).
+export function narrate(text, { lang = 'en', rate = 0.98, onEnd } = {}) {
   if (typeof window === 'undefined' || !text) return;
   stopSpeaking();
 
-  if (typeof window.Audio !== 'function') { speakLocal(text); return; }
+  let ended = false;
+  const finish = () => {
+    if (ended) return;
+    ended = true;
+    if (typeof onEnd === 'function') { try { onEnd(); } catch { /* ignore */ } }
+  };
+
+  if (typeof window.Audio !== 'function') { speakLocal(text, { rate, onEnd: finish }); return; }
 
   let started = false;
   let audio;
   const url = `${PROXY_BASE}/api/tts?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(text)}`;
-  try { audio = new window.Audio(url); } catch { speakLocal(text); return; }
+  try { audio = new window.Audio(url); } catch { speakLocal(text, { rate, onEnd: finish }); return; }
   currentAudio = audio;
   audio.addEventListener('playing', () => { started = true; }, { once: true });
+  audio.addEventListener('ended', () => { if (currentAudio === audio) currentAudio = null; finish(); }, { once: true });
   const fallback = () => {
     if (started) return;                       // already audible — don't double-speak
     if (currentAudio === audio) currentAudio = null;
-    speakLocal(text);
+    speakLocal(text, { rate, onEnd: finish });
   };
   audio.addEventListener('error', fallback, { once: true });
   const p = audio.play();
