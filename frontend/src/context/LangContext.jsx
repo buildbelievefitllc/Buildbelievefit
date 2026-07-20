@@ -800,6 +800,10 @@ const DICT = {
 
   // Generator — injury-aware prehab indicator (reuses the oa-inj-* injury names).
   'gen-prehab-badge': { en: 'Calibrated for joint safety', es: 'Calibrado para la seguridad articular', pt: 'Calibrado para a segurança das articulações' },
+
+  // Tier selection — intake-driven recommendation highlight.
+  'tier-recommended': { en: 'Recommended for your goals', es: 'Recomendado para tus objetivos', pt: 'Recomendado para os seus objetivos' },
+  'tier-for-you': { en: 'For you', es: 'Para ti', pt: 'Para você' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });

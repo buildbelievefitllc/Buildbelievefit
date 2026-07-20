@@ -62,6 +62,34 @@ const TIERS = [
   { ...byName('BBF Catalyst'), idx: '03' },
 ].filter((tx) => tx.priceId); // defensive: drop any that failed to resolve
 
+// ── Smart tier highlighting — read the staged intake (set by the /assessment
+// wizard, before PendingIntakeSync clears it) and recommend an access depth from
+// the athlete's goals/biometrics. Read SYNCHRONOUSLY at first render so it wins
+// the race with the async localStorage purge. Recommendation only PRE-SELECTS +
+// highlights — it never forces checkout or hides the other tiers.
+function readPendingIntake() {
+  try {
+    const raw = localStorage.getItem('bbf_pending_intake');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.answers ? parsed.answers : null;
+  } catch { return null; }
+}
+function toNum(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
+// Tiers are same-standard, depth-of-access. Aggressive goals / injuries / a large
+// body-recomp target → the fullest tier (Autonomous); light general fitness →
+// Catalyst; everything else → the balanced Momentum.
+function recommendTierName(a) {
+  if (!a) return null;
+  const injuries = Array.isArray(a.injuries) ? a.injuries.filter((i) => i && i !== 'none') : [];
+  const w = toNum(a.weight);
+  const tw = toNum(a.targetWeight);
+  const bigDelta = w != null && tw != null && Math.abs(w - tw) >= (a.units === 'metric' ? 9 : 20);
+  if (['strength', 'lean_muscle', 'recomp'].includes(a.focus) || injuries.length > 0 || bigDelta) return 'BBF Autonomous';
+  if (a.focus === 'general' && injuries.length === 0 && !bigDelta) return 'BBF Catalyst';
+  return 'BBF Momentum';
+}
+
 export default function TierSelectionPitch() {
   const { t } = useLang();
   const navigate = useNavigate();
@@ -74,8 +102,16 @@ export default function TierSelectionPitch() {
   const screening = location.state?.screening || null;
   const screeningComplete = Boolean(screening?.complete && screening?.email);
 
-  // Default-active = the premium Vanguard tier (price anchor loads first).
-  const [active, setActive] = useState(TIERS[0]?.priceId || '');
+  // Intake-driven recommendation (read once, synchronously). Absent on a direct
+  // visit → falls back to the premium Vanguard anchor (unchanged behavior).
+  const [pendingIntake] = useState(readPendingIntake);
+  const recName = recommendTierName(pendingIntake);
+  const recommended = (recName && TIERS.find((tx) => tx.name === recName)) || null;
+  const recommendedPriceId = recommended?.priceId || '';
+
+  // Default-active = the recommended tier when we have intake, else the premium
+  // Vanguard tier (price anchor loads first).
+  const [active, setActive] = useState(recommendedPriceId || TIERS[0]?.priceId || '');
   const tier = TIERS.find((tx) => tx.priceId === active) || TIERS[0];
   // Fast-track checkout in flight (Screening Complete path only).
   const [checkingOut, setCheckingOut] = useState(false);
@@ -156,6 +192,9 @@ export default function TierSelectionPitch() {
                     <span style={{ ...st.tabTag, ...(on ? st.tabTagActive : null) }}>
                       {tx.price}{tx.per || ''}{tx.vanguard ? ' · Vanguard' : ''}
                     </span>
+                    {tx.priceId === recommendedPriceId ? (
+                      <span style={st.recTag} data-testid="tier-tab-recommended">★ {t('tier-for-you')}</span>
+                    ) : null}
                   </button>
                 );
               })}
@@ -165,6 +204,9 @@ export default function TierSelectionPitch() {
             <div style={st.panel} role="tabpanel">
               <div style={{ ...st.card, ...(tier.vanguard ? st.cardVanguard : null) }}>
                 {tier.vanguard ? <div style={st.vanguardBadge}>Vanguard · Most Complete</div> : null}
+                {tier.priceId === recommendedPriceId ? (
+                  <div style={st.recBadge} data-testid="tier-recommended">★ {t('tier-recommended')}</div>
+                ) : null}
                 <div style={st.cardName}>{tier.name}</div>
                 <div style={st.priceRow}>
                   <span style={st.price}>{tier.price}</span>
@@ -251,6 +293,8 @@ const st = {
   card: { position: 'relative', background: 'rgba(8,2,18,.55)', border: `1px solid rgba(157,39,201,.3)`, borderRadius: 16, padding: 'clamp(22px,4vw,32px)', textAlign: 'center' },
   cardVanguard: { border: `1px solid rgba(245,200,0,.45)`, boxShadow: `0 0 40px rgba(245,200,0,.12)` },
   vanguardBadge: { position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: `linear-gradient(180deg, ${GOLD} 0%, ${GOLD_LAB} 100%)`, color: '#1B1106', fontFamily: HEAD, fontSize: '.72rem', letterSpacing: '2px', textTransform: 'uppercase', padding: '4px 16px', borderRadius: 99, whiteSpace: 'nowrap', boxShadow: `0 6px 18px rgba(245,200,0,.4)` },
+  recBadge: { display: 'inline-block', fontFamily: BODY, fontSize: '.72rem', fontWeight: 700, letterSpacing: '1.4px', textTransform: 'uppercase', color: '#1B1106', background: `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_SOFT} 100%)`, borderRadius: 999, padding: '.28rem .85rem', marginBottom: 10, boxShadow: `0 6px 16px rgba(245,200,0,.3)` },
+  recTag: { fontFamily: BODY, fontSize: '.56rem', fontWeight: 700, letterSpacing: '1.4px', textTransform: 'uppercase', color: GOLD, marginTop: 3 },
   cardName: { fontFamily: HEAD, fontSize: 'clamp(1.6rem,5vw,2.2rem)', letterSpacing: '1px', color: '#fff', marginTop: 6 },
   priceRow: { display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4, margin: '.3rem 0 1.1rem' },
   price: { fontFamily: DISPLAY, fontSize: 'clamp(2.4rem,9vw,3.4rem)', color: GOLD_SOFT, lineHeight: 1 },
