@@ -1,0 +1,95 @@
+name: Daily Pedometer Sync
+
+# Scheduled trigger half of the BBF vitals sync pipeline. Fires the backend sync
+# engine once a day so athlete step / activity rollups stay current even when the
+# app isn't opened. This workflow is the SCHEDULER; the receiving Supabase edge
+# function (bbf-pedometer-sync) does the actual aggregation with the service role
+# and must be deployed separately (mcp deploy_edge_function). Until that function
+# exists the job reports the endpoint's response.
+#
+# Secrets (existing structure — repo Settings → Secrets and variables → Actions):
+#   BBF_COACH_AGENT_TOKEN   admin shared secret, sent as the X-BBF-Admin-Token header
+#   SUPABASE_ANON_KEY       Supabase gateway apikey (routes the request to the function)
+# If BBF_COACH_AGENT_TOKEN is absent the job SKIPS cleanly (no daily red X on an
+# unconfigured clone) — mirrors android-deploy.yml's self-gating pattern.
+
+on:
+  schedule:
+    - cron: "0 5 * * *"   # 05:00 UTC daily
+  workflow_dispatch: {}
+
+# Never overlap two syncs; let a running sync finish rather than cancel mid-write.
+concurrency:
+  group: pedometer-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # Public Supabase project functions base (project ihclbceghxpuawymlvgi — see
+  # CLAUDE.md §3). Not a secret; the admin token + anon key gate the call.
+  SUPABASE_FUNCTIONS_BASE: "https://ihclbceghxpuawymlvgi.supabase.co/functions/v1"
+  SYNC_FUNCTION: "bbf-pedometer-sync"
+
+jobs:
+  sync:
+    name: Trigger daily pedometer sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preflight — self-gate on the admin secret
+        id: preflight
+        env:
+          ADMIN_TOKEN: ${{ secrets.BBF_COACH_AGENT_TOKEN }}
+        run: |
+          if [ -z "${ADMIN_TOKEN}" ]; then
+            echo "::notice::BBF_COACH_AGENT_TOKEN not set — skipping pedometer sync."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: POST backend sync engine
+        if: steps.preflight.outputs.skip == 'false'
+        env:
+          ADMIN_TOKEN: ${{ secrets.BBF_COACH_AGENT_TOKEN }}
+          ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          URL="${SUPABASE_FUNCTIONS_BASE}/${SYNC_FUNCTION}"
+          echo "POST ${URL}"
+          attempt=1
+          max=4
+          delay=2
+          # Retry with exponential backoff — a cold edge function or a transient
+          # network blip should not fail the daily job on the first attempt.
+          while : ; do
+            code=$(curl -sS -o /tmp/sync-out.json -w "%{http_code}" -X POST "${URL}" \
+              -H "Content-Type: application/json" \
+              -H "X-BBF-Admin-Token: ${ADMIN_TOKEN}" \
+              -H "apikey: ${ANON_KEY}" \
+              -H "Authorization: Bearer ${ANON_KEY}" \
+              -d '{"action":"daily_sync","source":"github-cron"}' || echo "000")
+            echo "HTTP ${code}"
+            cat /tmp/sync-out.json 2>/dev/null || true
+            echo
+            if [ "${code}" -ge 200 ] && [ "${code}" -lt 300 ]; then
+              echo "Pedometer sync OK."
+              break
+            fi
+            # Scaffold-friendly: a 404 means the receiving edge function
+            # (bbf-pedometer-sync) isn't deployed yet — soft-skip (stay green)
+            # rather than fail daily. Deploy the function to make the sync live.
+            if [ "${code}" = "404" ]; then
+              echo "::notice::bbf-pedometer-sync not deployed yet (HTTP 404) — soft-skip."
+              break
+            fi
+            if [ "${attempt}" -ge "${max}" ]; then
+              echo "::error::Pedometer sync failed after ${max} attempts (last HTTP ${code})."
+              exit 1
+            fi
+            echo "Retry ${attempt}/${max} in ${delay}s…"
+            sleep "${delay}"
+            attempt=$((attempt + 1))
+            delay=$((delay * 2))
+          done

@@ -60,6 +60,11 @@ export default function HealthConnectStatus() {
   if (bridge.reason === 'no_bridge') return null;
 
   const connected = bridge.connected;
+  // 'probing' is the brief indeterminate window before the native availability
+  // check resolves — treat it as neutral (no alert pulse) so the header doesn't
+  // flash-then-settle. Only a RESOLVED, unauthorized bridge is "permissions missing".
+  const probing = bridge.reason === 'probing';
+  const permsMissing = !connected && !probing;
   const lastSync = handshake ? fmtTime(handshake.at) : null;
 
   // Payload snapshot — value or the explicit "Null" token (the whole point: an
@@ -73,9 +78,9 @@ export default function HealthConnectStatus() {
 
   return (
     <details className="sch-hc" data-testid="sch-hc-status">
-      {/* Bridge present but not connected → pulse the header to nudge a reconnect;
-          once connected the ring goes quiet (steady green dot signals healthy). */}
-      <summary className={`sch-hc-summary${!connected ? ' bbf-pulse bbf-pulse--gold' : ''}`}>
+      {/* Authorized → solid high-status chrome (is-live), no pulse. Permissions
+          missing → active gold pulse to prompt a reconnect. Probing → neutral. */}
+      <summary className={`sch-hc-summary${connected ? ' is-live' : ''}${permsMissing ? ' bbf-pulse bbf-pulse--gold' : ''}`}>
         <span className={`sch-hc-dot${connected ? ' is-on' : ''}`} aria-hidden="true" />
         <span className="sch-hc-title">{t('sch-hc-title')}</span>
         <span className={`sch-hc-state${connected ? ' is-on' : ''}`} data-testid="sch-hc-state">
