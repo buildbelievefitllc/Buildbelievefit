@@ -522,13 +522,24 @@ export default function Generator({ onRevertToLibrary }) {
 }
 
 function GeneratorOutput({ result }) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const tr = STR[lang] || STR.en;
   if (!result.program?.length) {
     return <div className="pg-card gen-placeholder">{tr.noMatch}</div>;
   }
+  const accommodated = Array.isArray(result.accommodatedInjuries) ? result.accommodatedInjuries : [];
   return (
     <div className="gen-out">
+      {accommodated.length ? (
+        <div className="gen-prehab pg-card" data-testid="gen-prehab-badges">
+          <span className="gen-prehab-lbl"><span aria-hidden="true">🛡️</span> {t('gen-prehab-badge')}</span>
+          <span className="gen-prehab-chips">
+            {accommodated.map((inj) => (
+              <span key={inj} className="gen-prehab-chip" data-testid={`gen-prehab-${inj}`}>{t(`oa-inj-${inj}`)}</span>
+            ))}
+          </span>
+        </div>
+      ) : null}
       {result.program.map((day, di) => (
         <div className="gen-day pg-card" key={day.label + di}>
           <div className="gen-dayhead">

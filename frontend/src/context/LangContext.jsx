@@ -797,6 +797,9 @@ const DICT = {
   'oa-cta-google': { en: 'Get My Fitness Plan with Google', es: 'Obtener mi plan con Google', pt: 'Obter meu plano com o Google' },
   'oa-cta-apple': { en: 'Continue with Apple', es: 'Continuar con Apple', pt: 'Continuar com a Apple' },
   'oa-auth-note': { en: 'Your answers are saved and applied to your plan the moment you sign in.', es: 'Tus respuestas se guardan y se aplican a tu plan en cuanto inicias sesión.', pt: 'Suas respostas são salvas e aplicadas ao seu plano assim que você entrar.' },
+
+  // Generator — injury-aware prehab indicator (reuses the oa-inj-* injury names).
+  'gen-prehab-badge': { en: 'Calibrated for joint safety', es: 'Calibrado para la seguridad articular', pt: 'Calibrado para a segurança das articulações' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });
