@@ -16,7 +16,6 @@
 import { useEffect, useState } from 'react';
 import { listResearch, ingestResearch, deleteResearch, RESEARCH_CATEGORIES } from '../../lib/coachLabApi.js';
 import ResearchLibrary from './ResearchLibrary.jsx';
-import EvidenceFeed from './EvidenceFeed.jsx';
 import { CloseIcon } from '../vault/icons.jsx';
 
 export default function ResearchVault({ L }) {
@@ -74,9 +73,6 @@ export default function ResearchVault({ L }) {
 
   return (
     <div className="cl-vault" data-testid="research-vault">
-      {/* Verified evidence feed — PubMed-checked briefs, DOI-cited, Google-voice narrated */}
-      <EvidenceFeed />
-
       {/* Curated academic library — criteria checklist + narrated study grid */}
       <ResearchLibrary />
 

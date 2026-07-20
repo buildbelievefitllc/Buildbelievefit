@@ -18,10 +18,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../../context/LangContext.jsx';
-import { listResearch, broadcastResearch } from '../../lib/coachLabApi.js';
 import { generateStudioVoiceover } from '../../lib/studioApi.js';
 import { renderResearchReel, reelRenderSupported, reelFileName, classifyStudy } from '../../lib/researchReel.js';
 import researchVaultData from '../../data/exerciseScienceResearchVault.json';
+import EvidenceFeed from './EvidenceFeed.jsx';
 import CoachVideoLibrary from './CoachVideoLibrary.jsx';
 
 const STUDIES = researchVaultData.research_studies || [];
@@ -111,103 +111,9 @@ export default function BroadcastHub() {
           onClick={() => setMode('library')} data-testid="bc-mode-library">{L.modeLibrary}</button>
       </div>
 
-      {mode === 'newsletter' ? <NewsletterMode L={L} />
+      {mode === 'newsletter' ? <EvidenceFeed />
         : mode === 'video' ? <VideoMode L={L} />
           : <CoachVideoLibrary />}
-    </div>
-  );
-}
-
-// ── NEWSLETTER (original behaviour, unchanged aside from extraction) ──────────
-function NewsletterMode({ L }) {
-  const [cards, setCards] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [picked, setPicked] = useState(() => new Set());
-  const [format, setFormat] = useState('email');
-  const [busy, setBusy] = useState(false);
-  const [newsletter, setNewsletter] = useState('');
-  const [error, setError] = useState(null);
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-    listResearch()
-      .then((rows) => { if (alive) { setCards(rows); setLoading(false); } })
-      .catch((e) => { if (alive) { setError(e.message); setLoading(false); } });
-    return () => { alive = false; };
-  }, []);
-
-  const toggle = (id) => setPicked((s) => {
-    const n = new Set(s);
-    if (n.has(id)) n.delete(id);
-    else if (n.size < 5) n.add(id);
-    return n;
-  });
-
-  const synthesize = async () => {
-    if (picked.size < 1 || busy) return;
-    setBusy(true); setError(null); setNewsletter(''); setCopied(false);
-    try { const r = await broadcastResearch([...picked], format); setNewsletter(r.newsletter); }
-    catch (e) { setError(e.message); }
-    finally { setBusy(false); }
-  };
-
-  const copy = async () => {
-    try { await navigator.clipboard.writeText(newsletter); setCopied(true); setTimeout(() => setCopied(false), 1800); }
-    catch { /* clipboard blocked — user can select manually */ }
-  };
-
-  if (loading) return <p className="cl-muted" role="status">{L.loading}</p>;
-  if (!cards.length) {
-    return (
-      <div className="cl-empty" data-testid="bc-newsletter-empty">
-        <div className="cl-empty-orb" aria-hidden="true">✉</div>
-        <h4 className="cl-empty-title">{L.emptyTitle}</h4>
-        <p className="cl-empty-sub">{L.emptySub}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div data-testid="bc-newsletter">
-      <p className="cl-intro">{L.intro}</p>
-      <div className="bc-toolbar">
-        <span className="bc-hint">{L.selectHint} · <strong>{picked.size}</strong> {L.selected}</span>
-        <div className="bc-format" role="group" aria-label="format">
-          <button type="button" className={`bc-fmt${format === 'email' ? ' is-active' : ''}`} onClick={() => setFormat('email')}>{L.formatEmail}</button>
-          <button type="button" className={`bc-fmt${format === 'markdown' ? ' is-active' : ''}`} onClick={() => setFormat('markdown')}>{L.formatMarkdown}</button>
-        </div>
-      </div>
-
-      <div className="bc-list">
-        {cards.map((c) => {
-          const on = picked.has(c.id);
-          return (
-            <button key={c.id} type="button" className={`bc-item${on ? ' is-on' : ''}`} onClick={() => toggle(c.id)} aria-pressed={on} data-testid={`bc-pick-${c.id}`}>
-              <span className="bc-check" aria-hidden="true">{on ? '✓' : ''}</span>
-              <span className="bc-item-text">
-                <span className="bc-item-title">{c.title}</span>
-                <span className="bc-item-cat">{c.category}</span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <button type="button" className="cl-summarize" onClick={synthesize} disabled={picked.size < 1 || busy} data-testid="bc-synthesize">
-        {busy ? L.synthesizing : `✉ ${L.synthesize}`}
-      </button>
-      {error ? <p className="cl-err" role="alert">{L.errorPrefix}: {error}</p> : null}
-
-      {newsletter ? (
-        <div className="bc-result" data-testid="bc-result">
-          <div className="bc-result-head">
-            <span className="bc-result-lbl">{L.resultLabel}</span>
-            <button type="button" className="kl-btn" onClick={copy} data-testid="bc-copy">{copied ? L.copied : L.copy}</button>
-          </div>
-          <textarea className="bc-output" readOnly value={newsletter} rows={16} />
-        </div>
-      ) : null}
     </div>
   );
 }
