@@ -750,6 +750,53 @@ const DICT = {
   'mm-c2-body': { en: 'Clear protein targets mapped to your training volume to fuel cellular repair.', es: 'Objetivos claros de proteína alineados con tu volumen de entrenamiento para impulsar la reparación celular.', pt: 'Metas claras de proteína alinhadas ao seu volume de treino para impulsionar o reparo celular.' },
   'mm-c3-title': { en: 'Closed-Loop Telemetry', es: 'Telemetría de Circuito Cerrado', pt: 'Telemetria de Circuito Fechado' },
   'mm-c3-body': { en: 'Tracking strength trends over 30, 60, and 90 days to prove your body composition is optimizing.', es: 'Seguimos tus tendencias de fuerza a 30, 60 y 90 días para comprobar que tu composición corporal está optimizándose.', pt: 'Acompanhamos suas tendências de força em 30, 60 e 90 dias para comprovar que sua composição corporal está otimizando.' },
+
+  // ── Sovereign Intake wizard (/assessment) ──
+  'oa-kicker': { en: 'Sovereign Intake', es: 'Evaluación Soberana', pt: 'Avaliação Soberana' },
+  'oa-step': { en: 'Step', es: 'Paso', pt: 'Passo' },
+  'oa-of': { en: 'of', es: 'de', pt: 'de' },
+  'oa-back': { en: 'Back', es: 'Atrás', pt: 'Voltar' },
+  'oa-continue': { en: 'Continue', es: 'Continuar', pt: 'Continuar' },
+  'oa-review': { en: 'Review my plan', es: 'Revisar mi plan', pt: 'Revisar meu plano' },
+  'oa-opening': { en: 'Opening…', es: 'Abriendo…', pt: 'Abrindo…' },
+
+  'oa-focus-title': { en: "What's your #1 focus right now?", es: '¿Cuál es tu objetivo principal ahora?', pt: 'Qual é o seu foco número um agora?' },
+  'oa-focus-sub': { en: 'This sets the engine behind your whole plan.', es: 'Esto define el motor detrás de todo tu plan.', pt: 'Isto define o motor por trás de todo o seu plano.' },
+  'oa-focus-lean_muscle': { en: 'Build lean muscle mass fast', es: 'Ganar masa muscular magra rápido', pt: 'Ganhar massa muscular magra rápido' },
+  'oa-focus-fat_loss': { en: 'Lose fat & get lean', es: 'Perder grasa y definirte', pt: 'Perder gordura e definir' },
+  'oa-focus-strength': { en: 'Boost raw strength & power', es: 'Aumentar fuerza y potencia', pt: 'Aumentar força e potência' },
+  'oa-focus-recomp': { en: 'Recomposition — build & burn at once', es: 'Recomposición — construir y quemar a la vez', pt: 'Recomposição — construir e queimar ao mesmo tempo' },
+  'oa-focus-mobility': { en: 'Restore mobility & joint health', es: 'Recuperar movilidad y salud articular', pt: 'Recuperar mobilidade e saúde das articulações' },
+  'oa-focus-general': { en: 'General fitness & daily energy', es: 'Estado físico general y energía diaria', pt: 'Condicionamento geral e energia diária' },
+
+  'oa-metrics-title': { en: 'Your starting numbers', es: 'Tus números de partida', pt: 'Seus números de partida' },
+  'oa-metrics-sub': { en: 'We calibrate load and targets to your body — nothing shared.', es: 'Calibramos la carga y las metas a tu cuerpo — nada se comparte.', pt: 'Calibramos a carga e as metas ao seu corpo — nada é compartilhado.' },
+  'oa-units-imperial': { en: 'Imperial', es: 'Imperial', pt: 'Imperial' },
+  'oa-units-metric': { en: 'Metric', es: 'Métrico', pt: 'Métrico' },
+  'oa-height': { en: 'Height', es: 'Altura', pt: 'Altura' },
+  'oa-weight': { en: 'Current weight', es: 'Peso actual', pt: 'Peso atual' },
+  'oa-target': { en: 'Target weight', es: 'Peso objetivo', pt: 'Peso alvo' },
+
+  'oa-avail-title': { en: 'How many days a week can you train?', es: '¿Cuántos días por semana puedes entrenar?', pt: 'Quantos dias por semana você pode treinar?' },
+  'oa-avail-sub': { en: 'Be honest — we build the plan around your real life.', es: 'Sé honesto — construimos el plan según tu vida real.', pt: 'Seja honesto — montamos o plano de acordo com a sua vida real.' },
+  'oa-days': { en: 'days', es: 'días', pt: 'dias' },
+
+  'oa-inj-title': { en: 'Any injuries we should train around?', es: '¿Alguna lesión que debamos considerar?', pt: 'Alguma lesão que devemos considerar?' },
+  'oa-inj-sub': { en: 'Select all that apply — this drives your prehab and load caps.', es: 'Selecciona todas las que apliquen — esto define tu prehab y tus límites de carga.', pt: 'Selecione todas que se aplicam — isto define seu prehab e seus limites de carga.' },
+  'oa-inj-none': { en: 'No injuries', es: 'Sin lesiones', pt: 'Sem lesões' },
+  'oa-inj-knee': { en: 'Knee', es: 'Rodilla', pt: 'Joelho' },
+  'oa-inj-shoulder': { en: 'Shoulder', es: 'Hombro', pt: 'Ombro' },
+  'oa-inj-lower_back': { en: 'Lower back', es: 'Zona lumbar', pt: 'Lombar' },
+  'oa-inj-hip': { en: 'Hip', es: 'Cadera', pt: 'Quadril' },
+  'oa-inj-ankle': { en: 'Ankle / foot', es: 'Tobillo / pie', pt: 'Tornozelo / pé' },
+  'oa-inj-wrist_elbow': { en: 'Wrist / elbow', es: 'Muñeca / codo', pt: 'Punho / cotovelo' },
+  'oa-inj-neck': { en: 'Neck', es: 'Cuello', pt: 'Pescoço' },
+
+  'oa-finish-title': { en: 'Your plan is ready to build', es: 'Tu plan está listo para construirse', pt: 'Seu plano está pronto para ser construído' },
+  'oa-finish-sub': { en: 'Create your account to lock it in — takes one tap.', es: 'Crea tu cuenta para asegurarlo — un solo toque.', pt: 'Crie sua conta para garantir — em um toque.' },
+  'oa-cta-google': { en: 'Get My Fitness Plan with Google', es: 'Obtener mi plan con Google', pt: 'Obter meu plano com o Google' },
+  'oa-cta-apple': { en: 'Continue with Apple', es: 'Continuar con Apple', pt: 'Continuar com a Apple' },
+  'oa-auth-note': { en: 'Your answers are saved and applied to your plan the moment you sign in.', es: 'Tus respuestas se guardan y se aplican a tu plan en cuanto inicias sesión.', pt: 'Suas respostas são salvas e aplicadas ao seu plano assim que você entrar.' },
 };
 
 const LangContext = createContext({ lang: 'en', setLang: () => {}, t: (k) => k });

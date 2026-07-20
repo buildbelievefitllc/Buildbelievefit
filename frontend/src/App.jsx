@@ -25,6 +25,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
 import AdminGuard from './components/AdminGuard.jsx';
 import Login from './pages/Login.jsx';
+import PendingIntakeSync from './components/PendingIntakeSync.jsx';
 import TierGate from './components/TierGate.jsx';
 import { isSportsAthlete, SPORTS_HUB_PATH } from './lib/sportsRoster.js';
 import { isNativePlatform } from './native/platform.js';
@@ -160,6 +161,10 @@ function SportsRoute() {
 
 export default function App() {
   return (
+    <>
+    {/* Root listener: writes the staged /assessment intake to the DB on first
+        authenticated session, then purges it. Renders nothing. */}
+    <PendingIntakeSync />
     <Suspense fallback={<div style={bootStyle}>Loading…</div>}>
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -211,5 +216,6 @@ export default function App() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </Suspense>
+    </>
   );
 }
