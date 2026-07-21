@@ -41,7 +41,12 @@ const MarketingLanding = lazy(() => import('./pages/MarketingLanding.jsx'));
 // (/pathfinder). Both public, both their own chunk so they don't drag in the Vault.
 const DailyBurnCalculator = lazy(() => import('./pages/DailyBurnCalculator.jsx'));
 const TierSelectionPitch = lazy(() => import('./pages/TierSelectionPitch.jsx'));
-const OnboardingAssessment = lazy(() => import('./pages/OnboardingAssessment.jsx'));
+// The /assessment front door is now the live VOICE conversational intake (Coach
+// Akeem talks the visitor through their goals). It emits the identical
+// bbf_pending_intake payload the old tap wizard did, so all downstream reuse is
+// intact. The legacy tap wizard (OnboardingAssessment.jsx) still provides the
+// PENDING_INTAKE_KEY + the tap fallback logic the voice page imports.
+const VoiceIntake = lazy(() => import('./pages/VoiceIntake.jsx'));
 const ExplorerVault = lazy(() => import('./pages/ExplorerVault.jsx'));
 const PathfinderPage = lazy(() => import('./pages/PathfinderPage.jsx'));
 const ProtocolInitialization = lazy(() => import('./pages/ProtocolInitialization.jsx'));
@@ -179,10 +184,12 @@ export default function App() {
       {/* Upsell bridge — three Online Fitness tiers in the LOCKED tab-deck; a
           Select Plan choice forwards the chosen priceId + biometrics on. */}
       <Route path="/select-tier" element={<TierSelectionPitch />} />
-      {/* The Sovereign Intake — premium multi-step assessment (top-of-funnel). Its
-          "Get My Fitness Plan" CTA bridges into Supabase OAuth and shunts the
-          post-auth redirect straight to the /select-tier subscription gate. */}
-      <Route path="/assessment" element={<OnboardingAssessment />} />
+      {/* The Voice Intake — a LIVE conversational assessment (top-of-funnel):
+          Coach Akeem's ElevenLabs voice talks the visitor through their goals,
+          answered by voice or tap. Its OAuth CTA shunts the post-auth redirect
+          straight to the /select-tier subscription gate. Emits the identical
+          bbf_pending_intake payload the tap wizard did (downstream unchanged). */}
+      <Route path="/assessment" element={<VoiceIntake />} />
 
       {/* EXPLORER MODE — the read-only guest sandbox (conversion funnel). Public
           route; the page itself bounces to /burn when no guest envelope exists. */}

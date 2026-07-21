@@ -801,6 +801,30 @@ const DICT = {
   'oa-cta-apple': { en: 'Continue with Apple', es: 'Continuar con Apple', pt: 'Continuar com a Apple' },
   'oa-auth-note': { en: 'Your answers are saved and applied to your plan the moment you sign in.', es: 'Tus respuestas se guardan y se aplican a tu plan en cuanto inicias sesión.', pt: 'Suas respostas são salvas e aplicadas ao seu plano assim que você entrar.' },
 
+  // ── Voice Intake (/assessment) — live conversational intake with Coach Akeem ──
+  'vi-kicker': { en: 'Live Intake · Coach Akeem', es: 'Intake en Vivo · Coach Akeem', pt: 'Intake ao Vivo · Coach Akeem' },
+  'vi-status-speaking': { en: 'Coach Akeem is speaking…', es: 'El Coach Akeem está hablando…', pt: 'O Coach Akeem está falando…' },
+  'vi-status-listening': { en: 'Listening…', es: 'Escuchando…', pt: 'Ouvindo…' },
+  'vi-status-turn': { en: 'Your turn — speak or tap', es: 'Tu turno — habla o toca', pt: 'Sua vez — fale ou toque' },
+  'vi-who-coach': { en: 'Coach Akeem', es: 'Coach Akeem', pt: 'Coach Akeem' },
+  'vi-who-you': { en: 'You', es: 'Tú', pt: 'Você' },
+  'vi-replay': { en: 'Replay Coach Akeem', es: 'Repetir al Coach Akeem', pt: 'Repetir o Coach Akeem' },
+  'vi-speak-btn': { en: 'Speak your answer', es: 'Di tu respuesta', pt: 'Diga sua resposta' },
+  'vi-listening-btn': { en: 'Listening — tap to stop', es: 'Escuchando — toca para parar', pt: 'Ouvindo — toque para parar' },
+  'vi-mute': { en: 'Mute coach voice', es: 'Silenciar la voz del coach', pt: 'Silenciar a voz do coach' },
+  'vi-unmute': { en: 'Unmute coach voice', es: 'Activar la voz del coach', pt: 'Ativar a voz do coach' },
+  'vi-tap-hint': { en: 'Prefer to type? Every question works by tap too.', es: '¿Prefieres escribir? Cada pregunta también funciona al tocar.', pt: 'Prefere digitar? Cada pergunta também funciona ao tocar.' },
+  'vi-stt-unsupported': { en: 'Voice input isn’t supported on this browser — tap your answer instead.', es: 'La entrada de voz no es compatible con este navegador — toca tu respuesta.', pt: 'A entrada de voz não é compatível com este navegador — toque sua resposta.' },
+  'vi-stt-denied': { en: 'Microphone access was blocked — tap your answer, or enable the mic.', es: 'Se bloqueó el acceso al micrófono — toca tu respuesta o habilita el micrófono.', pt: 'O acesso ao microfone foi bloqueado — toque sua resposta ou habilite o microfone.' },
+  'vi-stt-no-speech': { en: 'Didn’t catch that — tap the mic to try again, or tap your answer.', es: 'No lo capté — toca el micrófono para reintentar o toca tu respuesta.', pt: 'Não entendi — toque no microfone para tentar de novo ou toque sua resposta.' },
+  // Spoken lines — MUST match the bbf-intake-voice edge function allowlist verbatim
+  // (audio and on-screen transcript are the same words).
+  'vi-say-greeting': { en: "Hey — I'm Coach Akeem. Let's build your plan together. I'll ask you a few quick questions. You can just talk to me, or tap your answer. First up: what's your number one focus right now?", es: 'Hola, soy el Coach Akeem. Vamos a crear tu plan juntos. Te haré unas preguntas rápidas. Puedes hablarme o tocar tu respuesta. Primero: ¿cuál es tu enfoque número uno ahora mismo?', pt: 'Olá, sou o Coach Akeem. Vamos criar seu plano juntos. Vou fazer algumas perguntas rápidas. Você pode falar comigo ou tocar na sua resposta. Primeiro: qual é o seu foco número um agora?' },
+  'vi-say-metrics': { en: "Got it. Now let's get your numbers. Tell me your height, your current weight, and the weight you're aiming for.", es: 'Perfecto. Ahora tus números. Dime tu estatura, tu peso actual y el peso que quieres alcanzar.', pt: 'Perfeito. Agora os seus números. Diga sua altura, seu peso atual e o peso que você quer alcançar.' },
+  'vi-say-availability': { en: 'How many days a week can you realistically train?', es: '¿Cuántos días a la semana puedes entrenar de forma realista?', pt: 'Quantos dias por semana você consegue treinar de forma realista?' },
+  'vi-say-injuries': { en: "Last thing — any injuries or areas I should train around? If you're all good, just say none.", es: 'Lo último: ¿alguna lesión o zona que deba cuidar al entrenarte? Si estás bien, solo di ninguna.', pt: 'Por último: alguma lesão ou área que eu deva respeitar no treino? Se estiver tudo bem, é só dizer nenhuma.' },
+  'vi-say-wrap': { en: "Perfect. I've got what I need to build your plan. Sign in and I'll take you straight to your recommended tier.", es: 'Perfecto. Ya tengo lo que necesito para crear tu plan. Inicia sesión y te llevo directo a tu nivel recomendado.', pt: 'Perfeito. Já tenho o que preciso para criar seu plano. Faça login e eu te levo direto ao seu nível recomendado.' },
+
   // Generator — injury-aware prehab indicator (reuses the oa-inj-* injury names).
   'gen-prehab-badge': { en: 'Calibrated for joint safety', es: 'Calibrado para la seguridad articular', pt: 'Calibrado para a segurança das articulações' },
 
