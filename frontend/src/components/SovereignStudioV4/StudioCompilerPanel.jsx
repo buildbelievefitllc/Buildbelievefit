@@ -21,6 +21,14 @@ import { useState } from 'react';
 import { createCompileJob, signCompileUpload, uploadCompiledAsset, completeCompileJob, failCompileJob } from '../../lib/studioCompilerApi.js';
 import { renderReelOverlay } from '../../lib/reelOverlayCanvas.js';
 
+// Foundry failure slugs → operator-readable messages (the panel states exactly
+// what went wrong — house rule). Unknown reasons pass through verbatim.
+const COMPILE_ERRORS = {
+  footage_load_failed: 'The background video URL could not be loaded/decoded — check the URL is a direct, publicly reachable MP4 and retry.',
+  seek_stalled: 'The background video stopped responding mid-render — retry; if it repeats, re-host the file or use a shorter clip.',
+  empty_recording: 'The render produced no data — try again, or use a recent desktop Chrome/Edge.',
+};
+
 const HOOK_FONTS = [['bebas', 'BEBAS'], ['anton', 'ANTON'], ['barlow', 'BARLOW']];
 const TEXT_LAYOUTS = [['bottom', 'BOTTOM'], ['center', 'CENTER'], ['top', 'TOP']];
 
@@ -96,8 +104,8 @@ export default function StudioCompilerPanel() {
       setStatusText('');
     } catch (e) {
       const reason = e?.message || String(e);
-      if (jobId) await failCompileJob(jobId, reason);
-      setError(reason);
+      if (jobId) await failCompileJob(jobId, reason); // the job row keeps the raw slug
+      setError(COMPILE_ERRORS[reason] || reason);
       setPhase('error');
       setStatusText('');
     }

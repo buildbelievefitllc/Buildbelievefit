@@ -180,6 +180,16 @@ export class SovereignFoundry {
 
     try {
       await this._whenReady(video);
+      // FAIL FAST, NEVER GRIND: if the footage did not produce a decodable frame
+      // (dead/revoked blob URL after a tab reclaim, unsupported codec, media error,
+      // the browser refusing a second decoder), abort with a clear reason NOW.
+      // Before this guard, a broken video slid past the readiness wait and fell
+      // into the seek loop, where every frame burned the full seek safety timeout —
+      // hours of silent black-frame encoding that the UI showed as "stuck at 0%".
+      if (video.error || !(video.videoWidth > 0) || video.readyState < 2) {
+        throw new Error('footage_load_failed');
+      }
+      if (onProgress) onProgress(0.02); // footage decoded — the engine is alive
       const footageDur = (Number.isFinite(video.duration) && video.duration > 0) ? video.duration : 0;
 
       // Decode + resample the voiceover FIRST so its real length drives the duration.
@@ -206,6 +216,7 @@ export class SovereignFoundry {
         if (!dec.error) footageBuffer = dec.buffer;
       }
       const voDur = voBuffer ? (voBuffer.length / voBuffer.sampleRate) : 0;
+      if (onProgress) onProgress(0.04); // audio fetched + decoded
 
       // Ad Compiler contract (audioIsDurationMaster): the final MP4 runs EXACTLY
       // the audio track's length — shorter footage loops beneath it (unchanged),
@@ -431,7 +442,7 @@ export class SovereignFoundry {
         // sacrificed for memory; the queue still bounds runaway growth on slow encoders.
         if ((lastEnc < 0 || tSec - lastEnc >= minDelta) && venc.encodeQueueSize < 120) {
           encodeAt(tSec); lastEnc = tSec; count += 1;
-          if (onProgress) onProgress(Math.min(0.95, (tSec / d) * 0.95));
+          if (onProgress) onProgress(Math.min(0.95, 0.05 + (tSec / d) * 0.9));
         }
         video.requestVideoFrameCallback(onFrame);
       };
@@ -447,18 +458,30 @@ export class SovereignFoundry {
   // starts). Slower — one decode per frame — but deterministic.
   async _captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr }) {
     const totalFrames = Math.max(1, Math.round(d * fps));
+    // STALL GUARD: _seekReady tells us whether each seek confirmed via a real
+    // 'seeked' signal or only via its 3s safety net. A video that stops seeking
+    // (media error mid-render, evicted blob, hung decoder) burns that net on EVERY
+    // frame — 3s × thousands of frames of black output while the UI reads "0%".
+    // Five consecutive dead seeks ≈ 15s of zero real signals → abort with a reason.
+    let deadSeeks = 0;
     for (let i = 0; i < totalFrames; i++) {
       if (getErr()) throw getErr();
       const tSec = i / fps;
       const seekT = footageDur > 0 ? Math.min(tSec % footageDur, footageDur - 1e-3) : tSec;
-      await this._seekReady(video, Math.max(0, seekT));
+      const live = await this._seekReady(video, Math.max(0, seekT));
+      deadSeeks = live ? 0 : deadSeeks + 1;
+      if (deadSeeks >= 5) throw new Error('seek_stalled');
       encodeAt(tSec);
-      if (onProgress) onProgress(Math.min(0.95, (i / totalFrames) * 0.95));
+      if (onProgress) onProgress(Math.min(0.95, 0.05 + (i / totalFrames) * 0.9));
       if (venc.encodeQueueSize > 16) await this._drain(venc);
     }
   }
 
   // Wait until the footage has metadata AND a first decoded frame is available.
+  // Resolves on ready, on a MEDIA ERROR (dead/revoked URL, unsupported codec —
+  // the 'error' event, previously unheard, which left a broken video to slide
+  // into the frame loop), or after the hard safety net. The caller inspects
+  // video.error / videoWidth / readyState and fails fast on a broken element.
   _whenReady(video) {
     return new Promise((resolve) => {
       let settled = false;
@@ -466,14 +489,17 @@ export class SovereignFoundry {
       const check = () => { if (video.readyState >= 2 && video.videoWidth > 0) finish(); };
       const onMeta = () => check();
       const onData = () => check();
+      const onError = () => finish(); // media error — resolve NOW, caller sees video.error
       function cleanup() {
         video.removeEventListener('loadedmetadata', onMeta);
         video.removeEventListener('loadeddata', onData);
         video.removeEventListener('canplay', onData);
+        video.removeEventListener('error', onError);
       }
       video.addEventListener('loadedmetadata', onMeta);
       video.addEventListener('loadeddata', onData);
       video.addEventListener('canplay', onData);
+      video.addEventListener('error', onError);
       check();
       setTimeout(finish, 8000); // hard safety net
     });
@@ -482,10 +508,12 @@ export class SovereignFoundry {
   // Seek to t and resolve only once the EXACT decoded frame is painted/presentable.
   // 'seeked' = decode done; one requestVideoFrameCallback = frame propagated to the
   // compositor (so drawImage samples the real target frame, never a stale one).
+  // Resolves `true` when a REAL signal confirmed the frame ('seeked' fired), `false`
+  // when only the 3s last-resort net fired — the caller's stall guard counts those.
   _seekReady(video, t) {
     return new Promise((resolve) => {
       let settled = false;
-      const finish = () => { if (settled) return; settled = true; cleanup(); resolve(); };
+      const finish = (live = true) => { if (settled) return; settled = true; cleanup(); resolve(live); };
       // After 'seeked' the decoded frame for `t` is the element's current frame.
       // Confirm it is painted before we sample, RACING two signals so we are fast in
       // every environment: requestVideoFrameCallback (real GPU compositor, ~16ms) vs
@@ -513,8 +541,8 @@ export class SovereignFoundry {
         confirmPaint();
         return;
       }
-      try { video.currentTime = t; } catch { finish(); }
-      setTimeout(finish, 3000); // safety net for a dropped 'seeked'
+      try { video.currentTime = t; } catch { finish(false); } // can't even seek — dead
+      setTimeout(() => finish(false), 3000); // safety net for a dropped 'seeked' — a dead signal
     });
   }
 
@@ -707,13 +735,20 @@ export class SovereignFoundry {
   // so the UI can state exactly why audio failed (CORS / Decode / etc.).
   async _decodeVo(voUrl) {
     const TARGET_SR = 48_000;
-    // ── CORS fetch ──
+    // ── CORS fetch — bounded at 30s. This fetch runs BEFORE any frame is captured
+    // (0% on the progress bar); untimed, a stalled-but-open connection froze the
+    // whole render there indefinitely. A timeout surfaces as a normal audio-decode
+    // failure ('Timeout'), which the render treats as audio-missing, never fatal. ──
     let arr;
+    const abort = new AbortController();
+    const timer = setTimeout(() => abort.abort(), 30_000);
     try {
-      const res = await fetch(voUrl, { mode: 'cors', credentials: 'omit', cache: 'no-store' });
+      const res = await fetch(voUrl, { mode: 'cors', credentials: 'omit', cache: 'no-store', signal: abort.signal });
       if (!res.ok) return { error: `Fetch ${res.status}` };
       arr = await res.arrayBuffer();
-    } catch { return { error: 'CORS / network' }; }
+    } catch (e) {
+      return { error: e?.name === 'AbortError' ? 'Timeout' : 'CORS / network' };
+    } finally { clearTimeout(timer); }
     if (!arr || arr.byteLength < 16) return { error: 'Empty file' };
 
     // ── Decode (MP3/WAV/etc.) ──

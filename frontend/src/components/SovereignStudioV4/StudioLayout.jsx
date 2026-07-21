@@ -95,6 +95,8 @@ function humanizeReelErr(slug) {
     no_stage: 'Reel preview not ready — switch to the Video Engine tab and retry.',
     empty_recording: 'The render produced no data — try again, or use a different browser.',
     play_failed: 'Could not start footage playback — re-upload the clip and retry.',
+    footage_load_failed: 'The footage could not be decoded (the upload may have expired after a reload, or the format is unsupported) — re-upload the clip and retry.',
+    seek_stalled: 'The footage stopped responding mid-render — re-upload the clip and retry. If it repeats, close other tabs or restart the browser.',
     no_admin_session: 'No admin session — sign in to the Command Center, then retry.',
     not_admin: 'This session is not an authorized admin.',
   };
