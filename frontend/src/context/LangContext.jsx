@@ -28,6 +28,8 @@ const DICT = {
   'hero-sub': { en: 'Universal performance for the high-demand human. We optimize the habit architecture of everyday athletes, executives, and first responders. Your schedule is the context. Your potential is the focus.', es: 'Rendimiento universal para el ser humano de alta demanda. Optimizamos la arquitectura de hábitos de atletas cotidianos, ejecutivos y socorristas. Tu horario es el contexto. Tu potencial es el enfoque.', pt: 'Performance universal para o ser humano de alta demanda. Otimizamos a arquitetura de hábitos de atletas do dia a dia, executivos e socorristas. Sua agenda é o contexto. Seu potencial é o foco.' },
   // Primary registration CTA — renamed to the 30-Day Calibration narrative (CEO order).
   'hero-cta': { en: 'BEGIN CALIBRATION ➔', es: 'INICIAR CALIBRACIÓN ➔', pt: 'INICIAR CALIBRAÇÃO ➔' },
+  'assess-micro': { en: 'Take the 2-Min Interactive Assessment', es: 'Haz la evaluación interactiva de 2 minutos', pt: 'Faça a avaliação interativa de 2 minutos' },
+  'pathfinder-alt': { en: 'Prefer a direct form? Start Pathfinder →', es: '¿Prefieres un formulario directo? Inicia Pathfinder →', pt: 'Prefere um formulário direto? Inicie o Pathfinder →' },
   // ── "Earn The Vault" — 30-Day Biometric Calibration landing manifesto (the band
   // directly under the hero). {phase} marks where the bold calibration phrase renders. ──
   'cal-land-lbl': { en: 'Earn The Vault', es: 'Gana El Cofre', pt: 'Conquiste o Cofre' },

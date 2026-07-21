@@ -128,12 +128,12 @@ export default function MarketingLanding() {
     });
   };
   const goToPathfinder = () => goToTab('pathfinder');
-  // Primary conversion CTAs (nav "Start" + hero) route organic traffic into the
-  // SAME upsell→intake pipeline the /burn calculator funnel uses: the tier-
-  // selection bridge, then the screening-gated Pathfinder. (The in-page Four Paths
-  // deck + PricingMatrix stay as the multi-category browse path — nutrition / youth
-  // / hybrid — and keep their own startCheckout→pathfinder flow.)
-  const goToSelectTier = () => navigate('/select-tier');
+  // Primary conversion CTAs (nav "Start" + hero) launch the interactive Sovereign
+  // Intake wizard (/assessment) — it captures goals + biometrics, then hands off
+  // (via OAuth) to the /select-tier bridge and the screening-gated Pathfinder. The
+  // in-page Four Paths deck + PricingMatrix keep their own startCheckout→pathfinder
+  // browse flow, and the direct Pathfinder tab stays as the fast-track alternative.
+  const goToAssessment = () => navigate('/assessment');
 
   // ── Pricing → Pathfinder → Pay gate (CEO liability directive) ─────────────────
   // A price CTA NO LONGER jumps straight to Stripe. It records the chosen plan +
@@ -192,7 +192,7 @@ export default function MarketingLanding() {
           <button type="button" style={s.navSignIn} onClick={() => goToKnowledge('interrogator')}>{t('nav-audit')}</button>
           <button type="button" style={s.navSignIn} onClick={() => goToTab('legacy')}>{t('nav-about')}</button>
           <button type="button" style={s.navSignIn} onClick={enter}>{t('nav-signin')}</button>
-          <button type="button" style={s.navCta} onClick={goToSelectTier}>{t('nav-start')}</button>
+          <button type="button" style={s.navCta} onClick={goToAssessment}>{t('nav-start')}</button>
           <LangToggle />
         </div>
       </nav>
@@ -207,7 +207,11 @@ export default function MarketingLanding() {
             <span style={s.hsFit}>FIT</span>
           </h1>
           <p style={s.heroSub}>{t('hero-sub')}</p>
-          <button type="button" style={s.heroCta} onClick={goToSelectTier}>{t('hero-cta')}</button>
+          <div style={s.ctaMicro}>★ {t('assess-micro')}</div>
+          <button type="button" style={s.heroCta} onClick={goToAssessment}>{t('hero-cta')}</button>
+          <div style={s.ctaAltRow}>
+            <button type="button" style={s.ctaAlt} onClick={goToPathfinder}>{t('pathfinder-alt')}</button>
+          </div>
           <div style={s.doors}>
             <button type="button" style={s.door} onClick={enter}>
               <span style={s.doorKicker}>{t('door-adults')}</span>
@@ -265,7 +269,8 @@ export default function MarketingLanding() {
               </article>
             ))}
           </div>
-          <button type="button" style={s.calibCta} onClick={goToSelectTier}>{t('hero-cta')}</button>
+          <div style={s.ctaMicro}>★ {t('assess-micro')}</div>
+          <button type="button" style={s.calibCta} onClick={goToAssessment}>{t('hero-cta')}</button>
         </div>
       </section>
 
@@ -751,6 +756,9 @@ const s = {
   hsFit: { fontFamily: DISPLAY, textTransform: 'uppercase', letterSpacing: '1px', fontSize: 'clamp(3.2rem,8vw,6.5rem)', color: '#fff', opacity: .95 },
   heroSub: { fontFamily: BODY, fontSize: 'clamp(1rem,2vw,1.2rem)', lineHeight: 1.6, color: 'rgba(255,255,255,.7)', margin: '0 0 28px', maxWidth: '52ch' },
   heroCta: { display: 'inline-block', fontFamily: HEAD, fontSize: '1.2rem', letterSpacing: '2px', padding: '14px 40px', background: GOLD, color: '#090909', borderRadius: 8, textDecoration: 'none', boxShadow: `0 8px 28px rgba(245,200,0,.3)` },
+  ctaMicro: { fontFamily: BODY, fontSize: '.82rem', fontWeight: 700, letterSpacing: '1.4px', textTransform: 'uppercase', color: GOLD, marginBottom: 8 },
+  ctaAltRow: { marginTop: 12 },
+  ctaAlt: { fontFamily: BODY, fontSize: '.85rem', fontWeight: 600, letterSpacing: '.4px', color: 'rgba(255,255,255,.62)', background: 'transparent', border: 'none', borderBottom: '1px dashed rgba(245,200,0,.5)', padding: '2px 0', cursor: 'pointer' },
   doors: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, margin: '28px 0' },
   // Doors use the legacy purple glass treatment + purple accent edge.
   door: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, textAlign: 'left', background: `linear-gradient(145deg, rgba(30,3,56,.78) 0%, rgba(10,8,28,.82) 100%)`, border: `1px solid rgba(157,39,201,.4)`, borderLeft: `3px solid ${PURL}`, borderRadius: 12, padding: '14px 16px', cursor: 'pointer' },
