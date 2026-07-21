@@ -16,6 +16,7 @@
 // (free-form), source:'pathfinder', invisible Turnstile, Content-Type-only POST.
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { submitLead } from '../lib/leadApi.js';
 import { createCheckoutSession } from '../lib/checkoutApi.js';
 import { generateProgram, toAssignedPlan } from './vault/generatorEngine.js';
@@ -160,6 +161,7 @@ function buildIntakeSportsProtocol(form) {
 // / gated-checkout success cards are byte-for-byte unchanged.
 export default function PathfinderForm({ checkout = null, prefill = null, onComplete = null }) {
   const { t, lang, setLang } = useLang();
+  const navigate = useNavigate();
   const { containerRef, obtainToken, error: tsError } = useTurnstile(TURNSTILE_SITE_KEY);
 
   // Biometrics may arrive pre-filled from the /burn Metabolic Gateway handoff
@@ -370,6 +372,11 @@ export default function PathfinderForm({ checkout = null, prefill = null, onComp
 
   return (
     <form style={styles.card} onSubmit={handleSubmit} noValidate>
+      {/* Reciprocal bridge → the guided interactive assessment (the two-way onboarding
+          pair: this direct PAR-Q form ⇄ the /assessment wizard). */}
+      <button type="button" style={styles.guidedBanner} onClick={() => navigate('/assessment')} data-testid="pf-guided-banner">
+        <span aria-hidden="true">★</span> {t('pf-guided-alt')}
+      </button>
       {/* Selected-plan banner — shown only when the prospect arrived via a price CTA.
           Signals WHY they're screening first: complete the PAR-Q to reach checkout. */}
       {checkout?.priceId ? (
@@ -576,6 +583,7 @@ const styles = {
   successTitle: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.7rem', letterSpacing: '1px', margin: '0 0 .7rem', color: '#fff' },
   successBody: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '1rem', fontWeight: 600, lineHeight: 1.5, color: 'rgba(255,255,255,.7)', margin: 0 },
   // Pricing → Pathfinder → Pay gate (selected-plan banner + post-screening checkout).
+  guidedBanner: { display: 'block', width: '100%', textAlign: 'center', cursor: 'pointer', fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.86rem', fontWeight: 700, letterSpacing: '.4px', color: '#f5c800', background: 'rgba(245,200,0,.06)', border: '1px solid rgba(245,200,0,.32)', borderRadius: 10, padding: '.6rem .9rem', marginBottom: '1.1rem' },
   enrollBanner: { background: 'rgba(106,13,173,.18)', border: '1px solid rgba(245,200,0,.4)', borderRadius: 12, padding: '0.9rem 1rem', marginBottom: '1.3rem', textAlign: 'center' },
   enrollKicker: { fontFamily: "'Barlow Condensed',sans-serif", fontSize: '.7rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#9D27C9' },
   enrollTierName: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.3rem', letterSpacing: '1px', color: '#f5c800', margin: '.15rem 0 .35rem' },

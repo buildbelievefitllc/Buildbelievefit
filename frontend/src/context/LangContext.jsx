@@ -30,6 +30,7 @@ const DICT = {
   'hero-cta': { en: 'BEGIN CALIBRATION ➔', es: 'INICIAR CALIBRACIÓN ➔', pt: 'INICIAR CALIBRAÇÃO ➔' },
   'assess-micro': { en: 'Take the 2-Min Interactive Assessment', es: 'Haz la evaluación interactiva de 2 minutos', pt: 'Faça a avaliação interativa de 2 minutos' },
   'pathfinder-alt': { en: 'Prefer a direct form? Start Pathfinder →', es: '¿Prefieres un formulario directo? Inicia Pathfinder →', pt: 'Prefere um formulário direto? Inicie o Pathfinder →' },
+  'pf-guided-alt': { en: 'Prefer a guided setup? Launch Guided Calibration →', es: '¿Prefieres una configuración guiada? Inicia la Calibración Guiada →', pt: 'Prefere uma configuração guiada? Inicie a Calibração Guiada →' },
   // ── "Earn The Vault" — 30-Day Biometric Calibration landing manifesto (the band
   // directly under the hero). {phase} marks where the bold calibration phrase renders. ──
   'cal-land-lbl': { en: 'Earn The Vault', es: 'Gana El Cofre', pt: 'Conquiste o Cofre' },
