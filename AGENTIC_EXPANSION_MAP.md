@@ -288,4 +288,6 @@ the Morning Brief on the Command Center wall (OP-1).
 and webhook, plus the client journey from landing to graduation) — cross-checked against
 `MODULES_POWERHOUSE_UPGRADE_PLAN.md`, `TIER_FEATURE_AUDIT.md`, and `AG_INTEGRATION_NOTES.md` so that nothing
 here re-proposes work already specced. Companion doc: this file answers "what ELSE can the Lab do"; the
-Powerhouse plan answers "how the three domains become engines." Together they are the full futuristic pitch.*
+Powerhouse plan answers "how the three domains become engines." Together they are the full futuristic pitch.
+Deep-dive companion: `SPORTS_HUB_AGENTIC_PROGRESSION_MAP.md` (SP series) — the youth-athlete surface, where
+sport-specific progression gets its own dedicated agentic map.*
