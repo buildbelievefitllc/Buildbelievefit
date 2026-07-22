@@ -51,6 +51,7 @@ const RISK_META = {
   CATALOG_BAKE:      { glyph: '📐', label: 'Block Catalog',    tone: 'onboard' },
   SEASON_TAPER:      { glyph: '🗓', label: 'Game-Week Taper',  tone: 'stag'    },
   GUARDIAN_WIRE:     { glyph: '✉️', label: 'Guardian Wire',    tone: 'onboard' },
+  MORNING_BRIEF:     { glyph: '☀️', label: 'Command Brief',    tone: 'onboard' },
 };
 
 // ── Accountability ledger (mirrors bbf-agent-brain) ───────────────────────────
@@ -122,6 +123,53 @@ function BlueprintPanel({ blueprint }) {
 }
 
 // ── One sentinel triage card ──────────────────────────────────────────────────
+// ── OP-8 · Mesocycle Visual Audit — DETERMINISTIC diff of current vs next
+//    protocol (zero AI): volume shift (total prescribed sets), exercise swaps
+//    (added/removed movements), and the joint-stress/plyo rotation. Rendered on
+//    PHASE_PROMOTION cards whose payload carries both protocols. ──────────────
+function protocolIndex(proto) {
+  const items = new Map(); // name → sets
+  let totalSets = 0;
+  const plyo = [];
+  for (const block of (proto?.blocks || [])) {
+    const isPlyo = /explosive|plyo|power/i.test(String(block?.title || ''));
+    for (const it of (block?.items || [])) {
+      const name = String(it?.name || '').trim();
+      if (!name) continue;
+      const sets = Number(it?.sets) || 0;
+      items.set(name, sets);
+      totalSets += sets;
+      if (isPlyo) plyo.push(name);
+    }
+  }
+  return { items, totalSets, plyo };
+}
+
+function MesoAuditPanel({ promo }) {
+  const cur = protocolIndex(promo.current_protocol);
+  const next = protocolIndex(promo.next_protocol);
+  const added = [...next.items.keys()].filter((n) => !cur.items.has(n));
+  const removed = [...cur.items.keys()].filter((n) => !next.items.has(n));
+  const volDelta = next.totalSets - cur.totalSets;
+  const plyoChanged = JSON.stringify(cur.plyo) !== JSON.stringify(next.plyo);
+  if (!cur.items.size && !next.items.size) return null;
+  return (
+    <div className="ainbox-glass" data-testid="ainbox-meso-audit">
+      <div className="ainbox-glass-label">Mesocycle Audit · P{promo.from_phase} → P{promo.to_phase}</div>
+      <p className="ainbox-glass-body">
+        Volume: {cur.totalSets} → {next.totalSets} prescribed sets ({volDelta >= 0 ? '▲ +' : '▼ '}{volDelta})
+      </p>
+      {plyoChanged ? (
+        <p className="ainbox-glass-body">
+          Joint-stress rotation: {cur.plyo.join(', ') || '—'} → <strong>{next.plyo.join(', ') || '—'}</strong>
+        </p>
+      ) : null}
+      {added.length ? <p className="ainbox-glass-body">▲ In: {added.join(', ')}</p> : null}
+      {removed.length ? <p className="ainbox-glass-body">▼ Out: {removed.join(', ')}</p> : null}
+    </div>
+  );
+}
+
 function ActionCard({ action, onResolve, onApply }) {
   const [text, setText] = useState(String(action.draft_message || ''));
   const [busy, setBusy] = useState(false);
@@ -144,6 +192,9 @@ function ActionCard({ action, onResolve, onApply }) {
   // SP-9 Guardian Wire monthly letter awaiting approval (the letter itself is
   // the draft_message textarea below — read it before approving).
   const wire = action.type === 'GUARDIAN_WIRE' ? action.proposed_plan_modification?.guardian_wire : null;
+  // OP-1 Morning Command Brief — informational pin; the top-3 decisions map to
+  // other cards in this same inbox. Resolving acknowledges it.
+  const brief = action.type === 'MORNING_BRIEF' ? action.proposed_plan_modification?.morning_brief : null;
 
   // Accountability derivations.
   const isCritical = CRITICAL_TYPES.has(action.type);
@@ -250,6 +301,16 @@ function ActionCard({ action, onResolve, onApply }) {
           </p>
         </div>
       ) : null}
+      {brief?.top_actions?.length ? (
+        <div className="ainbox-glass ainbox-glass--action" data-testid="ainbox-morning-brief">
+          <div className="ainbox-glass-label">Today&apos;s Top Decisions</div>
+          {brief.top_actions.map((a) => (
+            <p className="ainbox-glass-body" key={a.title} style={{ marginBottom: 6 }}>
+              <strong>{a.title}</strong>{a.why ? ` — ${a.why}` : ''}
+            </p>
+          ))}
+        </div>
+      ) : null}
       {taper ? (
         <div className="ainbox-glass" data-testid="ainbox-season-taper">
           <div className="ainbox-glass-label">Game-Week Overlay · week of {taper.week_start}</div>
@@ -274,6 +335,7 @@ function ActionCard({ action, onResolve, onApply }) {
           </p>
         </div>
       ) : null}
+      {promo?.current_protocol && promo?.next_protocol ? <MesoAuditPanel promo={promo} /> : null}
 
       <label className="ainbox-draft-label" htmlFor={`ainbox-draft-${action.id}`}>
         Draft message · {firstNameOf(action)}

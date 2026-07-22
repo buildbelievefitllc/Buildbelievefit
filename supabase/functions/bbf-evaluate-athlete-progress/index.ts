@@ -157,6 +157,9 @@ serve(async (req) => {
           is_youth: isYouth,
           telemetry: tel,
           next_protocol: nextProtocol,
+          // OP-8 Mesocycle Visual Audit: the card diffs current vs next
+          // deterministically (volume shift, exercise swaps, plyo rotation).
+          current_protocol: protocol,
         },
       },
     });

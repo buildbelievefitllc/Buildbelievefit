@@ -23,6 +23,8 @@
 //     { apply_override:true } it instead runs the one-tap applier server-side:
 //     ONBOARDING_PLAN → bbf_apply_onboarding_plan (bbf_users.workout_plan);
 //     PHASE_PROMOTION → bbf_apply_phase_promotion (SP-0 dry-run Referee);
+//     SEASON_TAPER    → bbf_apply_season_adjustment (SP-2 week overlay);
+//     GUARDIAN_WIRE   → bbf_apply_guardian_wire (SP-9 dispatch queue);
 //     spike/autonomic → bbf_apply_plan_override (upserts bbf_daily_protocols).
 //   • health  — config probe.
 //
@@ -721,6 +723,8 @@ async function actResolve(body: Record<string, unknown>): Promise<Response> {
     if (!card) return jsonResponse({ error: 'not_found_or_processed' }, 404);
     const rpc = card.type === 'ONBOARDING_PLAN' ? 'bbf_apply_onboarding_plan'
       : card.type === 'PHASE_PROMOTION' ? 'bbf_apply_phase_promotion'
+      : card.type === 'SEASON_TAPER' ? 'bbf_apply_season_adjustment'
+      : card.type === 'GUARDIAN_WIRE' ? 'bbf_apply_guardian_wire'
       : 'bbf_apply_plan_override';
     const result = await pgRpc(rpc, { p_action_id: id });
     if (!result?.ok) return jsonResponse({ error: result?.error ?? 'apply_failed' }, 409);
