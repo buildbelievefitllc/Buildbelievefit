@@ -9,7 +9,12 @@ import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { LangProvider } from '../../src/context/LangContext.jsx';
+// Global brand base (CSS custom properties + Bebas/Barlow faces) so isolated
+// component mounts render with production styling, not bare defaults. Followed by
+// the surface-scoped stylesheets the specs/screenshots exercise.
+import '../../src/index.css';
 import '../../src/components/command/coachLab.css';
+import '../../src/components/sportshub/sportsHub.css';
 import AuthContext from '../../src/context/AuthContext.jsx';
 import { RosterProvider } from '../../src/components/command/RosterProvider.jsx';
 import FormDemoPlayer from '../../src/components/vault/FormDemoPlayer.jsx';
@@ -42,6 +47,10 @@ import PremiumSessionPlayer from '../../src/components/vault/PremiumSessionPlaye
 import LiveCheckinCoach from '../../src/components/vault/LiveCheckinCoach.jsx';
 import SovereignPrepPanels from '../../src/components/vault/SovereignPrepPanels.jsx';
 import { GuideLauncher } from '../../src/components/BbfMediaPortal.jsx';
+import ActionInbox from '../../src/components/command/ActionInbox.jsx';
+import { ReadinessProvider } from '../../src/context/ReadinessContext.jsx';
+import SeasonCalendarCard from '../../src/components/sportshub/SeasonCalendarCard.jsx';
+import MealSnapCard from '../../src/components/vault/MealSnapCard.jsx';
 
 const props = (typeof window !== 'undefined' && window.__HARNESS_PROPS__) || {};
 const which = new URLSearchParams(window.location.search).get('c') || '';
@@ -386,6 +395,47 @@ function pick() {
       // Anatomy Arena · 3D Biomechanical Viewer — native-React HUD over a lazy,
       // code-split R3F viewport (procedural rig). HUD renders regardless of WebGL.
       return <BiomechanicsViewer />;
+    case 'action-inbox':
+      // Agentic Command Center · Action Inbox — the REAL floating desk under an
+      // admin session + roster/readiness providers. The bbf-agent-brain `list`
+      // call is route-intercepted by the spec (window.__INBOX_ACTIONS__ seeds the
+      // representative card set: MORNING_BRIEF, PHASE_PROMOTION+meso audit,
+      // CATALOG_BAKE, SEASON_TAPER, GUARDIAN_WIRE), proving each card renders.
+      return (
+        <MemoryRouter>
+          <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' }, session: { vaultToken: 'test-vault-token' } }}>
+            <ReadinessProvider>
+              <RosterProvider>
+                <ActionInbox domain={props.domain || 'coaching'} />
+              </RosterProvider>
+            </ReadinessProvider>
+          </AuthMock>
+        </MemoryRouter>
+      );
+    case 'season-card':
+      // SP-2 · Season Calendar (Sports Hub Check-In tab) — pure-prop render of the
+      // guardian/athlete game-date input. `props.season` drives set vs empty state.
+      return (
+        <AuthMock value={{ isAdmin: false, user: { username: 'akeem', role: 'client' }, session: { vaultToken: 'test-vault-token' } }}>
+          <div style={{ maxWidth: 620 }}>
+            <SeasonCalendarCard uid={props.uid || 'akeem'} season={props.season ?? null} lang={props.lang || 'en'} onSaved={() => {}} />
+          </div>
+        </AuthMock>
+      );
+    case 'meal-snap':
+      // Fuel Companion · Meal Snap (Nutrition tab) — the REAL capture card under an
+      // athlete session. Renders the trilingual CTA; the vision call is user-driven.
+      return (
+        <MemoryRouter>
+          <AuthMock value={{ isAdmin: false, user: { username: 'akeem', role: 'client' }, session: { vaultToken: 'test-vault-token' } }}>
+            <ReadinessProvider>
+              <div style={{ maxWidth: 620 }}>
+                <MealSnapCard fasting={props.fasting ?? { fast: 16, eat: 8 }} paceId={props.paceId || '16:8'} />
+              </div>
+            </ReadinessProvider>
+          </AuthMock>
+        </MemoryRouter>
+      );
     default:
       return <div data-testid="harness-unknown">unknown component: {which}</div>;
   }
