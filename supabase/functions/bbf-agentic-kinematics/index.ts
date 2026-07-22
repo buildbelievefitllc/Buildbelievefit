@@ -1,15 +1,10 @@
 // bbf-agentic-kinematics — Live Kinematic Mapping (Phase 6)
 // ─────────────────────────────────────────────────────────────────────
 // Receives a base64-encoded image of an athlete mid-lift and returns a
-// biomechanics-grade form analysis via Claude Opus 4.7 with vision.
+// biomechanics-grade form analysis via Claude vision (router: Sonnet).
 // Mounts as a "🎥 Form Check" button beneath each primary lift in the
 // workout view (RDW); on click → camera/file input → base64 → POST here
 // → renders into a .kinematic-results-panel below the lift block.
-//
-// Vision model rationale: every BBF agentic engine is on Claude Opus 4.7.
-// Opus 4.7 supports native multimodal input via the messages API
-// (content blocks of { type: 'image', source: { type: 'base64', media_type,
-// data } }). Keeping namespace + model consistency over Gemini.
 //
 // Request shape:
 //   POST /functions/v1/bbf-agentic-kinematics
@@ -35,6 +30,13 @@
 // response at HTTP 200 so the client never sees an error state. The
 // payload is shaped identically to a real Claude response so the UI
 // render path is single-track.
+//
+// PRIVACY CONTRACT (binding): the athlete's image is EPHEMERAL — it exists
+// only in this request's memory for the duration of the vision call. No
+// storage upload, no media column, no frame cache, no video. The ONLY thing
+// that persists is the numerical/text extraction (score + 2 flags + 1 cue)
+// written best-effort to bbf_form_ledger, which has no media columns by
+// design. Changing this contract requires an explicit CEO order.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
@@ -326,13 +328,57 @@ serve(async (req: Request) => {
   }
 
   const clampedScore = Math.max(0, Math.min(100, Math.round(parsed.form_score)));
+  const flags = parsed.kinematic_flags.slice(0, 2).map((f: unknown) => String(f).slice(0, 300));
+  const cue = String(parsed.correction_cue).slice(0, 400);
+
+  // ─── Form Ledger — persist the NUMERIC/TEXT extraction only (privacy
+  //     contract above). Best-effort: a ledger miss never blocks the athlete's
+  //     result. The image itself is already out of scope here — it never left
+  //     request memory. ────────────────────────────────────────────────────
+  try {
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (SUPABASE_URL && SERVICE_KEY) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uid);
+      let userId: string | null = isUuid ? uid : null;
+      if (!userId) {
+        const r = await fetch(
+          `${SUPABASE_URL}/rest/v1/bbf_users?select=id&uid=eq.${encodeURIComponent(uid.toLowerCase())}&deleted_at=is.null&limit=1`,
+          { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } },
+        );
+        const rows = r.ok ? await r.json() : [];
+        userId = Array.isArray(rows) && rows.length ? rows[0].id : null;
+      }
+      await fetch(`${SUPABASE_URL}/rest/v1/bbf_form_ledger`, {
+        method: 'POST',
+        headers: {
+          apikey: SERVICE_KEY,
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          uid_slug: String(uid).toLowerCase().slice(0, 80),
+          lift_name: String(lift_name).slice(0, 120),
+          form_score: clampedScore,
+          kinematic_flags: flags,
+          correction_cue: cue,
+          locale,
+          model: respBody.model ?? MODEL,
+        }),
+      });
+    }
+  } catch (e) {
+    console.warn(`[bbf-agentic-kinematics] form-ledger write failed (non-fatal): ${(e as Error).message}`);
+  }
 
   console.log(`[bbf-agentic-kinematics] uid=${uid} · lift="${lift_name}" · score=${clampedScore} · b64_len=${cleanBase64.length} · model=${respBody.model} · duration=${dur}ms · usage=${JSON.stringify(respBody.usage)}`);
 
   return jsonResponse({
     locale,
     form_score:      clampedScore,
-    kinematic_flags: parsed.kinematic_flags.slice(0, 2),
-    correction_cue:  parsed.correction_cue,
+    kinematic_flags: flags,
+    correction_cue:  cue,
   }, 200);
 });
