@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { LangProvider } from '../../src/context/LangContext.jsx';
 import '../../src/components/command/coachLab.css';
 import AuthContext from '../../src/context/AuthContext.jsx';
@@ -30,6 +30,8 @@ import { lockScoreDigits } from '../../src/lib/scoreLock.js';
 import StudioBatchPanel from '../../src/components/studio/StudioBatchPanel.jsx';
 import SovereignStudioV4 from '../../src/components/SovereignStudioV4/index.jsx';
 import Comlink from '../../src/components/command/Comlink.jsx';
+import ContentVaultGrid from '../../src/components/command/ContentVaultGrid.jsx';
+import DigitalContentManager from '../../src/components/command/DigitalContentManager.jsx';
 import BroadcastHub from '../../src/components/command/BroadcastHub.jsx';
 import KinesiologyLab from '../../src/components/command/KinesiologyLab.jsx';
 import BiomechanicsViewer from '../../src/components/command/BiomechanicsViewer.jsx';
@@ -93,6 +95,13 @@ function RosterShareProbe() {
       </div>
     </RosterProvider>
   );
+}
+
+// GROUPED MEDIA bridge rig — surfaces the in-memory router location so a spec can
+// assert the bridge buttons navigate to the Studio V4 Video Engine route.
+function LocationProbe() {
+  const loc = useLocation();
+  return <div data-testid="probe-location" data-path={loc.pathname}>{loc.pathname}</div>;
 }
 
 function pick() {
@@ -227,6 +236,30 @@ function pick() {
         <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' } }}>
           <SovereignStudioV4 />
         </AuthMock>
+      );
+    case 'content-vault':
+      // Marketing Vault grid — the "Send to Studio V4 Engine" bridge. Admin session +
+      // a router so the bridge's navigate('/command/studio-v4') is observable via the
+      // LocationProbe; the spec intercepts the content_vault REST read.
+      return (
+        <MemoryRouter initialEntries={['/command/content-manager']}>
+          <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' }, session: { vaultToken: 'test-vault-token' } }}>
+            <LocationProbe />
+            <ContentVaultGrid />
+          </AuthMock>
+        </MemoryRouter>
+      );
+    case 'content-manager':
+      // Digital Content Manager (Review Bucket) — the Meta Stories dispatch + Studio V4
+      // bridge on each draft card. The static JSON library renders offline; the queue
+      // list fetch + queue post are route-intercepted by the spec.
+      return (
+        <MemoryRouter initialEntries={['/command/content-manager']}>
+          <AuthMock value={{ isAdmin: true, user: { username: 'akeem', role: 'admin' }, session: { vaultToken: 'test-vault-token' } }}>
+            <LocationProbe />
+            <DigitalContentManager />
+          </AuthMock>
+        </MemoryRouter>
       );
     case 'sovereign-prep-panels':
       // Direct-prop mount of the shared Sovereign Prep renderer (bypasses
