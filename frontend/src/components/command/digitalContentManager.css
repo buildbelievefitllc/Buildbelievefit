@@ -96,6 +96,17 @@
 .dcm-btn:disabled { opacity: .5; cursor: not-allowed; }
 .dcm-btn--gold { color: #0e0a16; background: linear-gradient(90deg, var(--dcm-gold), #ffd83a); border: none; }
 .dcm-btn--gold:hover:not(:disabled) { filter: brightness(1.05); }
+
+/* GROUPED MEDIA PASS — Meta Stories dispatch + Studio V4 bridge on each draft card.
+   Both ride the shared purple body; Story = white text, Studio (primary bridge) =
+   gold text/border to read as the hero action (brand §2). */
+.dcm-bridge-row { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .55rem; }
+.dcm-bridge-row .dcm-btn { flex: 1 1 auto; text-align: center; }
+.dcm-bridge-note { margin: .4rem 0 0; font-family: var(--bd, 'Barlow Condensed'), sans-serif; font-size: .78rem; color: var(--dcm-gold, #f5c800); }
+.dcm-btn--story { color: #f9f5ff; background: linear-gradient(180deg, #7a17c4, #4a0a78); border: 1px solid #8a1fd0; }
+.dcm-btn--story:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 0 16px rgba(106,13,173,.5); }
+.dcm-btn--studio { color: #f5c800; background: linear-gradient(180deg, #7a17c4, #4a0a78); border: 1px solid #f5c800; box-shadow: 0 0 14px -4px rgba(245,200,0,.6); }
+.dcm-btn--studio:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 0 20px rgba(245,200,0,.45); }
 .dcm-btn--ghost { color: var(--dcm-ink); background: transparent; border-color: var(--dcm-line); }
 .dcm-btn--ghost:hover:not(:disabled) { border-color: var(--dcm-gold); }
 

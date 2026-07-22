@@ -939,8 +939,8 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           plays a video container's audio track, and the export's _decodeVo
           (decodeAudioData) demuxes audio out of any container. ── */}
       <div className="ctl-group-v4">
-        <label className="ctl-label-v4">🎵 Custom Music / Audio (MP3 / WAV / video sound)</label>
-        <label className="upload-btn-v4" htmlFor="reel-music-input">UPLOAD MUSIC</label>
+        <label className="ctl-label-v4">🎵 Background Music (BGM) Track — Upload (MP3 / WAV / video sound)</label>
+        <label className="upload-btn-v4" htmlFor="reel-music-input">UPLOAD BGM</label>
         <input
           id="reel-music-input"
           type="file"
@@ -980,23 +980,75 @@ export default function VibeSelector({ reelData, handleReelChange }) {
         <div className="hint-v4">Your own backing track — an audio file, or pick a VIDEO (same gallery as the footage upload) and its sound becomes the music. Plays under the voiceover; bakes into the export when no voiceover is set.</div>
       </div>
 
-      {/* ── Audio Mix — TWO independent channels (0–100% each), bound live to the reel
-          preview's dedicated audio elements so the AI voice and the backing track
-          balance exactly. ── */}
+      {/* ── DUAL-TRACK AUDIO CONTROL · BACKGROUND MUSIC (BGM) ─────────────────────
+          Master enable/mute + volume + ducking for the backing track, bound live to
+          the preview's dedicated <audio> element and mirrored by the export mixdown —
+          the balance you hear is the balance that ships. The three mix sliders below
+          (BGM · Clip · Voice) are the independent channels of the dual-track engine. ── */}
       <div className="ctl-group-v4">
-        <label className="ctl-label-v4">🎚 Music Volume — {reelData.musicVolume ?? 80}%</label>
+        <label className="toggle-row-v4 bgm-master-v4" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={reelData.bgmEnabled !== false}
+            onChange={(e) => handleReelChange('bgmEnabled', e.target.checked)}
+            data-testid="reel-bgm-enabled"
+          />
+          <span>🎚 Background Music (BGM) — {reelData.bgmEnabled === false ? 'Muted' : 'Enabled'}</span>
+        </label>
+        <div className="hint-v4">Master switch for the backing track — muting drops it from both the preview and the exported MP4.</div>
+      </div>
+
+      <div className="ctl-group-v4" style={reelData.bgmEnabled === false ? { opacity: 0.5 } : undefined}>
+        <label className="ctl-label-v4">🎵 BGM Volume — {reelData.musicVolume ?? 20}%</label>
         <input
           type="range"
           className="range-v4"
           min="0"
           max="100"
           step="1"
-          value={reelData.musicVolume ?? 80}
+          value={reelData.musicVolume ?? 20}
           onChange={(e) => handleReelChange('musicVolume', Number(e.target.value))}
-          aria-label="Music volume"
+          disabled={reelData.bgmEnabled === false}
+          aria-label="Background music volume"
           data-testid="reel-music-volume"
         />
-        <div className="hint-v4">The backing-track channel — 0% mutes it, 100% is full volume.</div>
+        <div className="hint-v4">The backing-track channel — defaults low (20%) so music sits beneath speech. 0% mutes it, 100% is full volume.</div>
+      </div>
+
+      {/* Ducking — smoothly drops the BGM beneath the voiceover while it speaks, then
+          eases it back up once the voice pauses. The music track always LOOPS to fill
+          the reel (a short track repeats; a long one is trimmed). */}
+      <div className="ctl-group-v4" style={reelData.bgmEnabled === false ? { opacity: 0.5 } : undefined}>
+        <label className="toggle-row-v4" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={reelData.bgmDuck !== false}
+            onChange={(e) => handleReelChange('bgmDuck', e.target.checked)}
+            disabled={reelData.bgmEnabled === false}
+            data-testid="reel-bgm-duck"
+          />
+          <span>🎙 Duck BGM under speech (auto-loop)</span>
+        </label>
+        {reelData.bgmDuck !== false ? (
+          <>
+            <label className="ctl-label-v4" style={{ fontSize: '.8rem', marginTop: 8 }}>↓ Duck Level — {reelData.bgmDuckAmount ?? 25}% while speaking</label>
+            <input
+              type="range"
+              className="range-v4"
+              min="0"
+              max="100"
+              step="1"
+              value={reelData.bgmDuckAmount ?? 25}
+              onChange={(e) => handleReelChange('bgmDuckAmount', Number(e.target.value))}
+              disabled={reelData.bgmEnabled === false}
+              aria-label="BGM duck level under speech"
+              data-testid="reel-bgm-duck-amount"
+            />
+            <div className="hint-v4">How far the music dips under the voiceover — lower ducks harder (clearer speech), higher keeps more music. Eases back up when the voice pauses.</div>
+          </>
+        ) : (
+          <div className="hint-v4">Ducking off — the music holds its level under the voice (it still loops to fill the reel).</div>
+        )}
       </div>
 
       {/* Clip Volume — the uploaded footage's OWN baked-in sound (e.g. music
@@ -1005,7 +1057,7 @@ export default function VibeSelector({ reelData, handleReelChange }) {
           it — without re-editing the source clip. Ducks under the voice like the
           music channel; 0% mutes the clip's audio in both preview and export. */}
       <div className="ctl-group-v4">
-        <label className="ctl-label-v4">🎬 Clip Volume — {reelData.footageVolume ?? 100}%</label>
+        <label className="ctl-label-v4">🎬 Video Audio Volume — {reelData.footageVolume ?? 100}%</label>
         <input
           type="range"
           className="range-v4"

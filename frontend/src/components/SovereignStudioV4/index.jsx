@@ -7,6 +7,7 @@ import StudioLayout from './StudioLayout';
 import StudioCompilerPanel from './StudioCompilerPanel';
 import DraftHistoryPanel from './DraftHistoryPanel';
 import { SPOT_DEFAULTS } from './spotlightData';
+import { consumeStudioInbox } from '../../lib/studioInbox.js';
 import './sovereignStudioV4.css';
 
 // ── WORK-IN-PROGRESS PERSISTENCE ─────────────────────────────────────────────
@@ -43,6 +44,26 @@ function hydrateSlice(slice, defaults) {
   }
 }
 
+// GROUPED MEDIA PASS — overlay a bridge handoff payload (Marketing Vault / Review
+// Bucket) onto the reel editor slice. Only durable, JSON-safe fields are applied;
+// a videoUrl becomes a remote-backed videoFile (no blob URL, so preview + export
+// both read it), and a voUrl clears any stale transcript. Missing keys are left
+// untouched, so a partial handoff never wipes existing copy.
+function applyBridgeToReel(reel, payload) {
+  if (!payload || typeof payload !== 'object') return reel;
+  const next = { ...reel };
+  if (payload.videoUrl) next.videoFile = { file: null, url: payload.videoUrl };
+  if (typeof payload.hook === 'string') next.hook = payload.hook;
+  if (typeof payload.hookSub === 'string') next.hookSub = payload.hookSub;
+  if (typeof payload.series === 'string') next.series = payload.series;
+  if (typeof payload.overlayStyle === 'string') next.overlayStyle = payload.overlayStyle;
+  if (typeof payload.backgroundColor === 'string') next.backgroundColor = payload.backgroundColor;
+  if (payload.voUrl) { next.voUrl = payload.voUrl; next.captions = null; }
+  if (typeof payload.voTopic === 'string') next.voTopic = payload.voTopic;
+  if (typeof payload.lang === 'string') next.lang = payload.lang;
+  return next;
+}
+
 // Card catalog — copy ported verbatim from the v3 reference banks (each entry is
 // [eyebrow, headline, body, buttonText]; *single* = accent highlight, **double**
 // = bold white). Lanes mirror the v3 lane dropdown.
@@ -77,6 +98,9 @@ const CATALOG = {
 
 export default function SovereignStudioV4() {
   const [mode, setMode] = useState('cta');
+  // GROUPED MEDIA PASS — banner shown when an asset was bridged in from the
+  // Marketing Vault or the Review Bucket (consumed from the studio inbox on mount).
+  const [inboxNote, setInboxNote] = useState(null); // { source, label } | null
   const [ctaData, setCtaData] = useState(() => hydrateSlice('cta', {
     lane: 'all',
     format: 'feed',
@@ -117,7 +141,10 @@ export default function SovereignStudioV4() {
     phoneBackdrop: false,   // show the footage playing INSIDE a phone-frame-v4 mockup instead of full-bleed
     phoneFrame: 'sleek',    // phone-backdrop frame skin (sleek | gold | carbon) — same options as the Phone section
     logoScale: 1,           // asset size handle — scales the corner logo badge
-    musicVolume: 80,        // music-track mix (0–100%) → ReelPreviewEngine music element
+    musicVolume: 20,        // BGM-track mix (0–100%) → ReelPreviewEngine music element (default sits UNDER speech)
+    bgmEnabled: true,       // Master BGM toggle (Dual-Track Audio Control) — mute silences the backing track in preview + export
+    bgmDuck: true,          // duck the BGM beneath the voiceover (broadcast-style sidechain)
+    bgmDuckAmount: 25,      // BGM level (0–100%) while the voice plays — the duck depth, mirrored by the export mixdown
     voiceVolume: 100,       // voice-track mix (0–100%) → ReelPreviewEngine voiceover element
     footageVolume: 100,     // clip-audio mix (0–100%) → the uploaded footage's OWN baked-in sound (prebaked music), bound to the preview <video> and mixed as a ducked channel in the export
 
@@ -208,6 +235,28 @@ export default function SovereignStudioV4() {
     if (spotVideo) URL.revokeObjectURL(spotVideo);
   }, []);
 
+  // ── GROUPED MEDIA BRIDGE INTAKE ──────────────────────────────────────────────
+  // Mount-once: pull any handoff the Marketing Vault or Review Bucket wrote before
+  // navigating here, apply it onto the reel editor state, and open the Video Engine.
+  // consumeStudioInbox() clears the payload as it reads, so a refresh never replays
+  // it. The ref guard makes StrictMode's double-mount consume the inbox exactly once;
+  // the apply is deferred to a microtask so it lands as one batched update off the
+  // synchronous effect body (no cascading in-effect render). Only durable https URLs
+  // travel (blob: URLs die with the sender's session).
+  const intakeRef = useRef(false);
+  useEffect(() => {
+    if (intakeRef.current) return undefined;
+    intakeRef.current = true;
+    const payload = consumeStudioInbox();
+    if (!payload) return undefined;
+    queueMicrotask(() => {
+      setReelData((prev) => applyBridgeToReel(prev, payload));
+      setMode(payload.mode && payload.mode !== 'reel' ? payload.mode : 'reel');
+      setInboxNote({ source: payload.source || 'bridge', label: payload.sourceLabel || '' });
+    });
+    return undefined;
+  }, []);
+
   const handleModeChange = (newMode) => {
     setMode(newMode);
   };
@@ -287,6 +336,18 @@ export default function SovereignStudioV4() {
           ))}
         </div>
       </div>
+
+      {inboxNote && (
+        <div className="studio-bridge-banner-v4" role="status" data-testid="studio-bridge-banner">
+          <span className="studio-bridge-ic-v4" aria-hidden="true">🎬</span>
+          <span className="studio-bridge-txt-v4">
+            Loaded into the Video Engine from{' '}
+            <strong>{inboxNote.source === 'marketing-vault' ? 'the Marketing Vault' : inboxNote.source === 'review-bucket' ? 'the Review Bucket' : 'the content bridge'}</strong>
+            {inboxNote.label ? <> · {inboxNote.label}</> : null}. Add custom music &amp; balance the dual-track audio, then export.
+          </span>
+          <button type="button" className="studio-bridge-x-v4" onClick={() => setInboxNote(null)} aria-label="Dismiss">✕</button>
+        </div>
+      )}
 
       {mode === 'compiler' ? (
         // Standalone URL-driven pipeline — no ctaData/phoneData/reelData editor

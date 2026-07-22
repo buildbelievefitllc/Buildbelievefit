@@ -9,10 +9,12 @@
 // recordings) so a Galaxy S25 Ultra can attach a background-music source per clip.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   fetchContentVault, subscribeContentVault, dispatchToMeta, purgeVaultItem,
 } from '../../lib/contentVaultApi.js';
 import { runTikTokBridge } from '../../lib/tiktokBridge.js';
+import { sendToStudioV4 } from '../../lib/studioInbox.js';
 import './contentVault.css';
 
 // Human-readable slugs for the vault write failures surfaced by bbf-content-manager.
@@ -43,6 +45,7 @@ function StatusChip({ status }) {
 }
 
 function VaultCard({ row, onPurged }) {
+  const navigate = useNavigate();
   const [bridge, setBridge] = useState(null); // null | 'run' | 'ok' | 'err'
   const [bgmName, setBgmName] = useState('');
   // Local status mirror — flips to 'published' the instant a Meta dispatch confirms,
@@ -129,6 +132,21 @@ function VaultCard({ row, onPurged }) {
       .catch(() => setBridge('err'));
   }, [row.video_url, row.caption_body, row.title]);
 
+  // GROUPED MEDIA BRIDGE — hand this clip's video payload to the Studio V4 Video
+  // Engine. The durable marketing-CDN URL travels via the studio inbox (blob: URLs
+  // never would), then we navigate to the studio so the operator can add custom
+  // music / balance the dual-track audio and re-render.
+  const onSendToStudio = useCallback(() => {
+    sendToStudioV4({
+      mode: 'reel',
+      videoUrl: row.video_url,
+      hook: row.title || '',
+      source: 'marketing-vault',
+      sourceLabel: row.title || '',
+    });
+    navigate('/command/studio-v4');
+  }, [navigate, row.video_url, row.title]);
+
   // Device BGM source — accept Android gallery mp4/screen recordings. Captured
   // client-side here; the server mux pipeline (ducked -18dB under the VO) consumes
   // it and writes back bgm_source_url.
@@ -203,6 +221,20 @@ function VaultCard({ row, onPurged }) {
         <p className="cv-caption">{row.caption_body}</p>
 
         {bgmName ? <div className="cv-bgm-name" title={bgmName}>🎵 {bgmName}</div> : null}
+
+        {/* GROUPED MEDIA PASS — primary bridge into the Studio V4 Video Engine. */}
+        <button
+          type="button"
+          className="cv-studio"
+          onClick={onSendToStudio}
+          data-testid={`vault-studio-${row.id}`}
+          aria-label={`Send ${row.title} to the Studio V4 Video Engine`}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M4 4h16v16H4V4zm2 2v12h12V6H6zm3.5 2.2 6 3.8-6 3.8V8.2z" />
+          </svg>
+          Send to Studio V4 Engine
+        </button>
 
         <div className="cv-actions">
           <button

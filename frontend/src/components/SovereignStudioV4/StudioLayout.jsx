@@ -587,7 +587,10 @@ export default function StudioLayout({
     // on inaudible elements), so the clip's sound is remixed from its URL, not the
     // silent capture element.
     const voiceUrl = reelData.voUrl || null;
-    const musicUrl = reelData.musicFile?.url || null;
+    // Master BGM toggle (Dual-Track Audio Control): muted → the backing track is
+    // excluded from the export entirely, not merely turned to 0 (no decode, no mix).
+    const bgmOn = reelData.bgmEnabled !== false;
+    const musicUrl = bgmOn ? (reelData.musicFile?.url || null) : null;
     const footageVol = Number(reelData.footageVolume ?? 100);
     // 0% Clip Volume → skip the footage-audio decode entirely (nothing to mix).
     const footageUrl = (footageVol > 0 && reelData.videoFile?.url) ? reelData.videoFile.url : null;
@@ -600,8 +603,13 @@ export default function StudioLayout({
       musicUrl,
       footageUrl,
       voGain: Number(reelData.voiceVolume ?? 100) / 100,
-      musicGain: Number(reelData.musicVolume ?? 80) / 100,
+      musicGain: Number(reelData.musicVolume ?? 20) / 100,
       footageGain: footageVol / 100,
+      // Dual-Track Audio Control — background music ducking under speech. Enabled
+      // by default; the duck amount (backing level while the voice plays) is the
+      // slider value, so the exported sidechain matches the preview.
+      duckEnabled: reelData.bgmDuck !== false,
+      duckAmount: Number(reelData.bgmDuckAmount ?? 25) / 100,
       // Karaoke captions baked per-frame (same transcript + timing the preview shows).
       captions: reelData.captions,
       captionsEnabled: !!reelData.captionsEnabled,

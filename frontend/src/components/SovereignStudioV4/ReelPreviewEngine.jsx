@@ -157,12 +157,21 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
     const v = Number(reelData.voiceVolume);
     voice.volume = Number.isFinite(v) ? Math.min(Math.max(v / 100, 0), 1) : 1;
   }, [reelData.voiceVolume, reelData.voUrl]);
+  // BGM channel: master enable/mute + volume, plus LIVE ducking beneath the voice.
+  // While the voiceover is playing (and ducking is on) the backing music drops to its
+  // duck level so speech stays clear, then returns to full once the voice pauses — the
+  // same sidechain the export bakes (there as a smooth 0.4s ramp). Muting the master
+  // (bgmEnabled=false) silences the channel entirely. Re-applied when a new music
+  // source mounts, the sliders move, the master/duck toggles flip, or the voice plays.
   useEffect(() => {
     const music = musicRef.current;
     if (!music) return;
-    const v = Number(reelData.musicVolume);
-    music.volume = Number.isFinite(v) ? Math.min(Math.max(v / 100, 0), 1) : 1;
-  }, [reelData.musicVolume, reelData.musicFile?.url]);
+    const clamp01 = (n) => (Number.isFinite(n) ? Math.min(Math.max(n, 0), 1) : 1);
+    const base = reelData.bgmEnabled === false ? 0 : clamp01(Number(reelData.musicVolume) / 100);
+    const duckOn = reelData.bgmDuck !== false && voPlaying && !!reelData.voUrl;
+    const duckFactor = duckOn ? clamp01(Number(reelData.bgmDuckAmount ?? 25) / 100) : 1;
+    music.volume = base * duckFactor;
+  }, [reelData.musicVolume, reelData.musicFile?.url, reelData.bgmEnabled, reelData.bgmDuck, reelData.bgmDuckAmount, reelData.voUrl, voPlaying]);
   // Clip audio — the footage's own soundtrack (e.g. music already baked into the
   // uploaded video). Bound to the <video> element so it can be turned down under a
   // voiceover, or up to feature it. videoFile.url + phoneBackdrop are deps because a

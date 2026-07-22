@@ -154,7 +154,7 @@ export class SovereignFoundry {
    * single-track approximation.
    * @returns {Promise<{blob:Blob, ext:'mp4', mime:'video/mp4', audio:boolean, frames:number, durationSec:number}>}
    */
-  async render({ videoUrl, voUrl = null, musicUrl = null, footageUrl = null, voGain = 1, musicGain = 1, footageGain = 1, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', captions = null, captionsEnabled = false, captionPos = 62, captionStyle = null, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
+  async render({ videoUrl, voUrl = null, musicUrl = null, footageUrl = null, voGain = 1, musicGain = 1, footageGain = 1, duckEnabled = true, duckAmount = 0.25, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', captions = null, captionsEnabled = false, captionPos = 62, captionStyle = null, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
     if (!videoUrl) throw new Error('no_footage');
 
@@ -233,7 +233,7 @@ export class SovereignFoundry {
       // `d` seconds. Falls back to the first available raw buffer if the mix itself
       // fails (audio still ships).
       if (voBuffer || musicBuffer || footageBuffer) {
-        const mix = await this._buildAudioMix({ voBuffer, musicBuffer, footageBuffer, voGain, musicGain, footageGain, durationSec: d });
+        const mix = await this._buildAudioMix({ voBuffer, musicBuffer, footageBuffer, voGain, musicGain, footageGain, duckEnabled, duckAmount, durationSec: d });
         if (mix.buffer) audioBuffer = mix.buffer;
         else {
           audioBuffer = voBuffer || musicBuffer || footageBuffer;
@@ -780,14 +780,19 @@ export class SovereignFoundry {
 
   // Compose the FINAL soundtrack the export bakes: voice + backing music with the
   // Audio Mix Console's per-track gains, the music looped to fill the whole reel
-  // and DUCKED to 25% under the voice (easing back up over 0.4s once the voice
-  // ends — broadcast-style sidechain feel via gain automation), all rendered
-  // offline to one buffer of exactly `durationSec`. This is what makes the mix
-  // console REAL: the preview mix and the shipped MP4 are the same mix.
-  async _buildAudioMix({ voBuffer = null, musicBuffer = null, footageBuffer = null, voGain = 1, musicGain = 1, footageGain = 1, durationSec }) {
+  // and DUCKED beneath the voice by the Dual-Track Audio Control's duck amount
+  // (default 25%; easing back up over 0.4s once the voice ends — broadcast-style
+  // sidechain feel via gain automation), all rendered offline to one buffer of
+  // exactly `durationSec`. `duckEnabled:false` plays the backing at full under the
+  // voice (no sidechain). This is what makes the mix console REAL: the preview mix
+  // and the shipped MP4 are the same mix.
+  async _buildAudioMix({ voBuffer = null, musicBuffer = null, footageBuffer = null, voGain = 1, musicGain = 1, footageGain = 1, duckEnabled = true, duckAmount = 0.25, durationSec }) {
     const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
     const clamp01 = (g) => { const n = Number(g); return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1; };
     const vg = clamp01(voGain), mg = clamp01(musicGain), fg = clamp01(footageGain);
+    // Ducking factor the backing tracks drop to while the voice is present. Disabled
+    // → 1 (no duck). Clamped to [0,1]; 0 would fully silence the bed under speech.
+    const duckFactor = duckEnabled ? clamp01(duckAmount) : 1;
     if (!voBuffer && !musicBuffer && !footageBuffer) return { error: 'No audio' };
     // Single-track passthrough at unity gain → nothing to mix; ship the decoded
     // buffer as-is (the Ad Compiler / legacy single-track path, byte-identical
@@ -803,15 +808,15 @@ export class SovereignFoundry {
       const voDur = voBuffer ? voBuffer.length / voBuffer.sampleRate : 0;
 
       // A BACKING source (music or the clip's own audio): looped to fill the reel,
-      // and — when a voice track is present — DUCKED to 25% under the voice, easing
-      // back up over 0.4s once the voice ends (broadcast-style sidechain). Shared by
-      // both backing channels so music and clip audio behave identically.
+      // and — when a voice track is present — DUCKED beneath the voice by duckFactor,
+      // easing back up over 0.4s once the voice ends (broadcast-style sidechain).
+      // Shared by both backing channels so music and clip audio behave identically.
       const addBackingSource = (buf, gain) => {
         const g = clamp01(gain);
         if (!buf || g <= 0) return;
         const gainNode = oac.createGain();
         if (voBuffer && voDur > 0.05) {
-          const ducked = g * 0.25;
+          const ducked = g * duckFactor;
           const rampAt = Math.min(voDur, durationSec);
           gainNode.gain.setValueAtTime(ducked, 0);
           gainNode.gain.setValueAtTime(ducked, Math.max(0, rampAt - 0.01));

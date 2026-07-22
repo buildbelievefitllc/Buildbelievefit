@@ -19,11 +19,13 @@
 // Brand-locked (§2): BBF Purple #6a0dad, Gold #f5c800; matte black canvas only.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LIBRARY from '../../data/bbf_master_content_engine.json';
 import {
   SERIES_META, seriesMeta, readableText,
   approveAndSynthesize, fetchContentQueue, rescheduleContentItem,
 } from '../../lib/contentManagerApi.js';
+import { sendToStudioV4, seriesToReelTag } from '../../lib/studioInbox.js';
 import {
   APPROVAL_STATUS, APPROVAL_LABELS,
   buildAlgorithmicBrief, contentWeight, assessAlgorithmHealth,
@@ -226,8 +228,12 @@ function PlatformMatrix({ brief, draftId }) {
 }
 
 function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
+  const navigate = useNavigate();
   const meta = seriesMeta(draft.series);
   const already = scheduledSourceRefs.has(draft.id);
+  // GROUPED MEDIA PASS — Meta Stories quick-dispatch state (null | 'run' | 'ok' | 'err').
+  const [story, setStory] = useState(null);
+  const [storyNote, setStoryNote] = useState('');
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
@@ -292,6 +298,72 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
       onApproved?.();
     } catch (e) {
       setState({ phase: 'error', error: humanizeError(e?.message), audioUrl: null, bypassed: false });
+    }
+  };
+
+  // ── GROUPED MEDIA · Send to Studio V4 Engine ─────────────────────────────────
+  // Loads this card's text hook, voiceover audio (the synthesized/static MP3 URL),
+  // and visual theme (series → reel Series Tag) into the Studio V4 Video Engine for
+  // custom music addition or re-rendering. The voiceover URL is durable (Supabase),
+  // so it travels via the studio inbox and plays on the reel's voice channel.
+  const bridgeVoUrl = state.audioUrl || draft.static_audio_url || null;
+  const onSendToStudio = () => {
+    sendToStudioV4({
+      mode: 'reel',
+      hook: (draft.hook || '').trim(),
+      series: seriesToReelTag(draft.series),
+      voUrl: bridgeVoUrl,
+      voTopic: (draft.hook || draft.target_angle || draft.series || '').slice(0, 120),
+      lang: String(draft.language || 'en').toLowerCase(),
+      source: 'review-bucket',
+      sourceLabel: draft.series,
+    });
+    navigate('/command/studio-v4');
+  };
+
+  // ── GROUPED MEDIA · Dispatch to Meta Stories ─────────────────────────────────
+  // Renders the draft into a branded 9:16 story card client-side, then routes it
+  // through the bbf-studio-queue surface='story' pipeline (POST-NOW; Stories are
+  // ephemeral) to Instagram + Facebook. Live + irreversible → guarded by a confirm.
+  const onDispatchStory = async () => {
+    if (story === 'run' || working) return;
+    if (typeof window !== 'undefined' && !window.confirm(
+      'DISPATCH TO META STORIES NOW?\n\nRenders this draft as a 9:16 card and publishes it to your Instagram + Facebook Stories (visible ~24h). This is live and cannot be undone.',
+    )) return;
+    setStory('run');
+    setStoryNote('Rendering the story card…');
+    try {
+      const [{ queuePost, pollPostStatus }, { renderDraftStoryImage }] = await Promise.all([
+        import('../../lib/studioQueueApi.js'),
+        import('../../lib/storyCardRenderer.js'),
+      ]);
+      const blob = await renderDraftStoryImage(draft, { seriesColor: meta.color });
+      const fields = {
+        headline: draft.hook || '',
+        body: draft.target_angle || '',
+        eye_label: draft.series || '',
+        caption: [draft.caption, draft.hashtags].filter(Boolean).join('\n\n'),
+        color_palette: 'brand',
+      };
+      const posted = [];
+      let lastErr = null;
+      for (const platform of ['instagram', 'facebook']) {
+        const nice = platform === 'instagram' ? 'Instagram' : 'Facebook';
+        try {
+          setStoryNote(`Posting to ${nice} Story…`);
+          const r = await queuePost({ kind: 'image', fields: { ...fields, platform_target: platform }, getBlob: async () => blob, now: true, surface: 'story' });
+          const verdict = r.status === 'posting' ? await pollPostStatus({ kind: 'image', id: r.id }) : r.status;
+          if (verdict === 'posted') posted.push(nice); else lastErr = verdict;
+        } catch (e) {
+          lastErr = e?.message;
+        }
+      }
+      if (posted.length === 2) { setStory('ok'); setStoryNote('✓ Posted to Instagram + Facebook Stories.'); }
+      else if (posted.length === 1) { setStory('ok'); setStoryNote(`✓ Posted to ${posted[0]} Story — the other channel didn't confirm (${humanizeError(lastErr)}).`); }
+      else { setStory('err'); setStoryNote(`Meta didn't confirm the Story (${humanizeError(lastErr)}). The asset was still saved to the queue.`); }
+    } catch (e) {
+      setStory('err');
+      setStoryNote(`Story dispatch failed (${humanizeError(e?.message)}).`);
     }
   };
 
@@ -388,6 +460,33 @@ function DraftCard({ draft, scheduledSourceRefs, onApproved }) {
         <audio className="dcm-audio" src={state.audioUrl} controls data-testid={`draft-audio-${draft.id}`} />
       ) : null}
       {state.error ? <p className="dcm-error" role="alert">⚠ {state.error}</p> : null}
+
+      {/* GROUPED MEDIA PASS — quick Meta Stories dispatch + Studio V4 Video Engine bridge. */}
+      <div className="dcm-bridge-row" data-testid={`draft-bridge-${draft.id}`}>
+        <button
+          type="button"
+          className="dcm-btn dcm-btn--story"
+          onClick={onDispatchStory}
+          disabled={story === 'run' || working}
+          data-testid={`draft-story-${draft.id}`}
+          title="Render this draft as a 9:16 card and post it to Instagram + Facebook Stories now"
+        >
+          {story === 'run' ? '📲 Dispatching…' : story === 'ok' ? '📲 Story Posted ✓' : '📲 Dispatch to Meta Stories'}
+        </button>
+        <button
+          type="button"
+          className="dcm-btn dcm-btn--studio"
+          onClick={onSendToStudio}
+          disabled={working}
+          data-testid={`draft-studio-${draft.id}`}
+          title={bridgeVoUrl
+            ? 'Load this card’s hook, voiceover, and theme into the Studio V4 Video Engine'
+            : 'Load this card’s hook and theme into Studio V4 (approve first to also carry the voiceover)'}
+        >
+          🎬 Send to Studio V4 Engine
+        </button>
+      </div>
+      {storyNote ? <p className="dcm-bridge-note" role="status" data-testid={`draft-story-note-${draft.id}`}>{storyNote}</p> : null}
 
       <footer className="dcm-card-foot">
         <label className="dcm-slot">

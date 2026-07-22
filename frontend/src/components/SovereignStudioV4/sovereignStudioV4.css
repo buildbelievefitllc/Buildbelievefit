@@ -65,6 +65,25 @@
 .mode-tab-v4:hover { color: var(--wht); border-color: var(--pur); }
 .mode-tab-v4.active { background: var(--pur); color: var(--wht); border-color: rgba(245, 200, 0, 0.5); }
 
+/* ===== GROUPED MEDIA BRIDGE BANNER ===== */
+/* Shown when an asset was handed in from the Marketing Vault or Review Bucket. */
+.studio-bridge-banner-v4 {
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 0 16px; padding: 11px 16px; border-radius: 12px;
+  border: 1px solid rgba(245, 200, 0, 0.55);
+  background: linear-gradient(90deg, rgba(106, 13, 173, 0.38), rgba(9, 9, 9, 0.5));
+  box-shadow: 0 0 22px -6px rgba(106, 13, 173, 0.6);
+  color: var(--wht, #f9f5ff);
+}
+.studio-bridge-ic-v4 { font-size: 1.25rem; line-height: 1; }
+.studio-bridge-txt-v4 { flex: 1; font-family: var(--bd, 'Barlow Condensed'), sans-serif; font-size: 0.92rem; letter-spacing: 0.3px; line-height: 1.35; }
+.studio-bridge-txt-v4 strong { color: var(--yel, #f5c800); }
+.studio-bridge-x-v4 {
+  flex: none; cursor: pointer; background: none; border: none; color: rgba(249, 245, 255, 0.7);
+  font-size: 1rem; line-height: 1; padding: 3px 7px; border-radius: 6px; transition: all 0.15s;
+}
+.studio-bridge-x-v4:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+
 /* ===== LAYOUT ===== */
 .layout-v4 { display: grid; grid-template-columns: 360px 1fr; flex: 1; min-height: 0; }
 .controls-v4 {

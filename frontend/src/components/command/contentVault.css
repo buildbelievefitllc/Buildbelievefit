@@ -114,6 +114,22 @@
 }
 .cv-bgm-name { font-family: var(--bd, 'Barlow Condensed'), sans-serif; font-size: .76rem; color: var(--gold-soft, #f5cf60); }
 
+/* GROUPED MEDIA PASS — primary bridge into the Studio V4 Video Engine. Purple body
+   with gold text/border/glow marks it as the card's hero action (brand §2). */
+.cv-studio {
+  display: flex; align-items: center; justify-content: center; gap: .5rem; width: 100%;
+  cursor: pointer; font-family: var(--hb, 'Bebas Neue'), sans-serif; font-weight: 700;
+  font-size: .92rem; letter-spacing: 2px; text-transform: uppercase; color: #f5c800;
+  margin: .15rem 0; padding: .64rem 1rem; border-radius: 999px; border: 1px solid #f5c800;
+  background: linear-gradient(180deg, #7a17c4, #4a0a78);
+  box-shadow: 0 0 18px rgba(106, 13, 173, .55);
+  transition: transform .15s ease, box-shadow .25s ease, filter .2s ease;
+}
+.cv-studio svg { color: #f5c800; }
+.cv-studio:hover { filter: brightness(1.12); box-shadow: 0 0 26px rgba(245, 200, 0, .5); }
+.cv-studio:active { transform: scale(.97); }
+.cv-studio:focus-visible { outline: 2px solid #f5c800; outline-offset: 2px; }
+
 .cv-actions { display: flex; align-items: center; gap: .5rem; margin-top: .2rem; }
 
 /* TikTok Manual Bridge — brand-purple #6a0dad capsule. */

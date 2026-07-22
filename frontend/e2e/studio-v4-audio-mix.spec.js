@@ -74,7 +74,7 @@ test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
     const voice = page.getByTestId('reel-voice-volume');
     await expect(music).toBeVisible();
     await expect(voice).toBeVisible();
-    await expect(music).toHaveValue('80');   // backing track defaults under the voice
+    await expect(music).toHaveValue('20');   // BGM defaults low, sitting under the voice
     await expect(voice).toHaveValue('100');  // voice defaults full
 
     // Mount BOTH tracks: upload a music file + select a vault voiceover.
@@ -86,7 +86,7 @@ test.describe('Hotfix 2 — independent Voice/Music volume sliders', () => {
     const vol = (testid) => page.evaluate(
       (id) => document.querySelector(`audio[data-testid="${id}"]`)?.volume ?? null, testid,
     );
-    await expect.poll(() => vol('reel-audio-music')).toBe(0.8);
+    await expect.poll(() => vol('reel-audio-music')).toBe(0.2);
     await expect.poll(() => vol('reel-audio-voice')).toBe(1);
 
     // Independent channel control: move each slider, assert ONLY its element follows.
