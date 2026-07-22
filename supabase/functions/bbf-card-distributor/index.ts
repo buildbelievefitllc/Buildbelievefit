@@ -318,7 +318,81 @@ async function postTikTok(cfg: Config, imageUrl: string, caption: string): Promi
   return { ok: true, status: 200, ref: String(publishId) };
 }
 
-async function postToChannel(cfg: Config, ch: ChannelKey, imageUrl: string, caption: string): Promise<PostResult> {
+// ─── STORY posting integrations (surface='story') ───────────────────────────────
+// Meta Stories are a distinct product: 9:16, ephemeral (24h), NO caption (the field
+// is ignored on Story containers). Same FLIP RULE — success is a confirmed HTTP 200.
+
+// INSTAGRAM Story (photo): container media_type=STORIES + image_url → poll → publish.
+async function postInstagramStory(cfg: Config, imageUrl: string): Promise<PostResult> {
+  const create = await fetch(`${cfg.graph}/${cfg.igUser}/media`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ media_type: 'STORIES', image_url: imageUrl, access_token: cfg.metaToken }),
+  });
+  const cj = await create.json().catch(() => ({}));
+  if (create.status !== 200 || !cj?.id) {
+    return { ok: false, status: create.status, detail: `ig_story_create:${JSON.stringify(cj).slice(0, 200)}` };
+  }
+  const containerId = String(cj.id);
+  // Poll until ingested (images finish quickly, but publishing early 400s).
+  let ready = false;
+  for (let i = 0; i < 10; i += 1) {
+    const s = await fetch(`${cfg.graph}/${containerId}?fields=status_code&access_token=${encodeURIComponent(cfg.metaToken)}`);
+    const sj = await s.json().catch(() => ({}));
+    const code = sj?.status_code;
+    if (code === 'FINISHED') { ready = true; break; }
+    if (code === 'ERROR' || code === 'EXPIRED') {
+      return { ok: false, status: 400, detail: `ig_story_container_${String(code).toLowerCase()}:${JSON.stringify(sj).slice(0, 160)}` };
+    }
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  if (!ready) return { ok: false, status: 408, detail: `ig_story_not_ready:${containerId}` };
+  const publish = await fetch(`${cfg.graph}/${cfg.igUser}/media_publish`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ creation_id: containerId, access_token: cfg.metaToken }),
+  });
+  const pj = await publish.json().catch(() => ({}));
+  if (publish.status !== 200 || !pj?.id) {
+    return { ok: false, status: publish.status, detail: `ig_story_publish:${JSON.stringify(pj).slice(0, 200)}` };
+  }
+  return { ok: true, status: 200, ref: String(pj.id) };
+}
+
+// FACEBOOK Photo Story: upload the photo UNPUBLISHED (→ photo_id), then publish it
+// as a story via /{page}/photo_stories. Requires a PAGE token.
+async function postFacebookPhotoStory(cfg: Config, imageUrl: string): Promise<PostResult> {
+  const pageToken = await facebookPageToken(cfg);
+  // 1 — upload unpublished to reserve a photo_id
+  const up = await fetch(`${cfg.graph}/${cfg.fbPage}/photos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: imageUrl, published: false, access_token: pageToken }),
+  });
+  const uj = await up.json().catch(() => ({}));
+  const photoId = uj?.id;
+  if (up.status !== 200 || !photoId) {
+    return { ok: false, status: up.status, detail: `fb_photostory_upload:${JSON.stringify(uj).slice(0, 200)}` };
+  }
+  // 2 — publish it as a photo story
+  const pub = await fetch(`${cfg.graph}/${cfg.fbPage}/photo_stories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photo_id: photoId, access_token: pageToken }),
+  });
+  const pj = await pub.json().catch(() => ({}));
+  if (pub.status !== 200 || !(pj?.success === true || pj?.post_id || pj?.id)) {
+    return { ok: false, status: pub.status, detail: `fb_photostory_publish:${JSON.stringify(pj).slice(0, 200)}` };
+  }
+  return { ok: true, status: 200, ref: String(pj.post_id ?? pj.id ?? photoId) };
+}
+
+async function postToChannel(cfg: Config, ch: ChannelKey, imageUrl: string, caption: string, surface: 'feed' | 'story' = 'feed'): Promise<PostResult> {
+  if (surface === 'story') {
+    if (ch === 'instagram') return postInstagramStory(cfg, imageUrl);
+    if (ch === 'facebook') return postFacebookPhotoStory(cfg, imageUrl);
+    return { ok: false, status: 0, detail: 'tiktok_story_unsupported' };
+  }
   if (ch === 'instagram') return postInstagram(cfg, imageUrl, caption);
   if (ch === 'facebook') return postFacebook(cfg, imageUrl, caption);
   return postTikTok(cfg, imageUrl, caption);
@@ -378,6 +452,9 @@ serve(async (req) => {
     // ── distribute: the job. Dry-run unless { live:true }. ──────────────────────────
     if (action === 'distribute') {
       const live = body?.live === true;                 // GATE 2 — must be explicit
+      // SURFACE: 'feed' (default — IG/FB/TikTok feed) or 'story' (IG/FB Story). Set
+      // per-run by the Studio's story dispatch; the daily drip omits it → feed.
+      const surface: 'feed' | 'story' = String(body?.surface ?? 'feed').toLowerCase() === 'story' ? 'story' : 'feed';
       const limit = Math.max(1, Math.min(100, Number(body?.limit) || 25));
       const onlyChannels = Array.isArray(body?.channels)
         ? (body.channels as string[]).filter((c) => channelsConfigured.includes(c as ChannelKey)) as ChannelKey[]
@@ -409,7 +486,7 @@ serve(async (req) => {
         // ---- DRY RUN: preview only, no posting, no DB writes ----
         if (!live) {
           previewed++;
-          report.push({ id, would_post_to: target.channels, platform_target: row.platform_target ?? null, asset_present: haveAsset, image_url: imageUrl, caption_preview: caption.slice(0, 80), composed_preview: withLocalTags(caption).slice(0, 240) });
+          report.push({ id, surface, would_post_to: target.channels, platform_target: row.platform_target ?? null, asset_present: haveAsset, image_url: imageUrl, caption_preview: surface === 'story' ? '(stories carry no caption)' : caption.slice(0, 80), composed_preview: surface === 'story' ? null : withLocalTags(caption).slice(0, 240) });
           continue;
         }
 
@@ -456,7 +533,9 @@ serve(async (req) => {
             continue; // idempotent skip — already live on this channel
           }
           try {
-            const r = await postToChannel(cfg, ch, imageUrl, (ch === 'instagram' || ch === 'facebook') ? withLocalTags(caption) : caption);
+            // Stories take no caption; feed posts get the local-tag block appended.
+            const cap = surface === 'story' ? '' : ((ch === 'instagram' || ch === 'facebook') ? withLocalTags(caption) : caption);
+            const r = await postToChannel(cfg, ch, imageUrl, cap, surface);
             channelResults[ch] = r;
             if (!r.ok) allOk = false;
           } catch (e) {
@@ -490,6 +569,7 @@ serve(async (req) => {
         ok: true,
         action: 'distribute',
         mode: live ? 'live' : 'dry_run',
+        surface,
         channels: onlyChannels,
         selected: queued.length,
         summary: live ? { posted, failed, skipped } : { previewed },

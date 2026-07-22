@@ -264,7 +264,83 @@ async function postFacebook(cfg: Config, videoUrl: string, caption: string): Pro
   return { ok: true, status: 200, ref: String(j.post_id ?? j.id) };
 }
 
-async function postToChannel(cfg: Config, ch: ChannelKey, videoUrl: string, caption: string): Promise<PostResult> {
+// ─── STORY posting integrations (surface='story') ───────────────────────────────
+// Meta treats Stories as a distinct media product. Videos publish 9:16, ephemeral
+// (24h), and take NO caption (the caption field is ignored on Story containers), so
+// the story posters deliberately drop it. Same FLIP RULE applies — success is a
+// confirmed HTTP 200 with a returned id.
+
+// INSTAGRAM Story (video): container media_type=STORIES + video_url → poll → publish.
+async function postInstagramStory(cfg: Config, videoUrl: string): Promise<PostResult> {
+  const create = await fetch(`${cfg.graph}/${cfg.igUser}/media`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ media_type: 'STORIES', video_url: videoUrl, access_token: cfg.metaToken }),
+  });
+  const cj = await create.json().catch(() => ({}));
+  if (create.status !== 200 || !cj?.id) {
+    return { ok: false, status: create.status, detail: `ig_story_create:${JSON.stringify(cj).slice(0, 200)}` };
+  }
+  const containerId = String(cj.id);
+  const poll = await pollContainer(cfg, containerId);
+  if (!poll.ok) return { ok: false, status: 0, detail: `ig_story_poll:${poll.detail}` };
+  const publish = await fetch(`${cfg.graph}/${cfg.igUser}/media_publish`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ creation_id: containerId, access_token: cfg.metaToken }),
+  });
+  const pj = await publish.json().catch(() => ({}));
+  if (publish.status !== 200 || !pj?.id) {
+    return { ok: false, status: publish.status, detail: `ig_story_publish:${JSON.stringify(pj).slice(0, 200)}` };
+  }
+  return { ok: true, status: 200, ref: String(pj.id) };
+}
+
+// FACEBOOK Video Story: 3-phase — start (reserve video_id + upload_url) → upload the
+// hosted mp4 by URL (rupload accepts a `file_url` header, so we never pull bytes) →
+// finish (upload_phase=finish publishes it). Requires a PAGE token.
+async function postFacebookVideoStory(cfg: Config, videoUrl: string): Promise<PostResult> {
+  const pageToken = await facebookPageToken(cfg);
+  // 1 — START
+  const start = await fetch(`${cfg.graph}/${cfg.fbPage}/video_stories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ upload_phase: 'start', access_token: pageToken }),
+  });
+  const sj = await start.json().catch(() => ({}));
+  const videoId = sj?.video_id;
+  const uploadUrl = sj?.upload_url;
+  if (start.status !== 200 || !videoId || !uploadUrl) {
+    return { ok: false, status: start.status, detail: `fb_story_start:${JSON.stringify(sj).slice(0, 200)}` };
+  }
+  // 2 — UPLOAD (hosted file via header; the rupload endpoint fetches it server-side)
+  const up = await fetch(String(uploadUrl), {
+    method: 'POST',
+    headers: { Authorization: `OAuth ${pageToken}`, file_url: videoUrl },
+  });
+  const uj = await up.json().catch(() => ({}));
+  if (up.status !== 200 || !(uj?.success === true || uj?.h)) {
+    return { ok: false, status: up.status, detail: `fb_story_upload:${JSON.stringify(uj).slice(0, 200)}` };
+  }
+  // 3 — FINISH (publish)
+  const finish = await fetch(`${cfg.graph}/${cfg.fbPage}/video_stories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ upload_phase: 'finish', video_id: videoId, access_token: pageToken }),
+  });
+  const fj = await finish.json().catch(() => ({}));
+  if (finish.status !== 200 || !(fj?.success === true || fj?.post_id)) {
+    return { ok: false, status: finish.status, detail: `fb_story_finish:${JSON.stringify(fj).slice(0, 200)}` };
+  }
+  return { ok: true, status: 200, ref: String(fj.post_id ?? videoId) };
+}
+
+async function postToChannel(cfg: Config, ch: ChannelKey, videoUrl: string, caption: string, surface: 'feed' | 'story' = 'feed'): Promise<PostResult> {
+  if (surface === 'story') {
+    if (ch === 'instagram') return postInstagramStory(cfg, videoUrl);
+    if (ch === 'facebook') return postFacebookVideoStory(cfg, videoUrl);
+    return { ok: false, status: 0, detail: 'tiktok_story_unsupported' };
+  }
   if (ch === 'instagram') return postInstagram(cfg, videoUrl, caption);
   if (ch === 'facebook') return postFacebook(cfg, videoUrl, caption);
   return { ok: false, status: 0, detail: 'tiktok_disabled' }; // never reached (not enabled)
@@ -324,6 +400,10 @@ serve(async (req) => {
     // ── distribute: the job. Dry-run unless { live:true }. ──────────────────────────
     if (action === 'distribute') {
       const live = body?.live === true;                 // GATE 2 — must be explicit
+      // SURFACE: 'feed' (default — IG Reel + FB Page video) or 'story' (IG/FB Story).
+      // Per-run, not per-row: a POST NOW story dispatch carries surface:'story' for
+      // its single id; the daily drip omits it and stays feed (backward compatible).
+      const surface: 'feed' | 'story' = String(body?.surface ?? 'feed').toLowerCase() === 'story' ? 'story' : 'feed';
       const limit = Math.max(1, Math.min(100, Number(body?.limit) || 25));
       const onlyChannels = Array.isArray(body?.channels)
         ? (body.channels as string[]).filter((c) => channelsConfigured.includes(c as ChannelKey)) as ChannelKey[]
@@ -355,7 +435,7 @@ serve(async (req) => {
         // ---- DRY RUN: preview only, no posting, no DB writes ----
         if (!live) {
           previewed++;
-          report.push({ id, would_post_to: target.channels, platform_target: row.platform_target ?? null, asset_present: haveAsset, video_url: videoUrl, caption_preview: caption.slice(0, 80), composed_preview: withLocalTags(caption).slice(0, 240) });
+          report.push({ id, surface, would_post_to: target.channels, platform_target: row.platform_target ?? null, asset_present: haveAsset, video_url: videoUrl, caption_preview: surface === 'story' ? '(stories carry no caption)' : caption.slice(0, 80), composed_preview: surface === 'story' ? null : withLocalTags(caption).slice(0, 240) });
           continue;
         }
 
@@ -403,7 +483,9 @@ serve(async (req) => {
             continue; // idempotent skip — already live on this channel
           }
           try {
-            const r = await postToChannel(cfg, ch, videoUrl, (ch === 'instagram' || ch === 'facebook') ? withLocalTags(caption) : caption);
+            // Stories take no caption; feed posts get the local-tag block appended.
+            const cap = surface === 'story' ? '' : ((ch === 'instagram' || ch === 'facebook') ? withLocalTags(caption) : caption);
+            const r = await postToChannel(cfg, ch, videoUrl, cap, surface);
             channelResults[ch] = r;
             if (!r.ok) allOk = false;
           } catch (e) {
@@ -435,6 +517,7 @@ serve(async (req) => {
         ok: true,
         action: 'distribute',
         mode: live ? 'live' : 'dry_run',
+        surface,
         channels: onlyChannels,
         selected: queued.length,
         summary: live ? { posted, failed, skipped } : { previewed },

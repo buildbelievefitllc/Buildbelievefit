@@ -223,12 +223,14 @@ async function insertQueuedRow(table: string, row: Record<string, unknown>): Pro
 // Post NOW: fire the matching distributor for this single id (server-to-server). The
 // distributor's gate is X-BBF-Admin-Token === BBF_COACH_AGENT_TOKEN, which we hold in
 // env — so the public Studio browser never needs it. Returns the distributor JSON.
-async function distributeNow(distributor: string, id: string): Promise<{ ok: boolean; status: number; result: any }> {
+async function distributeNow(distributor: string, id: string, surface: 'feed' | 'story' = 'feed'): Promise<{ ok: boolean; status: number; result: any }> {
   if (!ADMIN_TOKEN) return { ok: false, status: 0, result: { error: 'admin_token_unset' } };
   const r = await fetch(`${SUPABASE_URL}/functions/v1/${distributor}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-BBF-Admin-Token': ADMIN_TOKEN },
-    body: JSON.stringify({ action: 'distribute', live: true, limit: 1, ids: [id] }),
+    // surface only rides along for a Story dispatch; omitted → distributor defaults
+    // to 'feed' (so the daily drip and every legacy caller are unchanged).
+    body: JSON.stringify({ action: 'distribute', live: true, limit: 1, ids: [id], ...(surface === 'story' ? { surface: 'story' } : {}) }),
   });
   const result = await r.json().catch(() => null);
   return { ok: r.ok, status: r.status, result };
@@ -267,6 +269,9 @@ serve(async (req) => {
       const id = String(body?.id ?? '');
       if (!UUID_RE.test(id)) return jsonResponse({ error: 'bad_id' }, 400);
       const path = `${id}.${cfg.ext}`;
+      // Story dispatch (POST NOW only): route this one asset to IG/FB Stories instead
+      // of the feed. Ephemeral, so it's never queued for the daily drip.
+      const surface: 'feed' | 'story' = String(body?.surface ?? 'feed').toLowerCase() === 'story' ? 'story' : 'feed';
 
       if (!(await assetExists(cfg.bucket, path))) {
         return jsonResponse({ error: 'asset_not_found', detail: `${cfg.bucket}/${path} is not in storage` }, 409);
@@ -296,13 +301,13 @@ serve(async (req) => {
         // response via waitUntil) and return immediately as 'posting'; the browser
         // polls action:'poststatus' for the verdict.
         if (kind === 'video') {
-          const bg = distributeNow(cfg.distributor, id)
+          const bg = distributeNow(cfg.distributor, id, surface)
             .catch((e) => { console.error('[bbf-studio-queue] bg distribute failed:', String((e as Error)?.message ?? e)); });
           try { (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime?.waitUntil?.(bg); } catch (_) { /* best effort */ }
           return jsonResponse({ ok: true, id, kind, table: cfg.table, status: 'posting', posted_now: true, async: true, row: inserted });
         }
         // IMAGE cards post fast — keep the synchronous verdict.
-        const dist = await distributeNow(cfg.distributor, id);
+        const dist = await distributeNow(cfg.distributor, id, surface);
         const summary = (dist.result && dist.result.summary) ? dist.result.summary : null;
         const posted = !!summary && Number(summary.posted) > 0;
         const failed = !!summary && Number(summary.failed) > 0;

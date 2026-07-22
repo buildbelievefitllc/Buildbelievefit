@@ -780,3 +780,21 @@
   background: rgba(13, 1, 24, 0.6); color: #fff; border: 1px solid rgba(245, 200, 0, 0.5); }
 
 .stat-row-v4 { display: flex; gap: 8px; }
+
+/* ── Direct-to-Story dispatch (IG / FB Stories, 9:16) ─────────────────────── */
+.story-dispatch-v4 { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.story-dispatch-lbl-v4 {
+  font-family: var(--hb); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--bbf-gold, #f5c800); opacity: 0.85;
+}
+.story-dispatch-row-v4 { display: flex; gap: 8px; }
+.story-btn-v4 {
+  flex: 1; min-height: 44px; cursor: pointer; border: none; border-radius: 10px;
+  font-family: var(--hb); font-size: 14px; letter-spacing: 0.6px; color: #fff;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+.story-btn-v4:disabled { opacity: 0.6; cursor: progress; }
+.story-btn-v4:not(:disabled):hover { filter: brightness(1.08); transform: translateY(-1px); }
+/* Platform-native accents (admin tooling — not a public brand surface). */
+.story-btn-ig-v4 { background: linear-gradient(120deg, #7638fa 0%, #d6249f 45%, #fd5949 75%, #fdb833 100%); }
+.story-btn-fb-v4 { background: linear-gradient(120deg, #1877f2 0%, #0a5bd3 100%); }

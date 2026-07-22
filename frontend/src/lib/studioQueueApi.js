@@ -62,7 +62,10 @@ async function putSignedAssetWithBackoff(uploadUrl, headers, blob) {
 // color_palette, platform_target }; getBlob: async () => Blob; now: publish-now.
 // Returns { status: 'queued' | 'posting' | 'posted', id, async? }. Throws a
 // slug Error on failure (the caller humanizes it).
-export async function queuePost({ kind, fields = {}, getBlob, now = false }) {
+// surface: 'feed' (default — IG Reel/FB video or IG/FB feed image) or 'story'
+// (IG/FB Story). Story is POST-NOW only (ephemeral); it rides the SAME sign→PUT→
+// confirm pipeline, the server just routes the distributor to the Story endpoints.
+export async function queuePost({ kind, fields = {}, getBlob, now = false, surface = 'feed' }) {
   const token = getStoredVaultToken();
   if (!token) throw new Error('no_admin_session');
 
@@ -94,7 +97,7 @@ export async function queuePost({ kind, fields = {}, getBlob, now = false }) {
   const cr = await fetch(QUEUE_FN, {
     method: 'POST',
     headers: qHeaders(token),
-    body: JSON.stringify({ action: 'confirm', id: sj.id, kind, now: !!now, ...fields }),
+    body: JSON.stringify({ action: 'confirm', id: sj.id, kind, now: !!now, surface: surface === 'story' ? 'story' : 'feed', ...fields }),
   });
   const cj = await cr.json().catch(() => null);
 

@@ -331,6 +331,76 @@ export default function StudioLayout({
     </div>
   );
 
+  // 9:16 STORY GUARD — Stories are vertical (9:16). Read the live stage's real pixel
+  // box; if it's horizontal or well off 9:16, return a warning the operator must clear
+  // before a Story dispatch (so a landscape asset isn't silently cropped/letterboxed).
+  const storyAspectWarn = () => {
+    const node = stageRef.current;
+    const w = node?.offsetWidth || 0;
+    const h = node?.offsetHeight || 0;
+    if (!w || !h) return null;
+    const ratio = h / w;                 // 9:16 ≈ 1.78
+    if (ratio >= 1.5) return null;       // vertical enough — no warning
+    const shape = w > h ? 'horizontal' : 'roughly square';
+    return `This asset looks ${shape} (${w}×${h}px). Stories are 9:16 vertical — Meta will crop or letterbox it. Post to Story anyway?`;
+  };
+
+  // Direct Story dispatch (POST NOW only — Stories are ephemeral). Bakes the current
+  // asset and routes it to ONE platform's Story via surface:'story'. Reuses the exact
+  // sign→PUT→confirm pipeline; only the server-side distributor endpoint differs.
+  const postStory = async (platform, { kind, fields, getBlob }) => {
+    if (posting || recording) return;
+    const label = (PLATFORMS.find(([p]) => p === platform) || [null, platform])[1];
+    const warn = storyAspectWarn();
+    if (warn && !window.confirm(warn)) { setPostNote({ ok: true, text: 'Cancelled — nothing was posted.' }); return; }
+    if (!window.confirm(`POST ${label} STORY NOW?\n\nPublishes immediately to your ${label} Story (visible ~24h) and cannot be undone.`)) {
+      setPostNote({ ok: true, text: 'Cancelled — nothing was posted.' });
+      return;
+    }
+    setPosting(true);
+    setPostNote({ ok: true, text: `Posting to ${label} Story now…` });
+    try {
+      const { queuePost, pollPostStatus } = await import('../../lib/studioQueueApi.js');
+      const r = await queuePost({ kind, fields: { ...fields, platform_target: platform }, getBlob, now: true, surface: 'story' });
+      if (r.status === 'posting') {
+        const verdict = await pollPostStatus({ kind, id: r.id });
+        setPostNote({ ok: verdict === 'posted', text: verdict === 'posted' ? `✓ Posted to ${label} Story.` : verdict === 'failed' ? `${label} rejected the Story — the asset is saved; check the token/permissions.` : `Still finishing at Meta — check your ${label} Story shortly.` });
+      } else if (r.status === 'posted') {
+        setPostNote({ ok: true, text: `✓ Posted to ${label} Story.` });
+      } else {
+        setPostNote({ ok: true, text: `Dispatched — your ${label} Story should appear shortly.` });
+      }
+    } catch (e) {
+      setPostNote({ ok: false, text: humanizePostErr(e?.message) });
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  // Two dedicated Story trigger buttons (IG / FB). `mode` picks the dispatcher:
+  // 'reel' → postReelStory (renders the mp4 first); 'image' → postStory (bakes the
+  // card). The ref-reading dispatchers are invoked from onClick (deferred) — passing
+  // them as helper args instead trips the React-compiler refs rule.
+  const storyButtons = ({ mode, fields }) => (
+    <div className="story-dispatch-v4">
+      <span className="story-dispatch-lbl-v4">📲 Direct to Story (9:16)</span>
+      <div className="story-dispatch-row-v4">
+        <button
+          type="button" className="story-btn-v4 story-btn-ig-v4" disabled={posting || recording} data-testid="ig-story-btn"
+          onClick={() => (mode === 'reel' ? postReelStory('instagram') : postStory('instagram', { kind: 'image', fields, getBlob: getStageBlob }))}
+        >
+          {(posting || recording) ? '… WORKING' : '📸 Instagram Story'}
+        </button>
+        <button
+          type="button" className="story-btn-v4 story-btn-fb-v4" disabled={posting || recording} data-testid="fb-story-btn"
+          onClick={() => (mode === 'reel' ? postReelStory('facebook') : postStory('facebook', { kind: 'image', fields, getBlob: getStageBlob }))}
+        >
+          {(posting || recording) ? '… WORKING' : '📘 Facebook Story'}
+        </button>
+      </div>
+    </div>
+  );
+
   // Image panels (CTA / Phone): caption preview + toggles + QUEUE + POST NOW.
   const postControls = (fields) => (
     <>
@@ -342,6 +412,7 @@ export default function StudioLayout({
       <button className="postnow-btn-v4" onClick={() => postCard(fields, true)} disabled={posting}>
         {posting ? '… WORKING' : '🚀 POST NOW → SOCIAL'}
       </button>
+      {storyButtons({ mode: 'image', fields })}
       {postNote && (
         <div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>
       )}
@@ -646,6 +717,53 @@ export default function StudioLayout({
         setPostNote({ ok: verdict === 'posted', text: verdict === 'posted' ? `✓ Reel posted. ${audioMsg}` : verdict === 'failed' ? 'Meta rejected the reel — the asset is saved.' : 'Still finishing at Meta — check IG/FB shortly.' });
       } else {
         setPostNote({ ok: true, text: `✓ Reel posted. ${audioMsg}` });
+      }
+    } catch (e) {
+      setPostNote({ ok: false, text: humanizeReelErr(e?.message) });
+    } finally {
+      setRecording(false);
+      setPosting(false);
+    }
+  };
+
+  // REEL → STORY: render the reel MP4, bake the Meta-ideal master, then dispatch it
+  // to ONE platform's Story (surface:'story'). Mirrors exportOrPostReel's render path
+  // but targets a single Story channel and never touches the feed toggles.
+  const postReelStory = async (platform) => {
+    if (recording || posting) return;
+    if (!reelData.videoFile?.url) {
+      setPostNote({ ok: false, text: 'Upload reel footage first — a Story needs a rendered video, not the cover image.' });
+      return;
+    }
+    const label = (PLATFORMS.find(([p]) => p === platform) || [null, platform])[1];
+    const warn = storyAspectWarn();
+    if (warn && !window.confirm(warn)) { setPostNote({ ok: true, text: 'Cancelled — nothing was posted.' }); return; }
+    if (!window.confirm(`POST ${label} STORY NOW?\n\nRenders the reel and publishes it to your ${label} Story (visible ~24h). Cannot be undone.`)) {
+      setPostNote({ ok: true, text: 'Cancelled — nothing was posted.' });
+      return;
+    }
+    setRecording(true);
+    setRecordPct(0);
+    try {
+      setPostNote({ ok: true, text: `Rendering reel for your ${label} Story…` });
+      const { result, audioMsg } = await renderReelMp4({ durationCapSec: 90 });
+      setPosting(true);
+      setPostNote({ ok: true, text: 'Baking Meta-ideal master (server-side H.264)…' });
+      let master = result.blob;
+      try {
+        const { foundryNormalize } = await import('../../lib/studioApi.js');
+        master = await foundryNormalize(result.blob);
+      } catch (foundryErr) {
+        console.warn('[reel-story] Foundry normalize unavailable — posting raw master:', foundryErr?.message);
+      }
+      setPostNote({ ok: true, text: `Posting to ${label} Story…` });
+      const { queuePost, pollPostStatus } = await import('../../lib/studioQueueApi.js');
+      const res = await queuePost({ kind: 'video', fields: { ...reelFields(), platform_target: platform }, getBlob: async () => master, now: true, surface: 'story' });
+      if (res.status === 'posting') {
+        const verdict = await pollPostStatus({ kind: 'video', id: res.id });
+        setPostNote({ ok: verdict === 'posted', text: verdict === 'posted' ? `✓ Posted to ${label} Story. ${audioMsg}` : verdict === 'failed' ? `${label} rejected the Story — the asset is saved; check the token/permissions.` : `Still finishing at Meta — check your ${label} Story shortly.` });
+      } else {
+        setPostNote({ ok: true, text: `✓ Posted to ${label} Story. ${audioMsg}` });
       }
     } catch (e) {
       setPostNote({ ok: false, text: humanizeReelErr(e?.message) });
@@ -1359,6 +1477,7 @@ export default function StudioLayout({
               <div className="hint-v4">
                 Toggles OFF → records &amp; downloads the reel. Toggles ON → records &amp; posts it. Needs uploaded footage (else exports the cover frame).
               </div>
+              {storyButtons({ mode: 'reel' })}
               {postNote && (
                 <div className="hint-v4" style={{ color: postNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }}>{postNote.text}</div>
               )}
