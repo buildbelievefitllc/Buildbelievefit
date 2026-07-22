@@ -46,6 +46,7 @@ const RISK_META = {
   STAGNANCY_ALERT:   { glyph: '🟡', label: 'Stagnant',         tone: 'stag'    },
   AUTONOMIC_OVERUSE: { glyph: '🟣', label: 'Autonomic Crisis', tone: 'auto'    },
   ONBOARDING_PLAN:   { glyph: '🔷', label: 'New Client',       tone: 'onboard' },
+  PHASE_PROMOTION:   { glyph: '🏆', label: 'Phase Promotion',  tone: 'onboard' },
 };
 
 // ── Accountability ledger (mirrors bbf-agent-brain) ───────────────────────────
@@ -125,10 +126,13 @@ function ActionCard({ action, onResolve, onApply }) {
   const risk = riskLine(action);
   const name = String(action?.athlete?.name || action?.athlete?.uid || 'Athlete');
   const isBlueprint = action.type === 'ONBOARDING_PLAN';
-  const mod = !isBlueprint && action.proposed_plan_modification
+  const isPromotion = action.type === 'PHASE_PROMOTION';
+  const mod = !isBlueprint && !isPromotion && action.proposed_plan_modification
     && action.proposed_plan_modification.volume_multiplier != null
     ? action.proposed_plan_modification : null;
   const blueprint = isBlueprint ? action.proposed_plan_modification?.blueprint : null;
+  // SP-0 dry-run Referee: the promotion payload the one-tap applier executes.
+  const promo = isPromotion ? action.proposed_plan_modification?.promotion : null;
 
   // Accountability derivations.
   const isCritical = CRITICAL_TYPES.has(action.type);
@@ -178,6 +182,14 @@ function ActionCard({ action, onResolve, onApply }) {
     window.location.href = `sms:?body=${encodeURIComponent(text)}`;
   }, [busy, text, copyText, onApply, action]);
 
+  // Phase promotions apply server-side only — no SMS jump; the athlete hears
+  // about it through the in-app narrative rails, not a raw text blast.
+  const applyOnly = useCallback(() => {
+    if (busy) return;
+    setBusy(true);
+    onApply(action);
+  }, [busy, onApply, action]);
+
   return (
     <article className={`ainbox-card ainbox-card--${meta.tone}`} data-testid={`ainbox-card-${action.id}`}>
       <header className="ainbox-card-head">
@@ -205,6 +217,20 @@ function ActionCard({ action, onResolve, onApply }) {
 
       {mod ? <ModificationPanel mod={mod} /> : null}
       {isBlueprint && blueprint ? <BlueprintPanel blueprint={blueprint} /> : null}
+      {promo ? (
+        <div className="ainbox-glass" data-testid="ainbox-promotion">
+          <div className="ainbox-glass-label">Referee Verdict · Dry-Run</div>
+          <p className="ainbox-glass-body">
+            {String(promo.sport || 'general').toUpperCase()} · Phase {promo.from_phase} → {promo.to_phase}
+            {promo.telemetry ? (
+              ` · weeks ${promo.telemetry.mesocycle_week ?? '—'}` +
+              ` · RPE ${promo.telemetry.rpe_avg_last_3 ?? '—'}` +
+              ` · friction ${promo.telemetry.friction_avg_last_3 ?? '—'}`
+            ) : ''}
+            {promo.is_youth ? ' · YOUTH — guardian consent verified' : ''}
+          </p>
+        </div>
+      ) : null}
 
       <label className="ainbox-draft-label" htmlFor={`ainbox-draft-${action.id}`}>
         Draft message · {firstNameOf(action)}
@@ -218,15 +244,15 @@ function ActionCard({ action, onResolve, onApply }) {
         data-testid="ainbox-draft"
       />
 
-      {mod || isBlueprint ? (
+      {mod || isBlueprint || promo ? (
         <button
           type="button"
           className="ainbox-btn ainbox-btn--deploy"
-          onClick={applyAndNudge}
+          onClick={promo ? applyOnly : applyAndNudge}
           disabled={busy}
           data-testid="ainbox-apply"
         >
-          {isBlueprint ? '⚡ DEPLOY BASELINE PLAN' : '⚡ APPLY PROGRAM OVERRIDE'}
+          {promo ? '⚡ APPROVE PHASE PROMOTION' : isBlueprint ? '⚡ DEPLOY BASELINE PLAN' : '⚡ APPLY PROGRAM OVERRIDE'}
         </button>
       ) : null}
 

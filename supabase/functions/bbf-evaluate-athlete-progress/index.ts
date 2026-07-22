@@ -10,7 +10,12 @@
 //   4. DETERMINISTICALLY checks the telemetry against those thresholds (completion,
 //      minimum weeks, RPE ceiling, joint-friction ceiling, + guardian consent for minors).
 //   5. If met and phase < 3 → regenerates the protocol at phase+1 via the NATIVE
-//      buildSportsProtocol and UPDATEs bbf_active_clients.sports_protocol.
+//      buildSportsProtocol, then:
+//        · referee_mode='dry_run' (DEFAULT — SP-0): stages a PHASE_PROMOTION card
+//          (with the pre-built next protocol) into coach_action_inbox for founder
+//          review; bbf_apply_phase_promotion applies it on one-tap APPROVE.
+//        · referee_mode='live' (explicit CEO order in bbf_app_config): UPDATEs
+//          bbf_active_clients.sports_protocol directly (original behavior).
 //
 // LOOP-SAFE BY DESIGN: this writes ONLY to bbf_active_clients — never to
 // bbf_athlete_progression — so it can never re-trigger the tripwire that called it.
@@ -63,8 +68,14 @@ serve(async (req) => {
   // toolset cannot set function env vars, so BOTH this function and the DB tripwire
   // read the secret from the DB. The trigger sends it as X-BBF-Evaluator-Secret.
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
-  const { data: cfg } = await supabase.from('bbf_app_config').select('value').eq('key', 'evaluator_secret').maybeSingle();
-  const SECRET = (cfg?.value as string) || '';
+  const { data: cfgRows } = await supabase.from('bbf_app_config').select('key, value').in('key', ['evaluator_secret', 'referee_mode']);
+  const cfgMap: Record<string, string> = {};
+  for (const row of cfgRows ?? []) cfgMap[row.key as string] = String(row.value ?? '');
+  const SECRET = cfgMap['evaluator_secret'] || '';
+  // SP-0 DRY-RUN RAIL: promotions stage as founder-review cards unless the CEO
+  // has explicitly flipped referee_mode to 'live' in bbf_app_config. A missing
+  // or unrecognized value fails SAFE to dry_run.
+  const REFEREE_MODE = cfgMap['referee_mode'] === 'live' ? 'live' : 'dry_run';
   if (!SECRET) return jsonResponse({ ok: false, error: 'config_missing_secret' }, 503);
   if (req.headers.get('x-bbf-evaluator-secret') !== SECRET) return jsonResponse({ ok: false, error: 'unauthorized' }, 401);
 
@@ -105,7 +116,7 @@ serve(async (req) => {
   if (!verdict.ok) return jsonResponse({ ok: true, promoted: false, phase: currentPhase, reason: verdict.reason });
   if (currentPhase >= 3) return jsonResponse({ ok: true, promoted: false, phase: currentPhase, reason: 'already_peak' });
 
-  // PROMOTE — regenerate natively at the next phase and persist to bbf_active_clients ONLY.
+  // CRITERIA MET — regenerate natively at the next phase (deterministic engine).
   const nextPhase = currentPhase + 1;
   const nextProtocol = buildSportsProtocol({
     sport: protocol.sport,
@@ -115,6 +126,46 @@ serve(async (req) => {
     targetPhase: nextPhase,
   });
 
+  if (REFEREE_MODE !== 'live') {
+    // SP-0 DRY-RUN: stage a PHASE_PROMOTION card for founder review instead of
+    // applying. One live proposal per athlete — dedup against PENDING cards.
+    const { data: pending } = await supabase
+      .from('coach_action_inbox').select('id')
+      .eq('athlete_id', userId).eq('type', 'PHASE_PROMOTION').eq('status', 'PENDING').limit(1);
+    if (pending?.length) {
+      return jsonResponse({ ok: true, promoted: false, staged: false, mode: REFEREE_MODE, reason: 'proposal_already_pending' });
+    }
+    const sportLabel = String(protocol.sport || 'general');
+    const { error: insErr } = await supabase.from('coach_action_inbox').insert({
+      athlete_id: userId,
+      type: 'PHASE_PROMOTION',
+      insight_summary:
+        `Autonomous Referee: all Phase ${currentPhase} gates cleared for ${sportLabel} — ` +
+        `weeks=${tel.mesocycle_week ?? '—'}, protocol_completed=${tel.protocol_completed}, ` +
+        `rpe_avg=${tel.rpe_avg_last_3 ?? '—'}, friction_avg=${tel.friction_avg_last_3 ?? '—'}` +
+        (isYouth ? ', guardian consent on file.' : '.'),
+      proposed_action: `Advance ${sportLabel} protocol Phase ${currentPhase} → ${nextPhase} (regenerated block is pre-built and attached; one-tap apply).`,
+      draft_message:
+        `Big news from the Lab: Phase ${nextPhase} is unlocked. Four-plus weeks of consistent work, ` +
+        `effort under control, joints reporting clean. The next block is loaded — let's level up.`,
+      proposed_plan_modification: {
+        promotion: {
+          user_id: userId,
+          sport: sportLabel,
+          from_phase: currentPhase,
+          to_phase: nextPhase,
+          is_youth: isYouth,
+          telemetry: tel,
+          next_protocol: nextProtocol,
+        },
+      },
+    });
+    if (insErr) return jsonResponse({ ok: false, error: 'stage_failed', detail: insErr.message }, 500);
+    console.log(`[bbf-evaluate-athlete-progress] STAGED dry-run promotion user=${userId} ${currentPhase} → ${nextPhase}`);
+    return jsonResponse({ ok: true, promoted: false, staged: true, mode: REFEREE_MODE, from_phase: currentPhase, to_phase: nextPhase });
+  }
+
+  // LIVE mode (explicit CEO order only): apply directly, original behavior.
   const { error: updErr } = await supabase
     .from('bbf_active_clients')
     .update({ sports_protocol: JSON.stringify(nextProtocol) })
