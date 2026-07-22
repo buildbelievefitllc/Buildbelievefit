@@ -323,3 +323,85 @@
   .ainbox-fab { right: 14px; bottom: 14px; }
   .ainbox-panel { width: 100vw; border-left: none; }
 }
+
+/* ═══ Domain-aware faces: CONTENT + KNOWLEDGE ═══════════════════════════════ */
+
+/* Card tone accents (left border) for the new decks */
+.ainbox-card--ig       { border-left: 3px solid rgba(214, 36, 159, 0.8); }
+.ainbox-card--tiktok   { border-left: 3px solid rgba(0, 209, 255, 0.7); }
+.ainbox-card--fb       { border-left: 3px solid rgba(24, 119, 242, 0.85); }
+.ainbox-card--strategy { border-left: 3px solid rgba(245, 200, 0, 0.75); }
+.ainbox-card--lang     { border-left: 3px solid rgba(80, 200, 160, 0.75); }
+.ainbox-card--lab      { border-left: 3px solid rgba(96, 180, 255, 0.75); }
+
+/* Tag chip in the card header (platform · type) */
+.ainbox-card-tag {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #f5c800;
+}
+.ainbox-card-name--sm {
+  font-size: 1.05rem;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+/* Chips row — hashtag clusters / hook angles / focus tags */
+.ainbox-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; }
+.ainbox-chip {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 200, 0, 0.3);
+  background: rgba(245, 200, 0, 0.08);
+  color: rgba(249, 245, 255, 0.85);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+}
+
+/* Inline confirmation note (e.g. "Saved to the Review Bucket") */
+.ainbox-note {
+  margin-top: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem;
+  color: #7be0b0;
+}
+
+/* Recovery itinerary — a list of Coach's Cave film launch buttons */
+.ainbox-itinerary { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 2px; }
+.ainbox-film {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(154, 74, 255, 0.4);
+  background: rgba(106, 13, 173, 0.16);
+  color: #f3ecff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ainbox-film:hover { border-color: rgba(245, 200, 0, 0.55); background: rgba(106, 13, 173, 0.28); }
+.ainbox-film-play { color: #f5c800; font-size: 0.8rem; }
+.ainbox-film-title { line-height: 1.25; }
+
+/* Trio action rows (draft / review / dismiss · launch / open / dismiss) */
+.ainbox-card-actions--trio { gap: 8px; }
+.ainbox-card-actions--trio .ainbox-btn--dismiss { flex: 0 0 auto; }
+.ainbox-btn--secondary {
+  background: rgba(106, 13, 173, 0.2);
+  border-color: rgba(154, 74, 255, 0.5);
+  color: #e7dbff;
+}
+.ainbox-btn--secondary:hover:not(:disabled) { filter: brightness(1.15); border-color: rgba(245, 200, 0, 0.5); }
+
+/* Per-face FAB tint so the desk reads its domain at a glance */
+.ainbox-fab--content  { background: linear-gradient(135deg, #6a0dad 0%, #d6249f 130%); }
+.ainbox-fab--knowledge { background: linear-gradient(135deg, #6a0dad 0%, #2f8f6f 140%); }

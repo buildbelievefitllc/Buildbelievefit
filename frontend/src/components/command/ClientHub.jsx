@@ -30,7 +30,6 @@ import { velocityMap, floatCriticalFirst, VELOCITY_BANDS } from '../../lib/coach
 import { fetchAcwrBatch } from '../../lib/acwrApi.js';
 import BiometricStrainBadge from './BiometricStrainBadge.jsx';
 import NudgeDrawer from './NudgeDrawer.jsx';
-import ActionInbox from './ActionInbox.jsx';
 import ForgeAthlete from './ForgeAthlete.jsx';
 import './founderfive.css';
 import './NudgeDrawer.css';
@@ -347,10 +346,8 @@ export default function ClientHub() {
       {nudge ? (
         <NudgeDrawer client={nudge.client} stag={nudge.stag} onClose={() => setNudge(null)} />
       ) : null}
-
-      {/* Agentic Command Center — floating Action Inbox badge + triage panel.
-          Self-hides at zero pending; a fetch failure never breaks the Hub. */}
-      <ActionInbox />
+      {/* The Agentic Action Inbox is now mounted once at the Command Center level
+          (domain-aware) — see CommandCenter.jsx — so it persists across tab swaps. */}
     </div>
   );
 }

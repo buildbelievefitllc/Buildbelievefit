@@ -1,25 +1,45 @@
 // src/components/command/ActionInbox.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// The Agentic Command Center ACTION INBOX — the coach's triage desk for the
-// autonomous agent loop (sentinels → bbf-agent-brain/Gemini → coach_action_inbox).
+// The Agentic Command Center ACTION INBOX — now DOMAIN-AWARE. One floating desk,
+// three faces driven by the active Command Center domain:
 //
-//   • Floating status badge (fixed, bottom-right) with the live PENDING count.
-//     Self-hides at zero — the desk only surfaces when there is work to triage.
-//   • Slide-in panel of action cards: athlete + risk type, the Gemini insight &
-//     proposed action in glass panels, an EDITABLE draft message, and the two
-//     triggers — [⚡ NUDGE / SEND SMS] (copies the text, opens the native sms:
-//     composer, resolves APPROVED) and [❌ DISMISS] (resolves DISMISSED).
+//   • coaching / system → the autonomous sentinel loop (sentinels → bbf-agent-brain
+//     → coach_action_inbox): athlete risk cards with an editable outreach draft and
+//     the [⚡ NUDGE] / [❌ DISMISS] triggers (+ one-tap program-override apply).
+//   • content → agentic marketing intelligence: Platform Growth insights (FB/IG/
+//     TikTok) + Content Strategy (hashtag clusters, audio/BGM pairing, hook angles).
+//     Triggers: [✏️ Draft in Studio V4] · [📥 Send to Review Bucket] · [❌ Dismiss].
+//   • knowledge → the Founder Assistant: a readiness-driven recovery itinerary
+//     (links straight into Coach's Cave films when readiness < 85%), a daily ES/PT
+//     Language Lab rep, and a Coach Lab prehab briefing. Triggers: [🎬 Launch Coach's
+//     Cave Session] · [🎧 Open Language Lab] · [🔬 Open Coach Lab] · [❌ Dismiss].
 //
-// Data path: lib/inboxApi (bbf-agent-brain admin gate) — the inbox table itself
-// is RLS-sealed; nothing here touches PostgREST directly. Resolves are
-// optimistic: the card leaves the deck instantly, and a failed resolve puts it
-// back. Styles are fully scoped under `.ainbox-` (see ActionInbox.css).
+// Mounted ONCE at the Command Center level (inside RosterProvider) so it survives
+// tab swaps and reads the live readiness + roster. Sentinel data path: lib/inboxApi
+// (admin-gated); content/knowledge decks are client-curated (commandInboxData) with
+// session-local dismiss. Styles are scoped under `.ainbox-` (ActionInbox.css).
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchActionInbox, resolveInboxAction } from '../../lib/inboxApi.js';
+import { useReadiness } from '../../context/ReadinessContext.jsx';
+import { useRoster } from './RosterProvider.jsx';
+import { CONTENT_INSIGHTS, buildKnowledgeDeck } from './commandInboxData.js';
 import './ActionInbox.css';
 
 const POLL_MS = 120000; // background count refresh — light, non-blocking
+
+// Which face the drawer wears for a given Command Center domain.
+function modeForDomain(domain) {
+  if (domain === 'content') return 'content';
+  if (domain === 'knowledge') return 'knowledge';
+  return 'sentinel'; // coaching + system
+}
+const TITLE_BY_MODE = {
+  sentinel: 'Action Inbox',
+  content: 'Content Intelligence',
+  knowledge: 'Founder Assistant',
+};
 
 const RISK_META = {
   ACWR_SPIKE:        { glyph: '🔴', label: 'ACWR Spike',       tone: 'spike'   },
@@ -41,8 +61,7 @@ function firstNameOf(action) {
   return raw.split(/\s+/)[0] || 'Athlete';
 }
 
-// ── Closed-loop panels ───────────────────────────────────────────────────────
-// The structured Gemini modification block (spike/autonomic cards).
+// ── Closed-loop panels (sentinel) ─────────────────────────────────────────────
 function ModificationPanel({ mod }) {
   const pct = (v) => `${Math.round(Number(v) * 100)}%`;
   return (
@@ -58,7 +77,6 @@ function ModificationPanel({ mod }) {
   );
 }
 
-// The 4-week onboarding blueprint (ONBOARDING_PLAN cards).
 function BlueprintPanel({ blueprint }) {
   const weeks = Array.isArray(blueprint?.weeks) ? blueprint.weeks : [];
   return (
@@ -82,7 +100,7 @@ function BlueprintPanel({ blueprint }) {
   );
 }
 
-// ── One triage card ──────────────────────────────────────────────────────────
+// ── One sentinel triage card ──────────────────────────────────────────────────
 function ActionCard({ action, onResolve, onApply }) {
   const [text, setText] = useState(String(action.draft_message || ''));
   const [busy, setBusy] = useState(false);
@@ -107,9 +125,6 @@ function ActionCard({ action, onResolve, onApply }) {
     } catch { /* clipboard blocked — the sms: body still carries the text */ }
   }, []);
 
-  // ⚡ NUDGE — copy (or edited) text, open the native sms: composer, APPROVE.
-  // bbf_users has no phone column: sms:?body= opens the composer for the coach
-  // to pick the recipient (same graceful path NudgeDrawer ships).
   const nudge = useCallback(async () => {
     if (busy) return;
     setBusy(true);
@@ -124,9 +139,6 @@ function ActionCard({ action, onResolve, onApply }) {
     onResolve(action, 'DISMISSED');
   }, [busy, onResolve, action]);
 
-  // ⚡ One-tap closed loop — the applier RPC runs server-side (APPROVE happens
-  // atomically with the plan write); the outreach draft rides along: copied to
-  // the clipboard + handed to the native sms: composer.
   const applyAndNudge = useCallback(async () => {
     if (busy) return;
     setBusy(true);
@@ -192,13 +204,148 @@ function ActionCard({ action, onResolve, onApply }) {
   );
 }
 
-// ── The floating badge + slide-in triage panel ───────────────────────────────
-export default function ActionInbox() {
+// ── Chips row (hashtags / hook angles / focus tags) ───────────────────────────
+function Chips({ items }) {
+  if (!Array.isArray(items) || !items.length) return null;
+  return (
+    <div className="ainbox-chips">
+      {items.map((c, i) => <span key={i} className="ainbox-chip">{c}</span>)}
+    </div>
+  );
+}
+
+// ── One CONTENT intelligence card ─────────────────────────────────────────────
+function ContentCard({ card, onDraft, onReview, onDismiss }) {
+  const [note, setNote] = useState(null);
+  return (
+    <article className={`ainbox-card ainbox-card--${card.tone}`} data-testid={`ainbox-content-${card.id}`}>
+      <header className="ainbox-card-head">
+        <span className="ainbox-card-tag">{card.tag}</span>
+      </header>
+      <div className="ainbox-card-name ainbox-card-name--sm">{card.title}</div>
+
+      <div className="ainbox-glass">
+        <div className="ainbox-glass-label">Insight</div>
+        <p className="ainbox-glass-body">{card.insight}</p>
+      </div>
+      {card.detail ? (
+        <div className="ainbox-glass ainbox-glass--action">
+          <div className="ainbox-glass-label">Recommendation</div>
+          <p className="ainbox-glass-body">{card.detail}</p>
+        </div>
+      ) : null}
+      <Chips items={card.chips} />
+
+      {note ? <div className="ainbox-note" role="status">{note}</div> : null}
+
+      <div className="ainbox-card-actions ainbox-card-actions--trio">
+        <button type="button" className="ainbox-btn ainbox-btn--nudge" onClick={() => onDraft(card)} data-testid="ainbox-draft-studio">
+          ✏️ Draft in Studio V4
+        </button>
+        <button type="button" className="ainbox-btn ainbox-btn--secondary" onClick={() => { onReview(card); setNote('✓ Saved to the Review Bucket.'); }} data-testid="ainbox-review">
+          📥 Review Bucket
+        </button>
+        <button type="button" className="ainbox-btn ainbox-btn--dismiss" onClick={() => onDismiss(card.id)} data-testid="ainbox-content-dismiss">
+          ❌
+        </button>
+      </div>
+    </article>
+  );
+}
+
+// ── One KNOWLEDGE founder-assistant card ──────────────────────────────────────
+function KnowledgeCard({ card, onLaunchCave, onOpenLanguage, onOpenCoachLab, onDismiss }) {
+  return (
+    <article className={`ainbox-card ainbox-card--${card.tone}`} data-testid={`ainbox-knowledge-${card.id}`}>
+      <header className="ainbox-card-head">
+        <span className="ainbox-card-tag">{card.tag}</span>
+      </header>
+      <div className="ainbox-card-name ainbox-card-name--sm">{card.title}</div>
+
+      <div className="ainbox-glass">
+        <div className="ainbox-glass-label">Insight</div>
+        <p className="ainbox-glass-body">{card.insight}</p>
+      </div>
+      {card.detail ? (
+        <div className="ainbox-glass ainbox-glass--action">
+          <div className="ainbox-glass-label">{card.variant === 'readiness' ? 'Recovery Itinerary' : 'Note'}</div>
+          <p className="ainbox-glass-body">{card.detail}</p>
+        </div>
+      ) : null}
+
+      {/* Readiness card → the curated Coach's Cave itinerary (each film launches
+          the Cave straight to that clip). */}
+      {card.variant === 'readiness' && Array.isArray(card.films) ? (
+        <div className="ainbox-itinerary">
+          {card.films.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              className="ainbox-film"
+              onClick={() => onLaunchCave(f)}
+              data-testid={`ainbox-film-${f.id}`}
+            >
+              <span className="ainbox-film-play" aria-hidden="true">▶</span>
+              <span className="ainbox-film-title">{f.title}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="ainbox-card-actions ainbox-card-actions--trio">
+        {card.variant === 'readiness' ? (
+          <button type="button" className="ainbox-btn ainbox-btn--nudge" onClick={() => onLaunchCave(card.films[0])} data-testid="ainbox-launch-cave">
+            🎬 Launch Coach’s Cave
+          </button>
+        ) : null}
+        {card.variant === 'language' ? (
+          <button type="button" className="ainbox-btn ainbox-btn--nudge" onClick={onOpenLanguage} data-testid="ainbox-open-language">
+            🎧 Open Language Lab
+          </button>
+        ) : null}
+        {card.variant === 'coachlab' ? (
+          <button type="button" className="ainbox-btn ainbox-btn--nudge" onClick={onOpenCoachLab} data-testid="ainbox-open-coachlab">
+            🔬 Open Coach Lab
+          </button>
+        ) : null}
+        <button type="button" className="ainbox-btn ainbox-btn--dismiss" onClick={() => onDismiss(card.id)} data-testid="ainbox-knowledge-dismiss">
+          ❌ Dismiss
+        </button>
+      </div>
+    </article>
+  );
+}
+
+// ── The floating badge + slide-in panel ───────────────────────────────────────
+export default function ActionInbox({ domain = 'coaching' }) {
+  const mode = modeForDomain(domain);
+  const navigate = useNavigate();
+
+  // Sentinel (coaching/system) server state.
   const [actions, setActions] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const alive = useRef(true);
+
+  // Content/knowledge: session-local dismiss (one Set spans both decks — card ids
+  // are unique across decks, and the desk persists across tab swaps).
+  const [dismissed, setDismissed] = useState(() => new Set());
+  const dismissCard = useCallback((id) => {
+    setDismissed((prev) => { const n = new Set(prev); n.add(id); return n; });
+  }, []);
+
+  // Live founder signals for the KNOWLEDGE deck.
+  const readiness = useReadiness();
+  const roster = useRoster();
+  const knowledgeDeck = useMemo(
+    () => buildKnowledgeDeck({
+      readinessScore: readiness?.readinessScore ?? null,
+      band: readiness?.band ?? 'idle',
+      rosterCount: Array.isArray(roster?.roster) ? roster.roster.length : 0,
+    }),
+    [readiness?.readinessScore, readiness?.band, roster?.roster],
+  );
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -206,23 +353,23 @@ export default function ActionInbox() {
       const rows = await fetchActionInbox();
       if (alive.current) { setActions(rows); setError(null); }
     } catch {
-      // Non-fatal overlay: the Command Center never breaks on an inbox hiccup.
       if (alive.current) setError('Inbox fetch failed');
     } finally {
       if (alive.current) setLoading(false);
     }
   }, []);
 
+  // Sentinel poll — only while a sentinel domain is active (content/knowledge are
+  // client-curated and never hit the agent-brain endpoint).
   useEffect(() => {
+    if (mode !== 'sentinel') return undefined;
     alive.current = true;
-    // Deferred via microtask (ClientHub overlay parity) — no synchronous
-    // setState inside the effect body.
     queueMicrotask(() => { if (alive.current) refresh(); });
     const t = setInterval(refresh, POLL_MS);
     return () => { alive.current = false; clearInterval(t); };
-  }, [refresh]);
+  }, [mode, refresh]);
 
-  // ESC-to-close + body scroll lock while the panel is open (NudgeDrawer parity).
+  // ESC-to-close + body scroll lock while the panel is open.
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
@@ -235,7 +382,7 @@ export default function ActionInbox() {
     };
   }, [open]);
 
-  // Optimistic resolve — the card leaves instantly; a failed call puts it back.
+  // Sentinel optimistic resolve/apply.
   const onResolve = useCallback(async (action, status) => {
     setActions((prev) => prev.filter((a) => a.id !== action.id));
     try {
@@ -244,9 +391,6 @@ export default function ActionInbox() {
       setActions((prev) => (prev.some((a) => a.id === action.id) ? prev : [action, ...prev]));
     }
   }, []);
-
-  // One-tap applier — same optimistic pattern; the server runs the plan-write
-  // RPC and APPROVEs atomically. A failed apply puts the card back for retry.
   const onApply = useCallback(async (action) => {
     setActions((prev) => prev.filter((a) => a.id !== action.id));
     try {
@@ -256,16 +400,59 @@ export default function ActionInbox() {
     }
   }, []);
 
-  const count = actions.length;
+  // ── Content triggers ──
+  const draftInStudio = useCallback((card) => {
+    // Hand a draft seed to Studio V4 (harmless if unread) and jump there.
+    try {
+      localStorage.setItem('bbf.studio.seed', JSON.stringify({
+        from: 'content-inbox', title: card.title, angle: card.detail || card.insight, chips: card.chips || [],
+      }));
+    } catch { /* private mode — the navigation still works */ }
+    setOpen(false);
+    navigate('/command/studio-v4');
+  }, [navigate]);
+
+  const sendToReview = useCallback((card) => {
+    // Append to a session-durable local review bucket, then retire the card.
+    try {
+      const key = 'bbf.content.review.v1';
+      const bucket = JSON.parse(localStorage.getItem(key) || '[]');
+      bucket.unshift({ id: card.id, tag: card.tag, title: card.title, insight: card.insight });
+      localStorage.setItem(key, JSON.stringify(bucket.slice(0, 50)));
+    } catch { /* non-fatal — the card still leaves the deck */ }
+    dismissCard(card.id);
+  }, [dismissCard]);
+
+  // ── Knowledge triggers ──
+  const launchCave = useCallback((film) => {
+    // The Cave reads this jump hint on mount (deck + film id) — see CoachCave.jsx.
+    try {
+      if (film?.deck && film?.id) localStorage.setItem('bbf.cave.jump', JSON.stringify({ deck: film.deck, id: film.id }));
+    } catch { /* proceed — the Cave still opens to its default deck */ }
+    setOpen(false);
+    navigate('/command/coach-cave');
+  }, [navigate]);
+  const openLanguageLab = useCallback(() => { setOpen(false); navigate('/command/language-lab'); }, [navigate]);
+  const openCoachLab = useCallback(() => { setOpen(false); navigate('/command/coach-lab'); }, [navigate]);
+
+  // Visible decks (post-dismiss).
+  const contentCards = useMemo(() => CONTENT_INSIGHTS.filter((c) => !dismissed.has(c.id)), [dismissed]);
+  const knowledgeCards = useMemo(() => knowledgeDeck.filter((c) => !dismissed.has(c.id)), [knowledgeDeck, dismissed]);
+
+  const count = mode === 'sentinel' ? actions.length
+    : mode === 'content' ? contentCards.length
+    : knowledgeCards.length;
+
+  const title = TITLE_BY_MODE[mode];
 
   return (
     <>
       {count > 0 ? (
         <button
           type="button"
-          className="ainbox-fab"
+          className={`ainbox-fab ainbox-fab--${mode}`}
           onClick={() => setOpen(true)}
-          aria-label={`Open Action Inbox — ${count} pending action${count === 1 ? '' : 's'}`}
+          aria-label={`Open ${title} — ${count} item${count === 1 ? '' : 's'}`}
           data-testid="ainbox-fab"
         >
           <span className="ainbox-fab-glyph" aria-hidden="true">⚡</span>
@@ -279,28 +466,53 @@ export default function ActionInbox() {
             <header className="ainbox-head">
               <div>
                 <div className="ainbox-kicker">⚡ Agentic Command Center</div>
-                <h3 id="ainbox-title" className="ainbox-title">Action Inbox</h3>
+                <h3 id="ainbox-title" className="ainbox-title">{title}</h3>
               </div>
               <div className="ainbox-head-tools">
-                <button type="button" className="ainbox-refresh" onClick={refresh} disabled={loading} aria-label="Refresh inbox">
-                  ↻
-                </button>
+                {mode === 'sentinel' ? (
+                  <button type="button" className="ainbox-refresh" onClick={refresh} disabled={loading} aria-label="Refresh inbox">↻</button>
+                ) : null}
                 <button type="button" className="ainbox-x" onClick={() => setOpen(false)} aria-label="Close">✕</button>
               </div>
             </header>
 
-            {error ? <div className="ainbox-error" role="alert">{error}</div> : null}
+            {error && mode === 'sentinel' ? <div className="ainbox-error" role="alert">{error}</div> : null}
 
-            {count === 0 ? (
-              <div className="ainbox-empty">
-                <span aria-hidden="true">◎</span> Inbox zero — no pending agent actions.
-              </div>
+            {mode === 'sentinel' ? (
+              count === 0 ? (
+                <div className="ainbox-empty"><span aria-hidden="true">◎</span> Inbox zero — no pending agent actions.</div>
+              ) : (
+                <div className="ainbox-list">
+                  {actions.map((a) => <ActionCard key={a.id} action={a} onResolve={onResolve} onApply={onApply} />)}
+                </div>
+              )
+            ) : mode === 'content' ? (
+              count === 0 ? (
+                <div className="ainbox-empty"><span aria-hidden="true">◎</span> All content insights triaged.</div>
+              ) : (
+                <div className="ainbox-list">
+                  {contentCards.map((c) => (
+                    <ContentCard key={c.id} card={c} onDraft={draftInStudio} onReview={sendToReview} onDismiss={dismissCard} />
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="ainbox-list">
-                {actions.map((a) => (
-                  <ActionCard key={a.id} action={a} onResolve={onResolve} onApply={onApply} />
-                ))}
-              </div>
+              count === 0 ? (
+                <div className="ainbox-empty"><span aria-hidden="true">◎</span> Founder assistant clear.</div>
+              ) : (
+                <div className="ainbox-list">
+                  {knowledgeCards.map((c) => (
+                    <KnowledgeCard
+                      key={c.id}
+                      card={c}
+                      onLaunchCave={launchCave}
+                      onOpenLanguage={openLanguageLab}
+                      onOpenCoachLab={openCoachLab}
+                      onDismiss={dismissCard}
+                    />
+                  ))}
+                </div>
+              )
             )}
           </aside>
         </div>

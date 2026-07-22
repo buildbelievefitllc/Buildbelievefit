@@ -50,6 +50,27 @@ export default function CoachCave() {
   const [openId, setOpenId] = useState(null);
   const cardRefs = useRef(new Map());
 
+  // Deep-link jump (from the Founder Assistant "Launch Coach's Cave Session"): a
+  // one-shot { deck, id } hint left in localStorage preselects the deck + expands
+  // the film. Consumed once, then cleared. setState is deferred to a microtask
+  // (house set-state-in-effect rule).
+  const jumped = useRef(false);
+  useEffect(() => {
+    if (jumped.current) return undefined;
+    jumped.current = true;
+    let hint = null;
+    try {
+      const raw = localStorage.getItem('bbf.cave.jump');
+      if (raw) { hint = JSON.parse(raw); localStorage.removeItem('bbf.cave.jump'); }
+    } catch { /* ignore — the Cave opens to its default deck */ }
+    if (!hint || !hint.id) return undefined;
+    queueMicrotask(() => {
+      if (hint.deck && CAVE_SUBJECTS.some((s) => s.key === hint.deck)) setDeckKey(hint.deck);
+      setOpenId(String(hint.id));
+    });
+    return undefined;
+  }, []);
+
   const activeDeck = CAVE_SUBJECTS.find((s) => s.key === deckKey) || CAVE_SUBJECTS[0];
   // Memoized so its identity is stable per (language, deck) — keeps the filter
   // useMemo below from re-running every render (react-hooks/exhaustive-deps).

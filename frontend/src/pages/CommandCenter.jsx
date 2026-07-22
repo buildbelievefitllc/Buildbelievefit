@@ -47,6 +47,7 @@ import Settings from '../components/vault/Settings.jsx';
 import Generator from '../components/vault/Generator.jsx';
 import SportsPortal from '../components/sports/SportsPortal.jsx';
 import DevToolsPanel from '../components/command/DevToolsPanel.jsx';
+import ActionInbox from '../components/command/ActionInbox.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLang } from '../context/LangContext.jsx';
 import { useVaultProfile, selectPlans } from '../lib/vaultApi.js';
@@ -150,6 +151,9 @@ export default function CommandCenter() {
   const activeDef = TABS.find((item) => item.id === tab) ?? TABS[0];
   const activeTab = activeDef.id;
   const ActivePanel = activeDef.Panel;
+  // The active executive domain (coaching | content | knowledge | system) — drives
+  // which face the Agentic Action Inbox wears (sentinel vs content vs knowledge).
+  const activeDomain = (DOMAINS.find((d) => d.tabs.includes(activeTab)) ?? DOMAINS[0]).id;
 
   // Route disable: a deep link to a RETIRED/unknown surface (e.g. the deprecated
   // /command/telemetry) normalizes to the default roster URL instead of silently
@@ -228,6 +232,12 @@ export default function CommandCenter() {
       {/* Admin-only floating Dev Tools (self-gates on isAdmin) — zero-friction
           testing surface, e.g. "Simulate CNS Breach (Health Connect)". */}
       <DevToolsPanel />
+
+      {/* Agentic Command Center — domain-aware Action Inbox. Mounted ONCE here
+          (inside RosterProvider, outside the per-tab remount) so it persists across
+          tab swaps and reads the live readiness + roster; its face follows the
+          active domain (coaching→sentinel · content→intel · knowledge→assistant). */}
+      <ActionInbox domain={activeDomain} />
     </div>
     </RosterProvider>
   );
