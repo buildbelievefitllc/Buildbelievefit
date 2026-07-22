@@ -700,3 +700,385 @@ export const CAVE_L10N = {
     "playerNote": "Dica: acomode-se, com áudio. Estude a abordagem e fique com o que afia o seu coaching."
   }
 };
+
+
+// ── Founder library expansion (2026-07 drop) ─────────────────────────
+// 60 curated films folded into the EN decks (deduped by youtubeId) so they show
+// in the Coach’s Cave browser AND power the CNS→content recovery itinerary. The
+// three raw categories map 1:1 onto the existing deck keys.
+const CAVE_EN_EXPANSION = {
+  "self-determination": [
+    {
+      "id": "Q0Hq4szBkIE",
+      "title": "Self Determination Theory in Sport - Stay MOTIVATED as an Athlete",
+      "channel": "",
+      "youtubeId": "Q0Hq4szBkIE"
+    },
+    {
+      "id": "4ZOUfknxANg",
+      "title": "Sport Psych n' Stuff: Basics of Motivation",
+      "channel": "",
+      "youtubeId": "4ZOUfknxANg"
+    },
+    {
+      "id": "QjmEHkaJPWg",
+      "title": "The Self-Determination Theory Explained",
+      "channel": "",
+      "youtubeId": "QjmEHkaJPWg"
+    },
+    {
+      "id": "6FTTX0H4HfE",
+      "title": "Self-Determination Theory - Sport Psychology Insights",
+      "channel": "",
+      "youtubeId": "6FTTX0H4HfE"
+    },
+    {
+      "id": "yG7v4y_xwzQ",
+      "title": "Inside the Mind of Champion Athletes: Martin Hagger at TEDxPerth",
+      "channel": "",
+      "youtubeId": "yG7v4y_xwzQ"
+    },
+    {
+      "id": "yfGO5u6nTbQ",
+      "title": "The 7 Laws of Unshakable Self-Belief (For Athletes)",
+      "channel": "",
+      "youtubeId": "yfGO5u6nTbQ"
+    },
+    {
+      "id": "Cw6xuzosn4s",
+      "title": "INSIDE THE MIND OF A WINNER | Sports Psychologist Bill Beswick * train to dominate *",
+      "channel": "",
+      "youtubeId": "Cw6xuzosn4s"
+    },
+    {
+      "id": "tZ8cPONW1DI",
+      "title": "Mental Coach Explains How Pro Athletes Think",
+      "channel": "",
+      "youtubeId": "tZ8cPONW1DI"
+    },
+    {
+      "id": "tr92prVkLdI",
+      "title": "No.1 Sports Psychologists | Train Your Mind to Win | Bill Beswick",
+      "channel": "",
+      "youtubeId": "tr92prVkLdI"
+    },
+    {
+      "id": "rNxC16mlO60",
+      "title": "The Secrets and Science of Mental Toughness | Joe Risser MD, MPH | TEDxSanDiego",
+      "channel": "",
+      "youtubeId": "rNxC16mlO60"
+    },
+    {
+      "id": "rmqX0WMjGe0",
+      "title": "How to Think Like a Champion | Bill Beswick's 1% Mentality",
+      "channel": "",
+      "youtubeId": "rmqX0WMjGe0"
+    },
+    {
+      "id": "_juPDoa3GBY",
+      "title": "Self-Determination Theory Explained",
+      "channel": "",
+      "youtubeId": "_juPDoa3GBY"
+    },
+    {
+      "id": "m6fm1gt5YAM",
+      "title": "Edward Deci - Self-Determination Theory",
+      "channel": "",
+      "youtubeId": "m6fm1gt5YAM"
+    },
+    {
+      "id": "hiiEeMN7vbQ",
+      "title": "Developing a Growth Mindset with Carol Dweck",
+      "channel": "",
+      "youtubeId": "hiiEeMN7vbQ"
+    },
+    {
+      "id": "dR_-6pUfCBg",
+      "title": "Ryan & Deci: Self Determination Theory (SDT) - Content Models of Motivation",
+      "channel": "",
+      "youtubeId": "dR_-6pUfCBg"
+    },
+    {
+      "id": "t1xlKTO5C-A",
+      "title": "Motivation in Sports Psychology",
+      "channel": "",
+      "youtubeId": "t1xlKTO5C-A"
+    },
+    {
+      "id": "VSNvy_48exY",
+      "title": "Mental Performance Tips: Motivation (Intrinsic, Extrinsic, Amotivation)",
+      "channel": "",
+      "youtubeId": "VSNvy_48exY"
+    },
+    {
+      "id": "1JaVcY3y8Uo",
+      "title": "Self-Determination Theory: Users Want Autonomy, Relatedness, and Competence",
+      "channel": "",
+      "youtubeId": "1JaVcY3y8Uo"
+    },
+    {
+      "id": "A7AP-1MhvC8",
+      "title": "The Biggest Mental Mistake Made by Coaches and Athletes",
+      "channel": "",
+      "youtubeId": "A7AP-1MhvC8"
+    },
+    {
+      "id": "T2y2KaoItgE",
+      "title": "Self-Determination Theory (Explained in 3 Minutes)",
+      "channel": "",
+      "youtubeId": "T2y2KaoItgE"
+    }
+  ],
+  "mind-muscle-flow": [
+    {
+      "id": "oQjsZRIvEgE",
+      "title": "The Mind Muscle Connection Explained",
+      "channel": "",
+      "youtubeId": "oQjsZRIvEgE"
+    },
+    {
+      "id": "0igorRztwk8",
+      "title": "Why Your Mind-Muscle Connection is KILLING Your Gains?",
+      "channel": "",
+      "youtubeId": "0igorRztwk8"
+    },
+    {
+      "id": "Ip25pzb-wdU",
+      "title": "How To Use The Mind-Muscle Connection for Growth",
+      "channel": "",
+      "youtubeId": "Ip25pzb-wdU"
+    },
+    {
+      "id": "C6TYX09E724",
+      "title": "Proven Tips to Mastering Mind-Muscle Connection with Erin Stern",
+      "channel": "",
+      "youtubeId": "C6TYX09E724"
+    },
+    {
+      "id": "EUOrokkA-KA",
+      "title": "Influence of the Mind-Muscle Connection on Hypertrophy",
+      "channel": "",
+      "youtubeId": "EUOrokkA-KA"
+    },
+    {
+      "id": "ieO_bz41es8",
+      "title": "How to EASILY get into a Flow State (sport & athletes)",
+      "channel": "",
+      "youtubeId": "ieO_bz41es8"
+    },
+    {
+      "id": "6Ax8H9uYk4E",
+      "title": "How to Enter the FLOW STATE on Command: Secrets to Performing at Your Best (For Sports & Athletes)",
+      "channel": "",
+      "youtubeId": "6Ax8H9uYk4E"
+    },
+    {
+      "id": "znwUCNrjpD4",
+      "title": "How to enter ‘flow state’ on command | Steven Kotler for Big Think",
+      "channel": "",
+      "youtubeId": "znwUCNrjpD4"
+    },
+    {
+      "id": "QJ8XvWabiZE",
+      "title": "Flow in Sport | The Mindset of an Athlete",
+      "channel": "",
+      "youtubeId": "QJ8XvWabiZE"
+    },
+    {
+      "id": "RZIn9tfeQ2I",
+      "title": "The science of effortlessness: How to activate flow | Steven Kotler",
+      "channel": "",
+      "youtubeId": "RZIn9tfeQ2I"
+    },
+    {
+      "id": "4AwyVTHEU3s",
+      "title": "How to Focus to Change Your Brain | Huberman Lab Essentials",
+      "channel": "",
+      "youtubeId": "4AwyVTHEU3s"
+    },
+    {
+      "id": "Wg2ezMeJRRE",
+      "title": "Flow: The Science Behind Deep Focus",
+      "channel": "",
+      "youtubeId": "Wg2ezMeJRRE"
+    },
+    {
+      "id": "nEN2ceXyi-s",
+      "title": "How to Practice, Build Skills & the Role of Flow State | Dr. Cal Newport & Dr. Andrew Huberman",
+      "channel": "",
+      "youtubeId": "nEN2ceXyi-s"
+    },
+    {
+      "id": "zQFUc-aQL8k",
+      "title": "Does the Mind-Muscle Connection Help Build More Muscle?",
+      "channel": "",
+      "youtubeId": "zQFUc-aQL8k"
+    },
+    {
+      "id": "yd1XVwa-dYk",
+      "title": "EMG MUSCLE ACTIVATION: MIND-MUSCLE CONNECTION - Increased hypertrophy",
+      "channel": "",
+      "youtubeId": "yd1XVwa-dYk"
+    },
+    {
+      "id": "eaYzhDRhY4g",
+      "title": "Mind Muscle Connection - THINKING Makes You STRONGER?",
+      "channel": "",
+      "youtubeId": "eaYzhDRhY4g"
+    },
+    {
+      "id": "ZDVsx-5_Chw",
+      "title": "Does the Mind-Muscle Connection Really Enhance Muscle Growth?",
+      "channel": "",
+      "youtubeId": "ZDVsx-5_Chw"
+    },
+    {
+      "id": "HXjth4b3gx4",
+      "title": "How Do I Get Into the Flow State? | Soccer Mental Game Performance",
+      "channel": "",
+      "youtubeId": "HXjth4b3gx4"
+    },
+    {
+      "id": "4ez4cTFKNc0",
+      "title": "Mind Muscle Connection: Bro Science or Real Gains",
+      "channel": "",
+      "youtubeId": "4ez4cTFKNc0"
+    },
+    {
+      "id": "298t4oY0D2M",
+      "title": "Deep Focus & Neuromuscular Motor Control in Athletes",
+      "channel": "",
+      "youtubeId": "298t4oY0D2M"
+    }
+  ],
+  "resistance-fatigue": [
+    {
+      "id": "S7U3mtP-xC0",
+      "title": "Overcoming Mental Fatigue | Fitness Motivation & Gym Consistency",
+      "channel": "",
+      "youtubeId": "S7U3mtP-xC0"
+    },
+    {
+      "id": "GT8qV326V-8",
+      "title": "The Neuroscience of Exhaustion: How to Stay Motivated",
+      "channel": "",
+      "youtubeId": "GT8qV326V-8"
+    },
+    {
+      "id": "7GbWQ_CMSs4",
+      "title": "Overcoming Gym Mental Exhaustion - Mind Pump Show",
+      "channel": "",
+      "youtubeId": "7GbWQ_CMSs4"
+    },
+    {
+      "id": "p0eTRf6Kvxg",
+      "title": "What If You're Stronger Than You Think? Fortitude & Mental Toughness",
+      "channel": "",
+      "youtubeId": "p0eTRf6Kvxg"
+    },
+    {
+      "id": "2fuqfZeQZjw",
+      "title": "Gym Motivation for Mental Strength & Consistency",
+      "channel": "",
+      "youtubeId": "2fuqfZeQZjw"
+    },
+    {
+      "id": "INcIStIWPmc",
+      "title": "Train Smarter, Not Harder: Understanding Central Nervous System Fatigue | Mike Israetel",
+      "channel": "",
+      "youtubeId": "INcIStIWPmc"
+    },
+    {
+      "id": "sfZlge3SzZI",
+      "title": "How to Recover from CNS Fatigue",
+      "channel": "",
+      "youtubeId": "sfZlge3SzZI"
+    },
+    {
+      "id": "lLEeWg8dTCo",
+      "title": "Signs You Have CNS Fatigue (YOU NEED TO KNOW THIS!)",
+      "channel": "",
+      "youtubeId": "lLEeWg8dTCo"
+    },
+    {
+      "id": "52cOdRE97Kk",
+      "title": "How to Know If You Need a Rest Day | Dr. Andy Galpin & Dr. Andrew Huberman",
+      "channel": "",
+      "youtubeId": "52cOdRE97Kk"
+    },
+    {
+      "id": "b17e2HwJJjo",
+      "title": "Mind your workouts: How overtraining can affect your brain function | Andrew Huberman",
+      "channel": "",
+      "youtubeId": "b17e2HwJJjo"
+    },
+    {
+      "id": "Ta1xYok2AsE",
+      "title": "How Can Athletes Overcome Constant Mental Fatigue? - Sport Psychology Insights",
+      "channel": "",
+      "youtubeId": "Ta1xYok2AsE"
+    },
+    {
+      "id": "VRFkbsGCPeI",
+      "title": "This 3-Step Process Makes Burnout Impossible",
+      "channel": "",
+      "youtubeId": "VRFkbsGCPeI"
+    },
+    {
+      "id": "U9ml2mmfMfM",
+      "title": "Understanding Trauma, Anxiety and Burnout in your Nervous System",
+      "channel": "",
+      "youtubeId": "U9ml2mmfMfM"
+    },
+    {
+      "id": "NRRBVMFTSWI",
+      "title": "The Autonomic Nervous System: Sympathetic vs. Parasympathetic, Explained",
+      "channel": "",
+      "youtubeId": "NRRBVMFTSWI"
+    },
+    {
+      "id": "0IDgBlCHVsA",
+      "title": "Sympathetic Nervous System: Crash Course Anatomy & Physiology #14",
+      "channel": "",
+      "youtubeId": "0IDgBlCHVsA"
+    },
+    {
+      "id": "JEvZgyP_y3E",
+      "title": "Beyond Mental Toughness: Lessons from Navy SEALs and Olympians",
+      "channel": "",
+      "youtubeId": "JEvZgyP_y3E"
+    },
+    {
+      "id": "WatR9knHSOk",
+      "title": "Managing Anxiety and Fear Before Competition: The Sports Psychology Podcast",
+      "channel": "",
+      "youtubeId": "WatR9knHSOk"
+    },
+    {
+      "id": "2jHmr0LUm04",
+      "title": "Your Body's Breaking Point: The Role of Life Stress in Performance",
+      "channel": "",
+      "youtubeId": "2jHmr0LUm04"
+    },
+    {
+      "id": "ryNcgri16gM",
+      "title": "This Is How Special Forces Operators Build Unbreakable Endurance",
+      "channel": "",
+      "youtubeId": "ryNcgri16gM"
+    },
+    {
+      "id": "d2jIP82PWQI",
+      "title": "Kobe Bryant on Mental Toughness",
+      "channel": "",
+      "youtubeId": "d2jIP82PWQI"
+    }
+  ]
+};
+
+for (const key of Object.keys(CAVE_EN_EXPANSION)) {
+  const deck = CAVE_LIBRARY.en[key] || (CAVE_LIBRARY.en[key] = []);
+  const seen = new Set(deck.map((f) => f.youtubeId));
+  for (const f of CAVE_EN_EXPANSION[key]) {
+    if (!seen.has(f.youtubeId)) { deck.push(f); seen.add(f.youtubeId); }
+  }
+}

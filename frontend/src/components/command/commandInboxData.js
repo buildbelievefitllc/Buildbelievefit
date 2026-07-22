@@ -66,47 +66,83 @@ export const CONTENT_INSIGHTS = [
 // down-regulation (mental-fatigue + flow-state decks) — the recovery-adjacent clips
 // the Cave actually holds. Each film carries its deck so the launcher can jump the
 // Cave straight to it (localStorage `bbf.cave.jump`).
-export const RECOVERY_FILMS = [
-  { deck: 'resistance-fatigue', id: 'yxGupoarfII', title: 'What is Mental Fatigue and How to Fix It' },
-  { deck: 'resistance-fatigue', id: 'GT8qV326V-8', title: 'The Neuroscience of Exhaustion' },
-  { deck: 'mind-muscle-flow', id: 'znwUCNrjpD4', title: "How to enter ‘flow state’ on command" },
-];
+// CNS → Coach's Cave content mapping. The logged somatic-readiness score (1–10)
+// picks the deck + a curated 3-film itinerary: a suppressed CNS gets recovery /
+// down-regulation; mid-strain gets mental-toughness re-anchoring; a primed CNS
+// gets flow amplification. Every id is real (see coachCaveData EN decks) and carries
+// its deck so the launcher jumps the Cave straight to it (bbf.cave.jump).
+export const CAVE_TIERS = {
+  low: {
+    deckLabel: 'CNS Recovery',
+    insight: 'Your CNS is suppressed. Down-regulate before you coach or train — parasympathetic recovery restores decision quality and drops injury risk.',
+    films: [
+      { deck: 'resistance-fatigue', id: 'sfZlge3SzZI', title: 'How to Recover from CNS Fatigue' },
+      { deck: 'resistance-fatigue', id: 'lLEeWg8dTCo', title: 'Signs You Have CNS Fatigue' },
+      { deck: 'resistance-fatigue', id: '52cOdRE97Kk', title: 'How to Know If You Need a Rest Day' },
+    ],
+  },
+  mid: {
+    deckLabel: 'Mental Toughness',
+    insight: 'You’re under strain but functional. Re-anchor the why and train the mind to push clean through fatigue — sharpen, don’t red-line.',
+    films: [
+      { deck: 'self-determination', id: 'rmqX0WMjGe0', title: 'How to Think Like a Champion' },
+      { deck: 'self-determination', id: 'yfGO5u6nTbQ', title: 'The 7 Laws of Unshakable Self-Belief' },
+      { deck: 'resistance-fatigue', id: 'GT8qV326V-8', title: 'The Neuroscience of Exhaustion' },
+    ],
+  },
+  high: {
+    deckLabel: 'Flow Amplifier',
+    insight: 'You’re primed. Capitalize — lock into flow and sharpen the mind-muscle connection while the CNS is hot.',
+    films: [
+      { deck: 'mind-muscle-flow', id: '6Ax8H9uYk4E', title: 'Enter the Flow State on Command' },
+      { deck: 'mind-muscle-flow', id: 'znwUCNrjpD4', title: 'Flow State on Command (Kotler)' },
+      { deck: 'mind-muscle-flow', id: 'RZIn9tfeQ2I', title: 'The Science of Effortlessness: Activate Flow' },
+    ],
+  },
+  idle: {
+    deckLabel: 'Coach’s Cave',
+    insight: 'No Sovereign Readiness check-in logged today. Log it and this itinerary auto-curates from your CNS state — or bank a proactive rep now.',
+    films: [
+      { deck: 'self-determination', id: 'rmqX0WMjGe0', title: 'How to Think Like a Champion' },
+    ],
+  },
+};
 
-// readinessScore is 1–10; the founder's brief speaks in %. <85% (score < 8.5) trips
-// the recovery itinerary. band 'idle' / null score = no check-in logged today.
 export function readinessPct(readinessScore) {
   return readinessScore == null ? null : Math.round(Number(readinessScore) * 10);
+}
+
+// Map the logged CNS state → tier (low <5 · mid 5–7 · high ≥8, mirroring the
+// readiness band). idle = no check-in logged today.
+export function recoveryDeckForReadiness({ readinessScore = null, band = 'idle' } = {}) {
+  const logged = band !== 'idle' && readinessScore != null;
+  const pct = readinessPct(readinessScore);
+  let tier = 'idle';
+  if (logged) tier = readinessScore < 5 ? 'low' : readinessScore < 8 ? 'mid' : 'high';
+  return { tier, pct, logged, ...CAVE_TIERS[tier] };
 }
 
 // Build the KNOWLEDGE deck from the admin's live readiness + roster size. Returns
 // card objects the drawer renders (variant drives layout + the primary trigger).
 export function buildKnowledgeDeck({ readinessScore = null, band = 'idle', rosterCount = 0 } = {}) {
-  const pct = readinessPct(readinessScore);
-  const logged = band !== 'idle' && pct != null;
-  const low = logged && pct < 85;
+  const rec = recoveryDeckForReadiness({ readinessScore, band });
+  const readinessTitle = rec.tier === 'low' ? `Readiness ${rec.pct}% — CNS recovery reset`
+    : rec.tier === 'mid' ? `Readiness ${rec.pct}% — running on reserve`
+    : rec.tier === 'high' ? `Readiness ${rec.pct}% — primed for flow`
+    : 'Readiness — not logged today';
 
-  const readiness = low
-    ? {
-        id: 'kn-readiness',
-        variant: 'readiness',
-        tone: 'auto',
-        tag: '🧠 Somatic Readiness',
-        title: `Readiness ${pct}% — recovery protocol`,
-        insight: `Your somatic readiness is ${pct}% (below the 85% line). Down-regulate the CNS before you coach or train — a low-arousal reset restores decision quality and drops injury risk.`,
-        detail: 'Auto-curated reset from Coach’s Cave — tap a film to open it straight in the Cave:',
-        films: RECOVERY_FILMS,
-      }
-    : {
-        id: 'kn-readiness',
-        variant: 'readiness',
-        tone: 'auto',
-        tag: '🧠 Somatic Readiness',
-        title: logged ? `Readiness ${pct}% — primed` : 'Readiness — not logged today',
-        insight: logged
-          ? `You’re at ${pct}% — above the 85% line. No recovery itinerary needed. Bank a Coach’s Cave film if you want to sharpen focus before sessions.`
-          : 'No Sovereign Readiness check-in logged today. Run the morning check-in in the Vault to unlock an auto-curated recovery itinerary — or bank a Cave reset proactively.',
-        films: RECOVERY_FILMS.slice(0, 1),
-      };
+  const readiness = {
+    id: 'kn-readiness',
+    variant: 'readiness',
+    tone: 'auto',
+    tag: '🧠 Somatic Readiness → Coach’s Cave',
+    title: readinessTitle,
+    insight: rec.insight,
+    detail: rec.logged
+      ? `Auto-curated from your CNS state · Coach’s Cave ${rec.deckLabel} deck — tap a film to open it:`
+      : 'Log your check-in to auto-curate — or tap a proactive rep:',
+    films: rec.films,
+  };
 
   const language = {
     id: 'kn-language',

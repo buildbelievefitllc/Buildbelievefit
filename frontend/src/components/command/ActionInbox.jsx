@@ -163,11 +163,12 @@ function ActionCard({ action, onResolve, onApply }) {
     setBusy(true);
     onResolve(action, 'DISMISSED', reason);
   }, [busy, onResolve, action]);
+  // CEO order: EVERY dismissal logs a reason now — no card leaves the desk
+  // unaccounted for (a ghosted athlete can't be silently waved off either).
   const onDismissClick = useCallback(() => {
     if (busy) return;
-    if (isCritical) { setAskReason(true); return; }
-    dismiss(null);
-  }, [busy, isCritical, dismiss]);
+    setAskReason(true);
+  }, [busy]);
 
   const applyAndNudge = useCallback(async () => {
     if (busy) return;
@@ -231,7 +232,7 @@ function ActionCard({ action, onResolve, onApply }) {
 
       {askReason ? (
         <div className="ainbox-reason" data-testid="ainbox-reason">
-          <div className="ainbox-reason-label">Log a reason — this is a safety-critical card:</div>
+          <div className="ainbox-reason-label">{isCritical ? 'Log a reason — this is a safety-critical card:' : 'Log a reason for dismissing:'}</div>
           <div className="ainbox-reason-chips">
             {DISMISS_REASONS.map((r) => (
               <button key={r} type="button" className="ainbox-chip ainbox-chip--btn" onClick={() => dismiss(r)} disabled={busy} data-testid={`ainbox-reason-${r.split(' ')[0].toLowerCase()}`}>
