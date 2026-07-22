@@ -405,3 +405,109 @@
 /* Per-face FAB tint so the desk reads its domain at a glance */
 .ainbox-fab--content  { background: linear-gradient(135deg, #6a0dad 0%, #d6249f 130%); }
 .ainbox-fab--knowledge { background: linear-gradient(135deg, #6a0dad 0%, #2f8f6f 140%); }
+
+/* ═══ Accountability ledger — OVERDUE / follow-up / reason gate / scorecard ═══ */
+
+/* Ledger chip row under the card header */
+.ainbox-ledger-row { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 10px; }
+.ainbox-tag {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.ainbox-tag--age { color: rgba(249, 245, 255, 0.55); border: 1px solid rgba(249, 245, 255, 0.16); }
+.ainbox-tag--overdue {
+  color: #ff9bb0;
+  border: 1px solid rgba(255, 84, 112, 0.6);
+  background: rgba(255, 84, 112, 0.14);
+  animation: ainbox-overdue-pulse 1.8s ease-in-out infinite;
+}
+@keyframes ainbox-overdue-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 84, 112, 0); }
+  50%      { box-shadow: 0 0 10px -1px rgba(255, 84, 112, 0.6); }
+}
+.ainbox-tag--followup { color: #ffd83a; border: 1px solid rgba(245, 200, 0, 0.55); background: rgba(245, 200, 0, 0.12); }
+
+/* An OVERDUE card gets a hot left border regardless of its risk tone */
+.ainbox-card:has(.ainbox-tag--overdue) { border-left: 3px solid rgba(255, 84, 112, 0.9); }
+
+/* Reason gate — the teeth on Dismiss for safety-critical cards */
+.ainbox-reason {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 84, 112, 0.4);
+  background: rgba(255, 84, 112, 0.08);
+}
+.ainbox-reason-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.6px;
+  color: #ff9bb0;
+  margin-bottom: 8px;
+}
+.ainbox-reason-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.ainbox-chip--btn {
+  cursor: pointer;
+  border-color: rgba(245, 200, 0, 0.5);
+  background: rgba(245, 200, 0, 0.12);
+  color: #fffdf5;
+}
+.ainbox-chip--btn:hover:not(:disabled) { filter: brightness(1.12); border-color: rgba(245, 200, 0, 0.85); }
+.ainbox-chip--cancel {
+  cursor: pointer;
+  border: 1px solid rgba(249, 245, 255, 0.2);
+  background: rgba(249, 245, 255, 0.05);
+  color: rgba(249, 245, 255, 0.7);
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.8rem;
+}
+
+/* FAB turns red when anything critical is OVERDUE — the badge won't let you look away */
+.ainbox-fab--overdue {
+  background: linear-gradient(135deg, #a30d2e 0%, #ff5470 130%);
+  border-color: rgba(255, 84, 112, 0.75);
+}
+
+/* The weekly Coach Scorecard (Founder Assistant mirror) */
+.ainbox-card--scorecard { border-left: 3px solid rgba(245, 200, 0, 0.85); }
+.ainbox-score-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+.ainbox-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(249, 245, 255, 0.12);
+  background: rgba(249, 245, 255, 0.04);
+}
+.ainbox-score em {
+  font-style: normal;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.5px;
+  color: #f9f5ff;
+}
+.ainbox-score span {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(249, 245, 255, 0.55);
+}
+.ainbox-score--warn { border-color: rgba(255, 84, 112, 0.55); background: rgba(255, 84, 112, 0.1); }
+.ainbox-score--warn em { color: #ff9bb0; }
+.ainbox-score-oldest { margin-top: 8px; color: #ffd0da; }

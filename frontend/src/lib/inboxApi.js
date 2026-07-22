@@ -52,15 +52,28 @@ export async function fetchActionInbox() {
 }
 
 // Approve (nudge sent) or dismiss a card. status: 'APPROVED' | 'DISMISSED'.
-// With applyOverride=true the brain instead runs the one-tap applier RPC
-// server-side (bbf_apply_plan_override / bbf_apply_onboarding_plan) — the
-// status transition to APPROVED happens inside the database, atomically with
-// the plan write.
-export async function resolveInboxAction(id, status, applyOverride = false) {
+//   opts.applyOverride — the brain runs the one-tap applier RPC server-side
+//     (bbf_apply_plan_override / bbf_apply_onboarding_plan); the transition to
+//     APPROVED happens inside the DB, atomically with the plan write.
+//   opts.reason — accountability paper trail persisted on the row (required by
+//     the UI when dismissing a safety-critical card).
+export async function resolveInboxAction(id, status, { reason = null, applyOverride = false } = {}) {
   if (!id) throw new Error('agent_brain_missing_id');
   const payload = applyOverride
     ? { action: 'resolve', id, apply_override: true }
-    : { action: 'resolve', id, status };
+    : { action: 'resolve', id, status, ...(reason ? { reason } : {}) };
   const body = await brainCall(payload);
   return body?.ok === true;
+}
+
+// The accountability scorecard (weekly mirror) — handled vs dismissed, median
+// response time, aged-out backlog, and the oldest unaddressed athlete. Callers
+// treat a throw/null as non-fatal (the card self-hides).
+export async function fetchInboxScorecard(days = 7) {
+  try {
+    const body = await brainCall({ action: 'stats', days });
+    return body?.ok ? body : null;
+  } catch {
+    return null;
+  }
 }

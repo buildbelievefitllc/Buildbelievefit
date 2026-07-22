@@ -542,6 +542,14 @@ async function actOnboarding(athleteId: string, intakeId: string | null): Promis
 // ── Actions ──────────────────────────────────────────────────────────────────
 const TRIGGER_TYPES = new Set(['ACWR_SPIKE', 'STAGNANCY_ALERT', 'AUTONOMIC_OVERUSE', 'ONBOARDING']);
 
+// ── Accountability ledger tuning ──────────────────────────────────────────────
+// Safety-critical cards carry a tighter SLA before they age into OVERDUE. Close-
+// the-loop: a re-fire within FOLLOWUP_WINDOW of an already-NUDGED (APPROVED) card
+// of the same athlete+type means the coach's nudge didn't land — flag a follow-up.
+const CRITICAL_TYPES = new Set(['ACWR_SPIKE', 'AUTONOMIC_OVERUSE']);
+const FOLLOWUP_WINDOW_MS = 3 * 24 * 60 * 60 * 1000; // 72h
+function slaHoursFor(type: string): number { return CRITICAL_TYPES.has(type) ? 24 : 72; }
+
 async function actGenerate(body: Record<string, unknown>): Promise<Response> {
   const athleteId = String(body?.athlete_id ?? '');
   const triggerType = String(body?.trigger_type ?? '');
@@ -567,6 +575,21 @@ async function actGenerate(body: Record<string, unknown>): Promise<Response> {
     return jsonResponse({ ok: true, deduped: true, existing_id: dupes[0].id });
   }
 
+  // Close-the-loop: the coach already NUDGED (APPROVED) this athlete+type recently,
+  // yet the sentinel is firing AGAIN — the loop never closed. Flag it as a follow-up
+  // so the inbox + scorecard hold the coach to the outcome, not just the click.
+  let isFollowup = false;
+  let followupOf: string | null = null;
+  try {
+    const since = new Date(Date.now() - FOLLOWUP_WINDOW_MS).toISOString();
+    const recent = await pgGet(
+      `coach_action_inbox?select=id&athlete_id=eq.${encodeURIComponent(athleteId)}` +
+      `&type=eq.${encodeURIComponent(triggerType)}&status=eq.APPROVED` +
+      `&processed_at=gte.${encodeURIComponent(since)}&order=processed_at.desc&limit=1`,
+    );
+    if (Array.isArray(recent) && recent.length) { isFollowup = true; followupOf = String(recent[0].id); }
+  } catch (_) { /* non-fatal — a missed follow-up flag never blocks the card */ }
+
   const dossier = await compileDossier(athleteId);
   if (!dossier) return jsonResponse({ error: 'athlete_not_found' }, 404);
 
@@ -591,23 +614,96 @@ async function actGenerate(body: Record<string, unknown>): Promise<Response> {
     ? clampModification(gen.proposed_plan_modification)
     : null;
 
+  const insight = isFollowup
+    ? clean(`🔁 FOLLOW-UP — you nudged this athlete recently and the ${triggerType.replace(/_/g, ' ').toLowerCase()} still hasn't cleared. ${out.insight_summary}`, 2000)
+    : out.insight_summary;
+
   const inserted = await pgWrite('POST', 'coach_action_inbox', [{
     athlete_id: athleteId,
     type: triggerType,
     risk_score: riskScore,
-    ...out,
+    insight_summary: insight,
+    proposed_action: out.proposed_action,
+    draft_message: out.draft_message,
     proposed_plan_modification: modification,
+    is_followup: isFollowup,
+    followup_of: followupOf,
   }]);
   const row = Array.isArray(inserted) && inserted.length ? inserted[0] : null;
-  return jsonResponse({ ok: true, id: row?.id ?? null, model: GEMINI_MODEL });
+  return jsonResponse({ ok: true, id: row?.id ?? null, is_followup: isFollowup, model: GEMINI_MODEL });
 }
 
 async function actList(): Promise<Response> {
   const rows = await pgGet(
-    `coach_action_inbox?select=id,athlete_id,type,status,risk_score,insight_summary,proposed_action,draft_message,proposed_plan_modification,created_at,` +
+    `coach_action_inbox?select=id,athlete_id,type,status,risk_score,insight_summary,proposed_action,draft_message,proposed_plan_modification,created_at,is_followup,followup_of,` +
     `athlete:bbf_users(name,uid)&status=eq.PENDING&order=created_at.desc&limit=50`,
   );
   return jsonResponse({ ok: true, count: Array.isArray(rows) ? rows.length : 0, actions: rows ?? [] });
+}
+
+// Accountability scorecard — the weekly mirror. Aggregates resolution activity in
+// the window (handled vs dismissed + median response) and the current pending
+// backlog (aged-out + the single oldest unaddressed athlete). Admin-gated read.
+async function actStats(body: Record<string, unknown>): Promise<Response> {
+  const daysRaw = Number(body?.days);
+  const days = Number.isFinite(daysRaw) && daysRaw > 0 && daysRaw <= 90 ? Math.round(daysRaw) : 7;
+  const start = new Date(Date.now() - days * 86400000).toISOString();
+  const nowMs = Date.now();
+
+  // Resolved in the window (by processed_at).
+  const resolved = await pgGet(
+    `coach_action_inbox?select=type,status,created_at,processed_at,is_followup` +
+    `&status=in.(APPROVED,DISMISSED)&processed_at=gte.${encodeURIComponent(start)}&order=processed_at.desc&limit=500`,
+  );
+  const rlist = Array.isArray(resolved) ? resolved : [];
+  let handled = 0, dismissed = 0, followupsHandled = 0;
+  const responseHrs: number[] = [];
+  for (const r of rlist) {
+    if (r.status === 'APPROVED') handled++; else if (r.status === 'DISMISSED') dismissed++;
+    if (r.is_followup && r.status === 'APPROVED') followupsHandled++;
+    if (r.created_at && r.processed_at) {
+      const dt = (new Date(r.processed_at).getTime() - new Date(r.created_at).getTime()) / 3600000;
+      if (Number.isFinite(dt) && dt >= 0) responseHrs.push(dt);
+    }
+  }
+  responseHrs.sort((a, b) => a - b);
+  const n = responseHrs.length;
+  const medianHrs = n
+    ? +(n % 2 ? responseHrs[(n - 1) / 2] : (responseHrs[n / 2 - 1] + responseHrs[n / 2]) / 2).toFixed(1)
+    : null;
+
+  // Current pending backlog — aged-out + oldest unaddressed (list is created_at.asc).
+  const pending = await pgGet(
+    `coach_action_inbox?select=type,created_at,athlete:bbf_users(name,uid)&status=eq.PENDING&order=created_at.asc&limit=200`,
+  );
+  const plist = Array.isArray(pending) ? pending : [];
+  let agedOut = 0;
+  let oldest: { name: string; hours: number } | null = null;
+  for (const p of plist) {
+    const ageH = p.created_at ? (nowMs - new Date(p.created_at).getTime()) / 3600000 : 0;
+    if (ageH > slaHoursFor(String(p.type))) agedOut++;
+    if (!oldest && p.created_at) {
+      const nm = String(p?.athlete?.name || p?.athlete?.uid || 'An athlete').trim();
+      oldest = { name: nm.split(/\s+/)[0] || nm, hours: Math.round(ageH) };
+    }
+  }
+
+  // Surfaced in the window (any status, by created_at).
+  const surfacedRows = await pgGet(`coach_action_inbox?select=id&created_at=gte.${encodeURIComponent(start)}&limit=1000`);
+  const surfaced = Array.isArray(surfacedRows) ? surfacedRows.length : (handled + dismissed);
+
+  return jsonResponse({
+    ok: true,
+    window_days: days,
+    surfaced,
+    handled,
+    dismissed,
+    aged_out: agedOut,
+    pending_total: plist.length,
+    followups_handled: followupsHandled,
+    median_response_hours: medianHrs,
+    oldest_unaddressed: oldest,
+  });
 }
 
 async function actResolve(body: Record<string, unknown>): Promise<Response> {
@@ -629,9 +725,12 @@ async function actResolve(body: Record<string, unknown>): Promise<Response> {
   }
 
   if (status !== 'APPROVED' && status !== 'DISMISSED') return jsonResponse({ error: 'invalid_status' }, 400);
+  // Accountability paper trail: a dismiss reason is persisted so a safety-critical
+  // card can never be silently killed (the UI requires one on critical dismissals).
+  const reason = clean(String(body?.reason ?? ''), 200) || null;
   const updated = await pgWrite('PATCH',
     `coach_action_inbox?id=eq.${encodeURIComponent(id)}&status=eq.PENDING`,
-    { status, processed_at: new Date().toISOString() },
+    { status, processed_at: new Date().toISOString(), ...(reason ? { resolution_reason: reason } : {}) },
   );
   if (!Array.isArray(updated) || !updated.length) return jsonResponse({ error: 'not_found_or_processed' }, 404);
   return jsonResponse({ ok: true, id, status });
@@ -662,10 +761,11 @@ serve(async (req) => {
       if (!gate.ok) return jsonResponse({ error: gate.error }, gate.status);
       return await actGenerate(body);
     }
-    if (action === 'list' || action === 'resolve' || action === 'health') {
+    if (action === 'list' || action === 'resolve' || action === 'health' || action === 'stats') {
       if (!(await isCoachAuthorized(req))) return jsonResponse({ error: 'unauthorized' }, 401);
       if (action === 'list') return await actList();
       if (action === 'resolve') return await actResolve(body);
+      if (action === 'stats') return await actStats(body);
       return actHealth();
     }
     return jsonResponse({ error: 'unknown_action' }, 400);
