@@ -50,6 +50,7 @@ const RISK_META = {
   PHASE_PROMOTION:   { glyph: '🏆', label: 'Phase Promotion',  tone: 'onboard' },
   CATALOG_BAKE:      { glyph: '📐', label: 'Block Catalog',    tone: 'onboard' },
   SEASON_TAPER:      { glyph: '🗓', label: 'Game-Week Taper',  tone: 'stag'    },
+  GUARDIAN_WIRE:     { glyph: '✉️', label: 'Guardian Wire',    tone: 'onboard' },
 };
 
 // ── Accountability ledger (mirrors bbf-agent-brain) ───────────────────────────
@@ -140,6 +141,9 @@ function ActionCard({ action, onResolve, onApply }) {
   const bake = action.type === 'CATALOG_BAKE' ? action.proposed_plan_modification?.catalog_bake : null;
   // SP-2 Season Brain game-week overlay awaiting approval.
   const taper = action.type === 'SEASON_TAPER' ? action.proposed_plan_modification?.season_taper : null;
+  // SP-9 Guardian Wire monthly letter awaiting approval (the letter itself is
+  // the draft_message textarea below — read it before approving).
+  const wire = action.type === 'GUARDIAN_WIRE' ? action.proposed_plan_modification?.guardian_wire : null;
 
   // Accountability derivations.
   const isCritical = CRITICAL_TYPES.has(action.type);
@@ -283,16 +287,17 @@ function ActionCard({ action, onResolve, onApply }) {
         data-testid="ainbox-draft"
       />
 
-      {mod || isBlueprint || promo || bake || taper ? (
+      {mod || isBlueprint || promo || bake || taper || wire ? (
         <button
           type="button"
           className="ainbox-btn ainbox-btn--deploy"
-          onClick={bake ? activateBatch : (promo || taper) ? applyOnly : applyAndNudge}
+          onClick={bake ? activateBatch : (promo || taper || wire) ? applyOnly : applyAndNudge}
           disabled={busy}
           data-testid="ainbox-apply"
         >
           {bake ? '⚡ ACTIVATE BLOCK CATALOG'
             : taper ? '⚡ APPLY GAME-WEEK TAPER'
+            : wire ? `⚡ APPROVE LETTER HOME${wire.period ? ` · ${wire.period}` : ''}`
             : promo ? '⚡ APPROVE PHASE PROMOTION'
             : isBlueprint ? '⚡ DEPLOY BASELINE PLAN'
             : '⚡ APPLY PROGRAM OVERRIDE'}
