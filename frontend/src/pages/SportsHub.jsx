@@ -28,6 +28,7 @@ import { useLang } from '../context/LangContext.jsx';
 import { useAthleteProfile } from '../context/AthleteProfileContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
 import { logYouthProgress } from '../lib/youthIntakeApi.js';
+import { fetchMySportBlock } from '../lib/sportsCatalogApi.js';
 import { fetchAvatar, pushAvatar } from '../lib/avatarApi.js';
 import { useAthleteTelemetry } from '../lib/athleteTelemetryApi.js';
 import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
@@ -262,6 +263,20 @@ export default function SportsHub({ selection = null, progress = null }) {
   const [model, setModel] = useState(() => buildHubModel(effProfile));
   const [week, setWeek] = useState(() => applyProgress(buildWeek(model), progress));
   const [activeDay, setActiveDay] = useState(() => firstTrainingDay(week));
+
+  // SP-1 · Sport Periodization Catalog — when a founder-approved baked block
+  // exists for this athlete's (sport × position × phase × tier) cell, it
+  // replaces the generic WEEK_TEMPLATE. FAIL-OPEN: null/error keeps the
+  // template; labels stay "Day N" so persisted check-offs re-apply cleanly.
+  useEffect(() => {
+    let alive = true;
+    fetchMySportBlock(uid).then((res) => {
+      if (!alive || !res?.block?.days) return;
+      setWeek(applyProgress(buildWeek(model, res.block.days), progress));
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one catalog fetch per model identity; `progress` is the load-time snapshot by design
+  }, [uid, model]);
   const [phase, setPhase] = useState('offseason'); // 'offseason' | 'inseason'
   // Strict tab-deck — one panel visible at a time. Keep-alive: mount each domain on
   // first visit, then hide (don't unmount) so Fuel/Mindset network + audio effects

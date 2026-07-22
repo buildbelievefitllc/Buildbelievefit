@@ -22,6 +22,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchActionInbox, resolveInboxAction, fetchInboxScorecard } from '../../lib/inboxApi.js';
+import { approveCatalogBatch } from '../../lib/sportsCatalogApi.js';
 import { useReadiness } from '../../context/ReadinessContext.jsx';
 import { useRoster } from './RosterProvider.jsx';
 import { CONTENT_INSIGHTS, buildKnowledgeDeck } from './commandInboxData.js';
@@ -47,6 +48,7 @@ const RISK_META = {
   AUTONOMIC_OVERUSE: { glyph: '🟣', label: 'Autonomic Crisis', tone: 'auto'    },
   ONBOARDING_PLAN:   { glyph: '🔷', label: 'New Client',       tone: 'onboard' },
   PHASE_PROMOTION:   { glyph: '🏆', label: 'Phase Promotion',  tone: 'onboard' },
+  CATALOG_BAKE:      { glyph: '📐', label: 'Block Catalog',    tone: 'onboard' },
 };
 
 // ── Accountability ledger (mirrors bbf-agent-brain) ───────────────────────────
@@ -133,6 +135,8 @@ function ActionCard({ action, onResolve, onApply }) {
   const blueprint = isBlueprint ? action.proposed_plan_modification?.blueprint : null;
   // SP-0 dry-run Referee: the promotion payload the one-tap applier executes.
   const promo = isPromotion ? action.proposed_plan_modification?.promotion : null;
+  // SP-1 catalog bake batch awaiting founder activation.
+  const bake = action.type === 'CATALOG_BAKE' ? action.proposed_plan_modification?.catalog_bake : null;
 
   // Accountability derivations.
   const isCritical = CRITICAL_TYPES.has(action.type);
@@ -190,6 +194,19 @@ function ActionCard({ action, onResolve, onApply }) {
     onApply(action);
   }, [busy, onApply, action]);
 
+  // Catalog bakes activate through the bake fn (which also closes this card
+  // server-side) — not through the brain's per-athlete applier RPCs.
+  const activateBatch = useCallback(async () => {
+    if (busy || !bake?.batch_id) return;
+    setBusy(true);
+    try {
+      await approveCatalogBatch(bake.batch_id);
+      onResolve(action, 'APPROVED', 'catalog batch activated');
+    } catch {
+      setBusy(false);
+    }
+  }, [busy, bake, onResolve, action]);
+
   return (
     <article className={`ainbox-card ainbox-card--${meta.tone}`} data-testid={`ainbox-card-${action.id}`}>
       <header className="ainbox-card-head">
@@ -217,6 +234,15 @@ function ActionCard({ action, onResolve, onApply }) {
 
       {mod ? <ModificationPanel mod={mod} /> : null}
       {isBlueprint && blueprint ? <BlueprintPanel blueprint={blueprint} /> : null}
+      {bake ? (
+        <div className="ainbox-glass" data-testid="ainbox-catalog-bake">
+          <div className="ainbox-glass-label">Periodization Bake · Draft Blocks</div>
+          <p className="ainbox-glass-body">
+            {bake.baked} block{bake.baked === 1 ? '' : 's'} validated · {bake.failed || 0} rejected by the Immutable-Laws firewall.
+            Activation serves these weeks to matching athletes; until then the generic template holds.
+          </p>
+        </div>
+      ) : null}
       {promo ? (
         <div className="ainbox-glass" data-testid="ainbox-promotion">
           <div className="ainbox-glass-label">Referee Verdict · Dry-Run</div>
@@ -244,15 +270,15 @@ function ActionCard({ action, onResolve, onApply }) {
         data-testid="ainbox-draft"
       />
 
-      {mod || isBlueprint || promo ? (
+      {mod || isBlueprint || promo || bake ? (
         <button
           type="button"
           className="ainbox-btn ainbox-btn--deploy"
-          onClick={promo ? applyOnly : applyAndNudge}
+          onClick={bake ? activateBatch : promo ? applyOnly : applyAndNudge}
           disabled={busy}
           data-testid="ainbox-apply"
         >
-          {promo ? '⚡ APPROVE PHASE PROMOTION' : isBlueprint ? '⚡ DEPLOY BASELINE PLAN' : '⚡ APPLY PROGRAM OVERRIDE'}
+          {bake ? '⚡ ACTIVATE BLOCK CATALOG' : promo ? '⚡ APPROVE PHASE PROMOTION' : isBlueprint ? '⚡ DEPLOY BASELINE PLAN' : '⚡ APPLY PROGRAM OVERRIDE'}
         </button>
       ) : null}
 

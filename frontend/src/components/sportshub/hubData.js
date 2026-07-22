@@ -396,7 +396,14 @@ const WEEK_TEMPLATE = [
 // Build the 7-day protocol from a sport-aware model: surfaces that sport's drills
 // on every training day and distributes its film across the days, attaching fresh
 // checkoff state.
-export function buildWeek(model) {
+//
+// SP-1: `catalogDays` (optional) is a founder-approved baked block from
+// bbf_sport_block_catalog in the SAME day shape as WEEK_TEMPLATE. When present
+// it replaces the generic template — the sport-agnostic week stops being the
+// ceiling. Labels stay "Day 1".."Day 7" (the progress-map keys), so check-off
+// persistence keeps working untouched. Catalog days carry no filmIdx, so film
+// clips distribute sequentially across training days.
+export function buildWeek(model, catalogDays = null) {
   // RENDER FIX (the "one drill per day" bug): every TRAINING day now surfaces the
   // ENTIRE position-specific drill pool as interactive video cards. The prior
   // `drillIdx: [n]` mapping handed each day a SINGLE drill index — so the day showed
@@ -404,16 +411,24 @@ export function buildWeek(model) {
   // full `model.drills.items` onto each training day (DayProtocol already renders the
   // whole array). Film keeps its per-day clip mapping; rest days stay drill-free.
   const drillPool = (model.drills && model.drills.items) || [];
-  return WEEK_TEMPLATE.map((d) => {
+  const source = Array.isArray(catalogDays) && catalogDays.length === 7 ? catalogDays : WEEK_TEMPLATE;
+  const fromCatalog = source !== WEEK_TEMPLATE;
+  let trainingIdx = 0;
+  return source.map((d) => {
     if (d.rest) return { label: d.label, focus: d.focus, rest: true, restNote: d.restNote };
+    const film = fromCatalog
+      ? [model.film.clips[trainingIdx]].filter(Boolean).map((c) => ({ ...c }))
+      : d.filmIdx.map((i) => model.film.clips[i]).filter(Boolean).map((c) => ({ ...c }));
+    trainingIdx += 1;
     return {
       label: d.label,
       focus: d.focus,
       rest: false,
-      exercises: d.exercises.map((e) => ({ name: e.name, off: e.off, in: e.in, done: false })),
+      catalog: fromCatalog || undefined,
+      exercises: d.exercises.map((e) => ({ name: e.name, off: e.off, in: e.in, detail: e.detail, done: false })),
       drills: drillPool.map((dr) => ({ ...dr, done: false })),
       // Skip undefined indices so a sport with fewer than 4 clips never renders a blank card.
-      film: d.filmIdx.map((i) => model.film.clips[i]).filter(Boolean).map((c) => ({ ...c })),
+      film,
     };
   });
 }

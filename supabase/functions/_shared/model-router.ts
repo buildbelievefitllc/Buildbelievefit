@@ -66,6 +66,14 @@ export type UseCase =
   | 'premium_session_script'    // Premium Audio Engine — full-session segmented narration plan (per-athlete, mid-complexity → Sonnet)
   | 'eagle_eye_alignment'       // BBF Eagle Eye — secondary-brain cross-check of daily readiness vs weekly-report coaching-cue buckets (per-client reasoned synthesis)
   | 'eagle_eye_intervention'    // BBF Eagle Eye — client-facing empathetic, intrinsic-motivation escalation script when a client stays dark on a re-engagement nudge
+  // ── Agentic Expansion wave (SP/OP series · 2026-07) ────────────────
+  | 'sport_block_design'        // SP-1 · sport × position × phase × season training-block catalog bake (offline, founder-approved before serving)
+  | 'season_taper_adjustment'   // SP-2 · Season Brain weekly game-week micro-adjustment draft (proposal-only, approval-gated)
+  | 'guardian_wire_digest'      // SP-9 · monthly guardian-facing progress digest (parent-facing warmth — parity with eagle_eye_intervention)
+  | 'morning_command_brief'     // OP-1 · nightly executive brief over pre-computed daily deltas (one call/day)
+  | 'mesocycle_architect'       // OP-8 · block-end next-mesocycle structured diff proposal (rare, high-value, approval-gated)
+  | 'meal_vision_macro'         // Fuel Companion · meal-photo macro estimation (vision → Sonnet)
+  | 'trilingual_content_adapt'  // Content Adapter · EN hook → culturally adapted ES/PT drafts (batch, low-stakes)
   // ── FABLE tier · narrative continuity · character + register fidelity ──
   | 'immersion_roleplay_turn'    // Immersion · live in-character roleplay turn (persona + register + closed error taxonomy)
   | 'narrative_curriculum_bake'  // BBF Fables · offline serialized-episode bake (founder-reviewed before publish; never a live call)
@@ -108,6 +116,13 @@ const MODEL_MAP: Record<UseCase, Model> = {
   convai_dynamic_brief:  MODELS.HAIKU, // packaging structured facts for the live agent's context — low-stakes
   eagle_eye_alignment:   MODELS.SONNET, // secondary-brain cue-alignment synthesis — reasoned cross-check, NOT a live safety call (deterministic engine owns the verdict) → Sonnet (§4 margin)
   eagle_eye_intervention: MODELS.SONNET, // client-facing empathetic escalation script — warmth/nuance/trilingual matter (parity with sovereign_audio_briefing), NOT safety-critical → Sonnet
+  sport_block_design:     MODELS.SONNET, // periodized block design needs real S&C reasoning; offline bake billed once per cell, deterministic Immutable-Laws validation after
+  season_taper_adjustment: MODELS.SONNET, // game-week taper judgment over live telemetry — mid-complexity, proposal-only
+  guardian_wire_digest:   MODELS.SONNET, // parent-facing monthly narrative — warmth + trust matter; volume is tiny (monthly per youth athlete)
+  morning_command_brief:  MODELS.SONNET, // one executive synthesis call per day over pre-computed deltas
+  mesocycle_architect:    MODELS.SONNET, // next-block structured design — block-end events only
+  meal_vision_macro:      MODELS.SONNET, // vision estimation (Haiku image grounding unreliable — §4)
+  trilingual_content_adapt: MODELS.HAIKU, // cultural ES/PT adaptation — i18n_translation parity, batch-baked
   // parq_assessment removed — now deterministic (see public.bbf_parq_assess).
   wellbeing_escalation:  MODELS.OPUS,
   cardiac_intercept:     MODELS.OPUS,
