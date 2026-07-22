@@ -224,6 +224,13 @@ export function DayProtocol({ day, phase, telemetry, onToggleExercise, onToggleD
       {/* Workout — the day's off/in-season workload, tap an exercise to mark it done. */}
       {showExercises ? (
       <SectionCard tag={`${phaseLabel} · Workload`} title={day.focus} meta={`${exDone} / ${day.exercises.length} done`} testId="sh-day-workout">
+        {/* SP-2 · founder-approved game-week adjustment banner (Season Brain). */}
+        {day.taper ? (
+          <p className="sh-rest-sub sh-taper-note" data-testid="sh-taper-note">
+            🎯 Game-week adjustment{day.taper.mult != null ? ` · volume ×${day.taper.mult}` : ''}
+            {day.taper.note ? ` — ${day.taper.note}` : ''}
+          </p>
+        ) : null}
         <div className="sh-exlist">
           {day.exercises.map((e, i) => {
             const vid = resolveAthleticVideo(e.name); // exact verified clip or null (no fallback)

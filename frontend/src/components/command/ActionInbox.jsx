@@ -49,6 +49,7 @@ const RISK_META = {
   ONBOARDING_PLAN:   { glyph: '🔷', label: 'New Client',       tone: 'onboard' },
   PHASE_PROMOTION:   { glyph: '🏆', label: 'Phase Promotion',  tone: 'onboard' },
   CATALOG_BAKE:      { glyph: '📐', label: 'Block Catalog',    tone: 'onboard' },
+  SEASON_TAPER:      { glyph: '🗓', label: 'Game-Week Taper',  tone: 'stag'    },
 };
 
 // ── Accountability ledger (mirrors bbf-agent-brain) ───────────────────────────
@@ -137,6 +138,8 @@ function ActionCard({ action, onResolve, onApply }) {
   const promo = isPromotion ? action.proposed_plan_modification?.promotion : null;
   // SP-1 catalog bake batch awaiting founder activation.
   const bake = action.type === 'CATALOG_BAKE' ? action.proposed_plan_modification?.catalog_bake : null;
+  // SP-2 Season Brain game-week overlay awaiting approval.
+  const taper = action.type === 'SEASON_TAPER' ? action.proposed_plan_modification?.season_taper : null;
 
   // Accountability derivations.
   const isCritical = CRITICAL_TYPES.has(action.type);
@@ -243,6 +246,16 @@ function ActionCard({ action, onResolve, onApply }) {
           </p>
         </div>
       ) : null}
+      {taper ? (
+        <div className="ainbox-glass" data-testid="ainbox-season-taper">
+          <div className="ainbox-glass-label">Game-Week Overlay · week of {taper.week_start}</div>
+          <p className="ainbox-glass-body">
+            {Object.entries(taper.days || {}).map(([d, v]) => (
+              `${d}${v?.volume_multiplier != null ? ` ×${v.volume_multiplier}` : ''}${v?.focus_note ? ` — ${v.focus_note}` : ''}`
+            )).join(' · ')}
+          </p>
+        </div>
+      ) : null}
       {promo ? (
         <div className="ainbox-glass" data-testid="ainbox-promotion">
           <div className="ainbox-glass-label">Referee Verdict · Dry-Run</div>
@@ -270,15 +283,19 @@ function ActionCard({ action, onResolve, onApply }) {
         data-testid="ainbox-draft"
       />
 
-      {mod || isBlueprint || promo || bake ? (
+      {mod || isBlueprint || promo || bake || taper ? (
         <button
           type="button"
           className="ainbox-btn ainbox-btn--deploy"
-          onClick={bake ? activateBatch : promo ? applyOnly : applyAndNudge}
+          onClick={bake ? activateBatch : (promo || taper) ? applyOnly : applyAndNudge}
           disabled={busy}
           data-testid="ainbox-apply"
         >
-          {bake ? '⚡ ACTIVATE BLOCK CATALOG' : promo ? '⚡ APPROVE PHASE PROMOTION' : isBlueprint ? '⚡ DEPLOY BASELINE PLAN' : '⚡ APPLY PROGRAM OVERRIDE'}
+          {bake ? '⚡ ACTIVATE BLOCK CATALOG'
+            : taper ? '⚡ APPLY GAME-WEEK TAPER'
+            : promo ? '⚡ APPROVE PHASE PROMOTION'
+            : isBlueprint ? '⚡ DEPLOY BASELINE PLAN'
+            : '⚡ APPLY PROGRAM OVERRIDE'}
         </button>
       ) : null}
 

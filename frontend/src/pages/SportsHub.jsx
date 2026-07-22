@@ -29,11 +29,12 @@ import { useAthleteProfile } from '../context/AthleteProfileContext.jsx';
 import { resolveSportsProfile } from '../lib/sportsRoster.js';
 import { logYouthProgress } from '../lib/youthIntakeApi.js';
 import { fetchMySportBlock } from '../lib/sportsCatalogApi.js';
+import SeasonCalendarCard from '../components/sportshub/SeasonCalendarCard.jsx';
 import { fetchAvatar, pushAvatar } from '../lib/avatarApi.js';
 import { useAthleteTelemetry } from '../lib/athleteTelemetryApi.js';
 import { useDailyReadiness, handshakeChannel } from '../lib/useDailyReadiness.js';
 import LangToggle from '../components/LangToggle.jsx';
-import { buildHubModel, buildWeek, applyProgress, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
+import { buildHubModel, buildWeek, applyProgress, applyWeekOverrides, progressToward, computePowerIndex, nextStatus } from '../components/sportshub/hubData.js';
 import { YOUTH_SPORTS, positionLabel } from '../components/sportshub/youthSports.js';
 import {
   CombineMetrics,
@@ -264,20 +265,33 @@ export default function SportsHub({ selection = null, progress = null }) {
   const [week, setWeek] = useState(() => applyProgress(buildWeek(model), progress));
   const [activeDay, setActiveDay] = useState(() => firstTrainingDay(week));
 
-  // SP-1 · Sport Periodization Catalog — when a founder-approved baked block
-  // exists for this athlete's (sport × position × phase × tier) cell, it
-  // replaces the generic WEEK_TEMPLATE. FAIL-OPEN: null/error keeps the
-  // template; labels stay "Day N" so persisted check-offs re-apply cleanly.
+  const [phase, setPhase] = useState('offseason'); // 'offseason' | 'inseason'
+
+  // SP-1/SP-2 · Sport Periodization Catalog + Season Brain — when a founder-
+  // approved baked block exists for this athlete's (sport × position × phase ×
+  // tier) cell it replaces the generic WEEK_TEMPLATE, and any approved game-week
+  // overlay (taper notes / volume trims) rides on top. The season calendar also
+  // drives the off/in-season default. FAIL-OPEN: null/error keeps the template;
+  // labels stay "Day N" so persisted check-offs re-apply cleanly.
+  const [seasonState, setSeasonState] = useState(null);
+  const [seasonRefresh, setSeasonRefresh] = useState(0);
   useEffect(() => {
     let alive = true;
     fetchMySportBlock(uid).then((res) => {
-      if (!alive || !res?.block?.days) return;
-      setWeek(applyProgress(buildWeek(model, res.block.days), progress));
+      if (!alive || !res) return;
+      if (res.season) {
+        setSeasonState(res.season);
+        if (res.season.in_season) setPhase('inseason');
+      }
+      if (res.block?.days) {
+        setWeek(applyWeekOverrides(applyProgress(buildWeek(model, res.block.days), progress), res.week_overrides));
+      } else if (res.week_overrides) {
+        setWeek((w) => applyWeekOverrides(w, res.week_overrides));
+      }
     });
     return () => { alive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one catalog fetch per model identity; `progress` is the load-time snapshot by design
-  }, [uid, model]);
-  const [phase, setPhase] = useState('offseason'); // 'offseason' | 'inseason'
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one catalog fetch per model identity + explicit season refresh; `progress` is the load-time snapshot by design
+  }, [uid, model, seasonRefresh]);
   // Strict tab-deck — one panel visible at a time. Keep-alive: mount each domain on
   // first visit, then hide (don't unmount) so Fuel/Mindset network + audio effects
   // don't re-run on every rail click. Athlete LANDS on Check-In first.
@@ -483,6 +497,14 @@ export default function SportsHub({ selection = null, progress = null }) {
                   the FIRST thing the athlete sees, before they log their sleep. */}
               <YouthGameplan />
               <SovereignReadinessDashboard />
+              {/* SP-2 · Season calendar — guardian/athlete game-date input; feeds the
+                  Season Brain's weekly taper pass and the off/in-season default. */}
+              <SeasonCalendarCard
+                uid={uid}
+                season={seasonState}
+                lang={lang}
+                onSaved={() => setSeasonRefresh((n) => n + 1)}
+              />
               {/* Step 2 hand-off → Armor Prep (Recovery). */}
               <YouthNext label={seq.armor} onClick={() => onNavigate('recovery')} testid="youth-step-2" />
             </div>

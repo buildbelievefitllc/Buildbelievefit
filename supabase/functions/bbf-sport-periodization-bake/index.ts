@@ -94,7 +94,9 @@ const BLOCK_SCHEMA = {
   additionalProperties: false,
   properties: {
     days: {
-      type: 'array', minItems: 7, maxItems: 7,
+      // NOTE: Anthropic json_schema output supports minItems only as 0/1 — the
+      // EXACTLY-7 constraint is enforced by the prompt + validateBlock instead.
+      type: 'array',
       items: {
         type: 'object',
         additionalProperties: false,
@@ -138,7 +140,7 @@ const SYSTEM_PROMPT = [
   '- Respect the phase: Phase 1 = foundation/movement quality, Phase 2 = development/loading, Phase 3 = peak/reactive power.',
   '- Sport-specificity is the whole point: lift selection, power patterns, conditioning energy systems, and day sequencing must reflect how this sport and position actually loads the body. A lineman week and a setter week should look DIFFERENT.',
   '- Include one weekly day that blends position skill circuits with conditioning (the seed protocol shows the skill inventory).',
-  'Voice: focus lines and coaching cues are direct and athlete-readable. No AI mentions, no filler.',
+  'Voice: focus lines and coaching cues are direct and athlete-readable. No AI mentions, no filler. Keep coaching cues under 12 words.',
 ].join('\n');
 
 async function callClaude(apiKey: string, model: string, userMessage: string) {
@@ -147,7 +149,7 @@ async function callClaude(apiKey: string, model: string, userMessage: string) {
     headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({
       model,
-      max_tokens: 4096,
+      max_tokens: 16000,
       thinking: { type: 'adaptive' },
       output_config: { format: { type: 'json_schema', schema: BLOCK_SCHEMA } },
       system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
@@ -274,6 +276,12 @@ serve(async (req) => {
 
   const model = routeAndLog('bbf-sport-periodization-bake', 'sport_block_design');
   const batchId = crypto.randomUUID();
+
+  // The gateway enforces a 150s idle limit per request; a multi-cell Sonnet
+  // batch exceeds it. Accept immediately, run the bake as a background task
+  // (EdgeRuntime.waitUntil), report through the CATALOG_BAKE inbox card +
+  // the `status` action.
+  const runBake = async () => {
   const results: Array<Record<string, unknown>> = [];
   let baked = 0, failed = 0;
 
@@ -351,5 +359,11 @@ serve(async (req) => {
     }
   }
 
-  return jsonResponse({ ok: true, batch_id: batchId, baked, failed, skipped: cells.length - work.length, card_id: cardId, results, model });
+  console.log(`[bbf-sport-periodization-bake] batch=${batchId} baked=${baked} failed=${failed} card=${cardId ?? 'none'}`);
+  };
+
+  const rt = (globalThis as any).EdgeRuntime;
+  if (rt?.waitUntil) rt.waitUntil(runBake());
+  else runBake();
+  return jsonResponse({ ok: true, accepted: true, batch_id: batchId, cells: work.length, skipped: cells.length - work.length, model }, 202);
 });

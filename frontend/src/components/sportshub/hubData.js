@@ -433,6 +433,22 @@ export function buildWeek(model, catalogDays = null) {
   });
 }
 
+// SP-2 · Season Brain — overlay a founder-approved game-week adjustment onto the
+// built week. Overrides never change exercises or check-off wiring; they attach a
+// `taper` marker ({note, mult}) the DayProtocol renders as the game-week banner.
+export function applyWeekOverrides(week, overrides) {
+  const days = overrides?.days;
+  if (!days || typeof days !== 'object') return week;
+  return week.map((d) => {
+    const o = days[d.label];
+    if (!o || d.rest) return d;
+    const note = typeof o.focus_note === 'string' ? o.focus_note : '';
+    const mult = typeof o.volume_multiplier === 'number' ? o.volume_multiplier : null;
+    if (!note && mult == null) return d;
+    return { ...d, taper: { note, mult } };
+  });
+}
+
 // Overlay the persisted per-day progress map (bbf_users.youth_progress) onto a
 // freshly-built week so completed check-offs render checked on load / after a
 // refresh. Shape: { "Day 1": { ex: {"0":true}, dr: {"0":true}, fm: {"0":"complete"} }, … }.
