@@ -34,6 +34,7 @@ import TierGate from '../TierGate.jsx';
 import { CUISINES, CUISINE_PLANS, dayTotals, todayIndex } from './cuisineMeals.js';
 import { useDailyReadiness } from '../../lib/useDailyReadiness.js';
 import { resolveMealArt, MEAL_ART } from './mealArt.js';
+import MealSnapCard from './MealSnapCard.jsx';
 import CoachVoiceNote from './CoachVoiceNote.jsx';
 import ContextualVoiceover from './ContextualVoiceover.jsx';
 import { AUDIO_CTX_NUTRITION } from '../../lib/contextualVoiceover.js';
@@ -452,6 +453,10 @@ function FastingPaceCard({ now, paceId, onSelectPace, tier }) {
       </div>
 
       <FastingWindow now={now} fasting={fasting} tier={tier} />
+
+      {/* Fuel Companion · Meal Snap — photo → Sonnet vision macro estimate,
+          coached against the fasting pace + today's readiness (server-side). */}
+      <MealSnapCard fasting={fasting} paceId={paceId} />
     </div>
   );
 }

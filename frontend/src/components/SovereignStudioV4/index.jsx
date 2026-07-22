@@ -8,6 +8,7 @@ import StudioCompilerPanel from './StudioCompilerPanel';
 import DraftHistoryPanel from './DraftHistoryPanel';
 import { SPOT_DEFAULTS } from './spotlightData';
 import { consumeStudioInbox } from '../../lib/studioInbox.js';
+import { adaptHooksTrilingual } from '../../lib/contentAdapterApi.js';
 import './sovereignStudioV4.css';
 
 // ── WORK-IN-PROGRESS PERSISTENCE ─────────────────────────────────────────────
@@ -113,6 +114,10 @@ export default function SovereignStudioV4() {
   // GROUPED MEDIA PASS — banner shown when an asset was bridged in from the
   // Marketing Vault or the Review Bucket (consumed from the studio inbox on mount).
   const [inboxNote, setInboxNote] = useState(null); // { source, label } | null
+  // Trilingual Content Adapter — 'idle' | 'busy' | 'done' | 'error'. Takes the
+  // current reel hook and stages culturally adapted ES/PT drafts into the
+  // content queue (founder curation still owns publishing).
+  const [adaptState, setAdaptState] = useState('idle');
   const [ctaData, setCtaData] = useState(() => hydrateSlice('cta', {
     lane: 'all',
     format: 'feed',
@@ -346,6 +351,28 @@ export default function SovereignStudioV4() {
               {label}
             </button>
           ))}
+          {/* Trilingual Content Adapter — EN hook → culturally adapted ES/PT
+              drafts staged into the content queue (Haiku, founder-curated). */}
+          <button
+            type="button"
+            className="mode-tab-v4"
+            disabled={adaptState === 'busy' || !reelData.hook?.trim()}
+            title={reelData.hook?.trim() ? 'Stage culturally adapted ES + PT drafts of the current hook' : 'Type a hook in the Video Engine first'}
+            data-testid="studio-adapt-trilingual"
+            onClick={async () => {
+              if (adaptState === 'busy' || !reelData.hook?.trim()) return;
+              setAdaptState('busy');
+              try {
+                await adaptHooksTrilingual([{ hook: reelData.hook, caption: reelData.hookSub || '', series: 'studio-v4', format: 'reel' }]);
+                setAdaptState('done');
+              } catch {
+                setAdaptState('error');
+              }
+              setTimeout(() => setAdaptState('idle'), 4000);
+            }}
+          >
+            {adaptState === 'busy' ? '🌎 ADAPTING…' : adaptState === 'done' ? '🌎 ES/PT STAGED ✓' : adaptState === 'error' ? '🌎 RETRY ES/PT' : '🌎 ES/PT ADAPT'}
+          </button>
         </div>
       </div>
 
