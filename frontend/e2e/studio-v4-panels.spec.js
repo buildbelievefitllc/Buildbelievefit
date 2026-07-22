@@ -23,7 +23,7 @@ test.describe('Defect 4 — Studio V4 reel panels restored', () => {
     await expect(music).toHaveCount(1);
     await expect(music).toHaveAttribute('accept', /audio/);
     await expect(music).toHaveAttribute('accept', /video/);
-    await expect(page.getByText('UPLOAD MUSIC')).toBeVisible();
+    await expect(page.getByText('UPLOAD BGM')).toBeVisible();
 
     // (2) overlay text layout toggle
     const layout = page.getByTestId('reel-text-layout');

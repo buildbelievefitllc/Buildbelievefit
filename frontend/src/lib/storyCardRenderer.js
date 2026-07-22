@@ -18,6 +18,20 @@ const GOLD = '#f5c800';
 const INK = '#090909';
 const WHITE = '#f9f5ff';
 
+// Legible label color for a series-colored pill — mirrors readableText() in
+// contentManagerApi.js (perceived-luminance threshold 0.55): dark BBF Purple #6a0dad
+// → WHITE, lighter series hues → matte INK. Keeps this renderer dependency-free so
+// the flagship Mindset Engine pill (#6a0dad) never renders dark-on-dark on a live Story.
+function readablePillText(hex) {
+  const h = String(hex || '').replace('#', '');
+  if (h.length < 6) return INK;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.55 ? INK : WHITE;
+}
+
 // Best-effort: make sure the brand faces are ready before we paint text onto the
 // canvas (an unloaded face silently falls back to the system sans, which is legible
 // but off-brand). Never blocks longer than the fonts take, never throws.
@@ -86,7 +100,8 @@ export async function renderDraftStoryImage(draft = {}, { seriesColor = GOLD } =
     x += ctx.measureText(word).width + 10;
   }
 
-  // Series pill (visual theme cue) — series accent color, ink text for contrast.
+  // Series pill (visual theme cue) — series accent color with a contrast-safe label
+  // (WHITE on dark #6a0dad, INK on lighter hues) so it's legible on every series.
   const series = String(draft.series || '').trim();
   if (series) {
     ctx.font = '600 34px "Barlow Condensed", sans-serif';
@@ -98,7 +113,7 @@ export async function renderDraftStoryImage(draft = {}, { seriesColor = GOLD } =
     ctx.fillStyle = seriesColor || GOLD;
     if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(PAD, py, pillW, pillH, 31); ctx.fill(); }
     else ctx.fillRect(PAD, py, pillW, pillH);
-    ctx.fillStyle = INK;
+    ctx.fillStyle = readablePillText(seriesColor || GOLD);
     ctx.textBaseline = 'middle';
     ctx.fillText(label, PAD + 28, py + pillH / 2 + 2);
     ctx.textBaseline = 'alphabetic';

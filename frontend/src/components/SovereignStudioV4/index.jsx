@@ -52,15 +52,27 @@ function hydrateSlice(slice, defaults) {
 function applyBridgeToReel(reel, payload) {
   if (!payload || typeof payload !== 'object') return reel;
   const next = { ...reel };
+  // Copy a string field ONLY when it's genuinely present. Senders coerce an absent
+  // source to '' (e.g. `row.title || ''`, or an unmapped seriesToReelTag() → ''), so
+  // an empty string means "not provided" — applying it would WIPE the operator's
+  // persisted WIP copy for that field, breaking the "a partial handoff never wipes
+  // existing copy" contract. Whitespace-only is treated the same.
+  const copyStr = (key) => {
+    const v = payload[key];
+    if (typeof v === 'string' && v.trim() !== '') next[key] = v;
+  };
   if (payload.videoUrl) next.videoFile = { file: null, url: payload.videoUrl };
-  if (typeof payload.hook === 'string') next.hook = payload.hook;
-  if (typeof payload.hookSub === 'string') next.hookSub = payload.hookSub;
-  if (typeof payload.series === 'string') next.series = payload.series;
-  if (typeof payload.overlayStyle === 'string') next.overlayStyle = payload.overlayStyle;
-  if (typeof payload.backgroundColor === 'string') next.backgroundColor = payload.backgroundColor;
-  if (payload.voUrl) { next.voUrl = payload.voUrl; next.captions = null; }
-  if (typeof payload.voTopic === 'string') next.voTopic = payload.voTopic;
-  if (typeof payload.lang === 'string') next.lang = payload.lang;
+  copyStr('hook');
+  copyStr('hookSub');
+  copyStr('series');
+  copyStr('overlayStyle');
+  copyStr('backgroundColor');
+  copyStr('voTopic');
+  copyStr('lang');
+  // A bridged voUrl is always a durable vault/generated voice, never a user upload —
+  // clear the upload marker (else a prior in-session upload's '✕ Remove "file"' chip
+  // lingers over the bridged voice) and drop any stale transcript.
+  if (payload.voUrl) { next.voUrl = payload.voUrl; next.voUploadName = null; next.captions = null; }
   return next;
 }
 

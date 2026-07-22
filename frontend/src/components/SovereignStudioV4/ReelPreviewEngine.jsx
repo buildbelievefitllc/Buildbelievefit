@@ -167,7 +167,7 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
     const music = musicRef.current;
     if (!music) return;
     const clamp01 = (n) => (Number.isFinite(n) ? Math.min(Math.max(n, 0), 1) : 1);
-    const base = reelData.bgmEnabled === false ? 0 : clamp01(Number(reelData.musicVolume) / 100);
+    const base = reelData.bgmEnabled === false ? 0 : clamp01(Number(reelData.musicVolume ?? 20) / 100);
     const duckOn = reelData.bgmDuck !== false && voPlaying && !!reelData.voUrl;
     const duckFactor = duckOn ? clamp01(Number(reelData.bgmDuckAmount ?? 25) / 100) : 1;
     music.volume = base * duckFactor;
