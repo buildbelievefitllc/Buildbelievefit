@@ -158,6 +158,7 @@ jobs:
           -authenticationKeyID "$KEY_ID" \
           -authenticationKeyIssuerID "$ISSUER_ID" \
           CODE_SIGN_STYLE=Automatic \
+          CODE_SIGN_IDENTITY="Apple Distribution" \
           DEVELOPMENT_TEAM="$TEAM_ID" \
           MARKETING_VERSION="1.0.${BBF_BUILD_NUMBER}" \
           CURRENT_PROJECT_VERSION="${BBF_BUILD_NUMBER}"
