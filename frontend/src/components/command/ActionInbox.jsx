@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchActionInbox, resolveInboxAction, fetchInboxScorecard } from '../../lib/inboxApi.js';
 import { approveCatalogBatch } from '../../lib/sportsCatalogApi.js';
+import { sendToStudioV4 } from '../../lib/studioInbox.js';
 import { useReadiness } from '../../context/ReadinessContext.jsx';
 import { useRoster } from './RosterProvider.jsx';
 import { CONTENT_INSIGHTS, buildKnowledgeDeck } from './commandInboxData.js';
@@ -52,6 +53,10 @@ const RISK_META = {
   SEASON_TAPER:      { glyph: '🗓', label: 'Game-Week Taper',  tone: 'stag'    },
   GUARDIAN_WIRE:     { glyph: '✉️', label: 'Guardian Wire',    tone: 'onboard' },
   MORNING_BRIEF:     { glyph: '☀️', label: 'Command Brief',    tone: 'onboard' },
+  // NIGHT SHIFT · Master Orchestration Track — event-bus + 2AM orchestrator cards.
+  LEVEL_UP_PROPOSAL:     { glyph: '🚀', label: 'Tier Level-Up',   tone: 'onboard' },
+  COACHING_INTERVENTION: { glyph: '🩺', label: 'Intervention',    tone: 'auto'    },
+  REEL_DRAFT_PROPOSAL:   { glyph: '🎞', label: 'Reel Draft',      tone: 'onboard' },
 };
 
 // ── Accountability ledger (mirrors bbf-agent-brain) ───────────────────────────
@@ -170,7 +175,7 @@ function MesoAuditPanel({ promo }) {
   );
 }
 
-function ActionCard({ action, onResolve, onApply }) {
+function ActionCard({ action, onResolve, onApply, onReelDraft }) {
   const [text, setText] = useState(String(action.draft_message || ''));
   const [busy, setBusy] = useState(false);
   const [askReason, setAskReason] = useState(false); // critical dismiss → reason gate
@@ -195,6 +200,11 @@ function ActionCard({ action, onResolve, onApply }) {
   // OP-1 Morning Command Brief — informational pin; the top-3 decisions map to
   // other cards in this same inbox. Resolving acknowledges it.
   const brief = action.type === 'MORNING_BRIEF' ? action.proposed_plan_modification?.morning_brief : null;
+  // NIGHT SHIFT · event-bus payloads: milestone tier promotion + the pre-baked
+  // Kinetic Hyperframe reel draft. (COACHING_INTERVENTION needs no extra panel —
+  // its payload carries the standard mod shape, so ModificationPanel renders it.)
+  const levelUp = action.type === 'LEVEL_UP_PROPOSAL' ? action.proposed_plan_modification?.level_up : null;
+  const reelDraft = action.type === 'REEL_DRAFT_PROPOSAL' ? action.proposed_plan_modification?.reel_draft : null;
 
   // Accountability derivations.
   const isCritical = CRITICAL_TYPES.has(action.type);
@@ -336,6 +346,26 @@ function ActionCard({ action, onResolve, onApply }) {
         </div>
       ) : null}
       {promo?.current_protocol && promo?.next_protocol ? <MesoAuditPanel promo={promo} /> : null}
+      {levelUp ? (
+        <div className="ainbox-glass" data-testid="ainbox-level-up">
+          <div className="ainbox-glass-label">Tier Crossing · {String(levelUp.sport || '').toUpperCase()}</div>
+          <p className="ainbox-glass-body">
+            {String(levelUp.from_tier || '').replace(/_/g, '-')} → <strong>{String(levelUp.to_tier || '').replace(/_/g, '-')}</strong>
+            {' · '}{levelUp.milestones_done ?? '—'}/{levelUp.milestones_total ?? '—'} milestones coach-verified.
+            Approving promotes the tier and wires the progress note home.
+          </p>
+        </div>
+      ) : null}
+      {reelDraft ? (
+        <div className="ainbox-glass" data-testid="ainbox-reel-draft">
+          <div className="ainbox-glass-label">Pre-Baked Kinetic Hyperframe · {reelDraft.target_duration ?? 15}s</div>
+          <p className="ainbox-glass-body" style={{ whiteSpace: 'pre-line' }}>{reelDraft.hook}</p>
+          <p className="ainbox-glass-body">
+            {(Array.isArray(reelDraft.cards) ? reelDraft.cards.length : 0)} kinetic cards · {reelDraft.bg || 'alt'} palette · CTA “{reelDraft.cta || 'START TODAY'}”
+            {reelDraft.privacy_note ? ' · ⚠ first name only — verify guardian media consent before publishing.' : ''}
+          </p>
+        </div>
+      ) : null}
 
       <label className="ainbox-draft-label" htmlFor={`ainbox-draft-${action.id}`}>
         Draft message · {firstNameOf(action)}
@@ -349,11 +379,14 @@ function ActionCard({ action, onResolve, onApply }) {
         data-testid="ainbox-draft"
       />
 
-      {mod || isBlueprint || promo || bake || taper || wire ? (
+      {mod || isBlueprint || promo || bake || taper || wire || levelUp || reelDraft ? (
         <button
           type="button"
           className="ainbox-btn ainbox-btn--deploy"
-          onClick={bake ? activateBatch : (promo || taper || wire) ? applyOnly : applyAndNudge}
+          onClick={bake ? activateBatch
+            : reelDraft ? () => { if (!busy) { setBusy(true); onReelDraft(action, reelDraft); } }
+            : (promo || taper || wire || levelUp) ? applyOnly
+            : applyAndNudge}
           disabled={busy}
           data-testid="ainbox-apply"
         >
@@ -361,6 +394,8 @@ function ActionCard({ action, onResolve, onApply }) {
             : taper ? '⚡ APPLY GAME-WEEK TAPER'
             : wire ? `⚡ APPROVE LETTER HOME${wire.period ? ` · ${wire.period}` : ''}`
             : promo ? '⚡ APPROVE PHASE PROMOTION'
+            : levelUp ? '⚡ PROMOTE TIER + WIRE PARENTS'
+            : reelDraft ? '⚡ SEND TO STUDIO V4 → RENDER'
             : isBlueprint ? '⚡ DEPLOY BASELINE PLAN'
             : '⚡ APPLY PROGRAM OVERRIDE'}
         </button>
@@ -636,6 +671,30 @@ export default function ActionInbox({ domain = 'coaching' }) {
     }
   }, []);
 
+  // NIGHT SHIFT · REEL_DRAFT_PROPOSAL approve — mark the card APPROVED, hand the
+  // pre-baked Kinetic Hyperframe to Studio V4 over the one-shot bridge, and jump
+  // there. SovereignFoundry (WebCodecs) renders in THIS browser, so the render
+  // happens where the founder is: the studio opens pre-assembled in hyperframe
+  // mode; AUTO-DRAFT voices it and EXPORT/story buttons push to the queues.
+  const onReelDraft = useCallback(async (action, draft) => {
+    setActions((prev) => prev.filter((a) => a.id !== action.id));
+    try {
+      await resolveInboxAction(action.id, 'APPROVED', { reason: 'reel draft sent to Studio V4' });
+    } catch { /* non-fatal — the handoff still proceeds; the card re-lists on next poll */ }
+    sendToStudioV4({
+      mode: 'reel',
+      source: 'action-inbox',
+      sourceLabel: `Night Shift reel draft · ${String(draft?.athlete_first || '').trim() || 'milestone'}`,
+      hook: String(draft?.hook || ''),
+      hookSub: String(draft?.hook_sub || ''),
+      hyperframe: true,
+      hyperframeBg: String(draft?.bg || 'alt'),
+      watchText: String(draft?.cta || 'START TODAY'),
+    });
+    setOpen(false);
+    navigate('/command/studio-v4');
+  }, [navigate]);
+
   // ── Content triggers ──
   const draftInStudio = useCallback((card) => {
     // Hand a draft seed to Studio V4 (harmless if unread) and jump there.
@@ -732,7 +791,7 @@ export default function ActionInbox({ domain = 'coaching' }) {
                 <div className="ainbox-empty"><span aria-hidden="true">◎</span> Inbox zero — no pending agent actions.</div>
               ) : (
                 <div className="ainbox-list">
-                  {sortedActions.map((a) => <ActionCard key={a.id} action={a} onResolve={onResolve} onApply={onApply} />)}
+                  {sortedActions.map((a) => <ActionCard key={a.id} action={a} onResolve={onResolve} onApply={onApply} onReelDraft={onReelDraft} />)}
                 </div>
               )
             ) : mode === 'content' ? (

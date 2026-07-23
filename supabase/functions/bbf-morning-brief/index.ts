@@ -163,11 +163,23 @@ serve(async (req) => {
   facts.content_scheduled_next_24h = contentDue ?? 0;
 
   const { data: llm } = await supabase
-    .from('bbf_llm_calls').select('ok').gte('ts', dayAgo).limit(1000);
+    .from('bbf_llm_calls').select('ok, ts').gte('ts', dayAgo)
+    .order('ts', { ascending: false }).limit(1000);
   const llmTotal = (llm ?? []).length;
   const llmFails = (llm ?? []).filter((r) => !r.ok).length;
+  // Recovery detection (deterministic): the trailing consecutive-success streak.
+  // A burst of failures that was FIXED shouldn't read as a live outage for the
+  // next 24h — if every recent call is green, the health fact says recovered.
+  let llmStreak = 0;
+  for (const r of llm ?? []) { if (r.ok) llmStreak++; else break; }
   facts.llm_calls_24h = llmTotal;
   facts.llm_failures_24h = llmFails;
+  facts.llm_current_ok_streak = llmStreak;
+  facts.llm_health = llmFails === 0
+    ? 'healthy'
+    : llmStreak >= 5
+      ? `RECOVERED — the ${llmFails} failures are older; every one of the ${llmStreak} most recent calls succeeded (fix already deployed). Do not raise this as a live problem.`
+      : 'degraded — failures are recent';
   facts.spend_24h_usd = gate.spend_24h_usd;
   facts.spend_ceiling_usd = gate.ceiling_usd;
 

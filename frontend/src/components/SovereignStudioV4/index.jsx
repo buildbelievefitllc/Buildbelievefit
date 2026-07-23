@@ -74,6 +74,15 @@ function applyBridgeToReel(reel, payload) {
   // clear the upload marker (else a prior in-session upload's '✕ Remove "file"' chip
   // lingers over the bridged voice) and drop any stale transcript.
   if (payload.voUrl) { next.voUrl = payload.voUrl; next.voUploadName = null; next.captions = null; }
+  // NIGHT SHIFT · REEL_DRAFT_PROPOSAL handoff — a pre-baked Kinetic Hyperframe
+  // draft from the Action Inbox. Flips the Video Engine straight into hyperframe
+  // mode with the orchestrator's deterministic palette + CTA; the operator lands
+  // one AUTO-DRAFT tap away from a voiced, word-synced reel.
+  if (payload.hyperframe === true) {
+    next.hyperframe = true;
+    copyStr('hyperframeBg');
+    copyStr('watchText');
+  }
   return next;
 }
 

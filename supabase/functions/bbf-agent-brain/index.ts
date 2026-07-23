@@ -725,10 +725,43 @@ async function actResolve(body: Record<string, unknown>): Promise<Response> {
       : card.type === 'PHASE_PROMOTION' ? 'bbf_apply_phase_promotion'
       : card.type === 'SEASON_TAPER' ? 'bbf_apply_season_adjustment'
       : card.type === 'GUARDIAN_WIRE' ? 'bbf_apply_guardian_wire'
+      // NIGHT SHIFT dispatch: milestone tier promotion (event-bus trigger card).
+      // COACHING_INTERVENTION intentionally falls through to bbf_apply_plan_override
+      // — its payload carries the exact override shape, so the existing applier
+      // handles it. REEL_DRAFT_PROPOSAL never reaches here (the Action Inbox
+      // resolves it client-side and hands the draft to Studio V4).
+      : card.type === 'LEVEL_UP_PROPOSAL' ? 'bbf_apply_level_up'
       : 'bbf_apply_plan_override';
     const result = await pgRpc(rpc, { p_action_id: id });
     if (!result?.ok) return jsonResponse({ error: result?.error ?? 'apply_failed' }, 409);
-    return jsonResponse({ ok: true, id, applied: rpc, ...result });
+    // LEVEL_UP post-apply: wire the parent progress email (Brevo) with the
+    // letter the founder just approved. Best-effort — the tier promotion is
+    // already committed; an email hiccup is reported, never rolls it back.
+    let wire: Record<string, unknown> | null = null;
+    if (rpc === 'bbf_apply_level_up') {
+      wire = { sent: false, reason: 'no_recipient' };
+      const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
+      const to = String(result.recipient_email ?? '').trim();
+      if (!BREVO_API_KEY) wire = { sent: false, reason: 'brevo_unconfigured' };
+      else if (to) {
+        try {
+          const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'api-key': BREVO_API_KEY, 'accept': 'application/json' },
+            body: JSON.stringify({
+              sender: { name: Deno.env.get('BREVO_FROM_NAME') || 'Build Believe Fit', email: Deno.env.get('BREVO_FROM_EMAIL') || 'coach@buildbelievefit.fitness' },
+              to: [{ email: to }],
+              subject: `🚀 ${result.athlete_name ?? 'Your athlete'} just leveled up at Build Believe Fit`,
+              textContent: String(result.letter ?? ''),
+            }),
+          });
+          wire = r.ok ? { sent: true, to } : { sent: false, reason: `brevo_${r.status}` };
+        } catch (e) {
+          wire = { sent: false, reason: String((e as Error)?.message ?? 'fetch_failed').slice(0, 80) };
+        }
+      }
+    }
+    return jsonResponse({ ok: true, id, applied: rpc, ...result, ...(wire ? { parent_wire: wire } : {}) });
   }
 
   if (status !== 'APPROVED' && status !== 'DISMISSED') return jsonResponse({ error: 'invalid_status' }, 400);
