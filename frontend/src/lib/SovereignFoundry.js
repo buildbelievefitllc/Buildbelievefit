@@ -187,6 +187,7 @@ export class SovereignFoundry {
     const video = videoUrl ? this._makeVideo(videoUrl) : null;
     let encErr = null;
     const setErr = (e) => { if (!encErr) encErr = e; };
+    const getErr = () => encErr;
 
     try {
       if (video) {
@@ -268,104 +269,133 @@ export class SovereignFoundry {
       const apick = audioBuffer ? await this._pickAudio(audioBuffer.sampleRate, Math.min(audioBuffer.numberOfChannels, 2)) : null;
       if (audioBuffer && !apick) audioError = 'No AAC/Opus encoder in this browser';
 
-      // ── MUXER ── clean, unfragmented, faststart MP4 with consistent timescales.
-      const muxer = new Muxer({
-        target: new ArrayBufferTarget(),
-        video: { codec: vpick.muxer, width: W, height: H },
-        ...(apick ? { audio: { codec: apick.muxer, numberOfChannels: Math.min(audioBuffer.numberOfChannels, 2), sampleRate: audioBuffer.sampleRate } } : {}),
-        fastStart: 'in-memory',
-        firstTimestampBehavior: 'offset',
-      });
-
-      // ── VIDEO ENCODER (CFR) ──
-      const venc = new window.VideoEncoder({
-        output: (chunk, meta) => { try { muxer.addVideoChunk(chunk, meta); } catch (e) { setErr(e); } },
-        error: (e) => setErr(e),
-      });
-      // MAX-QUALITY FLOOR (CEO mandate): 12 Mbps 1080x1920 H.264 — the WebCodecs
-      // equivalent of MediaRecorder videoBitsPerSecond:12_000_000. 8 Mbps was ~30-45%
-      // under IG/TikTok/YouTube ingest spec for 1080x1920@30, so their re-encoder was
-      // starting from a soft source. 12 Mbps survives the platform transcode.
-      const vconf = { codec: vpick.codec, width: W, height: H, bitrate: 12_000_000, framerate: fps };
-      if (vpick.isAvc) vconf.avc = { format: 'avc' };
-      venc.configure(vconf);
-
-      // ── AUDIO ENCODER — encode the whole VO up front; muxer interleaves ──
-      const aenc = apick ? this._encodeVoiceover(muxer, audioBuffer, d, apick, setErr) : null;
-
-      // ── FRAME CAPTURE ──
-      // Composite one canvas frame (cover-fit footage + branded overlay) and push it
-      // to the encoder. `frames` is shared so keyframe cadence + counts stay correct
-      // across whichever capture path runs.
       const { VideoFrame } = window;
       const frameDurUs = Math.round(1e6 / fps);
-      let frames = 0;
-      const encodeAt = (tSec) => {
+
+      // ── ENCODE PASS ── build a fresh muxer + encoders, capture every frame, and
+      // finalize one clean MP4. Extracted so the export can be RE-RUN: the real-time
+      // capture DROPS frames when the encoder can't keep up (a software VP9 fallback
+      // on a 1080x1920@30 12 Mbps stream saturates and never drains), which silently
+      // TRUNCATES the footage video track mid-reel while the full-length audio still
+      // muxes — the "video freezes N seconds in, the audio keeps going" bug on the
+      // posted MP4 (players / Meta then hold the last decoded frame). The completeness
+      // guard below re-encodes footage reels via the deterministic seek path when a
+      // pass comes up short.
+      const encodePass = async (preferSeek) => {
+        encErr = null; // fresh error state per pass
+
+        // ── MUXER ── clean, unfragmented, faststart MP4 with consistent timescales.
+        const muxer = new Muxer({
+          target: new ArrayBufferTarget(),
+          video: { codec: vpick.muxer, width: W, height: H },
+          ...(apick ? { audio: { codec: apick.muxer, numberOfChannels: Math.min(audioBuffer.numberOfChannels, 2), sampleRate: audioBuffer.sampleRate } } : {}),
+          fastStart: 'in-memory',
+          firstTimestampBehavior: 'offset',
+        });
+
+        // ── VIDEO ENCODER (CFR) ──
+        const venc = new window.VideoEncoder({
+          output: (chunk, meta) => { try { muxer.addVideoChunk(chunk, meta); } catch (e) { setErr(e); } },
+          error: (e) => setErr(e),
+        });
+        // MAX-QUALITY FLOOR (CEO mandate): 12 Mbps 1080x1920 H.264 — the WebCodecs
+        // equivalent of MediaRecorder videoBitsPerSecond:12_000_000. 8 Mbps was ~30-45%
+        // under IG/TikTok/YouTube ingest spec for 1080x1920@30, so their re-encoder was
+        // starting from a soft source. 12 Mbps survives the platform transcode.
+        const vconf = { codec: vpick.codec, width: W, height: H, bitrate: 12_000_000, framerate: fps };
+        if (vpick.isAvc) vconf.avc = { format: 'avc' };
+        venc.configure(vconf);
+
+        // ── AUDIO ENCODER — encode the whole VO up front; muxer interleaves ──
+        const aenc = apick ? this._encodeVoiceover(muxer, audioBuffer, d, apick, setErr) : null;
+
+        // ── FRAME CAPTURE ──
+        // Composite one canvas frame (footage cover-fit or synthesized hyperframe +
+        // branded overlay) and push it to the encoder.
+        let frames = 0;
+        const encodeAt = (tSec) => {
+          if (hf) {
+            // Native Kinetic Hyperframe: synthesize the branded background + big hero
+            // words (word-synced to the voice) fully on-canvas — no footage sampled.
+            this._drawHyperframe(ctx, tSec, W, H, hf, captionWords, capStyle);
+          } else {
+            this._drawCover(ctx, video, W, H, videoRect);
+            // Phone-backdrop mock-up — drawn AFTER the footage (so its bezel donut-clip
+            // never covers the just-drawn video) and BEFORE the overlay (so brand/hook/
+            // watch-button text still paints on top of the bezel, same stacking as the
+            // live DOM preview's z-index).
+            if (videoRect && frameRect) this._drawPhoneFrame(ctx, frameRect, videoRect, phoneFrame);
+          }
+          if (overlay) { try { ctx.drawImage(overlay, 0, 0, W, H); } catch { /* overlay optional */ } }
+          // Karaoke captions — drawn LAST (on top of everything) at this frame's voice
+          // time. Wrapped so a caption glitch can never abort the encode. Skipped under
+          // the hyperframe (its hero already carries the word-synced text).
+          if (!hf && captionWords) { try { this._drawCaptions(ctx, tSec, W, H, captionWords, captionPos, capStyle); } catch { /* captions optional */ } }
+          const frame = new VideoFrame(canvas, { timestamp: Math.max(0, Math.round(tSec * 1e6)), duration: frameDurUs });
+          venc.encode(frame, { keyFrame: frames % (fps * 2) === 0 });
+          frame.close();
+          frames += 1;
+        };
+
+        // Capture path:
+        //  • Hyperframe → synthetic CFR walk (no footage; deterministic, exact count).
+        //  • preferSeek OR the slow software-VP9 fallback → deterministic seek loop
+        //    (awaits the encoder drain, encodes EVERY frame — never truncates the tail).
+        //  • otherwise → fast REAL-TIME capture (hardware H.264), keeping the existing
+        //    black-probe + play_failed → seek safety fallbacks.
         if (hf) {
-          // Native Kinetic Hyperframe: synthesize the branded background + big hero
-          // words (word-synced to the voice) fully on-canvas — no footage sampled.
-          this._drawHyperframe(ctx, tSec, W, H, hf, captionWords, capStyle);
+          await this._captureSynthetic({ d, fps, encodeAt, venc, onProgress, getErr });
+        } else if (preferSeek || !vpick.isAvc) {
+          await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
         } else {
-          this._drawCover(ctx, video, W, H, videoRect);
-          // Phone-backdrop mock-up — drawn AFTER the footage (so its bezel donut-clip
-          // never covers the just-drawn video) and BEFORE the overlay (so brand/hook/
-          // watch-button text still paints on top of the bezel, same stacking as the
-          // live DOM preview's z-index).
-          if (videoRect && frameRect) this._drawPhoneFrame(ctx, frameRect, videoRect, phoneFrame);
+          let useRealtime = false;
+          if (typeof video.requestVideoFrameCallback === 'function') {
+            useRealtime = await this._probePlaybackDecodes(video, ctx, W, H);
+          }
+          if (useRealtime) {
+            try {
+              await this._captureRealtime({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+              if (frames < 1) { await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr }); }
+            } catch (e) {
+              if (e && e.message === 'play_failed') {
+                frames = 0;
+                await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+              } else { throw e; }
+            }
+          } else {
+            await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+          }
         }
-        if (overlay) { try { ctx.drawImage(overlay, 0, 0, W, H); } catch { /* overlay optional */ } }
-        // Karaoke captions — drawn LAST (on top of everything) at this frame's voice
-        // time. Wrapped so a caption glitch can never abort the encode. Skipped under
-        // the hyperframe (its hero already carries the word-synced text).
-        if (!hf && captionWords) { try { this._drawCaptions(ctx, tSec, W, H, captionWords, captionPos, capStyle); } catch { /* captions optional */ } }
-        const frame = new VideoFrame(canvas, { timestamp: Math.max(0, Math.round(tSec * 1e6)), duration: frameDurUs });
-        venc.encode(frame, { keyFrame: frames % (fps * 2) === 0 });
-        frame.close();
-        frames += 1;
+        if (frames < 1) throw new Error('empty_recording');
+
+        await venc.flush();
+        if (aenc) await aenc.flush();
+        if (encErr) throw encErr;
+        muxer.finalize();
+
+        const blob = new Blob([muxer.target.buffer], { type: 'video/mp4' });
+        try { venc.close(); } catch { /* noop */ }
+        if (aenc) { try { aenc.close(); } catch { /* noop */ } }
+        return { blob, frames, audio: !!aenc };
       };
 
-      // PRIMARY: REAL-TIME capture (wall-clock ≈ reel length, not one decode per frame).
-      // But FIRST pre-flight that playback actually yields non-black pixels on THIS
-      // browser — some suspend decode for a backgrounded video. If the probe is black
-      // (or rVFC is absent), use the slower-but-bulletproof seek loop so the export is
-      // NEVER black. This decision is made WITHOUT polluting the encoder stream.
-      const getErr = () => encErr;
-      if (hf) {
-        // No footage to seek/play — just walk the timeline at a fixed CFR cadence and
-        // synthesize each frame. Deterministic, fast (no decode), never black.
-        await this._captureSynthetic({ d, fps, encodeAt, venc, onProgress, getErr });
-      } else {
-        let useRealtime = false;
-        if (typeof video.requestVideoFrameCallback === 'function') {
-          useRealtime = await this._probePlaybackDecodes(video, ctx, W, H);
-        }
-        if (useRealtime) {
-          try {
-            await this._captureRealtime({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
-            if (frames < 1) { await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr }); }
-          } catch (e) {
-            if (e && e.message === 'play_failed') {
-              frames = 0;
-              await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
-            } else { throw e; }
-          }
-        } else {
-          await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
-        }
+      // First pass — real-time (H.264) / seek (VP9) / synthetic (hyperframe).
+      // COMPLETENESS GUARD: a footage CFR reel of `d` seconds must carry ≈ d×fps video
+      // frames. If a footage pass came up materially short, real-time dropped the tail
+      // under encoder backpressure and the video track is shorter than the audio →
+      // re-encode via the frame-exact seek path so the posted MP4 plays full-length (no
+      // freeze). Seek + synthetic already encode exactly d×fps frames, so they never
+      // re-trip this guard (a genuine seek failure surfaces as seek_stalled instead).
+      let pass = await encodePass(false);
+      const expectedFrames = Math.round(d * fps);
+      if (!hf && pass.frames < Math.floor(expectedFrames * 0.9)) {
+        pass = await encodePass(true);
       }
-      if (frames < 1) throw new Error('empty_recording');
 
-      await venc.flush();
-      if (aenc) await aenc.flush();
-      if (encErr) throw encErr;
-      muxer.finalize();
-
-      const blob = new Blob([muxer.target.buffer], { type: 'video/mp4' });
-      try { venc.close(); } catch { /* noop */ }
-      if (aenc) { try { aenc.close(); } catch { /* noop */ } }
+      const blob = pass.blob;
       if (!blob.size) throw new Error('empty_recording');
       if (onProgress) onProgress(1);
-      return { blob, ext: 'mp4', mime: 'video/mp4', audio: !!aenc, audioError, frames, durationSec: Math.round(d * 10) / 10 };
+      return { blob, ext: 'mp4', mime: 'video/mp4', audio: pass.audio, audioError, frames: pass.frames, durationSec: Math.round(d * 10) / 10 };
     } finally {
       this._destroyVideo();
     }
