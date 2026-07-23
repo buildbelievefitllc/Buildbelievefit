@@ -1,0 +1,220 @@
+name: Sovereign iOS Cloud Build & Deploy
+
+# Zero-touch TestFlight deployment (iOS mirror of android-deploy.yml):
+#   merge to main → web build (Vite, env baked from frontend/.env.production)
+#   → Capacitor sync (runs pod install on the macOS runner) → xcodebuild
+#   archive with CLOUD-MANAGED signing (App Store Connect API key; no .p12
+#   certificate juggling — Xcode provisions and signs against Apple's
+#   cloud-managed distribution certificate) → export .ipa → upload straight
+#   to App Store Connect / TestFlight. The .ipa is also kept as a run
+#   artifact (manual escape hatch / audit trail).
+#
+# The signing/upload stages self-gate on the ASC secrets: while they are
+# absent the run stays green, still compile-checks the native project
+# (unsigned), and prints the exact one-time setup — it can never silently
+# half-deploy. Required repo secrets:
+#
+#   APPLE_TEAM_ID        — 10-char Developer Team ID (developer.apple.com →
+#                          Membership).
+#   ASC_API_KEY_ID       — App Store Connect → Users and Access → Integrations
+#                          → App Store Connect API → Team key ID.
+#   ASC_API_ISSUER_ID    — Issuer ID from the same page.
+#   ASC_API_PRIVATE_KEY  — full contents of the downloaded AuthKey_<ID>.p8
+#                          (PEM text, including BEGIN/END lines). Role must be
+#                          App Manager or Admin (cloud signing needs Admin the
+#                          first time it mints the distribution certificate).
+#
+# One-time App Store Connect prerequisite: an app record whose bundle ID is
+# fitness.buildbelievefit.app (the iOS identity — deliberately NOT the
+# Android .twa package name; see frontend/capacitor.config.ts).
+#
+# Node is pinned to 22 to match android-deploy.yml — both native lanes must
+# build from byte-identical web output.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-ios.yml'
+  workflow_dispatch: {}
+
+# A newer merge supersedes an in-flight build — never ship stale code behind it.
+concurrency:
+  group: ios-deploy
+  cancel-in-progress: true
+
+env:
+  # Build number = OFFSET + run number, mirroring the Android versionCode
+  # convention (monotonic; App Store Connect rejects reused build numbers per
+  # version). Independent counter from Android — the stores never compare them.
+  BBF_VERSION_OFFSET: "450"
+  XCODE_PROJECT_DIR: frontend/ios/App
+
+jobs:
+  build-and-deploy:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v5
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '22'
+        cache: npm
+        cache-dependency-path: frontend/package-lock.json
+
+    # Compute the release version BEFORE the web build so Vite can bake it into
+    # the bundle (define __APP_VERSION__ ← BBF_VERSION_NAME, see vite.config.js) —
+    # the in-app version stamp then matches the MARKETING_VERSION xcodebuild
+    # stamps onto the same bundle below.
+    - name: Compute Release Version
+      run: |
+        BUILD_NUMBER=$(( BBF_VERSION_OFFSET + GITHUB_RUN_NUMBER ))
+        echo "BBF_BUILD_NUMBER=${BUILD_NUMBER}" >> "$GITHUB_ENV"
+        echo "BBF_VERSION_NAME=1.0.${BUILD_NUMBER}" >> "$GITHUB_ENV"
+        echo "Release version: 1.0.${BUILD_NUMBER} (build ${BUILD_NUMBER})"
+
+    - name: Install Web Dependencies & Build Assets
+      env:
+        BBF_VERSION_NAME: ${{ env.BBF_VERSION_NAME }}
+      run: |
+        cd frontend
+        npm ci
+        npm run build
+
+    # Copies dist/ into the iOS project and runs `pod install` (CocoaPods ships
+    # on the macOS runner — the step the Linux dev environment cannot perform).
+    - name: Capacitor Sync (iOS)
+      run: |
+        cd frontend
+        npx cap sync ios
+
+    # ── Signing gate ─────────────────────────────────────────────────────────
+    - name: Detect App Store Connect Credentials
+      id: asc
+      env:
+        TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+        ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+        PRIVATE_KEY: ${{ secrets.ASC_API_PRIVATE_KEY }}
+      run: |
+        if [ -n "$TEAM_ID" ] && [ -n "$KEY_ID" ] && [ -n "$ISSUER_ID" ] && [ -n "$PRIVATE_KEY" ]; then
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "configured=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    # Secrets absent → still prove the native project compiles (unsigned), so a
+    # broken Podfile/pbxproj can never hide behind the missing-key warning.
+    - name: Compile Check (unsigned — signing secrets not yet configured)
+      if: steps.asc.outputs.configured != 'true'
+      run: |
+        cd "$XCODE_PROJECT_DIR"
+        xcodebuild build \
+          -workspace App.xcworkspace \
+          -scheme App \
+          -configuration Release \
+          -destination 'generic/platform=iOS' \
+          CODE_SIGNING_ALLOWED=NO \
+          MARKETING_VERSION="1.0.${BBF_BUILD_NUMBER}" \
+          CURRENT_PROJECT_VERSION="${BBF_BUILD_NUMBER}"
+
+    - name: TestFlight Upload Pending One-Time Setup
+      if: steps.asc.outputs.configured != 'true'
+      run: |
+        echo "::warning title=iOS signing/upload skipped::APPLE_TEAM_ID / ASC_API_KEY_ID / ASC_API_ISSUER_ID / ASC_API_PRIVATE_KEY secrets are not all set. One-time setup: (1) App Store Connect → Users and Access → Integrations → generate an API key (Admin role for first-run cloud signing) and download AuthKey_<ID>.p8, (2) create the app record with bundle ID fitness.buildbelievefit.app, (3) gh secret set APPLE_TEAM_ID / ASC_API_KEY_ID / ASC_API_ISSUER_ID and gh secret set ASC_API_PRIVATE_KEY < AuthKey_<ID>.p8. This run compiled the project unsigned to keep the lane honest."
+
+    # ── Archive · Export · Upload (cloud-managed signing) ────────────────────
+    - name: Install App Store Connect API Key
+      if: steps.asc.outputs.configured == 'true'
+      env:
+        KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+        PRIVATE_KEY: ${{ secrets.ASC_API_PRIVATE_KEY }}
+      run: |
+        mkdir -p ~/private_keys
+        printf '%s' "$PRIVATE_KEY" > ~/private_keys/AuthKey_${KEY_ID}.p8
+        echo "ASC_KEY_PATH=$HOME/private_keys/AuthKey_${KEY_ID}.p8" >> "$GITHUB_ENV"
+
+    - name: Archive (cloud signing via ASC API key)
+      if: steps.asc.outputs.configured == 'true'
+      env:
+        TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+        ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+      run: |
+        cd "$XCODE_PROJECT_DIR"
+        xcodebuild archive \
+          -workspace App.xcworkspace \
+          -scheme App \
+          -configuration Release \
+          -destination 'generic/platform=iOS' \
+          -archivePath build/App.xcarchive \
+          -allowProvisioningUpdates \
+          -authenticationKeyPath "$ASC_KEY_PATH" \
+          -authenticationKeyID "$KEY_ID" \
+          -authenticationKeyIssuerID "$ISSUER_ID" \
+          CODE_SIGN_STYLE=Automatic \
+          DEVELOPMENT_TEAM="$TEAM_ID" \
+          MARKETING_VERSION="1.0.${BBF_BUILD_NUMBER}" \
+          CURRENT_PROJECT_VERSION="${BBF_BUILD_NUMBER}"
+
+    - name: Export .ipa
+      if: steps.asc.outputs.configured == 'true'
+      env:
+        TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+        ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+      run: |
+        cd "$XCODE_PROJECT_DIR"
+        cat > ExportOptions.plist <<PLIST
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>method</key><string>app-store-connect</string>
+          <key>destination</key><string>export</string>
+          <key>signingStyle</key><string>automatic</string>
+          <key>teamID</key><string>${TEAM_ID}</string>
+          <key>uploadSymbols</key><true/>
+        </dict>
+        </plist>
+        PLIST
+        xcodebuild -exportArchive \
+          -archivePath build/App.xcarchive \
+          -exportPath build/export \
+          -exportOptionsPlist ExportOptions.plist \
+          -allowProvisioningUpdates \
+          -authenticationKeyPath "$ASC_KEY_PATH" \
+          -authenticationKeyID "$KEY_ID" \
+          -authenticationKeyIssuerID "$ISSUER_ID"
+        IPA=$(ls build/export/*.ipa | head -1)
+        echo "IPA_PATH=$XCODE_PROJECT_DIR/${IPA#./}" >> "$GITHUB_ENV"
+        echo "Exported: $IPA"
+
+    - name: Keep .ipa as Run Artifact
+      if: steps.asc.outputs.configured == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-believe-fit-ipa
+        path: ${{ env.IPA_PATH }}
+
+    - name: Upload to App Store Connect (TestFlight)
+      if: steps.asc.outputs.configured == 'true'
+      env:
+        KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+        ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+      run: |
+        xcrun altool --upload-app \
+          --type ios \
+          --file "$IPA_PATH" \
+          --apiKey "$KEY_ID" \
+          --apiIssuer "$ISSUER_ID"
+        echo "Uploaded to App Store Connect — the build appears in TestFlight after Apple's processing pass (~5-15 min)."
+
+    - name: Shred API Key
+      if: always() && steps.asc.outputs.configured == 'true'
+      run: rm -f ~/private_keys/AuthKey_*.p8
