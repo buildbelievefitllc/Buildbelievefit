@@ -271,7 +271,7 @@ export default function App() {
       {/* Reminders */}
       <div className="mt-4 text-center">
         {reminders === 'on' ? (
-          <p className="text-white/50">🔔 Reminders are on (8 AM &amp; 6 PM)</p>
+          <p className="text-white/50">🔔 Reminders are on (3 AM &amp; 6 PM)</p>
         ) : reminders === 'denied' ? (
           <p className="text-white/40">
             Notifications are blocked. Enable them in your phone settings to get
