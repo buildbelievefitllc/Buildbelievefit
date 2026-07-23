@@ -12,6 +12,8 @@ import { enableReminders, reminderState } from './lib/push.js'
 import BigNumberField from './components/BigNumberField.jsx'
 import TimeOfDayToggle from './components/TimeOfDayToggle.jsx'
 import CrisisAlert from './components/CrisisAlert.jsx'
+import InsightCard from './components/InsightCard.jsx'
+import TipsView from './components/TipsView.jsx'
 
 // Friendly text for the error slugs create-google-doc can return.
 const EXPORT_MESSAGES = {
@@ -45,6 +47,7 @@ export default function App() {
   const [exportError, setExportError] = useState('')
 
   const [reminders, setReminders] = useState('off') // off | on | denied | unsupported | working
+  const [view, setView] = useState('log') // log | tips
 
   const crisis = isCrisis(systolic, diastolic)
   const category = classify(systolic, diastolic)
@@ -156,6 +159,17 @@ export default function App() {
     )
   }
 
+  // Full tips & guidance screen.
+  if (view === 'tips') {
+    return (
+      <TipsView
+        systolic={systolic}
+        diastolic={diastolic}
+        onBack={() => setView('log')}
+      />
+    )
+  }
+
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col safe-pad px-4">
       {/* Header */}
@@ -205,6 +219,15 @@ export default function App() {
           <CrisisAlert />
         </div>
       )}
+
+      {/* Contextual guidance for this reading */}
+      <div className="mt-3">
+        <InsightCard
+          systolic={systolic}
+          diastolic={diastolic}
+          onSeeAll={() => setView('tips')}
+        />
+      </div>
 
       {/* Notes */}
       <label className="mt-3 block">
