@@ -2,9 +2,10 @@
 // ─────────────────────────────────────────────────────────────────────
 // DEFAULT INTENT (legacy Phase 2):
 //   Intercepts the athlete's scheduled heavy workout when CNS readiness
-//   is compromised (sleep < 6 OR soreness > 7) and asks Claude Opus 4.7
-//   to generate 2 CNS-friendly replacement lifts. Frontend renders the
-//   override on top of the static program.
+//   is compromised (sleep < 6 OR soreness > 7) and asks Claude Haiku 4.5
+//   (routed via model-router mesocycle_rationale tag) to generate 2
+//   CNS-friendly replacement lifts. Frontend renders the override on top
+//   of the static program.
 //
 // PHASE 4 INTENT · `intent: 'restructure'`:
 //   Fired by bbf-agentic-forecasting when systemic-overtraining is
@@ -35,7 +36,7 @@
 //       "warning_banner": "Sharp coach voice · 1 sentence",
 //       "replacement_lifts": [{ name, reps, notes }, ...],
 //       "readiness_snapshot": { sleep, stress },
-//       "model": "claude-opus-4-7",
+//       "model": "claude-haiku-4-5",
 //       "duration_ms": 5230
 //     }
 //
@@ -65,7 +66,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 // Opus 4.7 was overspend for a fixed-schema response. Routing is
 // centralized in _shared/model-router.ts so future tuning is one-file.
 const MODEL          = routeAndLog('bbf-agentic-peaking', 'mesocycle_rationale');
-const MAX_TOKENS     = 4096;
+const MAX_TOKENS     = 512; // 1-sentence banner + 2-3 replacement lifts ≈ 100-200 tokens; 512 is safe headroom
 const EFFORT_DEFAULT = 'high';
 
 // Trigger thresholds (CEO scaffold).
