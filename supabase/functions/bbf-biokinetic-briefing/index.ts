@@ -8,6 +8,7 @@
 // Returns audio/mpeg. GET ?voices=1 -> resolved locale->voice diagnostic.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { routeAndLog } from '../_shared/model-router.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -16,13 +17,6 @@ const CORS = {
 };
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
-}
-
-const MODELS = { HAIKU: 'claude-haiku-4-5', SONNET: 'claude-sonnet-4-6', OPUS: 'claude-opus-4-8' } as const;
-function routeAndLog(fn: string, useCase: string): string {
-  const model = MODELS.HAIKU;
-  console.log(`[model-router] fn=${fn} use_case=${useCase} model=${model}`);
-  return model;
 }
 
 function localeCode(input?: string | null): 'en' | 'es' | 'pt' {

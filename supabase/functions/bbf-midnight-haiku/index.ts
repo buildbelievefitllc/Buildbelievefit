@@ -75,12 +75,10 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
+import { routeAndLog } from '../_shared/model-router.ts';
 
 // ─── Constants ────────────────────────────────────────────────────────
-// Phase 7 Workstream B · Nightly digest synthesis · already on Haiku.
-// TODO Phase 7.x · migrate to _shared/model-router.ts when shared-file
-// deploy is wired up. For now this matches routeModel('snapshot_synthesis').
-const MODEL          = 'claude-haiku-4-5';
+const MODEL          = routeAndLog('bbf-midnight-haiku', 'snapshot_synthesis');
 const MAX_TOKENS     = 220; // 2–3 sentences ≈ 100–150 output tokens; small buffer.
 const BATCH_SIZE     = 5;   // Concurrent Anthropic calls per batch.
 const RETRY_LIMIT    = 3;   // Per-user retry attempts on transient API failures.

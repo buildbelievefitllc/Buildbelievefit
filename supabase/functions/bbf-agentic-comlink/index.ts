@@ -78,6 +78,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { localeDirective, localeCode } from '../_shared/locale.ts';
 import { requireEntitlement } from '../_shared/entitlement-gate.ts';
+import { routeAndLog } from '../_shared/model-router.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -97,9 +98,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 // form_correction intent for novel kinematic deviations. Sonnet 4.6
 // handles vision-adjacent reasoning and structured rewrites at lower
 // cost than Opus, per CEO routing rules.
-// TODO Phase 7.x · migrate to _shared/model-router.ts once shared-file
-// deploy is wired up. For now this matches routeModel('novel_form_correction').
-const MODEL              = 'claude-sonnet-4-6';
+const MODEL              = routeAndLog('bbf-agentic-comlink', 'novel_form_correction');
 const MAX_TOKENS         = 2048;
 const EFFORT_DEFAULT     = 'low';  // structured rewrite — low effort keeps it under the 20s timeout
 const CLAUDE_TIMEOUT_MS  = 20000;

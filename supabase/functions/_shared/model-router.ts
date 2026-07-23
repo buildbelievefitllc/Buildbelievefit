@@ -43,6 +43,7 @@ export type UseCase =
   | 'sport_immersion_seed'    // Immersion · static sport-immersion seed
   | 'premium_inflection_scripts' // Premium Audio Engine · short pre-baked biometric inflection cue variants (low-stakes narration)
   | 'convai_dynamic_brief'    // Live Mindset Coach · pre-session dynamic-variable packaging (low-stakes)
+  | 'coach_cue'              // Biokinetic Briefing · short spoken coaching cue (3-5 sentences, ~80 words)
   // ── SONNET tier · vision + mid-complexity reasoning ───────────────
   | 'kinematic_form_score'    // Single-image biomechanics scoring (vision)
   | 'novel_form_correction'   // Comlink · novel deviation correction (vision-adjacent)
@@ -94,6 +95,7 @@ const MODEL_MAP: Record<UseCase, Model> = {
   premium_session_script: MODELS.SONNET, // Premium Audio Engine session narration — parity with sovereign_audio_briefing, NOT safety-critical → Sonnet
   premium_inflection_scripts: MODELS.HAIKU, // short fixed-slot inflection cues — low-stakes narration (margin protection)
   convai_dynamic_brief:  MODELS.HAIKU, // packaging structured facts for the live agent's context — low-stakes
+  coach_cue:             MODELS.HAIKU, // biokinetic short spoken cue — matches biokinetic-briefing stub intent
   eagle_eye_alignment:   MODELS.SONNET, // secondary-brain cue-alignment synthesis — reasoned cross-check, NOT a live safety call (deterministic engine owns the verdict) → Sonnet (§4 margin)
   eagle_eye_intervention: MODELS.SONNET, // client-facing empathetic escalation script — warmth/nuance/trilingual matter (parity with sovereign_audio_briefing), NOT safety-critical → Sonnet
   // parq_assessment removed — now deterministic (see public.bbf_parq_assess).

@@ -1,9 +1,9 @@
 // bbf-co-coach — Co-Coach Intelligence Agent Edge Function (Pivot 3).
 // ─────────────────────────────────────────────────────────────────────
 // Receives a Founder-5 telemetry bundle from BBF_COACH_AGENT in
-// mastermind-portal.html, asks Claude Opus 4.7 to analyze it as a sharp
-// assistant coach, and returns structured JSON insights ready for the
-// frontend to render in Sprint 3.
+// mastermind-portal.html, asks Claude Haiku 4.5 (routed via model-router
+// sovereign_brief tag) to analyze it as a sharp assistant coach, and
+// returns structured JSON insights ready for the frontend to render.
 //
 // Request shape:
 //   POST /functions/v1/bbf-co-coach
@@ -29,7 +29,7 @@
 //           "evidence", "recommendation" }, ...
 //       ]
 //     },
-//     "model": "claude-opus-4-7",
+//     "model": "claude-haiku-4-5",
 //     "usage": { input_tokens, output_tokens, cache_read_input_tokens, ... }
 //   }
 //
@@ -63,7 +63,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 import { routeAndLog } from '../_shared/model-router.ts';
 
 const MODEL          = routeAndLog('bbf-co-coach', 'sovereign_brief');
-const MAX_TOKENS     = 8192;
+const MAX_TOKENS     = 2048; // headline + 5 client insights ≈ 800-1500 tokens; 2048 is clean headroom
 const EFFORT_DEFAULT = 'high';
 
 // Stable system prompt — cacheable. Changes here invalidate the cache,

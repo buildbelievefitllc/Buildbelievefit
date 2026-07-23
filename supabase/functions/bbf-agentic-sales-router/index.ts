@@ -2,7 +2,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // The fleet's Sales Agent. Reads an athlete's REAL engagement from the Wave-1
 // bbf_completion_events ledger (with a bbf_users cold-start fallback), computes
-// consistency deterministically, then asks Opus 4.8 to author a highly
+// consistency deterministically, then asks Claude Sonnet 4.6 (CEO override
+// 2026-06: downgraded from Opus 4.8 for margin protection) to author a highly
 // personalized, TRILINGUAL (EN/ES/PT) upsell that steers the athlete toward the
 // high-ticket hybrid coaching tiers — Kickstart (6-week on-ramp) or Sovereign
 // (12-week founder-direct apex).
