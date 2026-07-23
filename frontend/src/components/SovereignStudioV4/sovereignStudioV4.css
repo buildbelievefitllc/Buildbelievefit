@@ -817,3 +817,56 @@
 /* Platform-native accents (admin tooling — not a public brand surface). */
 .story-btn-ig-v4 { background: linear-gradient(120deg, #7638fa 0%, #d6249f 45%, #fd5949 75%, #fdb833 100%); }
 .story-btn-fb-v4 { background: linear-gradient(120deg, #1877f2 0%, #0a5bd3 100%); }
+
+/* ============================================================================
+   KINETIC HYPERFRAME — native text-reel layout (Video Engine).
+   Full-bleed BBF brand cards (Purple/Gold, matte-ink option) with big Bebas hero
+   words; the active spoken word sits in an accent box, synced to the voiceover.
+   Palette rides CSS vars set by ReelPreviewEngine from lib/hyperframe.js, so the
+   preview and the Foundry export bake read ONE source of truth. Authored in
+   1080×1920 design space (StageScaler shrinks it to fit), matching the reel cover.
+   ============================================================================ */
+.stage-reel-v4.is-hyperframe .reel-ov-v4,
+.stage-reel-v4.is-hyperframe .reel-strip-v4 { display: none; }
+/* Keep the brand mark + series legible on a gold card (white-on-gold is weak). */
+.stage-reel-v4.is-hyperframe .reel-top-v4 { text-shadow: 0 3px 18px rgba(0, 0, 0, 0.55); }
+
+.reel-hf-v4 {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 60px; padding: 210px 96px 200px;
+  background: radial-gradient(120% 80% at 50% 22%, var(--hf-bg2, #4a0980) 0%, var(--hf-bg, #6a0dad) 62%);
+  text-align: center;
+}
+.reel-hf-card-v4 { display: flex; align-items: center; justify-content: center; width: 100%; }
+
+.reel-hf-words-v4 {
+  font-family: var(--cap-font, var(--hb)); font-weight: 800; text-transform: uppercase;
+  font-size: 150px; line-height: 1.02; letter-spacing: 1px; color: var(--hf-text, #f9f5ff);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px 22px;
+}
+.reel-hf-words-v4.is-static { font-size: 132px; line-height: 0.98; white-space: normal; display: block; }
+
+/* One kinetic word. The live (spoken) word snaps into a filled brand-accent box —
+   gold box on a purple card, purple box on a gold card — the high-contrast look
+   that reads on a muted phone feed. */
+.reel-hf-word-v4 {
+  display: inline-block; padding: 4px 8px; border-radius: 14px; transition: none;
+  color: var(--hf-text, #f9f5ff);
+}
+.reel-hf-word-v4.is-active {
+  background: var(--hf-accent, #f5c800); color: var(--hf-on, #090909);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.32); padding: 4px 18px;
+}
+.reel-hf-words-v4.is-static .kin-line-v4 { display: block; }
+
+.reel-hf-cta-v4 {
+  font-family: var(--hb); font-size: 46px; letter-spacing: 4px; text-transform: uppercase;
+  padding: 22px 58px; border-radius: 70px;
+  background: var(--hf-accent, #f5c800); color: var(--hf-on, #090909);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.3);
+}
+.reel-hf-empty-v4 {
+  font-family: var(--hb); font-size: 96px; line-height: 1; letter-spacing: 3px;
+  color: rgba(249, 245, 255, 0.45); text-transform: uppercase;
+}

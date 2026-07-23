@@ -32,6 +32,7 @@
 
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import { captionState } from './captionTiming.js';
+import { hyperframeColors, phraseIndexAt } from './hyperframe.js';
 
 const TARGET_W = 1080;
 const TARGET_H = 1920;
@@ -125,7 +126,12 @@ export class SovereignFoundry {
       // get a second, FROZEN copy of whatever phrase was on screen at capture time —
       // baked motionless behind the moving text (the "still shot behind the captions"
       // reported on IG/FB posts). The dynamic baker is the single source of captions.
-      clone.querySelectorAll('.reel-video-v4, .reel-placeholder-v4, .reel-play-v4, .reel-vo-v4, .reel-progress-v4, .phone-frame-v4, .reel-caption-v4, .spot-video-v4, .spot-vid-ph-v4, .spot-play-v4, .spot-progress-v4, .spot-vo-v4')
+      // The Kinetic Hyperframe stage (.reel-hf-v4) is likewise baked PER FRAME by
+      // _drawHyperframe (brand background flips + words highlight with the voice), so
+      // strip it here too — otherwise a frozen copy of the current phrase + its card
+      // background would sit motionless behind the animated bake. Only the static
+      // chrome (brand mark, logo) survives into the one-shot overlay.
+      clone.querySelectorAll('.reel-video-v4, .reel-placeholder-v4, .reel-play-v4, .reel-vo-v4, .reel-progress-v4, .phone-frame-v4, .reel-caption-v4, .reel-hf-v4, .spot-video-v4, .spot-vid-ph-v4, .spot-play-v4, .spot-progress-v4, .spot-vo-v4')
         .forEach((el) => el.remove());
       // Kill the opaque stage background so the footage isn't buried by the overlay.
       clone.style.transform = 'none';
@@ -154,9 +160,13 @@ export class SovereignFoundry {
    * single-track approximation.
    * @returns {Promise<{blob:Blob, ext:'mp4', mime:'video/mp4', audio:boolean, frames:number, durationSec:number}>}
    */
-  async render({ videoUrl, voUrl = null, musicUrl = null, footageUrl = null, voGain = 1, musicGain = 1, footageGain = 1, duckEnabled = true, duckAmount = 0.25, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', captions = null, captionsEnabled = false, captionPos = 62, captionStyle = null, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
+  async render({ videoUrl, voUrl = null, musicUrl = null, footageUrl = null, voGain = 1, musicGain = 1, footageGain = 1, duckEnabled = true, duckAmount = 0.25, overlay = null, videoRect = null, frameRect = null, phoneFrame = 'sleek', captions = null, captionsEnabled = false, captionPos = 62, captionStyle = null, hyperframe = null, width = TARGET_W, height = TARGET_H, fps = 30, durationCap = 90, audioIsDurationMaster = false, onProgress } = {}) {
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
-    if (!videoUrl) throw new Error('no_footage');
+    // Kinetic Hyperframe renders a fully synthesized (footage-free) reel — a branded
+    // background + big word-synced hero text — so footage is NOT required in that mode.
+    // hyperframe = { bg, hook } | null. Everything else still demands real footage.
+    const hf = hyperframe && typeof hyperframe === 'object' ? hyperframe : null;
+    if (!videoUrl && !hf) throw new Error('no_footage');
 
     const W = width, H = height;
     const canvas = document.createElement('canvas');
@@ -174,23 +184,25 @@ export class SovereignFoundry {
       try { await document.fonts?.load?.(`800 ${capStyle.sizePx}px ${capStyle.family}`); } catch { /* fall back to the default sans */ }
     }
 
-    const video = this._makeVideo(videoUrl);
+    const video = videoUrl ? this._makeVideo(videoUrl) : null;
     let encErr = null;
     const setErr = (e) => { if (!encErr) encErr = e; };
 
     try {
-      await this._whenReady(video);
-      // FAIL FAST, NEVER GRIND: if the footage did not produce a decodable frame
-      // (dead/revoked blob URL after a tab reclaim, unsupported codec, media error,
-      // the browser refusing a second decoder), abort with a clear reason NOW.
-      // Before this guard, a broken video slid past the readiness wait and fell
-      // into the seek loop, where every frame burned the full seek safety timeout —
-      // hours of silent black-frame encoding that the UI showed as "stuck at 0%".
-      if (video.error || !(video.videoWidth > 0) || video.readyState < 2) {
-        throw new Error('footage_load_failed');
+      if (video) {
+        await this._whenReady(video);
+        // FAIL FAST, NEVER GRIND: if the footage did not produce a decodable frame
+        // (dead/revoked blob URL after a tab reclaim, unsupported codec, media error,
+        // the browser refusing a second decoder), abort with a clear reason NOW.
+        // Before this guard, a broken video slid past the readiness wait and fell
+        // into the seek loop, where every frame burned the full seek safety timeout —
+        // hours of silent black-frame encoding that the UI showed as "stuck at 0%".
+        if (video.error || !(video.videoWidth > 0) || video.readyState < 2) {
+          throw new Error('footage_load_failed');
+        }
       }
-      if (onProgress) onProgress(0.02); // footage decoded — the engine is alive
-      const footageDur = (Number.isFinite(video.duration) && video.duration > 0) ? video.duration : 0;
+      if (onProgress) onProgress(0.02); // engine alive (footage decoded, or hyperframe)
+      const footageDur = (video && Number.isFinite(video.duration) && video.duration > 0) ? video.duration : 0;
 
       // Decode + resample the voiceover FIRST so its real length drives the duration.
       // Any failure is captured as a REASON (never swallowed) and surfaced to the UI.
@@ -223,9 +235,14 @@ export class SovereignFoundry {
       // LONGER footage is simply cut short, rather than the default reel-export
       // behavior of always running the max of the two. Falls back to the default
       // max-based duration when no audio was supplied (there's nothing to master to).
-      const naturalDur = (audioIsDurationMaster && voDur > 0)
-        ? voDur
-        : (Math.max(footageDur, voDur) || footageDur || voDur || durationCap);
+      // Hyperframe has no footage, so its length is mastered to the voiceover (the
+      // words are synced to it). No voice → a short static-hook hold (8s) so the export
+      // still produces a usable card rather than a 90s freeze.
+      const naturalDur = hf
+        ? (voDur > 0 ? voDur : 8)
+        : (audioIsDurationMaster && voDur > 0)
+          ? voDur
+          : (Math.max(footageDur, voDur) || footageDur || voDur || durationCap);
       const d = Math.max(0.1, Math.min(naturalDur, durationCap));
 
       // ── THE REAL MIXDOWN ── voice + looped/ducked music + looped/ducked clip audio
@@ -284,16 +301,23 @@ export class SovereignFoundry {
       const frameDurUs = Math.round(1e6 / fps);
       let frames = 0;
       const encodeAt = (tSec) => {
-        this._drawCover(ctx, video, W, H, videoRect);
-        // Phone-backdrop mock-up — drawn AFTER the footage (so its bezel donut-clip
-        // never covers the just-drawn video) and BEFORE the overlay (so brand/hook/
-        // watch-button text still paints on top of the bezel, same stacking as the
-        // live DOM preview's z-index).
-        if (videoRect && frameRect) this._drawPhoneFrame(ctx, frameRect, videoRect, phoneFrame);
+        if (hf) {
+          // Native Kinetic Hyperframe: synthesize the branded background + big hero
+          // words (word-synced to the voice) fully on-canvas — no footage sampled.
+          this._drawHyperframe(ctx, tSec, W, H, hf, captionWords, capStyle);
+        } else {
+          this._drawCover(ctx, video, W, H, videoRect);
+          // Phone-backdrop mock-up — drawn AFTER the footage (so its bezel donut-clip
+          // never covers the just-drawn video) and BEFORE the overlay (so brand/hook/
+          // watch-button text still paints on top of the bezel, same stacking as the
+          // live DOM preview's z-index).
+          if (videoRect && frameRect) this._drawPhoneFrame(ctx, frameRect, videoRect, phoneFrame);
+        }
         if (overlay) { try { ctx.drawImage(overlay, 0, 0, W, H); } catch { /* overlay optional */ } }
         // Karaoke captions — drawn LAST (on top of everything) at this frame's voice
-        // time. Wrapped so a caption glitch can never abort the encode.
-        if (captionWords) { try { this._drawCaptions(ctx, tSec, W, H, captionWords, captionPos, capStyle); } catch { /* captions optional */ } }
+        // time. Wrapped so a caption glitch can never abort the encode. Skipped under
+        // the hyperframe (its hero already carries the word-synced text).
+        if (!hf && captionWords) { try { this._drawCaptions(ctx, tSec, W, H, captionWords, captionPos, capStyle); } catch { /* captions optional */ } }
         const frame = new VideoFrame(canvas, { timestamp: Math.max(0, Math.round(tSec * 1e6)), duration: frameDurUs });
         venc.encode(frame, { keyFrame: frames % (fps * 2) === 0 });
         frame.close();
@@ -306,22 +330,28 @@ export class SovereignFoundry {
       // (or rVFC is absent), use the slower-but-bulletproof seek loop so the export is
       // NEVER black. This decision is made WITHOUT polluting the encoder stream.
       const getErr = () => encErr;
-      let useRealtime = false;
-      if (typeof video.requestVideoFrameCallback === 'function') {
-        useRealtime = await this._probePlaybackDecodes(video, ctx, W, H);
-      }
-      if (useRealtime) {
-        try {
-          await this._captureRealtime({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
-          if (frames < 1) { await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr }); }
-        } catch (e) {
-          if (e && e.message === 'play_failed') {
-            frames = 0;
-            await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
-          } else { throw e; }
-        }
+      if (hf) {
+        // No footage to seek/play — just walk the timeline at a fixed CFR cadence and
+        // synthesize each frame. Deterministic, fast (no decode), never black.
+        await this._captureSynthetic({ d, fps, encodeAt, venc, onProgress, getErr });
       } else {
-        await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+        let useRealtime = false;
+        if (typeof video.requestVideoFrameCallback === 'function') {
+          useRealtime = await this._probePlaybackDecodes(video, ctx, W, H);
+        }
+        if (useRealtime) {
+          try {
+            await this._captureRealtime({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+            if (frames < 1) { await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr }); }
+          } catch (e) {
+            if (e && e.message === 'play_failed') {
+              frames = 0;
+              await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+            } else { throw e; }
+          }
+        } else {
+          await this._captureSeek({ video, d, fps, footageDur, encodeAt, venc, onProgress, getErr });
+        }
       }
       if (frames < 1) throw new Error('empty_recording');
 
@@ -472,6 +502,20 @@ export class SovereignFoundry {
       deadSeeks = live ? 0 : deadSeeks + 1;
       if (deadSeeks >= 5) throw new Error('seek_stalled');
       encodeAt(tSec);
+      if (onProgress) onProgress(Math.min(0.95, 0.05 + (i / totalFrames) * 0.9));
+      if (venc.encodeQueueSize > 16) await this._drain(venc);
+    }
+  }
+
+  // FOOTAGE-FREE (Kinetic Hyperframe): synthesize frames at a fixed CFR cadence.
+  // No decode, no seek — encodeAt draws the branded background + word-synced hero on
+  // canvas. Backpressure via _drain keeps the encoder queue bounded and yields to the
+  // event loop, so even a 30s reel stays responsive and never blocks the UI thread.
+  async _captureSynthetic({ d, fps, encodeAt, venc, onProgress, getErr }) {
+    const totalFrames = Math.max(1, Math.round(d * fps));
+    for (let i = 0; i < totalFrames; i++) {
+      if (getErr()) throw getErr();
+      encodeAt(i / fps);
       if (onProgress) onProgress(Math.min(0.95, 0.05 + (i / totalFrames) * 0.9));
       if (venc.encodeQueueSize > 16) await this._drain(venc);
     }
@@ -641,6 +685,90 @@ export class SovereignFoundry {
       baseline += lineH;
     }
     ctx.restore();
+  }
+
+  // ── KINETIC HYPERFRAME — the canvas twin of ReelPreviewEngine's .reel-hf-v4 ──
+  // Fully synthesized frame: branded background (flips purple⇄gold per phrase for
+  // 'alt', from lib/hyperframe's palette — the SAME source the preview reads) + the
+  // big hero words (current spoken phrase, active word boxed, word-synced to the
+  // voice via captionState) + the CTA chip. No footage. Uppercased to match the DOM.
+  _drawHyperframe(ctx, tSec, W, H, hf, words, capStyle) {
+    const st = capStyle || this._normalizeCaptionStyle(null);
+    const chunk = st.chunk || 4;
+    const colors = hyperframeColors(hf?.bg, Math.max(0, phraseIndexAt(words, tSec, chunk)));
+
+    // 1) Branded background — radial bg2 (upper third) → bg, mirroring the CSS.
+    const grad = ctx.createRadialGradient(W / 2, H * 0.24, W * 0.08, W / 2, H * 0.24, H * 0.95);
+    grad.addColorStop(0, colors.bg2);
+    grad.addColorStop(1, colors.bg);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2) Hero words — the current spoken phrase, else the static hook (no voice yet).
+    const state = words ? captionState(words, tSec, chunk) : null;
+    const items = (state && state.chunk.length)
+      ? state.chunk.map((w, i) => ({ text: String(w.text).toUpperCase(), active: i === state.active }))
+      : String(hf?.hook || '').replace(/\n/g, ' ').trim().split(/\s+/).filter(Boolean).map((t) => ({ text: t.toUpperCase(), active: false }));
+    if (items.length) {
+      const FS = 128, GAP = 20, LGAP = 18, PADX = 24, PADY = 14, RAD = 18;
+      ctx.save();
+      ctx.font = `800 ${FS}px ${st.family}`;
+      ctx.textBaseline = 'alphabetic';
+      ctx.textAlign = 'left';
+      const maxW = W * 0.82;
+      const measured = items.map((it) => ({ ...it, w: ctx.measureText(it.text).width }));
+      const lines = [];
+      let cur = [], curW = 0;
+      for (const it of measured) {
+        const addW = (cur.length ? GAP : 0) + it.w;
+        if (cur.length && curW + addW > maxW) { lines.push({ items: cur, width: curW }); cur = []; curW = 0; }
+        curW += (cur.length ? GAP : 0) + it.w;
+        cur.push(it);
+      }
+      if (cur.length) lines.push({ items: cur, width: curW });
+      const lineH = FS + LGAP;
+      const totalH = lines.length * lineH - LGAP;
+      let baseline = H * 0.46 - totalH / 2 + FS;
+      for (const line of lines) {
+        let x = (W - line.width) / 2;
+        for (const it of line.items) {
+          if (it.active) {
+            ctx.fillStyle = colors.accent;
+            ctx.beginPath();
+            roundRectPath(ctx, x - PADX / 2, baseline - FS + 6, it.w + PADX, FS + PADY, RAD);
+            ctx.fill();
+            ctx.fillStyle = colors.on;
+          } else {
+            ctx.fillStyle = colors.text;
+          }
+          ctx.fillText(it.text, x, baseline);
+          x += it.w + GAP;
+        }
+        baseline += lineH;
+      }
+      ctx.restore();
+    }
+
+    // 3) CTA chip — solid accent pill near the bottom, brand display face.
+    const cta = String(hf?.cta || '').trim();
+    if (cta) {
+      ctx.save();
+      const CFS = 48;
+      ctx.font = `700 ${CFS}px "Bebas Neue", sans-serif`;
+      ctx.textBaseline = 'alphabetic';
+      ctx.textAlign = 'left';
+      const tw = ctx.measureText(cta).width;
+      const padX = 58, padY = 26, chipH = CFS + padY * 2;
+      const chipW = tw + padX * 2;
+      const cx = (W - chipW) / 2, cy = H * 0.84;
+      ctx.fillStyle = colors.accent;
+      ctx.beginPath();
+      roundRectPath(ctx, cx, cy, chipW, chipH, chipH / 2);
+      ctx.fill();
+      ctx.fillStyle = colors.on;
+      ctx.fillText(cta, cx + padX, cy + padY + CFS * 0.82);
+      ctx.restore();
+    }
   }
 
   // Phone-backdrop bezel + notch, drawn NATIVELY on canvas (not via html2canvas — see

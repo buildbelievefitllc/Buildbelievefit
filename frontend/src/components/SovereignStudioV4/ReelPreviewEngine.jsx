@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from 'react';
 import { REEL_PHONE_FRAME } from '../../lib/reelPhoneBackdrop.js';
 import { seriesLabel } from '../../lib/reelSeriesLabels.js';
 import { captionState } from '../../lib/captionTiming.js';
+import { hyperframeColors, phraseIndexAt } from '../../lib/hyperframe.js';
 
 const OVERLAY_CLASS = {
   scrim: 'ovl-scrim',
@@ -203,13 +204,54 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
   const layoutClass = `txt-${reelData.textLayout || 'bottom'}`; // overlay text-placement toggle
   const pct = duration ? (currentTime / duration) * 100 : 0;
 
+  // ── KINETIC HYPERFRAME ── the native text-reel layout. The active phrase index
+  // (from the SAME voice-time chunking the karaoke engine uses) flips the 'alt'
+  // brand background in lock-step; the resolved palette rides CSS vars so preview
+  // and the Foundry export bake read one source of truth (lib/hyperframe.js).
+  const hf = !!reelData.hyperframe;
+  const hfPhrase = hf ? phraseIndexAt(reelData.captions?.words, voTime, reelData.capChunk ?? 4) : -1;
+  const hfColors = hf ? hyperframeColors(reelData.hyperframeBg, Math.max(0, hfPhrase)) : null;
+  const hfStyleVars = hfColors ? {
+    '--hf-bg': hfColors.bg, '--hf-bg2': hfColors.bg2,
+    '--hf-text': hfColors.text, '--hf-accent': hfColors.accent, '--hf-on': hfColors.on,
+    '--cap-font': HOOK_FONT_STACK[reelData.capFont] || HOOK_FONT_STACK.bebas,
+  } : null;
+
   const video = reelData.videoFile?.url ? (
     <video ref={videoRef} src={reelData.videoFile.url} className="reel-video-v4" playsInline crossOrigin="anonymous" />
   ) : null;
 
   return (
-    <div id="video-preview" className={`stage-reel-v4 ${overlayClass} ${layoutClass} ${reelData.phoneBackdrop ? 'has-phone-backdrop' : ''}`} ref={stageRef}>
-      {reelData.phoneBackdrop ? (
+    <div id="video-preview" className={`stage-reel-v4 ${overlayClass} ${layoutClass} ${reelData.phoneBackdrop ? 'has-phone-backdrop' : ''} ${hf ? 'is-hyperframe' : ''}`} ref={stageRef} style={hfStyleVars || undefined}>
+      {hf ? (
+        // Native Kinetic Hyperframe stage — full-bleed brand card + big hero words.
+        // When the voice is within a spoken phrase the karaoke chunk is the hero
+        // (word-synced highlight); otherwise the static hook shows so the operator
+        // always sees the copy (pre-voiceover, or in the gaps).
+        <div className="reel-hf-v4" data-testid="reel-hyperframe">
+          <div className="reel-hf-card-v4">
+            {caption ? (
+              <div className="reel-hf-words-v4" aria-hidden="true">
+                {caption.chunk.map((w, i) => (
+                  <span key={`${i}-${w.text}`} className={`reel-hf-word-v4${i === caption.active ? ' is-active' : ''}`}>{w.text}</span>
+                ))}
+              </div>
+            ) : reelData.hook ? (
+              <div
+                key={`${reelData.caption_animation_style || 'static'}::${reelData.hook}`}
+                className="reel-hf-words-v4 is-static"
+              >
+                {kineticClass ? <KineticHook text={reelData.hook} anim={kineticClass} /> : reelData.hook}
+              </div>
+            ) : (
+              <div className="reel-hf-empty-v4">AUTO-DRAFT<br />A HYPERFRAME</div>
+            )}
+          </div>
+          {(reelData.hook || reelData.hookSub) && (
+            <div className="reel-hf-cta-v4">▶ {reelData.watchText || 'WATCH'}</div>
+          )}
+        </div>
+      ) : reelData.phoneBackdrop ? (
         <div
           className={`phone-frame-v4 frame-${reelData.phoneFrame || 'sleek'}`}
           style={{ left: REEL_PHONE_FRAME.left, top: REEL_PHONE_FRAME.top, width: REEL_PHONE_FRAME.width, height: REEL_PHONE_FRAME.height, bottom: 'auto', transform: 'none' }}
@@ -228,8 +270,9 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
       )}
 
       {/* Karaoke captions — bold outlined phrase, active word in a BBF-gold box,
-          synced to the voice track. Plays whenever the voice audio advances. */}
-      {caption ? (
+          synced to the voice track. Plays whenever the voice audio advances.
+          Suppressed under the Hyperframe layout, where the words ARE the hero. */}
+      {!hf && caption ? (
         <div
           className="reel-caption-v4"
           data-testid="reel-caption"
@@ -261,7 +304,7 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
       </div>
 
       <div className="reel-bottom-v4">
-        {reelData.hook && (
+        {!hf && reelData.hook && (
           <div
             // key remount replays the kinetic run whenever the style or copy
             // changes — the animation is always previewable, never one-shot.
@@ -278,8 +321,8 @@ export default function ReelPreviewEngine({ reelData, stageRef }) {
             {kineticClass ? <KineticHook text={reelData.hook} anim={kineticClass} /> : reelData.hook}
           </div>
         )}
-        {reelData.hookSub && <div className="reel-sub-v4">{reelData.hookSub}</div>}
-        {(reelData.hook || reelData.hookSub) && <div className="reel-watch-v4">▶ {reelData.watchText || 'WATCH'}</div>}
+        {!hf && reelData.hookSub && <div className="reel-sub-v4">{reelData.hookSub}</div>}
+        {!hf && (reelData.hook || reelData.hookSub) && <div className="reel-watch-v4">▶ {reelData.watchText || 'WATCH'}</div>}
         {(reelData.voUrl || reelData.musicFile?.url) && (
           <button type="button" className="reel-vo-v4" onClick={toggleVoiceover} aria-label={voPlaying ? 'Pause audio' : 'Play audio'}>
             {voPlaying ? '❚❚ AUDIO' : '🎙 PLAY AUDIO'}

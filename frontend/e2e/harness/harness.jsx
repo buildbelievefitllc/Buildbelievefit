@@ -51,6 +51,9 @@ import ActionInbox from '../../src/components/command/ActionInbox.jsx';
 import { ReadinessProvider } from '../../src/context/ReadinessContext.jsx';
 import SeasonCalendarCard from '../../src/components/sportshub/SeasonCalendarCard.jsx';
 import MealSnapCard from '../../src/components/vault/MealSnapCard.jsx';
+import ReelPreviewEngine from '../../src/components/SovereignStudioV4/ReelPreviewEngine.jsx';
+import StageScalerV4 from '../../src/components/SovereignStudioV4/StageScaler.jsx';
+import '../../src/components/SovereignStudioV4/sovereignStudioV4.css';
 
 const props = (typeof window !== 'undefined' && window.__HARNESS_PROPS__) || {};
 const which = new URLSearchParams(window.location.search).get('c') || '';
@@ -395,6 +398,32 @@ function pick() {
       // Anatomy Arena · 3D Biomechanical Viewer — native-React HUD over a lazy,
       // code-split R3F viewport (procedural rig). HUD renders regardless of WebGL.
       return <BiomechanicsViewer />;
+    case 'reel-hyperframe': {
+      // Studio V4 · Kinetic Hyperframe preview — the REAL ReelPreviewEngine in
+      // hyperframe mode. Crafted captions with the first word at t≈0 make the
+      // word-synced hero (active-word box) visible at rest (voTime 0), proving the
+      // brand card + big Bebas hero + highlight render. props.reelData overrides.
+      const words = [
+        { text: 'STOP', start: 0, end: 0.5 }, { text: 'WAITING', start: 0.5, end: 1.1 },
+        { text: 'FOR', start: 1.1, end: 1.4 }, { text: 'A', start: 1.4, end: 1.6 },
+        { text: 'SIGN', start: 1.6, end: 2.2 }, { text: 'THIS', start: 2.2, end: 2.6 },
+        { text: 'IS', start: 2.6, end: 2.9 }, { text: 'IT', start: 2.9, end: 3.4 },
+      ];
+      const rd = props.reelData || {
+        hyperframe: true, hyperframeBg: props.bg || 'alt',
+        hook: 'STOP WAITING\nFOR A SIGN.\nTHIS IS IT.',
+        watchText: 'START TODAY', overlayStyle: 'minimal',
+        captionsEnabled: true, capChunk: 4, capFont: 'bebas',
+        captions: { words },
+      };
+      return (
+        <div style={{ width: 360 }}>
+          <StageScalerV4 designWidth={1080} designHeight={1920}>
+            <ReelPreviewEngine reelData={rd} handleReelChange={() => {}} />
+          </StageScalerV4>
+        </div>
+      );
+    }
     case 'action-inbox':
       // Agentic Command Center · Action Inbox — the REAL floating desk under an
       // admin session + roster/readiness providers. The bbf-agent-brain `list`

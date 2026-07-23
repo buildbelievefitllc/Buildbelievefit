@@ -13,6 +13,8 @@ import { REEL_PHONE_FRAME, REEL_PHONE_SCREEN } from '../../lib/reelPhoneBackdrop
 import { seriesLabel } from '../../lib/reelSeriesLabels.js';
 import { saveBlobToDevice, isMobileish } from '../../lib/exportDelivery.js';
 import { SPOT_QUOTES1, SPOT_QUOTES2 } from './spotlightData';
+import { HYPERFRAME_STYLES } from '../../lib/hyperframe.js';
+import { buildHyperframeDraft } from '../../lib/hyperframeWizard.js';
 
 const PLATFORMS = [
   ['instagram', 'Instagram'],
@@ -562,6 +564,55 @@ export default function StudioLayout({
     }
   }
 
+  // ── STUDIO V4 CREATIVE WIZARD — Auto-Draft Hyperframe ──────────────────────
+  // One tap turns the current hook into a ready-to-voice Kinetic Hyperframe: the
+  // deterministic assembler (lib/hyperframeWizard) sets the layout, brand type, and
+  // CTA; then the SAME voiceover pipeline the reel already uses voices the hook
+  // verbatim (providedScript) so ElevenLabs' word-timings animate the exact words on
+  // screen. CALCULATOR-OFF-LLM: the AI only voices the script — layout/timing/CTA are
+  // all native. Falls open — if the voice step fails, the layout is still assembled.
+  const [wizardBusy, setWizardBusy] = useState(false);
+  const [wizardNote, setWizardNote] = useState(null); // { ok, text } | null
+  const autoDraftHyperframe = async () => {
+    if (wizardBusy || recording || posting) return;
+    const draft = buildHyperframeDraft({ hook: reelData.hook, bg: reelData.hyperframeBg });
+    if (!draft.ok) {
+      setWizardNote({ ok: false, text: 'Type a hook in the Video Engine first — the Wizard drafts the whole reel from it.' });
+      return;
+    }
+    // Apply the deterministic layout patch NOW so the operator sees the hyperframe
+    // assemble instantly, before the (slower) voiceover call resolves.
+    Object.entries(draft.patch).forEach(([k, v]) => handleReelChange(k, v));
+    setWizardBusy(true);
+    setWizardNote({ ok: true, text: `Hyperframe assembled — ${draft.cards.length} kinetic cards. Voicing the script for word-synced motion…` });
+    try {
+      const { generateStudioVoiceover } = await import('../../lib/studioApi.js');
+      const r = await generateStudioVoiceover({
+        topic: `hyperframe ${draft.voScript}`.slice(0, 120),
+        targetDuration: draft.voDuration,
+        series: 'studio-v4',
+        vibe: reelData.vibe || 'the_architect',
+        lang: reelData.lang || 'en',
+        providedScript: draft.voScript,
+        voiceId: reelData.voiceId || undefined,
+      });
+      handleReelChange('voUrl', r.url);
+      handleReelChange('voUploadName', null);
+      const words = Array.isArray(r.words) ? r.words : null;
+      if (words && words.length) {
+        handleReelChange('captions', { words });
+        handleReelChange('captionsEnabled', true);
+        setWizardNote({ ok: true, text: `✨ Auto-Draft complete — ${draft.cards.length} cards voiced with ${words.length} word timings. Press ▶ PLAY AUDIO to preview the sync, then export to the Review Bucket or a Story.` });
+      } else {
+        setWizardNote({ ok: true, text: 'Voiceover ready (no word timings returned — cards still animate on entrance). Export when ready.' });
+      }
+    } catch (e) {
+      setWizardNote({ ok: false, text: `Layout set, but the voiceover step failed (${humanizeReelErr(e?.message)}). Add a voice from the panel below, or export the hyperframe as-is.` });
+    } finally {
+      setWizardBusy(false);
+    }
+  };
+
   // Bake the reel via SovereignFoundry — the shared core behind the plain
   // EXPORT/POST flow and the TikTok bridge (which always renders a full,
   // un-posted export regardless of the IG/FB toggle state). Throws on failure
@@ -575,7 +626,12 @@ export default function StudioLayout({
     // container } and steps out of the way.
     const { SovereignFoundry } = await import('../../lib/SovereignFoundry.js');
     if (!SovereignFoundry.isSupported()) throw new Error('no_webcodecs');
-    const videoUrl = stageRef.current?.querySelector('.reel-video-v4')?.src || reelData.videoFile?.url;
+    // A Kinetic Hyperframe is footage-free by definition — never hand the Foundry a
+    // leftover clip URL (it would be decoded for nothing, and a stale/broken blob
+    // would trip the footage-load guard even though the hyperframe never samples it).
+    const videoUrl = reelData.hyperframe
+      ? null
+      : (stageRef.current?.querySelector('.reel-video-v4')?.src || reelData.videoFile?.url);
     // THE REAL AUDIO MIX: voice, music, AND the footage's own baked-in sound ride
     // as THREE SEPARATE tracks at the Audio Mix Console's slider levels — the
     // foundry mixes them (music + clip audio looped and ducked under the voice) so
@@ -624,6 +680,13 @@ export default function StudioLayout({
         highlight: reelData.capHighlight || '#f5c800',
       },
       overlay,
+      // KINETIC HYPERFRAME — footage-free native text reel. The Foundry synthesizes
+      // the branded background + big word-synced hero from the SAME words (captions)
+      // and background the DOM preview showed, so the export is 1:1. null → the normal
+      // footage path runs unchanged.
+      hyperframe: reelData.hyperframe
+        ? { bg: reelData.hyperframeBg, hook: reelData.hook || '', cta: reelData.watchText || 'WATCH' }
+        : null,
       // Phone backdrop → clip the footage into the same rect the DOM preview used, and
       // have the export draw the matching bezel/notch itself (reelPhoneBackdrop.js —
       // shared with ReelPreviewEngine so preview and export can't drift apart).
@@ -651,10 +714,13 @@ export default function StudioLayout({
     if (recording || posting) return;
     const target = platformTarget();
     const hasVideo = !!reelData.videoFile?.url;
+    // A Kinetic Hyperframe is a fully-synthesized VIDEO (no footage) — it takes the
+    // real render path, never the cover-image fallback.
+    const isHyper = !!reelData.hyperframe;
     setPostNote(null);
 
-    // No footage → fall back to the cover frame (export JPEG, or post as image).
-    if (!hasVideo) {
+    // No footage AND not a hyperframe → fall back to the cover frame (JPEG / image post).
+    if (!hasVideo && !isHyper) {
       if (!target) { await exportImage('reel-cover'); setPostNote({ ok: true, text: 'Exported reel cover (JPEG). Upload footage to record/post video.' }); return; }
       await postCard(reelFields(), true);
       return;
@@ -739,8 +805,10 @@ export default function StudioLayout({
   // but targets a single Story channel and never touches the feed toggles.
   const postReelStory = async (platform) => {
     if (recording || posting) return;
-    if (!reelData.videoFile?.url) {
-      setPostNote({ ok: false, text: 'Upload reel footage first — a Story needs a rendered video, not the cover image.' });
+    // Footage OR a Kinetic Hyperframe (synthesized video) — either produces a real
+    // Story-ready MP4; only a bare cover with neither is rejected.
+    if (!reelData.videoFile?.url && !reelData.hyperframe) {
+      setPostNote({ ok: false, text: 'Upload reel footage or Auto-Draft a Hyperframe first — a Story needs a rendered video, not the cover image.' });
       return;
     }
     const label = (PLATFORMS.find(([p]) => p === platform) || [null, platform])[1];
@@ -787,8 +855,8 @@ export default function StudioLayout({
   // about to land in Downloads / the share sheet.
   const exportForTikTok = async () => {
     if (recording || posting) return;
-    if (!reelData.videoFile?.url) {
-      setPostNote({ ok: false, text: 'Upload reel footage first — TikTok needs a rendered video, not the cover image.' });
+    if (!reelData.videoFile?.url && !reelData.hyperframe) {
+      setPostNote({ ok: false, text: 'Upload reel footage or Auto-Draft a Hyperframe first — TikTok needs a rendered video, not the cover image.' });
       return;
     }
     // Open TikTok's upload tab FIRST — synchronously, in direct response to this
@@ -1446,6 +1514,67 @@ export default function StudioLayout({
               reelData={reelData}
               handleReelChange={handleReelChange}
             />
+
+            {/* ── KINETIC HYPERFRAME + CREATIVE WIZARD ─────────────────────────
+                Native text-reel layout: full-bleed brand cards with word-synced
+                hero text. The Wizard auto-assembles a full 15–30s draft from the
+                hook in one tap (layout + brand type + CTA, then voices the script
+                so the words highlight in sync). Footage optional — a hyperframe
+                renders and exports fully synthesized. */}
+            <div className="divider-v4"></div>
+            <div className="ctl-group-v4">
+              <label className="ctl-label-v4">🎬 Kinetic Hyperframe</label>
+              <div className="seg-v4">
+                <button
+                  className={!reelData.hyperframe ? 'active' : ''}
+                  onClick={() => handleReelChange('hyperframe', false)}
+                  data-testid="hyperframe-off"
+                >
+                  FOOTAGE
+                </button>
+                <button
+                  className={reelData.hyperframe ? 'active' : ''}
+                  onClick={() => handleReelChange('hyperframe', true)}
+                  data-testid="hyperframe-on"
+                >
+                  HYPERFRAME
+                </button>
+              </div>
+              {reelData.hyperframe && (
+                <div className="seg-v4" data-testid="hyperframe-bg" style={{ marginTop: 8 }}>
+                  {HYPERFRAME_STYLES.map((s) => (
+                    <button
+                      key={s.id}
+                      className={reelData.hyperframeBg === s.id ? 'active' : ''}
+                      onClick={() => handleReelChange('hyperframeBg', s.id)}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                className="postnow-btn-v4"
+                style={{ marginTop: 10 }}
+                onClick={autoDraftHyperframe}
+                disabled={wizardBusy || recording || posting}
+                data-testid="hyperframe-wizard"
+              >
+                {wizardBusy ? '✨ AUTO-DRAFTING…' : '✨ AUTO-DRAFT HYPERFRAME'}
+              </button>
+              <div className="hint-v4">
+                One tap: segments your hook into kinetic cards, sets brand type + CTA,
+                and voices the script so the words highlight in sync. Type a hook in the
+                Voiceover panel above first, then export to the Review Bucket or a Story.
+              </div>
+              {wizardNote && (
+                <div className="hint-v4" style={{ color: wizardNote.ok ? 'var(--green, #4ade80)' : '#fb923c' }} data-testid="hyperframe-note">
+                  {wizardNote.text}
+                </div>
+              )}
+            </div>
+
             <div className="divider-v4"></div>
             <div className="ctl-group-v4">
               <label className="ctl-label-v4">📤 Distribute Reel</label>
@@ -1483,7 +1612,7 @@ export default function StudioLayout({
                 {recording ? `🎬 RENDERING… ${recordPct}%` : platformTarget() ? `🚀 EXPORT & POST → ${platformLabel()}` : '⬇ EXPORT VIDEO'}
               </button>
               <div className="hint-v4">
-                Toggles OFF → records &amp; downloads the reel. Toggles ON → records &amp; posts it. Needs uploaded footage (else exports the cover frame).
+                Toggles OFF → records &amp; downloads the reel. Toggles ON → records &amp; posts it. Needs uploaded footage OR a Kinetic Hyperframe (else exports the cover frame).
               </div>
               {storyButtons({ mode: 'reel' })}
               {postNote && (

@@ -155,6 +155,14 @@ export default function SovereignStudioV4() {
     hookFont: 'bebas',      // hook headline typeface (bebas | anton | barlow)
     hookFontSize: 138,      // hook headline size in px, 1080-design space (matches the old fixed CSS default)
     caption_animation_style: 'static', // kinetic text motion (static | word-pop | shoot-in | fade-glide) — executes live in the preview
+
+    // KINETIC HYPERFRAME — native text-reel layout (Purple/Gold brand cards, big
+    // Bebas hero text, word-highlight synced to the voiceover). When on, the stage
+    // renders full-bleed brand cards instead of footage; the karaoke words ARE the
+    // hero. Both fields persist (no blob) so a reload keeps the layout.
+    hyperframe: false,      // master toggle for the Kinetic Hyperframe layout
+    hyperframeBg: 'alt',    // brand background style (alt | purple | gold | ink)
+
     phoneBackdrop: false,   // show the footage playing INSIDE a phone-frame-v4 mockup instead of full-bleed
     phoneFrame: 'sleek',    // phone-backdrop frame skin (sleek | gold | carbon) — same options as the Phone section
     logoScale: 1,           // asset size handle — scales the corner logo badge
