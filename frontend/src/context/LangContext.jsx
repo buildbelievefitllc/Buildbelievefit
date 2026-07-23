@@ -678,6 +678,34 @@ const DICT = {
   'set-access-tier': { en: 'Access tier', es: 'Nivel de acceso', pt: 'Nível de acesso' },
   'set-language': { en: 'Language', es: 'Idioma', pt: 'Idioma' },
   'set-session': { en: 'Session', es: 'Sesión', pt: 'Sessão' },
+  // Settings → Legal card (App Store 5.1.1: Privacy Policy + Terms reachable in-app).
+  'set-legal': { en: 'Legal', es: 'Legal', pt: 'Legal' },
+  // Settings → self-service account deletion (App Store 5.1.1).
+  'set-delete-title': { en: 'Delete account', es: 'Eliminar cuenta', pt: 'Excluir conta' },
+  'set-delete-copy': {
+    en: 'Permanently deletes your account and all associated training, nutrition, and biometric data. This cannot be undone.',
+    es: 'Elimina permanentemente tu cuenta y todos los datos de entrenamiento, nutrición y biometría asociados. Esta acción no se puede deshacer.',
+    pt: 'Exclui permanentemente sua conta e todos os dados de treino, nutrição e biometria associados. Esta ação não pode ser desfeita.',
+  },
+  'set-delete-btn': { en: 'Delete Account', es: 'Eliminar Cuenta', pt: 'Excluir Conta' },
+  'set-delete-confirm': { en: 'Yes, permanently delete', es: 'Sí, eliminar permanentemente', pt: 'Sim, excluir permanentemente' },
+  'set-delete-keep': { en: 'Keep my account', es: 'Conservar mi cuenta', pt: 'Manter minha conta' },
+  'set-delete-busy': { en: 'Deleting…', es: 'Eliminando…', pt: 'Excluindo…' },
+  'set-delete-error': {
+    en: 'Deletion failed. Check your connection and try again.',
+    es: 'La eliminación falló. Verifica tu conexión e inténtalo de nuevo.',
+    pt: 'A exclusão falhou. Verifique sua conexão e tente novamente.',
+  },
+  'set-delete-relogin': {
+    en: 'Your session has expired. Sign in again, then retry the deletion.',
+    es: 'Tu sesión ha expirado. Inicia sesión de nuevo y reintenta la eliminación.',
+    pt: 'Sua sessão expirou. Entre novamente e tente excluir outra vez.',
+  },
+  'set-delete-admin': {
+    en: 'Coach and admin accounts are decommissioned by operations — contact the head coach.',
+    es: 'Las cuentas de coach y administrador se dan de baja por operaciones — contacta al head coach.',
+    pt: 'Contas de coach e administrador são desativadas pela operação — contate o head coach.',
+  },
 
   // ── Self-Serve Concierge — first-login welcome modal chrome. The greeting,
   // feature titles/blurbs, and first-move are generated NATIVELY per locale by

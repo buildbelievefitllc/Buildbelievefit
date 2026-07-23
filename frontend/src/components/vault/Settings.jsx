@@ -18,8 +18,9 @@
 // the save to a real edge-function write is then a one-line swap at SAVE below.
 
 import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../../context/AuthContext.jsx';
+import { useAuth, getStoredVaultToken } from '../../context/AuthContext.jsx';
 import { useLang } from '../../context/LangContext.jsx';
+import { supabase } from '../../lib/supabaseClient.js';
 import { rosterCall, toErrorMessage } from '../../lib/rosterApi.js';
 import { APP_VERSION } from '../../version.js';
 import './vault.css';
@@ -130,6 +131,8 @@ function seedFromClient(c) {
 export default function Settings() {
   const { user, isAdmin, signOut } = useAuth();
   const { lang, setLang, t } = useLang();
+  // Bundled legal document currently open in the in-app viewer ('' = closed).
+  const [legalDoc, setLegalDoc] = useState('');
 
   const username = user?.username || user?.id || '—';
   const role = isAdmin ? 'Admin · Coach' : (user?.role ? user.role : 'Client');
@@ -189,10 +192,53 @@ export default function Settings() {
         </button>
       </div>
 
+      {/* Legal — App Store 5.1.1: Privacy Policy + Terms must be reachable from
+          inside the app, not just the marketing site. Both documents ship in the
+          app bundle (frontend/public/*.html) and open in an in-app viewer so the
+          user is never stranded off the SPA (no browser chrome in the native WebView). */}
+      <div className="pg-card">
+        <div className="pg-set-title">{t('set-legal')}</div>
+        <div className="pg-set-legal">
+          <button
+            type="button"
+            className="pg-set-legal-link"
+            data-testid="settings-privacy-link"
+            onClick={() => setLegalDoc('/privacy.html')}
+          >
+            {t('foot-privacy')}
+          </button>
+          <button
+            type="button"
+            className="pg-set-legal-link"
+            data-testid="settings-terms-link"
+            onClick={() => setLegalDoc('/terms.html')}
+          >
+            {t('foot-terms')}
+          </button>
+        </div>
+      </div>
+
       <div className="pg-card">
         <div className="pg-set-title">{t('set-session')}</div>
         <button type="button" className="pg-set-signout" onClick={signOut}>{t('shell-signout')}</button>
       </div>
+
+      {/* Account deletion — App Store 5.1.1: self-service, in-app, two-step
+          confirm. Backend: bbf_delete_account RPC (token-gated SECURITY DEFINER;
+          purges user_id-keyed rows, tombstones bbf_users, revokes all sessions). */}
+      {!isAdmin ? <DeleteAccountCard username={username} onDeleted={signOut} /> : null}
+
+      {legalDoc ? (
+        <div className="pg-legal-overlay" role="dialog" aria-modal="true" aria-label={t('set-legal')}>
+          <div className="pg-legal-sheet">
+            <div className="pg-legal-bar">
+              <span className="pg-legal-bar-title">{t('set-legal')}</span>
+              <button type="button" className="pg-legal-close" onClick={() => setLegalDoc('')}>✕</button>
+            </div>
+            <iframe className="pg-legal-frame" src={legalDoc} title={t('set-legal')} />
+          </div>
+        </div>
+      ) : null}
 
       {/* Build version stamp — the exact CI build this device is running (matches
           the Android versionName). Diagnostic-only, deliberately understated. */}
@@ -209,6 +255,87 @@ export default function Settings() {
       >
         v{APP_VERSION}
       </div>
+    </div>
+  );
+}
+
+// ── Delete Account (App Store 5.1.1) ─────────────────────────────────────────
+// Two-step confirm: the initial button flips the card into an explicit
+// destructive-confirm state; only the confirm button fires the RPC. The RPC
+// authorizes on the bearer vault_token (never the PIN) and refuses admin/coach
+// accounts server-side; on success every session token is already revoked, so
+// the local signOut() is pure teardown.
+function DeleteAccountCard({ username, onDeleted }) {
+  const { t } = useLang();
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const runDelete = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      const token = getStoredVaultToken();
+      if (!token) {
+        // Apple-bridge sessions mint no vault_token; a PIN re-login is required
+        // before the deletion RPC can authorize the write.
+        setError(t('set-delete-relogin'));
+        return;
+      }
+      const { data, error: rpcError } = await supabase.rpc('bbf_delete_account', {
+        p_uid: username,
+        p_session_token: token,
+      });
+      if (rpcError) { setError(t('set-delete-error')); return; }
+      if (!data?.ok) {
+        if (data?.error === 'admin_account') setError(t('set-delete-admin'));
+        else if (data?.error === 'invalid_session') setError(t('set-delete-relogin'));
+        else setError(t('set-delete-error'));
+        return;
+      }
+      onDeleted();
+    } catch {
+      setError(t('set-delete-error'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="pg-card pg-card-danger">
+      <div className="pg-set-title">{t('set-delete-title')}</div>
+      <p className="pg-set-delete-copy">{t('set-delete-copy')}</p>
+      {!confirming ? (
+        <button
+          type="button"
+          className="pg-set-delete"
+          data-testid="settings-delete-account"
+          onClick={() => setConfirming(true)}
+        >
+          {t('set-delete-btn')}
+        </button>
+      ) : (
+        <div className="pg-set-delete-confirm">
+          <button
+            type="button"
+            className="pg-set-delete is-armed"
+            data-testid="settings-delete-account-confirm"
+            disabled={busy}
+            onClick={runDelete}
+          >
+            {busy ? t('set-delete-busy') : t('set-delete-confirm')}
+          </button>
+          <button
+            type="button"
+            className="pg-set-delete-keep"
+            disabled={busy}
+            onClick={() => { setConfirming(false); setError(''); }}
+          >
+            {t('set-delete-keep')}
+          </button>
+        </div>
+      )}
+      {error ? <p className="pg-set-delete-error" role="alert">{error}</p> : null}
     </div>
   );
 }

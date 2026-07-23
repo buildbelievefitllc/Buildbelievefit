@@ -1,15 +1,17 @@
 // src/lib/pricingMatrix.js
 // ─────────────────────────────────────────────────────────────────────────────
-// SINGLE SOURCE OF TRUTH for the live Stripe Payment Links (the Phase 15 Revenue
+// SINGLE SOURCE OF TRUTH for the live Stripe pricing tiers (the Phase 15 Revenue
 // Matrix). Extracted out of MarketingLanding.jsx so two surfaces consume ONE
-// definition and the checkout URLs can never drift between them:
+// definition and the checkout targets can never drift between them:
 //
 //   • MarketingLanding.jsx  — the public pricing cards.
 //   • UpgradeOverlay (Vault Upsell Funnel) — the in-Vault padlock CTA.
 //
-// Every tier's purchase button is a LIVE Stripe Payment Link (buy.stripe.com),
-// provisioned 2026-06-02 against acct_1TLzQCQ4j3uHTi7P ("Build Believe Fit llc").
-// Price IDs are kept inline for traceability back to the Stripe dashboard. Feature
+// Tiers were provisioned 2026-06-02 against acct_1TLzQCQ4j3uHTi7P ("Build Believe
+// Fit llc"). Checkout is ALWAYS a server-minted, screening-gated Stripe Checkout
+// Session (bbf-create-checkout) keyed off `priceId` — raw buy.stripe.com Payment
+// Links were removed from this file (App Store 3.1.1: no consumer ever read them,
+// and dead external-checkout URLs must not ship inside the native bundle). Feature
 // copy is derived from existing brand surfaces (CLAUDE.md §1 + legacy tier copy) —
 // no invented figures or guarantees. The category keys (fitness / nutrition /
 // youth / hybrid) are the canonical "paths" the entitlement layer steers toward.
@@ -29,7 +31,6 @@ export const PRICING = {
       {
         name: 'BBF Catalyst', price: '$9.99', per: '/mo',
         priceId: 'price_1TdtVCQ4j3uHTi7PEjvMihnk',
-        link: 'https://buy.stripe.com/fZu00lb71fMfcjE0sxaZi0k',
         feats: [
           'Adaptive training program — workout tracking + logging',
           'Cardio engine',
@@ -40,7 +41,6 @@ export const PRICING = {
       {
         name: 'BBF Momentum', price: '$19.99', per: '/mo',
         priceId: 'price_1TdtVDQ4j3uHTi7Pb2hGyXBi',
-        link: 'https://buy.stripe.com/3cIcN7b719nR6ZkcbfaZi0l',
         feats: [
           'Everything in Catalyst',
           'AI Workout Generator — on-demand session builder',
@@ -52,7 +52,6 @@ export const PRICING = {
         name: 'BBF Autonomous', price: '$49.99', per: '/mo',
         featured: true, badge: 'Most Chosen',
         priceId: 'price_1TdtVDQ4j3uHTi7PP2uWTj0y',
-        link: 'https://buy.stripe.com/9B67sN8YT1VpdnIa37aZi0m',
         feats: [
           'Everything in Momentum',
           'Full Nutrition suite — TDEE macros + meal guidance',
@@ -69,7 +68,6 @@ export const PRICING = {
       {
         name: 'Fuel Foundation', price: '$7.99', per: '/mo',
         priceId: 'price_1TdtVEQ4j3uHTi7PQ0fOArfI',
-        link: 'https://buy.stripe.com/9B69AV8YTgQjabw6QVaZi0n',
         feats: [
           'TDEE-based macro blueprint',
           'Core meal guidance',
@@ -80,7 +78,6 @@ export const PRICING = {
       {
         name: 'Fuel Performance', price: '$14.99', per: '/mo',
         priceId: 'price_1TdtVEQ4j3uHTi7PEvGYoQkW',
-        link: 'https://buy.stripe.com/9B64gB2AvcA397s4INaZi0o',
         feats: [
           'Everything in Foundation',
           'Cardio engine unlocked',
@@ -92,7 +89,6 @@ export const PRICING = {
         name: 'Fuel Sovereign', price: '$29.99', per: '/mo',
         featured: true, badge: 'Most Chosen',
         priceId: 'price_1TdtVFQ4j3uHTi7PZ65aKtTI',
-        link: 'https://buy.stripe.com/6oUbJ36QL2Ztabw4INaZi0p',
         feats: [
           'Everything in Performance',
           'Prehab suite — Friction Scanner + injury-prevention',
@@ -110,7 +106,6 @@ export const PRICING = {
         name: 'BBF Rising Athlete', price: '$14.99', per: '/mo',
         featured: true, badge: 'Youth Flagship',
         priceId: 'price_1TdtVFQ4j3uHTi7Ponk5039p',
-        link: 'https://buy.stripe.com/aFa3cx5MH1Vp97sejnaZi0q',
         feats: [
           'Periodized sport training',
           'Kinematic Form HUD — movement screening',
@@ -134,8 +129,8 @@ export const PRICING = {
           'Joint-first progression',
         ],
         options: [
-          { label: '3× / week', price: '$399', priceId: 'price_1TdtVGQ4j3uHTi7P51mzlaCT', link: 'https://buy.stripe.com/5kQaEZejdbvZabwcbfaZi0r' },
-          { label: '4× / week', price: '$499', priceId: 'price_1TdtVGQ4j3uHTi7P5AZSEOoS', link: 'https://buy.stripe.com/dRmaEZb710Rl5Vg2AFaZi0s' },
+          { label: '3× / week', price: '$399', priceId: 'price_1TdtVGQ4j3uHTi7P51mzlaCT' },
+          { label: '4× / week', price: '$499', priceId: 'price_1TdtVGQ4j3uHTi7P5AZSEOoS' },
         ],
       },
       {
@@ -147,8 +142,8 @@ export const PRICING = {
           'Live form correction',
         ],
         options: [
-          { label: '3× / week', price: '$499', priceId: 'price_1TdtVHQ4j3uHTi7PMh786BoK', link: 'https://buy.stripe.com/4gM7sN3EzfMf1F0a37aZi0t' },
-          { label: '4× / week', price: '$649', priceId: 'price_1TdtVHQ4j3uHTi7PhOfSjE61', link: 'https://buy.stripe.com/6oUeVf4ID8jN6Zk6QVaZi0u' },
+          { label: '3× / week', price: '$499', priceId: 'price_1TdtVHQ4j3uHTi7PMh786BoK' },
+          { label: '4× / week', price: '$649', priceId: 'price_1TdtVHQ4j3uHTi7PhOfSjE61' },
         ],
       },
       {
@@ -161,8 +156,8 @@ export const PRICING = {
           'Maximum access — human-in-the-loop',
         ],
         options: [
-          { label: '3× / week', price: '$699', priceId: 'price_1TdtVIQ4j3uHTi7POHmPRFGn', link: 'https://buy.stripe.com/3cI6oJ8YTeIbcjEgrvaZi0v' },
-          { label: '4× / week', price: '$899', priceId: 'price_1TdtVIQ4j3uHTi7PYVF5s0dq', link: 'https://buy.stripe.com/4gMeVffnh7fJ83o0sxaZi0w' },
+          { label: '3× / week', price: '$699', priceId: 'price_1TdtVIQ4j3uHTi7POHmPRFGn' },
+          { label: '4× / week', price: '$899', priceId: 'price_1TdtVIQ4j3uHTi7PYVF5s0dq' },
         ],
       },
     ],

@@ -134,6 +134,18 @@ function RootRoute() {
   return <MarketingLanding />;
 }
 
+// Second 3.1.1 seal: the web conversion funnel (/burn, /select-tier, /assessment,
+// /explore, /pathfinder, /protocol-init) contains or leads to external Stripe
+// checkout redirects. RootRoute already keeps native boots off the marketing
+// landing, but these routes were only protected by "nothing native links to
+// them" — a deep link or OAuth return could still mount an external-checkout
+// surface inside the app shell. Gate each one directly so the seal is intrinsic
+// to the surface, not dependent on the nav graph staying clean.
+function WebOnlyRoute({ children }) {
+  if (isNativePlatform()) return <Navigate to="/login" replace />;
+  return children;
+}
+
 // The Sports Portal & Athlete Database — its own GUARDED route. Authentication is
 // required (unauth → /login), but admin is NOT: the SportsPortal component itself
 // strictly switches the Sovereign Admin Override View vs the Client View on
@@ -180,27 +192,27 @@ export default function App() {
       <Route path="/" element={<RootRoute />} />
       {/* The Metabolic Gateway — standalone, nav-free lead magnet; its CTA hands
           off to /pathfinder with the entered biometrics in router state. */}
-      <Route path="/burn" element={<DailyBurnCalculator />} />
+      <Route path="/burn" element={<WebOnlyRoute><DailyBurnCalculator /></WebOnlyRoute>} />
       {/* Upsell bridge — three Online Fitness tiers in the LOCKED tab-deck; a
           Select Plan choice forwards the chosen priceId + biometrics on. */}
-      <Route path="/select-tier" element={<TierSelectionPitch />} />
+      <Route path="/select-tier" element={<WebOnlyRoute><TierSelectionPitch /></WebOnlyRoute>} />
       {/* The Voice Intake — a LIVE conversational assessment (top-of-funnel):
           Coach Akeem's ElevenLabs voice talks the visitor through their goals,
           answered by voice or tap. Its OAuth CTA shunts the post-auth redirect
           straight to the /select-tier subscription gate. Emits the identical
           bbf_pending_intake payload the tap wizard did (downstream unchanged). */}
-      <Route path="/assessment" element={<VoiceIntake />} />
+      <Route path="/assessment" element={<WebOnlyRoute><VoiceIntake /></WebOnlyRoute>} />
 
       {/* EXPLORER MODE — the read-only guest sandbox (conversion funnel). Public
           route; the page itself bounces to /burn when no guest envelope exists. */}
-      <Route path="/explore" element={<ExplorerVault />} />
+      <Route path="/explore" element={<WebOnlyRoute><ExplorerVault /></WebOnlyRoute>} />
       {/* Standalone Pathfinder intake — pre-fills from the handoff state and, when
           a tier was chosen, carries the checkout object into the screening flow. */}
-      <Route path="/pathfinder" element={<PathfinderPage />} />
+      <Route path="/pathfinder" element={<WebOnlyRoute><PathfinderPage /></WebOnlyRoute>} />
       {/* Protocol Initialization — the Explorer Mode funnel's screening-first
           entry ritual. Embeds the SAME Pathfinder intake, but forwards to
           /select-tier on completion instead of a tier-first checkout handoff. */}
-      <Route path="/protocol-init" element={<ProtocolInitialization />} />
+      <Route path="/protocol-init" element={<WebOnlyRoute><ProtocolInitialization /></WebOnlyRoute>} />
       {/* The authenticated Vault now lives at its own guarded route (was at "/"). */}
       <Route path="/vault" element={<VaultRoute />} />
       {/* The Sports Hub — youth/sports division home; the post-login Routing Fork

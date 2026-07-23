@@ -1290,6 +1290,72 @@
 }
 .pg-set-replay:hover { background: #7d1bc4; border-color: #7d1bc4; }
 
+/* Legal card (App Store 5.1.1) — Privacy Policy / Terms, opened in-app. */
+.pg-set-legal { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pg-set-legal-link {
+  flex: 1 1 auto; min-width: 140px;
+  font-family: var(--bd); font-size: .9rem; font-weight: 600;
+  padding: .6rem .8rem; border-radius: 10px; cursor: pointer;
+  color: var(--wht); background: transparent; border: 1px solid var(--line);
+  transition: color .15s ease, border-color .15s ease;
+}
+.pg-set-legal-link:hover { color: var(--yel); border-color: rgba(245, 200, 0, .45); }
+.pg-legal-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(9, 9, 9, .82);
+  display: flex; align-items: center; justify-content: center;
+  padding: max(1rem, var(--st, 0px)) 1rem max(1rem, var(--sb, 0px));
+}
+.pg-legal-sheet {
+  width: min(760px, 100%); height: min(82vh, 100%);
+  display: flex; flex-direction: column;
+  background: #0d0d0d; border: 1px solid var(--line); border-radius: 14px;
+  overflow: hidden;
+}
+.pg-legal-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .6rem .9rem; border-bottom: 1px solid var(--line);
+}
+.pg-legal-bar-title {
+  font-family: var(--hb); font-size: .72rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold-soft);
+}
+.pg-legal-close {
+  font-size: 1rem; line-height: 1; padding: .35rem .6rem; border-radius: 8px;
+  cursor: pointer; color: var(--wht); background: transparent; border: 1px solid var(--line);
+}
+.pg-legal-close:hover { border-color: rgba(245, 200, 0, .45); }
+.pg-legal-frame { flex: 1; width: 100%; border: 0; background: #fff; }
+
+/* Delete Account (App Store 5.1.1) — destructive semantics mirror .pg-set-signout. */
+.pg-card-danger { border-color: rgba(220, 60, 60, .35); }
+.pg-set-delete-copy {
+  font-family: var(--bd); font-size: .9rem; color: var(--mut);
+  margin: 0 0 .85rem; line-height: 1.45;
+}
+.pg-set-delete {
+  width: 100%;
+  font-family: var(--hb); font-size: .85rem; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: .75rem 1rem; border-radius: 10px; cursor: pointer;
+  color: var(--wht); background: transparent; border: 1px solid rgba(220, 60, 60, .5);
+  transition: background .15s ease, border-color .15s ease;
+}
+.pg-set-delete:hover { background: rgba(220, 60, 60, .12); border-color: rgba(220, 60, 60, .8); }
+.pg-set-delete.is-armed { background: rgba(220, 60, 60, .18); border-color: rgba(220, 60, 60, .9); font-weight: 700; }
+.pg-set-delete:disabled { opacity: .55; cursor: default; }
+.pg-set-delete-confirm { display: flex; flex-direction: column; gap: .5rem; }
+.pg-set-delete-keep {
+  width: 100%;
+  font-family: var(--bd); font-size: .9rem; font-weight: 600;
+  padding: .65rem 1rem; border-radius: 10px; cursor: pointer;
+  color: var(--mut); background: transparent; border: 1px solid var(--line);
+}
+.pg-set-delete-keep:hover { color: var(--wht); border-color: rgba(245, 200, 0, .45); }
+.pg-set-delete-error {
+  font-family: var(--bd); font-size: .85rem; color: #e46a6a;
+  margin: .7rem 0 0;
+}
+
 /* ── Caloric Spin Wheel (radial intake gauge) ───────────────────────────── */
 .pg-wheel {
   position: relative;

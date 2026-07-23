@@ -29,6 +29,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@capacitor/ios": "^6.2.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@types/react": "^19.2.14",

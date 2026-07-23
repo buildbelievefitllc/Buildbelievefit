@@ -5,9 +5,10 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  // `android/` holds the Capacitor project — `npx cap sync` copies the minified
-  // dist bundle into its assets, which is build output, never lintable source.
-  globalIgnores(['dist', 'android', 'public/draco']),
+  // `android/` and `ios/` hold the Capacitor projects — `npx cap sync` copies the
+  // minified dist bundle into their assets, which is build output, never lintable
+  // source.
+  globalIgnores(['dist', 'android', 'ios', 'public/draco']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

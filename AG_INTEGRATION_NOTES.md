@@ -226,3 +226,43 @@ These came up during recent work and aren't blocking but worth tracking:
 3. **Render cost monitoring.** Each Pathfinder submission triggers two parallel Anthropic calls (Sonnet 4.6, ~4096 max tokens each). Monitor as customer volume grows — may need to tier the model based on Stripe tier (Gateway → Sonnet, Architect → Sonnet, Sovereign → Opus for higher quality).
 
 4. **Sw.js cache-bump automation.** Currently bumping `CACHE` is a manual step on every frontend-touching PR. CI hook could auto-increment it, or use a deterministic hash of the bundled assets. Quality-of-life improvement, not urgent.
+
+---
+
+## Session handoff — 2026-07-23 · App Store Review Guidelines sweep (Claude)
+
+Branch: `claude/app-store-review-guidelines-ekqo20`. Full four-guideline inspection
+(4.2 / 5.1.1 / 2.1 / 3.1.1) + remediation ahead of the Apple developer submission.
+
+**Shipped this session:**
+
+- **5.1.1 Account deletion** — new `bbf_delete_account(p_uid, p_session_token)` RPC
+  (migration `20260723150000`, applied to prod via `apply_migration`, verified in
+  `pg_proc` + smoke-called; grants anon/authenticated/service_role; bearer
+  vault_token auth, dynamic purge of all `user_id`-keyed tables except
+  `bbf_users`/`bbf_audit_logs`, `bbf_active_clients` wiped by email, tombstone +
+  PII scrub, all sessions revoked, admin/coach accounts refused). Frontend:
+  two-step "Delete Account" card in Vault Settings (client face only), trilingual.
+- **5.1.1 Legal links** — Privacy Policy + Terms now openable from Vault Settings
+  in an in-app viewer (bundled `frontend/public/privacy.html` / `terms.html`).
+- **2.1** — root `<RootErrorBoundary>` in `main.jsx` (branded recovery card, no
+  more blank-screen class); `supabaseClient.js` falls back to the committed
+  publishable URL/anon key instead of throwing at module load.
+- **3.1.1** — `WebOnlyRoute` seal on all six external-checkout funnel routes
+  (`/burn /select-tier /assessment /explore /pathfinder /protocol-init` bounce to
+  `/login` on native); dead `buy.stripe.com` Payment-Link fields stripped from
+  `pricingMatrix.js` (no consumer read them; bundle now carries zero such URLs).
+- **4.2** — iOS Capacitor platform generated (`frontend/ios/`, `@capacitor/ios@6`),
+  `NSMicrophoneUsageDescription` declared; SW registration now skipped inside the
+  native shell; `eslint` ignores `ios/`; SPA SW cache bumped `bbf-react-v344`.
+
+**Still open for the Apple submission (not code-side):**
+
+1. `pod install` + archive/sign must run on a Mac (CocoaPods unavailable here) —
+   `cd frontend/ios/App && pod install`, then Xcode signing with the team account.
+2. Decide the iOS bundle ID — config `appId` is still `fitness.buildbelievefit.twa`
+   (legacy TWA suffix); override `PRODUCT_BUNDLE_IDENTIFIER` in Xcode if a clean id
+   is wanted (changing capacitor.config.ts `appId` would desync the Android project).
+3. iOS launch screen/icons are Capacitor defaults — brand them before submission.
+4. Apple OAuth bridge fails closed for unlinked accounts ("contact your coach") —
+   provide the reviewer a pre-linked demo PIN account in App Review notes.

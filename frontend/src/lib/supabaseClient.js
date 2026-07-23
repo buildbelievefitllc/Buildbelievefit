@@ -10,14 +10,25 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// LAST-RESORT fallbacks (App Store 2.1): `createClient(undefined, undefined)`
+// throws at module load, and because this module is imported by a root provider
+// that throw boots the Capacitor WebView to a blank screen before first paint.
+// These publishable values mirror the committed `.env.production` (safe in the
+// bundle BY DESIGN — RLS is the real boundary) so a build that somehow ran
+// without env config still boots instead of bricking. Env always wins when set.
+const FALLBACK_SUPABASE_URL = 'https://ihclbceghxpuawymlvgi.supabase.co';
+const FALLBACK_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloY2xiY2VnaHhwdWF3eW1sdmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTk1MDIsImV4cCI6MjA5MTg3NTUwMn0.0f7d1aqtygMR__QiyYYUB87yrFLaSRihVQdiFaIhsP0';
 
-if (!supabaseUrl || !supabaseAnonKey) {
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || FALLBACK_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || FALLBACK_SUPABASE_ANON_KEY;
+
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
   // Fail loud in any runtime that loads this without env configured.
   console.warn(
     '[supabaseClient] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY — ' +
-      'copy frontend/.env.example to frontend/.env and set them before data/auth calls.'
+      'running on the committed publishable fallbacks. Copy frontend/.env.example ' +
+      'to frontend/.env and set them to silence this.'
   );
 }
 
