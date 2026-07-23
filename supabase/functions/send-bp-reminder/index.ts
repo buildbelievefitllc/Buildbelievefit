@@ -2,7 +2,7 @@
 //
 // Reads every saved push subscription and sends "Time to log your blood
 // pressure!" via the Web Push protocol (npm:web-push + VAPID). Triggered by
-// pg_cron at 15:00 UTC / 03:00 UTC (8 AM / 8 PM America/Phoenix).
+// pg_cron at 10:00 UTC / 01:00 UTC (3 AM / 6 PM America/Phoenix).
 //
 // Auth: this function is deployed with verify_jwt = FALSE (it is called by the
 // database cron, not a signed-in user) and gates itself on a shared secret
@@ -80,6 +80,7 @@ serve(async (req) => {
   let sent = 0;
   let failed = 0;
   const staleIds: string[] = [];
+  const errors: Array<{ status?: number; body?: string }> = [];
 
   await Promise.all(
     subs.map(async (row) => {
@@ -88,11 +89,18 @@ serve(async (req) => {
         sent++;
       } catch (err) {
         const statusCode = (err as { statusCode?: number })?.statusCode;
+        const body = (err as { body?: string })?.body;
         // 404 / 410 => the subscription is gone; prune it so we stop retrying.
         if (statusCode === 404 || statusCode === 410) {
           staleIds.push(row.id);
         } else {
           console.warn('[send-bp-reminder] push failed:', statusCode, (err as Error)?.message);
+          if (errors.length < 3) {
+            errors.push({
+              status: statusCode,
+              body: typeof body === 'string' ? body.slice(0, 180) : (err as Error)?.message,
+            });
+          }
         }
         failed++;
       }
@@ -103,5 +111,5 @@ serve(async (req) => {
     await supabase.from('push_subscriptions').delete().in('id', staleIds);
   }
 
-  return jsonResponse({ ok: true, sent, failed, removed: staleIds.length });
+  return jsonResponse({ ok: true, sent, failed, removed: staleIds.length, errors });
 });
