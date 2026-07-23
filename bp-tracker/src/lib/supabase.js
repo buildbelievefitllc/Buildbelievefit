@@ -5,16 +5,22 @@ import { createClient } from '@supabase/supabase-js'
 const url = import.meta.env.VITE_SUPABASE_URL
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!url || !anonKey) {
-  // Fail loud in dev, but do not crash the app shell in prod.
+export const hasSupabaseConfig = Boolean(url && anonKey)
+
+if (!hasSupabaseConfig) {
   console.error(
     '[bp-tracker] Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY. ' +
-      'Set them in the Render dashboard (or bp-tracker/.env.local for dev).',
+      'Set them in the Render dashboard (Environment) and redeploy — Vite bakes ' +
+      'these in at BUILD time, so a rebuild is required after setting them.',
   )
 }
 
-export const supabase = createClient(url ?? '', anonKey ?? '', {
-  auth: { persistSession: false },
-})
+// Construct the client ONLY when both values exist. createClient throws
+// "supabaseKey is required" on an empty key, which would crash the whole app
+// to a blank screen. When config is missing we export null and App renders a
+// friendly setup notice instead of dying.
+export const supabase = hasSupabaseConfig
+  ? createClient(url, anonKey, { auth: { persistSession: false } })
+  : null
 
 export const SUPABASE_URL = url ?? ''

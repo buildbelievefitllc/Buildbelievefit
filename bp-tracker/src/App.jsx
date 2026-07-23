@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { supabase } from './lib/supabase.js'
+import { supabase, hasSupabaseConfig } from './lib/supabase.js'
 import {
   detectTimeOfDay,
   isCrisis,
@@ -40,6 +40,7 @@ export default function App() {
   const category = classify(systolic, diastolic)
 
   const loadRecent = useCallback(async () => {
+    if (!supabase) return
     const { data, error } = await supabase
       .from('bp_logs')
       .select('id, systolic, diastolic, time_of_day, notes, created_at')
@@ -110,6 +111,28 @@ export default function App() {
     const res = await enableReminders()
     if (res.ok) setReminders('on')
     else setReminders(res.reason === 'denied' ? 'denied' : 'off')
+  }
+
+  // Missing build-time config → show a readable notice instead of a blank screen.
+  if (!hasSupabaseConfig) {
+    return (
+      <div className="mx-auto flex min-h-full max-w-md flex-col items-center justify-center safe-pad px-6 text-center">
+        <div className="text-5xl">⚙️</div>
+        <h1 className="mt-4 font-display text-4xl tracking-wide text-bbf-gold">
+          Almost there
+        </h1>
+        <p className="mt-3 text-lg leading-snug text-white/70">
+          This app still needs its database keys. In the Render dashboard, add{' '}
+          <span className="font-semibold text-white">VITE_SUPABASE_URL</span> and{' '}
+          <span className="font-semibold text-white">VITE_SUPABASE_ANON_KEY</span>,
+          then redeploy.
+        </p>
+        <p className="mt-3 text-sm text-white/40">
+          (Keys are baked in at build time, so a rebuild is required after setting
+          them.)
+        </p>
+      </div>
+    )
   }
 
   return (
