@@ -266,3 +266,19 @@ Branch: `claude/app-store-review-guidelines-ekqo20`. Full four-guideline inspect
 3. iOS launch screen/icons are Capacitor defaults — brand them before submission.
 4. Apple OAuth bridge fails closed for unlinked accounts ("contact your coach") —
    provide the reviewer a pre-linked demo PIN account in App Review notes.
+
+### Addendum — 2026-07-23 (later) · iOS Cloud Pipeline + merge to main
+
+- `claude/app-store-review-guidelines-ekqo20` merged to `main` (fast-forward) and
+  pushed — Render/Pages/Android lanes fired.
+- New `.github/workflows/deploy-ios.yml`: main-merge → Vite build → `cap sync ios`
+  (pod install on macOS runner) → cloud-signed archive (ASC API key, no .p12) →
+  `.ipa` artifact → TestFlight upload. Self-gates on secrets `APPLE_TEAM_ID`,
+  `ASC_API_KEY_ID`, `ASC_API_ISSUER_ID`, `ASC_API_PRIVATE_KEY` — until they are
+  set the lane compile-checks unsigned and prints setup steps, never goes red.
+- iOS bundle ID is now the clean `fitness.buildbelievefit.app` (pbxproj);
+  Android keeps the immutable Play package `fitness.buildbelievefit.twa` —
+  split documented in `frontend/capacitor.config.ts`. The App Store Connect app
+  record MUST be created with `fitness.buildbelievefit.app`.
+- Remaining for TestFlight: create the ASC API key + app record, set the four
+  secrets, re-run the iOS lane. Icons/launch screen still Capacitor defaults.
