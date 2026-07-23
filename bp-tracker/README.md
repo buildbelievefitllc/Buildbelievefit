@@ -17,7 +17,7 @@ static site.
   red-flag symptoms).
 - **Export Google Doc for Doctor** — one tap builds a formatted Google Doc of the
   last 30 days and returns a shareable link.
-- **Reminders** — Web Push at 8 AM & 8 PM Arizona time.
+- **Reminders** — Web Push at 8 AM & 6 PM Arizona time.
 
 ## Stack
 
@@ -51,7 +51,7 @@ in the Render dashboard (kept out of git via `sync: false`):
   via `apply_migration` (see `supabase/migrations/20260722180000_*`).
 - **Edge functions** `send-bp-reminder` (public + shared-secret gate) and
   `create-google-doc` (JWT-gated) — deployed and ACTIVE.
-- **Cron** `bp-reminder-morning` / `bp-reminder-evening` — 15:00 / 03:00 UTC.
+- **Cron** `bp-reminder-morning` / `bp-reminder-evening` — 15:00 / 01:00 UTC (8 AM / 6 PM Arizona).
 
 ### One-time secret activation
 
