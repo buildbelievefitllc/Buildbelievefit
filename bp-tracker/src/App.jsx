@@ -13,6 +13,16 @@ import BigNumberField from './components/BigNumberField.jsx'
 import TimeOfDayToggle from './components/TimeOfDayToggle.jsx'
 import CrisisAlert from './components/CrisisAlert.jsx'
 
+// Friendly text for the error slugs create-google-doc can return.
+const EXPORT_MESSAGES = {
+  google_not_configured:
+    'Doctor export isn’t set up yet — the Google connection still needs to be added.',
+  bad_service_account_json:
+    'The Google account key looks malformed — please re-paste the full JSON.',
+  query_failed: 'Could not read your readings just now. Please try again.',
+  export_failed: 'The Google export hit a snag. Please try again in a moment.',
+}
+
 const TONE_COLOR = {
   normal: 'text-emerald-400',
   elevated: 'text-yellow-300',
@@ -93,7 +103,18 @@ export default function App() {
       const { data, error } = await supabase.functions.invoke('create-google-doc', {
         body: {},
       })
-      if (error) throw error
+      if (error) {
+        // supabase-js wraps HTTP errors; the real slug is in the response body.
+        let slug = ''
+        try {
+          slug = (await error.context?.json())?.error
+        } catch {
+          /* body not JSON — fall through to the generic message */
+        }
+        throw new Error(
+          EXPORT_MESSAGES[slug] || 'Could not create the document. Please try again.',
+        )
+      }
       if (!data?.doc_url) throw new Error('No document link returned.')
       setDocUrl(data.doc_url)
       setExportState('done')
