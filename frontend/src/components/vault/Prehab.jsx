@@ -380,10 +380,30 @@ function DrillVideo({ url, title }) {
 // UI-chrome localization (the matrix DRILLS carry their own en/es/pt; the clinical
 // diagnosis_hypothesis is English in the data and rendered verbatim).
 const DX_STR = {
-  en: { kicker: 'Autonomous Physical Therapist', title: 'Joint Symptom Diagnostic', desc: 'Three inputs compile a clinical hypothesis and your corrective protocol. Isolate the joint, the pain signature, then the mechanic that provokes it.', step: 'Step', s1: 'Joint Complex', s2: 'Pain Profile', s3: 'Trigger Mechanic', h1: 'Where is the dysfunction?', h2: 'What does it feel like?', h3: 'What provokes it?', dx: 'Diagnosis Hypothesis', dxToggle: 'View Clinical Hypothesis', rx: 'Corrective Protocol', reset: '↻ New Diagnosis' },
-  es: { kicker: 'Fisioterapeuta Autónomo', title: 'Diagnóstico por Síntoma Articular', desc: 'Tres entradas compilan una hipótesis clínica y tu protocolo correctivo. Aísla la articulación, el tipo de dolor y la mecánica que lo provoca.', step: 'Paso', s1: 'Complejo Articular', s2: 'Perfil del Dolor', s3: 'Mecánica Desencadenante', h1: '¿Dónde está la disfunción?', h2: '¿Qué sensación produce?', h3: '¿Qué lo provoca?', dx: 'Hipótesis Diagnóstica', dxToggle: 'Ver Hipótesis Clínica', rx: 'Protocolo Correctivo', reset: '↻ Nuevo Diagnóstico' },
-  pt: { kicker: 'Fisioterapeuta Autônomo', title: 'Diagnóstico por Sintoma Articular', desc: 'Três entradas compilam uma hipótese clínica e o seu protocolo corretivo. Isole a articulação, o tipo de dor e a mecânica que o provoca.', step: 'Passo', s1: 'Complexo Articular', s2: 'Perfil da Dor', s3: 'Mecânica Desencadeante', h1: 'Onde está a disfunção?', h2: 'O que você sente?', h3: 'O que provoca?', dx: 'Hipótese Diagnóstica', dxToggle: 'Ver Hipótese Clínica', rx: 'Protocolo Corretivo', reset: '↻ Novo Diagnóstico' },
+  en: { kicker: 'Autonomous Physical Therapist', title: 'Joint Symptom Diagnostic', desc: 'Three inputs compile a clinical hypothesis and your corrective protocol. Isolate the joint, the pain signature, then the mechanic that provokes it.', step: 'Step', s1: 'Joint Complex', s2: 'Pain Profile', s3: 'Trigger Mechanic', h1: 'Where is the dysfunction?', h2: 'What does it feel like?', h3: 'What provokes it?', dx: 'Diagnosis Hypothesis', dxToggle: 'View Clinical Details', rx: 'Corrective Protocol', reset: '↻ New Diagnosis' },
+  es: { kicker: 'Fisioterapeuta Autónomo', title: 'Diagnóstico por Síntoma Articular', desc: 'Tres entradas compilan una hipótesis clínica y tu protocolo correctivo. Aísla la articulación, el tipo de dolor y la mecánica que lo provoca.', step: 'Paso', s1: 'Complejo Articular', s2: 'Perfil del Dolor', s3: 'Mecánica Desencadenante', h1: '¿Dónde está la disfunción?', h2: '¿Qué sensación produce?', h3: '¿Qué lo provoca?', dx: 'Hipótesis Diagnóstica', dxToggle: 'Ver Detalles Clínicos', rx: 'Protocolo Correctivo', reset: '↻ Nuevo Diagnóstico' },
+  pt: { kicker: 'Fisioterapeuta Autônomo', title: 'Diagnóstico por Sintoma Articular', desc: 'Três entradas compilam uma hipótese clínica e o seu protocolo corretivo. Isole a articulação, o tipo de dor e a mecânica que o provoca.', step: 'Passo', s1: 'Complexo Articular', s2: 'Perfil da Dor', s3: 'Mecânica Desencadeante', h1: 'Onde está a disfunção?', h2: 'O que você sente?', h3: 'O que provoca?', dx: 'Hipótese Diagnóstica', dxToggle: 'Ver Detalhes Clínicos', rx: 'Protocolo Corretivo', reset: '↻ Novo Diagnóstico' },
 };
+
+// Plain-English display labels for the clinical matrix strings (§1 — de-jargon the
+// UI WITHOUT touching the data). The RAW clinical string stays the selection value
+// AND the matrix lookup key: node matching (joint_complex / pain_profile /
+// trigger_mechanic) and symptom pre-isolation (AREA_TO_MATRIX_JOINT in
+// useActiveSymptom) both key on it, so only the rendered chip text is swapped.
+// Anything not mapped here renders verbatim.
+const DIAG_LABELS = {
+  'Lumbar Spine / LPHC': 'Lower Back & Hips (Lumbar / LPHC)',
+  'Patellofemoral / Tibiofemoral': 'Knee Joint (Patellofemoral)',
+  'Glenohumeral / Scapulothoracic': 'Shoulder & Upper Back',
+  'Talocrural / Achilles': 'Ankle & Heel (Talocrural)',
+  'Cervical / Thoracic Spine': 'Neck & Upper Back',
+};
+function diagLabel(v) {
+  if (DIAG_LABELS[v]) return DIAG_LABELS[v];
+  // The lone axial-load trigger → a plain movement cue (em-dash-safe prefix match).
+  if (typeof v === 'string' && v.startsWith('Under axial load')) return 'Squatting, Bending, or Heavy Lifting';
+  return v;
+}
 
 function MobilityPlanner() {
   const s = usePrehabStr().mob;
@@ -476,7 +496,7 @@ function DiagStep({ n, stepWord, label, hint, options, selected, onPick, stack }
             className={`pdx-opt${o === selected ? ' is-on' : ''}`}
             onClick={() => onPick(o)}
           >
-            {o}
+            {diagLabel(o)}
           </button>
         ))}
       </div>
@@ -525,33 +545,41 @@ function DiagnosisResult({ node, lang, d, onReset }) {
                 </div>
                 <span className="pdx-drill-vol">{drill.volume}</span>
               </div>
-              {L.description ? <p className="pdx-drill-desc">{L.description}</p> : null}
-              {(() => {
-                const enName = (drill.localization && drill.localization.en && drill.localization.en.name) || drill.type || `step-${drill.step}`;
-                // MARGIN GUARD: standardized prehab cues play from the repo-static
-                // library — UNGATED, free for every tier (zero ElevenLabs spend). Only
-                // the dynamic fallback (a drill not yet in the static manifest) is a
-                // paid synth, so it stays gated to voice_coach (premium tiers only).
-                const slug = prehabSlug(enName);
-                if (slug) {
-                  return <CoachVoiceNote slug={slug} title={L.name || drill.type} topic={staticTopic(slug, lang)} />;
-                }
-                const cueText = [L.name, L.description, ...cues].map((x) => String(x || '').trim()).filter(Boolean).join('. ');
-                return cueText ? (
-                  <TierGate feature="voice_coach" render="hide">
-                    <CoachAudioButton
-                      audioRequest={() => fetchSectionCoachAudio({ context: 'prehab', cueRef: `prehab:${enName}`, cueText, locale: lang })}
-                      fallbackText={cueText}
-                    />
-                  </TierGate>
-                ) : null;
-              })()}
-              <DrillVideo url={drill.youtube_url} title={L.name || drill.type} />
-              {cues.length ? (
-                <ul className="pdx-cues">
-                  {cues.map((c, i) => <li key={i} className="pdx-cue">{c}</li>)}
-                </ul>
-              ) : null}
+              {/* 2-column body — mirrors the compact Select Friction Area deck
+                  (.pde-ex-body): coaching text + cues on the left, the demo video
+                  parked in the narrow right column so a full-width 16:9 embed no
+                  longer blows out the card. Collapses to one column on phones. */}
+              <div className="pdx-drill-body">
+                <div className="pdx-drill-main">
+                  {L.description ? <p className="pdx-drill-desc">{L.description}</p> : null}
+                  {(() => {
+                    const enName = (drill.localization && drill.localization.en && drill.localization.en.name) || drill.type || `step-${drill.step}`;
+                    // MARGIN GUARD: standardized prehab cues play from the repo-static
+                    // library — UNGATED, free for every tier (zero ElevenLabs spend). Only
+                    // the dynamic fallback (a drill not yet in the static manifest) is a
+                    // paid synth, so it stays gated to voice_coach (premium tiers only).
+                    const slug = prehabSlug(enName);
+                    if (slug) {
+                      return <CoachVoiceNote slug={slug} title={L.name || drill.type} topic={staticTopic(slug, lang)} />;
+                    }
+                    const cueText = [L.name, L.description, ...cues].map((x) => String(x || '').trim()).filter(Boolean).join('. ');
+                    return cueText ? (
+                      <TierGate feature="voice_coach" render="hide">
+                        <CoachAudioButton
+                          audioRequest={() => fetchSectionCoachAudio({ context: 'prehab', cueRef: `prehab:${enName}`, cueText, locale: lang })}
+                          fallbackText={cueText}
+                        />
+                      </TierGate>
+                    ) : null;
+                  })()}
+                  {cues.length ? (
+                    <ul className="pdx-cues">
+                      {cues.map((c, i) => <li key={i} className="pdx-cue">{c}</li>)}
+                    </ul>
+                  ) : null}
+                </div>
+                <DrillVideo url={drill.youtube_url} title={L.name || drill.type} />
+              </div>
             </li>
           );
         })}

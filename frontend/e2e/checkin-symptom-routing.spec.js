@@ -46,8 +46,10 @@ test('a logged Shoulder issue routes the Protocol Deck to shoulder — not the l
   await expect(deck).not.toContainText('Spine Decompression & Pelvic Stabilization');
 
   // The Joint Symptom Diagnostic pre-isolated the reported joint (Step 1 answered).
+  // The chip now shows the plain-English display label (DIAG_LABELS in Prehab.jsx);
+  // the underlying selection value stays the raw 'Glenohumeral / Scapulothoracic' key.
   const diag = page.getByTestId('prehab-diagnostic');
-  await expect(diag.getByRole('radio', { name: 'Glenohumeral / Scapulothoracic' })).toHaveAttribute('aria-checked', 'true');
+  await expect(diag.getByRole('radio', { name: 'Shoulder & Upper Back' })).toHaveAttribute('aria-checked', 'true');
 });
 
 test('no symptom logged → the deck keeps its neutral default (and manual taps win)', async ({ page }) => {

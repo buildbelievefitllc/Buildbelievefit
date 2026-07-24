@@ -606,7 +606,9 @@
 .pdx-rx-name { font-family: var(--display, var(--hb)); font-style: italic; font-size: 1.25rem; letter-spacing: .5px; color: var(--wht); }
 
 .pdx-drills { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .7rem; }
-.pdx-drill { border: 1px solid #1d1828; border-radius: 14px; background: linear-gradient(180deg, #0d0a14, #08060c); padding: .9rem 1rem; }
+/* Drill card — styled to match the compact Select Friction Area deck cards (.pde-ex):
+   same matte gradient, hairline border and 16px radius. */
+.pdx-drill { border: 1px solid #1a1a1e; border-radius: 16px; background: linear-gradient(180deg, #0c0c0e, #070708); padding: .85rem .95rem 1rem; }
 .pdx-drill-top { display: flex; align-items: flex-start; gap: .7rem; }
 .pdx-drill-step {
   flex: 0 0 auto; width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
@@ -616,11 +618,19 @@
 .pdx-drill-type { font-family: var(--hb); font-size: .58rem; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold-deep, #d4af37); }
 .pdx-drill-name { font-family: var(--bd); font-size: 1.02rem; font-weight: 800; color: var(--wht); line-height: 1.2; }
 .pdx-drill-vol { flex: 0 0 auto; font-family: var(--mono, ui-monospace), monospace; font-size: .72rem; font-weight: 700; color: var(--gold-soft, #f5c800); text-align: right; max-width: 38%; }
-.pdx-drill-desc { margin: .65rem 0 0; font-family: var(--bd); font-size: .86rem; line-height: 1.55; color: var(--mut); }
-/* Privacy-enhanced YouTube player — 16:9, Sovereign 18px radius, scales in the card. */
+.pdx-drill-desc { margin: 0 0 .8rem; font-family: var(--bd); font-size: .86rem; line-height: 1.55; color: var(--mut); }
+/* Compact 2-column body — mirrors the Select Friction Area deck (.pde-ex-body):
+   coaching text + cues on the left, the demo video in the narrow right column so it
+   no longer stacks full-width. align-items:start keeps the 16:9 embed from stretching
+   to the taller text column. Collapses to one column on phones (see media query). */
+.pdx-drill-body { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.1rem; margin-top: .8rem; align-items: start; }
+.pdx-drill-main { min-width: 0; }
+/* Privacy-enhanced YouTube player — 16:9 inside its column, matched to the deck's
+   compact .pde-video (12px radius, #1a1a1e hairline). The narrow right column caps
+   the embed height instead of the old full-width 16:9 that dominated the card. */
 .pdx-video {
-  position: relative; margin-top: .8rem; width: 100%; aspect-ratio: 16 / 9;
-  border-radius: 18px; overflow: hidden; border: 1px solid #1d1828; background: #000;
+  position: relative; width: 100%; aspect-ratio: 16 / 9;
+  border-radius: 12px; overflow: hidden; border: 1px solid #1a1a1e; background: #000;
 }
 /* V8.7 — the corrective-drill cover (button before tap). */
 .pdx-video.bbf-video-cover { display: block; }
@@ -678,5 +688,6 @@
   .pde-ex-body { grid-template-columns: 1fr; }
   .pde-ex-toggle { flex-wrap: wrap; }  /* phone: chips wrap under the name — nothing hidden */
   .pde-transport { grid-template-columns: 1fr; }
+  .pdx-drill-body { grid-template-columns: 1fr; }  /* phone: video stacks under the text */
   .pdx-drill-vol { max-width: none; text-align: left; }
 }
