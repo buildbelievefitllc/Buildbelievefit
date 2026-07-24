@@ -26,6 +26,11 @@
 //   compile        → { ok, plan:{name,cal,goal,days[]}, meta, persisted }
 //                    (relays to Render /api/rotate-nutrition + writes the plan back)
 //
+//   ── Sports (Athlete Portal admin) ──
+//   sports_telemetry → { ok, windowDays, since, logs, bouts, progressions }
+//                    (Panopticon datasets; replaces the anon PostgREST reads
+//                    closed by 20260716120000_bbf_sports_tables_anon_lockdown)
+//
 //   ── Comlink (Command Center · Comlink tab) ──
 //   leads_list     → { ok, total, provisioned, pending, leads:[...] }  (Pathfinder apps)
 //   concierge_log  → { ok, runs:[{run_id, sent, failed, skipped, actions:[...]}] }
@@ -84,7 +89,10 @@ function pickTarget(override: unknown, stored: unknown): number {
   return 0;
 }
 
-// Roster = clients + athletes only. admin/trainer are excluded by construction.
+// Roster = clients + athletes only. admin/trainer are excluded by construction —
+// with ONE exception: the founder (uid='akeem') is surfaced so the Founder Five
+// hub can track his own active-client metrics. His role STAYS 'trainer' (admin
+// auth keys on it); see the roster action's OR filter + bbf_admin_roster_telemetry.
 const ROSTER_ROLES = ['client', 'athlete'];
 
 // Contraindicated movements (the BBF blacklist) — defensively stripped from any
@@ -398,9 +406,13 @@ serve(async (req) => {
     // ── roster ──────────────────────────────────────────────────────────────────
     if (action === 'roster') {
       const roleFilter = ROSTER_ROLES.map((r) => `"${r}"`).join(',');
+      // Founder self-view exception (uid='akeem'): the CEO stays role='trainer'
+      // (admin auth keys on it), so the role filter alone would hide him. Surface
+      // him via an OR so the Founder Five hub tracks his own active-client row.
       const rows = await pgGet(
         `bbf_users?select=id,uid,name,email,role,metabolic_tier,subscription_tier,` +
-        `access_status,trial_expires_at,tdee_target,updated_at&role=in.(${roleFilter})` +
+        `access_status,trial_expires_at,tdee_target,updated_at` +
+        `&or=(role.in.(${roleFilter}),uid.eq.akeem)` +
         `&deleted_at=is.null&order=name.asc`,
       );
       // Stamp each row with a single, server-derived account_status so the Access
@@ -684,6 +696,45 @@ serve(async (req) => {
         };
       });
       return jsonResponse({ ok: true, count: athletes.length, athletes });
+    }
+
+    // ── sports_telemetry (Panopticon reads) ──────────────────────────────────────
+    // Service-role replacement for the retired anon PostgREST reads of the three
+    // sports telemetry tables (anon policies dropped in
+    // 20260716120000_bbf_sports_tables_anon_lockdown). Returns the exact datasets
+    // frontend/src/lib/telemetryApi.js buckets client-side: 28-day load logs,
+    // today's bouts (with embedded athlete_id), and the latest progressions.
+    if (action === 'sports_telemetry') {
+      const DAY_MS = 24 * 60 * 60 * 1000;
+      const WINDOW = 28;
+      const todayMid = new Date();
+      todayMid.setUTCHours(0, 0, 0, 0);
+      const sinceISO = new Date(todayMid.getTime() - (WINDOW - 1) * DAY_MS).toISOString();
+      const todayISO = todayMid.toISOString();
+      const tomorrowISO = new Date(todayMid.getTime() + DAY_MS).toISOString();
+      const soft = (p: Promise<any>) => p.catch(() => []);
+      const [logs, bouts, progressions] = await Promise.all([
+        soft(pgGet(
+          `bbf_athlete_load_logs?select=athlete_id,session_timestamp,load_au` +
+          `&session_timestamp=gte.${encodeURIComponent(sinceISO)}&order=session_timestamp.asc`,
+        )),
+        soft(pgGet(
+          `bbf_athlete_load_bouts?select=bout_type,exercise_name,start_timestamp,end_timestamp,` +
+          `log:bbf_athlete_load_logs!inner(athlete_id)` +
+          `&start_timestamp=gte.${encodeURIComponent(todayISO)}` +
+          `&start_timestamp=lt.${encodeURIComponent(tomorrowISO)}&order=start_timestamp.asc`,
+        )),
+        soft(pgGet(
+          `bbf_athlete_progression?select=user_id,sport,position,phase,protocol_completed,updated_at` +
+          `&order=updated_at.desc&limit=1000`,
+        )),
+      ]);
+      return jsonResponse({
+        ok: true, windowDays: WINDOW, since: sinceISO,
+        logs: Array.isArray(logs) ? logs : [],
+        bouts: Array.isArray(bouts) ? bouts : [],
+        progressions: Array.isArray(progressions) ? progressions : [],
+      });
     }
 
     // ── sports_insert (guarded youth write) ──────────────────────────────────────
