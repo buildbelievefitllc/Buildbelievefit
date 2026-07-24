@@ -689,5 +689,8 @@
   .pde-ex-toggle { flex-wrap: wrap; }  /* phone: chips wrap under the name — nothing hidden */
   .pde-transport { grid-template-columns: 1fr; }
   .pdx-drill-body { grid-template-columns: 1fr; }  /* phone: video stacks under the text */
-  .pdx-drill-vol { max-width: none; text-align: left; }
+  /* phone: the volume drops to its own full-width line so a long rep-scheme string
+     never overlaps the drill type/name in the header row. */
+  .pdx-drill-top { flex-wrap: wrap; }
+  .pdx-drill-vol { max-width: none; text-align: left; flex-basis: 100%; }
 }
