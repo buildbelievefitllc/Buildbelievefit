@@ -13,6 +13,7 @@
 
 import { supabase } from './supabaseClient.js';
 import { getStoredVaultToken } from '../context/AuthContext.jsx';
+import { normalizeHrvMs } from './hrvNormalize.js';
 
 // Null/undefined/'' guard FIRST — Number(null) is 0, not NaN. Without it a
 // no-watch night ("not measured" → null hrv/sleep) lands as 0 on the ledger and
@@ -38,7 +39,10 @@ export function mapRecoveryToBiometricDay(recovery) {
   const r = recovery || {};
   return {
     date: r.reading_date || null,
-    hrv_ms: num(r.hrv_ms),
+    // RMSSD normalized to the recovery anchor natively (rolling 24h, overnight
+    // baseline) and sanitized here (null-safe, implausible-high dropped, genuine
+    // lows preserved so the engine's HRV_BREACH floor still fires).
+    hrv_ms: normalizeHrvMs(r.hrv_ms),
     sleep_minutes: num(r.sleep_minutes),
     active_calories_burned: intOrNull(r.active_kcal),
     daily_steps: num(r.daily_steps),

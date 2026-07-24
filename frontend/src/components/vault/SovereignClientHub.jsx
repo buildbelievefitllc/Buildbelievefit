@@ -38,6 +38,7 @@ import { saveManualBaseline, manualSubjective, useManualBaselineToday } from '..
 import { useProgramDay } from '../../lib/useProgramDay.js';
 import MindsetIntercept from './MindsetIntercept.jsx';
 import RecoveryPrescriptionCard from './RecoveryPrescriptionCard.jsx';
+import StepTracker from './StepTracker.jsx';
 import SovereignBriefingCard from './SovereignBriefingCard.jsx';
 import { SequenceNext } from './SovereignSequence.jsx';
 import ContextualVoiceover from './ContextualVoiceover.jsx';
@@ -305,6 +306,12 @@ export default function SovereignClientHub({ refreshKey = 0, onSequence, prescri
           <p style={{ fontFamily: 'var(--bd,"Barlow Condensed")', fontSize: '.9rem', fontStyle: 'italic', color: '#f5c800', margin: '8px 0 0' }}>{personal.dedication.sign}</p>
         </div>
       ) : null}
+
+      {/* ── LIVE STEP TRACKER — native hardware pedometer (Android TYPE_STEP_COUNTER /
+          iOS CMPedometer via PedometerBridge). Renders only on-device with a step
+          sensor; composes daily progress from the day's Health Connect baseline +
+          the live session delta. ── */}
+      <StepTracker dayBaseline={view && view.vitals ? Number(view.vitals.daily_steps) || 0 : 0} />
 
       {/* ── LAUNCH SYNC DIAGNOSTIC — surfaces the auto force-pull's raw failure ── */}
       {syncStatus.state === 'error' && syncStatus.error ? (

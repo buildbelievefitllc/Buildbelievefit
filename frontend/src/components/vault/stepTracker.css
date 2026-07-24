@@ -1,0 +1,115 @@
+/* src/components/vault/stepTracker.css
+   Live Step Tracker card — LOCKED brand tokens (BBF Purple #6a0dad, Gold #f5c800,
+   Bebas Neue headers / Barlow Condensed body). Matte black is surface only. */
+
+.st-card {
+  border: 1px solid rgba(245, 200, 0, 0.30);
+  background: linear-gradient(180deg, rgba(106, 13, 173, 0.22), rgba(9, 9, 9, 0.30));
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  font-family: var(--bd, 'Barlow Condensed'), sans-serif;
+  color: #f9f5ff;
+}
+
+.st-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.st-kicker {
+  font-size: 0.66rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #f5c800;
+}
+
+.st-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  color: #22c55e;
+}
+
+.st-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+  animation: st-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes st-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-dot { animation: none; }
+  .st-fill { transition: none; }
+}
+
+.st-title {
+  font-family: var(--display, 'Bebas Neue'), sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 1px;
+  line-height: 1;
+  margin: 2px 0 8px;
+}
+
+.st-count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.st-steps {
+  font-family: var(--display, 'Bebas Neue'), sans-serif;
+  font-size: 2.1rem;
+  line-height: 1;
+  color: #f5c800;
+}
+
+.st-goal {
+  font-size: 0.85rem;
+  color: rgba(249, 245, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.st-bar {
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.10);
+  overflow: hidden;
+  margin: 10px 0 8px;
+}
+
+.st-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6a0dad, #f5c800);
+  transition: width 0.5s ease;
+}
+
+.st-card[data-bbf-reached="1"] .st-fill {
+  background: linear-gradient(90deg, #f5c800, #ffd83a);
+}
+
+.st-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: rgba(249, 245, 255, 0.78);
+}
+
+.st-session {
+  color: #22c55e;
+  font-weight: 700;
+}

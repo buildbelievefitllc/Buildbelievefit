@@ -24,6 +24,8 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>BBF Lab uses the microphone for voice-guided coaching sessions so you can answer Coach Akeem hands-free.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>BBF Lab reads your step count from the motion sensor to track live activity and daily step progress.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

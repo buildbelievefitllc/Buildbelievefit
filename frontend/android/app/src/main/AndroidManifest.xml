@@ -70,6 +70,11 @@
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
     <uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />
     <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <!-- Live hardware pedometer (PedometerBridge → TYPE_STEP_COUNTER). ACTIVITY_-
+         RECOGNITION is a runtime permission on API 29+; the step-counter sensor is
+         declared non-required so devices without it still install (JS degrades). -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
     <!-- Calorie fallback (Samsung Health writes TOTAL, not ACTIVE): read total +
          BMR so active burn can be derived as total − BMR when active is absent. -->
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />

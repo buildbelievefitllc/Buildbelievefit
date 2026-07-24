@@ -28,8 +28,8 @@ import kotlin.reflect.KClass
 
 /**
  * Pure Health Connect logic — no Capacitor types here so it stays unit-testable and
- * framework-agnostic. Reads the most recent HRV (RMSSD), the last sleep session, and
- * the day's activity load, then builds the canonical recovery JSON the React trigger
+ * framework-agnostic. Reads normalized HRV (RMSSD) over a rolling 24h window, the last
+ * sleep session, and the day's activity load, then builds the canonical recovery JSON
  * maps onto the `manual` bbf-wearable-ingest payload.
  *
  * ACTIVITY METRICS USE THE AGGREGATE API (solidified fix): steps and calories come
@@ -64,7 +64,19 @@ class HealthConnectManager(private val context: Context) {
             HealthPermission.getReadPermission(BasalMetabolicRateRecord::class),
         )
 
-        private const val RECOVERY_WINDOW_HOURS = 48L // HRV + sleep look-back (the order)
+        private const val RECOVERY_WINDOW_HOURS = 48L // sleep session look-back
+
+        // HRV uses a ROLLING 24h window (task: capture daytime spot checks in addition
+        // to the overnight baseline). A 48h FALLBACK is consulted ONLY when the 24h
+        // window is empty, so a stale-but-valid overnight reading is never lost — the
+        // exact regression the previous flat-48h HRV read was guarding against.
+        private const val HRV_PRIMARY_WINDOW_HOURS = 24L
+        private const val HRV_FALLBACK_WINDOW_HOURS = 48L
+
+        // Local hour-of-day boundary separating the resting/overnight baseline from
+        // daytime spot checks: [22:00, 24:00) ∪ [00:00, 09:00) counts as overnight.
+        private const val OVERNIGHT_START_HOUR = 22
+        private const val OVERNIGHT_END_HOUR = 9
     }
 
     fun sdkStatus(): Int = HealthConnectClient.getSdkStatus(context)
@@ -80,9 +92,9 @@ class HealthConnectManager(private val context: Context) {
     }
 
     /**
-     * Reads the latest HRV (48h) + the most recent sleep session (48h) via record
-     * reads, and the LOCAL DAY's steps + active calories via deduplicating
-     * aggregates, then returns the canonical recovery payload. Real data only.
+     * Reads normalized HRV (rolling 24h, 48h fallback) + the most recent sleep session
+     * (48h) via record reads, and the LOCAL DAY's steps + active calories via
+     * deduplicating aggregates, then returns the canonical recovery payload. Real data only.
      */
     suspend fun readRecovery(): JSONObject = withContext(Dispatchers.IO) {
         val hc = client()
@@ -96,15 +108,29 @@ class HealthConnectManager(private val context: Context) {
         val dayWindow = TimeRangeFilter.between(dayStart, now)
         val dayHours = Duration.between(dayStart, now).toMillis() / 3_600_000.0
 
-        // ── HRV (RMSSD, ms) — most recent sample in the 48h window ──
-        val hrvRecords = hc.readRecords(
-            ReadRecordsRequest(
+        // ── HRV (RMSSD, ms) — ROLLING 24h window (daytime spot checks + overnight
+        //    baseline), with a 48h fallback used only when the 24h window is empty.
+        //    Normalized to the recovery anchor: the overnight resting mean when
+        //    present (physiologically correct + continuous with the prior morning-
+        //    reading behavior), else the most recent reading. ──
+        val hrvPrimaryWindow =
+            TimeRangeFilter.between(now.minus(Duration.ofHours(HRV_PRIMARY_WINDOW_HOURS)), now)
+        var hrvRecords = readSafe(HeartRateVariabilityRmssdRecord::class, hc, hrvPrimaryWindow)
+        var hrvWindowHours = HRV_PRIMARY_WINDOW_HOURS
+        if (hrvRecords.isEmpty()) {
+            val fallback = readSafe(
                 HeartRateVariabilityRmssdRecord::class,
-                timeRangeFilter = recoveryWindow,
-            ),
-        ).records
+                hc,
+                TimeRangeFilter.between(now.minus(Duration.ofHours(HRV_FALLBACK_WINDOW_HOURS)), now),
+            )
+            if (fallback.isNotEmpty()) {
+                hrvRecords = fallback
+                hrvWindowHours = HRV_FALLBACK_WINDOW_HOURS
+            }
+        }
+        val hrv = normalizeHrv(hrvRecords, zone)
         val latestHrv = hrvRecords.maxByOrNull { it.time }
-        val hrvMs: Double? = latestHrv?.heartRateVariabilityMillis
+        val hrvMs: Double? = hrv.normalizedMs
 
         // ── Sleep — most recent session; minutes asleep (stages) or in-bed fallback ──
         val sleepRecords = hc.readRecords(
@@ -135,19 +161,20 @@ class HealthConnectManager(private val context: Context) {
         // record counts straight off the OS boundary AND fold them into `samples`
         // (visible on-device, no Android Studio logcat needed).
         //
-        // TIME ANCHORS: HRV already uses the 48h recovery window — overnight HRV is
-        // written BEFORE midnight, so a "today only" window would miss it; this one
-        // does not (narrowing to 24h would be a regression). Active-cal is probed over
+        // TIME ANCHORS: HRV now uses a ROLLING 24h window (daytime spot checks +
+        // overnight baseline) with a 48h FALLBACK when 24h is empty — a pre-midnight
+        // overnight reading is still captured, never lost. Active-cal is probed over
         // BOTH today (its value window, the same one steps uses) and 48h, so a
         // "window too narrow" cause is distinguishable from "nothing logged at all".
-        Log.e("BBF_HEALTH_SYNC", "HRV Records found: ${hrvRecords.size} (window=${RECOVERY_WINDOW_HOURS}h)")
+        Log.e("BBF_HEALTH_SYNC", "HRV Records found: ${hrvRecords.size} (window=${hrvWindowHours}h, overnight=${hrv.overnightCount}, daytime=${hrv.daytimeCount}, norm=$hrvMs)")
         val activeToday = probeCount(ActiveCaloriesBurnedRecord::class, hc, dayWindow)
         val active48h = probeCount(ActiveCaloriesBurnedRecord::class, hc, recoveryWindow)
         val total48h = probeCount(TotalCaloriesBurnedRecord::class, hc, recoveryWindow)
         Log.e("BBF_HEALTH_SYNC", "ActiveCalories found — today=$activeToday, 48h=$active48h, total48h=$total48h, resolved=${cal.source}/${cal.kcal}")
 
         val hrvRawDump = if (hrvRecords.isEmpty()) "EMPTY_FROM_OS"
-            else "count=${hrvRecords.size}; latestMs=${hrvMs}; at=${latestHrv?.time}"
+            else "count=${hrvRecords.size}; normalizedMs=$hrvMs; overnightMs=${hrv.overnightMs}; " +
+                "daytimeLatestMs=${hrv.daytimeLatestMs}; medianMs=${hrv.medianMs}; latestAt=${latestHrv?.time}"
         val activeCalRawDump =
             "today=$activeToday; 48h=$active48h; total48h=$total48h; resolved=${cal.source}/${cal.kcal}"
 
@@ -164,6 +191,12 @@ class HealthConnectManager(private val context: Context) {
                 "samples",
                 JSONObject().apply {
                     put("hrv_count", hrvRecords.size)
+                    put("hrv_window_hours", hrvWindowHours)
+                    put("hrv_overnight_ms", hrv.overnightMs ?: JSONObject.NULL)
+                    put("hrv_daytime_latest_ms", hrv.daytimeLatestMs ?: JSONObject.NULL)
+                    put("hrv_median_ms", hrv.medianMs ?: JSONObject.NULL)
+                    put("hrv_overnight_count", hrv.overnightCount)
+                    put("hrv_daytime_count", hrv.daytimeCount)
                     put("hrv_raw_dump", hrvRawDump)
                     put("active_cal_raw_dump", activeCalRawDump)
                     put("sleep_sessions", sleepRecords.size)
@@ -283,5 +316,62 @@ class HealthConnectManager(private val context: Context) {
             if (asleep > 0) return asleep
         }
         return Duration.between(session.startTime, session.endTime).toMinutes()
+    }
+
+    /**
+     * Normalized HRV (RMSSD) over the query window. `normalizedMs` is the value the
+     * readiness engine consumes for recovery: the OVERNIGHT resting baseline (mean of
+     * 22:00–09:00 readings) when present — the physiologically correct recovery anchor
+     * and continuous with the prior "morning reading" behavior — else the most recent
+     * reading. Daytime spot checks + a robust 24h median are surfaced alongside (in
+     * `samples`) for telemetry without perturbing the recovery anchor.
+     */
+    private data class HrvNormalization(
+        val normalizedMs: Double?,
+        val overnightMs: Double?,
+        val daytimeLatestMs: Double?,
+        val medianMs: Double?,
+        val count: Int,
+        val overnightCount: Int,
+        val daytimeCount: Int,
+    )
+
+    private fun normalizeHrv(
+        records: List<HeartRateVariabilityRmssdRecord>,
+        zone: ZoneId,
+    ): HrvNormalization {
+        // Drop non-finite / non-positive readings (sensor noise); the JS layer clamps
+        // the surviving value to the canonical physiological band too (defense in depth).
+        val valid = records.filter { it.heartRateVariabilityMillis.isFinite() && it.heartRateVariabilityMillis > 0.0 }
+        if (valid.isEmpty()) return HrvNormalization(null, null, null, null, 0, 0, 0)
+
+        val overnight = valid.filter { isOvernight(it.time, zone) }
+        val daytime = valid.filter { !isOvernight(it.time, zone) }
+        val overnightMs = mean(overnight.map { it.heartRateVariabilityMillis })
+        val daytimeLatestMs = daytime.maxByOrNull { it.time }?.heartRateVariabilityMillis
+        val latestMs = valid.maxByOrNull { it.time }?.heartRateVariabilityMillis
+        return HrvNormalization(
+            normalizedMs = overnightMs ?: latestMs, // resting baseline first, else latest
+            overnightMs = overnightMs,
+            daytimeLatestMs = daytimeLatestMs,
+            medianMs = median(valid.map { it.heartRateVariabilityMillis }),
+            count = valid.size,
+            overnightCount = overnight.size,
+            daytimeCount = daytime.size,
+        )
+    }
+
+    private fun isOvernight(t: Instant, zone: ZoneId): Boolean {
+        val h = t.atZone(zone).hour
+        return h >= OVERNIGHT_START_HOUR || h < OVERNIGHT_END_HOUR
+    }
+
+    private fun mean(xs: List<Double>): Double? = if (xs.isEmpty()) null else xs.sum() / xs.size
+
+    private fun median(xs: List<Double>): Double? {
+        if (xs.isEmpty()) return null
+        val s = xs.sorted()
+        val mid = s.size / 2
+        return if (s.size % 2 == 1) s[mid] else (s[mid - 1] + s[mid]) / 2.0
     }
 }
